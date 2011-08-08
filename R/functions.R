@@ -2267,7 +2267,11 @@ discordance <- function(rd1, rd2, I.STATE, ...){
 	return(rd1)
 }
 
-initializeTrioContainer <- function(path, samplesheet, pedigree, trio.phenodata, chromosomes=1:22, file.ext="", cdfName, ..., verbose){
+initializeTrioContainer <- function(path, samplesheet, pedigree,
+				    trio.phenodata,
+				    chromosomes=1:22,
+				    file.ext="",
+				    cdfName, ..., verbose){
 	stopifnot(require(ff))
 	stopifnot(all(chromosomes %in% 1:22))
 	##stopifnot(all(file.exists(dirname(filenames))))
