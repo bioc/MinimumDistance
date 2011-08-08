@@ -2305,6 +2305,7 @@ initializeTrioContainer <- function(path, samplesheet, pedigree,
 		##
 		if(verbose) message("\t Chromosome ", CHR)
 		L <- length(marker.index.list[[CHR]])
+		## change to initializeBigMatrix
 		logR <- createFF(paste("logR_chr", CHR, "_", sep=""),
 				 dim=c(L, nrow(pedigree), 3),
 				 vmode="double")
