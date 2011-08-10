@@ -38,10 +38,15 @@ setMethod("initialize", signature(.Object="TrioSet"),
 		  dimnames(.Object@mad) <- list(sampleNames(.Object), c("F", "M", "O"))
 		  if(nrow(.Object) > 0){
 			  CHR <- unique(chromosome(.Object))
-			  md <- createFF(paste("mindist_chr", CHR, "_", sep=""),
-					 vmode="double",
-					 dim=c(nrow(.Object), ncol(.Object)),
-					 initdata=NA)
+			  md <- initializeBigMatrix(paste("mindist_chr", CHR, "_", sep=""),
+						    vmode="double",
+						    nr=nrow(logR(.Object)),
+						    nc=nc(logR(.Object)),
+						    initdata=NA)
+##			  md <- createFF(paste("mindist_chr", CHR, "_", sep=""),
+##					 vmode="double",
+##					 dim=c(nrow(.Object), ncol(.Object)),
+##					 initdata=NA)
 			  dimnames(md) <- list(featureNames(.Object), sampleNames(.Object))
 			  mindist(.Object) <- md
 		  }
