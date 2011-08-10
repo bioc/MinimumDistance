@@ -2267,69 +2267,7 @@ discordance <- function(rd1, rd2, I.STATE, ...){
 	return(rd1)
 }
 
-initializeTrioContainerFromArray <- function(samplesheet,
-					     pedigree,
-					     trio.phenodata,
-					     chromosomes=1:22,
-					     file.ext="",
-					     cdfName, ...,
-					     verbose=TRUE){
-	stopifnot(all(chromosomes %in% 1:22))
-	if(is.null(rownames(pedigree))){
-		rns <- apply(pedigree, 1, paste, collapse=",")
-		rownames(pedigree) <- rns
-	}
-	stopifnot(!any(duplicated(rownames(pedigree))))
 
-	ss <- array(NA, dim=c(nrow(pedigree), ncol(samplesheet), 3),
-		    dimnames=list(rownames(pedigree),
-		    colnames(samplesheet),
-		    c("F", "M", "O")))
-	father.index <- match(pedigree[, "F"], s(samplesheet$Sample.Name))
-	mother.index <- match(pedigree[, "M"], s(samplesheet$Sample.Name))
-	offspring.index <- match(pedigree[, "O"], s(samplesheet$Sample.Name))
-	ss[, , "F"] <- as.matrix(samplesheet[father.index, ])
-	ss[, , "M"] <- as.matrix(samplesheet[mother.index, ])
-	ss[, , "O"] <- as.matrix(samplesheet[offspring.index, ])
-	marker.index.list <- split(seq(length=nrow(fD)), fD$chromosome)
-	stopifnot(all(diff(order(fD$chromosome, fD$position))>0))
-	trioSets <- vector("list", length(chromosomes))
-	for(j in seq_along(chromosomes)){
-		CHR <- chromosomes[j]
-		##
-		## WOULD BE BETTER TO HAVE A NON-FF OPTION
-		##
-		if(verbose) message("\t Chromosome ", CHR)
-		L <- length(marker.index.list[[CHR]])
-		## change to initializeBigMatrix
-		logR <- createFF(paste("logR_chr", CHR, "_", sep=""),
-				 dim=c(L, nrow(pedigree), 3),
-				 vmode="double")
-		baf <- createFF(paste("baf_chr", CHR, "_", sep=""),
-				dim=c(L, nrow(pedigree), 3),
-				vmode="double")
-		fd <- fD[marker.index.list[[j]], ]
-		dimnames(logR) <- dimnames(baf) <- list(featureNames(fd),
-							as.character(pedigree[, "O"]),
-							c("F", "M", "O"))
-		##pD <- annotatedDataFrameFrom(as.matrix(logR[, , 1]), byrow=FALSE)
-		pD <- annotatedDataFrameFrom(as.matrix(logR[, , 1]), byrow=FALSE)
-		sampleNames(pD) <- colnames(logR)
-		## having trouble initializing an object for one trio
-		trioSets[[j]] <- new("TrioSet",
-				     logRRatio=logR,
-				     BAF=baf,
-				     phenoData=pD,
-				     featureData=fD[marker.index.list[[CHR]], ],
-				     mindist=NULL,
-				     annotation=cdfName)
-		##sampleNames(phenoData(trioSets[[CHR]])) <- pedigree[, "O"]
-		## add data to phenoData2 slot
-		## (note: parents with multiple sibs are repeated)
-		trioSets[[CHR]]@phenoData2 <- ss
-	}
-	return(trioSets)
-}
 
 initializeTrioContainer <- function(path, samplesheet, pedigree,
 				    trio.phenodata,
