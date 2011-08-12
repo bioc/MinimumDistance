@@ -67,7 +67,7 @@ example.beadStudioFile <- list.files("/thumper/ctsa/snpmicroarray/hapmap/process
 				     pattern="CEU_Final",
 				     full.names=TRUE)
 c("character", "character", rep(NULL, 7), rep("numeric", 2))
-header <- read.delim(example.beadStudioFile, skip=9, nrows=10, sep="",
+header <- read.csv(example.beadStudioFile, skip=9,
 		     colClasses=c("character", "character", rep("NULL", 7), rep("numeric", 2)))
 trace(MinimumDistance:::initializeTrioContainer,browser)
 MinimumDistance::::initializeTrioContainer(pedigree,samplesheet)
