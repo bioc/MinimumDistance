@@ -269,8 +269,11 @@ fullId <- function(object) object@phenoData2[, "Sample.Name", ]
 
 setMethod("calculateMindist", signature(object="TrioSet"), function(object, ...){
 	sns <- sampleNames(object)
-	invisible(open(logR(object)))
-	invisible(open(mindist(object)))
+	is.ff <- is(logR(object), "ff")
+	if(is.ff){
+		invisible(open(logR(object)))
+		invisible(open(mindist(object)))
+	}
 	for(j in seq(length=ncol(object))){
 		if(j %% 100 == 0) cat(".")
 		lr <- logR(object)[, j, ]
@@ -281,8 +284,10 @@ setMethod("calculateMindist", signature(object="TrioSet"), function(object, ...)
 		mindist(object)[, j] <- md
 		object$MAD[j] <- mad(md, na.rm=TRUE)
 	}
-	close(mindist(object))
-	close(logR(object))
+	if(is.ff){
+		close(mindist(object))
+		close(logR(object))
+	}
 	return(object)
 })
 

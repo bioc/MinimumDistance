@@ -2515,14 +2515,6 @@ minimumDistanceCalls <- function(id, container,
 		segment.md <- FALSE
 		loadRanges <- FALSE
 	}
-##	if(missing(segment.md)){
-##		if(file.exists(cbs.filename)) {
-##			message("segment.md is missing but ", basename(cbs.filename), " already exists. Loading saved segmentation")
-##			segment.md <- FALSE
-##		} else{
-##			segment.md <- TRUE
-##		}
-##	}
 	if(segment.md){
 		stopifnot(!missing(cbs.filename))
 		stopifnot(file.exists(dirname(cbs.filename)))
@@ -2601,7 +2593,6 @@ minimumDistanceCalls <- function(id, container,
 		prunedRanges <- narrow(prunedRanges, cbs.segs.offspring, thr=0.075)
 	}
 	if(calculate.lr){
-
 ##		if(!missing(offspring.ranges)){
 ##			ii <- which(sampleNames(offspring.ranges) %in% id & chromosome(offspring.ranges) %in% chromosomes)
 ##			offspring.ranges <- offspring.ranges[ii, ]

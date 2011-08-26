@@ -113,7 +113,7 @@ the above files.
 
   \end{itemize}
 
-  <<eval=FALSE>>=
+<<eval=FALSE>>=
 container <- minimumDistance(path, ## for parsed data
 			     samplesheet=samplesheet2,
 			     pedigree=pedigree,
@@ -125,6 +125,16 @@ container <- minimumDistance(path, ## for parsed data
 			     calculate.md=calculate.md,
 			     exclusionRule=BeatyExperimentData:::excludeWGA,
 			     cdfName="human610quadv1b")
+@
+
+<<>>=
+load("~mbootwal/packages/MininmumDistance/data/trioSet-hapmap.rda")
+##
+tmp <- minimumDistance(container=trioSetList, readFiles=FALSE, calculate.md=TRUE,
+		       container.filename="~/trioSetList.rda")
+
+
+tmp <- minimumDistanceCalls(container=trioSetList, chromosomes=1, cbs.filename="results.rda")
 @
 
 
