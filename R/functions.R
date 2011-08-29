@@ -946,24 +946,37 @@ addRangeIndex <- function(id, trioSet, ranges){
 pHet <- function(i, id, trioSet){
 	j <- match(id, sampleNames(trioSet))
 	stopifnot(length(j) > 0)
-	open(baf(trioSet))
+	is.ff <- is(baf(trioSet), "ff")
+	if(is.ff){	
+		open(baf(trioSet))
+	}
 	b <- baf(trioSet)[i, j, 3]
-	close(baf(trioSet))
+	if(is.ff){
+		close(baf(trioSet))
+	}
 	mean(b > 0.4 & b < 0.6, na.rm=TRUE)
 }
 meanLogR <- function(i, id, trioSet){
 	j <- match(id, sampleNames(trioSet))
 	stopifnot(length(j) > 0)
-	open(logR(trioSet))
+	is.ff <- is(logR(trioSet), "ff")
+	if(is.ff){
+		open(logR(trioSet))
+	}
 	r <- logR(trioSet)[i, j, 3]
-	close(logR(trioSet))
+	if(is.ff){
+		close(logR(trioSet))
+	}
 	mean(r, na.rm=TRUE)
 }
 
 
 constructSet <- function(trioSet, CHR, id, states, ranges){
-	open(baf(trioSet))
-	open(logR(trioSet))
+	is.ff <- is(logR(trioSet), "ff")
+	if(is.ff){
+		open(baf(trioSet))
+		open(logR(trioSet))
+	}
 	i <- match(id[["O"]], offspringNames(trioSet))
 	mads <- mad(trioSet)[i, ]
 	S <- length(states)
@@ -988,8 +1001,10 @@ constructSet <- function(trioSet, CHR, id, states, ranges){
 	shits <- subjectHits(mm)
 	fData(object)$range.index <- NA
 	fData(object)$range.index[qhits] <- shits
-	close(baf(trioSet))
-	close(logR(trioSet))
+	if(is.ff){
+		close(baf(trioSet))
+		close(logR(trioSet))
+	}
 	return(object)
 }
 
@@ -1269,7 +1284,10 @@ computeLoglik <- function(id,
 	sds.sample <- mad(trioSet)[j, ]
 	stopifnot(all(!is.na(sds.sample)))
 	sds.sample <- matrix(sds.sample, nrow(trioSet), 3, byrow=TRUE)
-	open(logR(trioSet))
+	is.ff <- is(logR(trioSet), "ff")
+	if(is.ff){
+		open(logR(trioSet))
+	}
 ##	sds.marker <- rowMAD(logR(trioSet)[, , "O"], na.rm=TRUE)
 	sds.marker <- fData(trioSet)$marker.mad  ## these can be really big in CNV
 	##1. shrink the marker to the marker sds
@@ -1552,6 +1570,9 @@ computeLoglik <- function(id,
 
 
 
+	}
+	if(is.ff){
+		close(trioSet)
 	}
 	return(object)
 }
@@ -1945,7 +1966,10 @@ joint4 <- function(trioSet,
 
 calculateMarkerSd <- function(object, marker.index, sample.index){
 	## exclude wga samples
-	open(logR(object))
+	is.ff <- is(logR(object), "ff")
+	if(is.ff){
+		open(logR(object))
+	}
 	##autosome.index <- which(chromosome(object) %in% 1:22)
 	chr <- chromosome(object)[autosome.index]
 	marker.index <- splitIndicesByLength(marker.index, ocProbesets())
@@ -1957,7 +1981,9 @@ calculateMarkerSd <- function(object, marker.index, sample.index){
 		sds <- rowMAD(lr, na.rm=TRUE)
 		return(sds)
 	}, object=object, j=j)
-	close(logR(object))
+	if(is.ff){
+		close(logR(object))
+	}
 	sds <- unlist(sds)
 	##i <- unlist(marker.index)
 	##fData(object)$MAD[i] <- sds
@@ -2367,13 +2393,18 @@ readParsedFiles <- function(path, member, container, chromosomes, file.ext, verb
 		mads[j] <- mad(dat[[1]], na.rm=TRUE)
 		for(k in seq_along(chromosomes)){
 			CHR <- chromosomes[k]
-			open(logR(container[[CHR]]))
-			open(baf(container[[CHR]]))
+			is.ff <- is(logR(container[[1]]), "ff")
+			if(is.ff){
+				open(logR(container[[CHR]]))
+				open(baf(container[[CHR]]))
+			}
 			marker.index <- match(featureNames(container[[k]]), nms)
 			logR(container[[k]])[, j, col.index] <- dat[[1]][marker.index]
 			baf(container[[k]])[, j, col.index] <- dat[[2]][marker.index]
-			close(logR(container[[k]]))
-			close(baf(container[[k]]))
+			if(is.ff){
+				close(logR(container[[k]]))
+				close(baf(container[[k]]))
+			}
 		}
 	}
 	return(mads)
@@ -2658,7 +2689,10 @@ calculateMads <- function(container, exclusionRule, chromosomes, verbose){
 	##
 	##---------------------------------------------------------------------------
 	message("Computing mad of the minimum distance.")
-	sapply(container, function(x) invisible(open(mindist(x))))
+	is.ff <- is(mindist(container[[1]]), "ff")
+	if(is.ff){
+		sapply(container, function(x) invisible(open(mindist(x))))
+	}
 	nc <- ncol(container[[1]])
 	mads.md <- rep(NA, nc)
 	for(j in 1:nc){
@@ -2666,7 +2700,9 @@ calculateMads <- function(container, exclusionRule, chromosomes, verbose){
 		mm <- unlist(m)
 		mads.md[j] <- mad(mm, na.rm=TRUE)
 	}
-	sapply(container, function(x) invisible(close(mindist(x))))
+	if(is.ff){
+		sapply(container, function(x) invisible(close(mindist(x))))
+	}
 	## inefficient to put mad in each TrioSet if there is a large number of samples
 	## just put in first
 	if(verbose) message("\tStoring MAD in first element of the TrioSetList container")
@@ -2691,11 +2727,15 @@ calculateMads <- function(container, exclusionRule, chromosomes, verbose){
 		}
 		for(i in seq_along(container)){
 			trioSet <- container[[i]]
-			invisible(open(logR(trioSet)))
+			if(is.ff){
+				invisible(open(logR(trioSet)))
+			}
 			lR <- logR(trioSet)[, J, "O"]
 			if(is.matrix(lR)){
 				if(ncol(lR) > 1){
-					invisible(close(logR(trioSet)))
+					if(is.ff){
+						invisible(close(logR(trioSet)))
+					}
 					fData(container[[i]])$marker.mad <- rowMAD(lR, na.rm=TRUE)
 				}
 			}

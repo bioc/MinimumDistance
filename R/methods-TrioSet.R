@@ -320,7 +320,10 @@ setMethod("xsegment", signature(object="TrioSet"),
 		  if(missing(id)) id <- sampleNames(object)
 		  sample.index <- match(id, sampleNames(object))
 		  stopifnot(length(sample.index) > 0)
-		  open(mindist(object))
+		  is.ff <- is(mindist(object), "ff")
+		  if(is.ff){
+			  open(mindist(object))
+		  }
 		  fns <- featureNames(object)
 		  ##
 		  ##
@@ -332,7 +335,10 @@ setMethod("xsegment", signature(object="TrioSet"),
 		  if(segment.mindist){
 			  CN <- mindist(object)[marker.index, sample.index, drop=FALSE]
 		  } else{
-			  open(logR(object))
+			  is.ff <- is(logR(object), "ff")
+			  if(is.ff){
+				  open(logR(object))
+			  }
 			  ##segment offspring copy number
 			  CN <- logR(object)[marker.index, 3, sample.index, drop=FALSE]
 		  }
@@ -371,8 +377,14 @@ setMethod("xsegment", signature(object="TrioSet"),
 		  if(length(md.segs) > 1){
 			  md.segs <- do.call("rbind", md.segs)
 		  } else md.segs=md.segs[[1]]
-		  close(mindist(object))
-		  if(!segment.mindist) close(logR(object))
+		  if(is.ff){
+			  close(mindist(object))
+		  }
+		  if(!segment.mindist){
+			  if(is.ff){
+				  close(logR(object))
+			  }
+		  }
 		  return(md.segs)
 })
 
@@ -520,15 +532,20 @@ setMethod("todf", signature(object="TrioSet", range="RangedData"),
 		  id <- range$id
 		  sample.index <- match(id, offspringNames(object))
 		  stopifnot(length(sample.index)==1)
-		  open(baf(object))
-		  open(logR(object))
-		  open(mindist(object))
+		  is.ff <- is(logR(object), "ff")
+		  if(is.ff){
+			  open(baf(object))
+			  open(logR(object))
+			  open(mindist(object))
+		  }
 		  b <- baf(object)[marker.index, sample.index, ]
 		  r <- logR(object)[marker.index, sample.index, ]
 		  md <- mindist(object)[marker.index, sample.index]
-		  close(baf(object))
-		  close(logR(object))
-		  close(mindist(object))
+		  if(is.ff){
+			  close(baf(object))
+			  close(logR(object))
+			  close(mindist(object))
+		  }
 		  id <- matrix(c("father", "mother", "offspring"), nrow(b), ncol(b), byrow=TRUE)
 		  empty <- rep(NA, length(md))
 		  ## A trick to add an extra panel for genes and cnv
@@ -557,7 +574,10 @@ setMethod("prune", signature(object="TrioSet", ranges="RangedDataCNV"),
 		  index <- which(chromosome(ranges) == CHR & sampleNames(ranges) %in% id)
 		  ranges <- ranges[index, ]
 		  rdList <- vector("list", length(unique(id)))
-		  open(mindist(object))
+		  is.ff <- is(mindist(object), "ff")
+		  if(is.ff){
+			  open(mindist(object))
+		  }
 		  if(verbose){
 			  message("\tPruning ", length(unique(id)), " files.")
 			  pb <- txtProgressBar(min=0, max=length(unique(id)), style=3)
@@ -581,7 +601,9 @@ setMethod("prune", signature(object="TrioSet", ranges="RangedDataCNV"),
 						 MIN.COVERAGE=min.coverage)
 		  }
 		  if(verbose) close(pb)
-		  close(mindist(object))
+		  if(is.ff){
+			  close(mindist(object))
+		  }
 		  if(length(rdList) == 1) {
 			  rd <- rdList[[1]]
 		  } else {
