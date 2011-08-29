@@ -128,13 +128,27 @@ container <- minimumDistance(path, ## for parsed data
 @
 
 <<>>=
-load("~mbootwal/packages/MininmumDistance/data/trioSet-hapmap.rda")
+load("~mbootwal/packages/MinimumDistance/data/trioSet-hapmap.rda")
 ##
-tmp <- minimumDistance(container=trioSetList, readFiles=FALSE, calculate.md=TRUE,
+library(MinimumDistance)
+trace(minimumDistance, browser)
+trioSetList <- minimumDistance(container=trioSetList, readFiles=FALSE, calculate.md=TRUE,
 		       container.filename="~/trioSetList.rda")
-
-
-tmp <- minimumDistanceCalls(container=trioSetList, chromosomes=1, cbs.filename="results.rda")
+mads <- matrix(NA, ncol(trioSetList[[1]]), 3)
+colnames(mads) <- c("F", "M", "O")
+rownames(mads) <- sampleNames(trioSetList[[1]])
+## need to calculate mad
+fff <- function(object, trio.index){
+	lR <- logR(object)[, trio.index, ]
+}
+for(j in seq(length=length(rownames(mads)))){
+	logrs <- do.call("rbind", sapply(trioSetList, fff, trio.index=j))
+	mads[j, ] <- apply(logrs, 2, mad, na.rm=TRUE)
+}
+mad(trioSetList[[1]]) <- mads
+##trace(MinimumDistance:::computeLoglik, browser)
+unlink("~/results.rda")
+rd <- minimumDistanceCalls(container=trioSetList, chromosomes=1, cbs.filename="~/results.rda")
 @
 
 

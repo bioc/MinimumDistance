@@ -620,15 +620,28 @@ setMethod("prune", signature(object="TrioSet", ranges="RangedDataCNV"),
 	 })
 
 ## CIDR_Name is not a general label -- need to generalize these functions
+##setMethod("offspringNames", signature(object="TrioSet"), function(object){
+##	phenoData2(object)[, "CIDR_Name", "O"]
+##})
+##
+##setMethod("fatherNames", signature(object="TrioSet"), function(object){
+##	phenoData2(object)[, "CIDR_Name", "F"]
+##})
+##
+##setMethod("motherNames", signature(object="TrioSet"), function(object){
+##	phenoData2(object)[, "CIDR_Name", "M"]
+##})
+
 setMethod("offspringNames", signature(object="TrioSet"), function(object){
-	phenoData2(object)[, "CIDR_Name", "O"]
+	phenoData2(object)[, "Sample.Name", "O"]
 })
 setMethod("fatherNames", signature(object="TrioSet"), function(object){
-	phenoData2(object)[, "CIDR_Name", "F"]
+	phenoData2(object)[, "Sample.Name", "F"]
 })
 setMethod("motherNames", signature(object="TrioSet"), function(object){
-	phenoData2(object)[, "CIDR_Name", "M"]
+	phenoData2(object)[, "Sample.Name", "M"]
 })
+
 fmoNames <- function(object){
 	tmp <- cbind(fatherNames(object), motherNames(object), offspringNames(object))
 	colnames(tmp) <- c("F", "M", "O")

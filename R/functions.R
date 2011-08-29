@@ -947,7 +947,7 @@ pHet <- function(i, id, trioSet){
 	j <- match(id, sampleNames(trioSet))
 	stopifnot(length(j) > 0)
 	is.ff <- is(baf(trioSet), "ff")
-	if(is.ff){	
+	if(is.ff){
 		open(baf(trioSet))
 	}
 	b <- baf(trioSet)[i, j, 3]
@@ -1278,7 +1278,8 @@ computeLoglik <- function(id,
 	p1 <- 1-prOutlier.logR
 	## one obvious thing that p1 could depend on is the
 	## minor allele frequency.  If rare, p1 is smaller
-	stopifnot(all(!is.na(match(id, s(fullId(trioSet))))))
+	##stopifnot(all(!is.na(match(id, s(fullId(trioSet))))))
+	stopifnot(all(!is.na(match(id, fullId(trioSet)))))
 	object <- constructSet(trioSet, CHR, id, states=states, ranges=ranges)
 	j <- match(id[["O"]], offspringNames(trioSet))
 	sds.sample <- mad(trioSet)[j, ]
@@ -1884,9 +1885,10 @@ joint4 <- function(trioSet,
 	##fmonames <- paste(ss(family.id), c("03", "02", "01"), sep="_")
 	pd2 <- phenoData2(trioSet)
 	i <- match(family.id, sampleNames(trioSet))
-	j <- match("CIDR_Name", colnames(pd2))
-	stopifnot(!missing(i) && !missing(j))
-	fmonames <- pd2[i, j, ]
+	##j <- match("CIDR_Name", colnames(pd2))
+	##stopifnot(!missing(i) && !missing(j))
+	##fmonames <- pd2[i, j, ]
+	fmonames <- pd2[i, "Sample.Name", ]
 	object <- computeLoglik(id=fmonames,
 				trioSet=trioSet,
 				ranges=ranges,
@@ -2476,6 +2478,13 @@ minimumDistance <- function(path,
 			if(verbose) message("readFiles is FALSE.")
 		}
 	} else stopifnot(is(container, "TrioSetList"))
+	##---------------------------------------------------------------------------
+	##
+	##  if autosomal mad(logR) is missing, calculate...
+	##
+	##---------------------------------------------------------------------------
+
+
 	##---------------------------------------------------------------------------
 	##
 	## calculate minimum distance
