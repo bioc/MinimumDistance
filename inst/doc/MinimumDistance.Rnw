@@ -131,7 +131,6 @@ container <- minimumDistance(path, ## for parsed data
 load("~mbootwal/packages/MinimumDistance/data/trioSet-hapmap.rda")
 ##
 library(MinimumDistance)
-trace(minimumDistance, browser)
 trioSetList <- minimumDistance(container=trioSetList, readFiles=FALSE, calculate.md=TRUE,
 		       container.filename="~/trioSetList.rda")
 mads <- matrix(NA, ncol(trioSetList[[1]]), 3)
