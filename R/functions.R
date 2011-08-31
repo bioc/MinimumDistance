@@ -2483,8 +2483,23 @@ minimumDistance <- function(path,
 	##  if autosomal mad(logR) is missing, calculate...
 	##
 	##---------------------------------------------------------------------------
-
-
+	if(any(is.na(mad(container[[1]])))){
+		if(verbose) message("Computing autosomal mad")
+		mads <- matrix(NA, ncol(container[[1]]), 3)
+		colnames(mads) <- c("F", "M", "O")
+		rownames(mads) <- sampleNames(container[[1]])
+		#
+		fff <- function(object, trio.index){
+			lR <- logR(object)[, trio.index, ]
+		}
+		for(j in seq(length=length(rownames(mads)))){
+			logrs <- do.call("rbind", sapply(container, fff, trio.index=j))
+			mads[j, ] <- apply(logrs, 2, mad, na.rm=TRUE)
+		}
+		for(k in seq(length=length(trioSetList))){
+			mad(container[[k]]) <- mads
+		}
+	}
 	##---------------------------------------------------------------------------
 	##
 	## calculate minimum distance
