@@ -1522,7 +1522,6 @@ computeLoglik <- function(id,
 		     ybottom=0, ytop=1,
 		     col=colors[6])
 		## hemizygous deletion
-		require(msm)
 		p <- seq(0, 1, by=0.001)
 		x <- qtnorm(p, mean=0, 0.02, lower=0, upper=1)
 		##plot(function(x) dnorm(x, log=TRUE), -60, 50,
@@ -2302,7 +2301,6 @@ initializeTrioContainer <- function(path, samplesheet, pedigree,
 				    chromosomes=1:22,
 				    file.ext="",
 				    cdfName, ..., verbose){
-	stopifnot(require(ff))
 	stopifnot(all(chromosomes %in% 1:22))
 	##stopifnot(all(file.exists(dirname(filenames))))
 	stopifnot(all(file.exists(file.path(path, paste(rownames(samplesheet), file.ext, sep="")))))

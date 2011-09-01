@@ -7,8 +7,8 @@ Author: Robert B Scharpf
 Maintainer: Moiz Bootwalla <mbootwa1@jhu.edu>, Robert B Scharpf <rscharpf@jhsph.edu>
 Description: Analysis of denovo copy number variants in trios using the Illumina platform
 License: Artistic-2.0
-Depends: oligoClasses (>= 1.15.7), lattice, grid, DNAcopy
-Imports: ff (>= 2.2-1), Biobase, crlmm, utils, IRanges, SNPchip
+Depends: oligoClasses (>= 1.15.7), lattice, grid, DNAcopy, methods
+Imports: ff (>= 2.2-1), Biobase, crlmm, utils, IRanges, SNPchip, msm
 collate: AllClasses.R
          AllGenerics.R
 	 methods-AnnotatedDataFrame.R

@@ -23,13 +23,14 @@ importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   matchMatrix, queryHits, subjectHits)
 ##importMethodsFrom(oligoClasses, open, close)
 ##importFrom(oligoClasses, isFF, getBar)
+importFrom(msm, qtnorm, dtnorm)
 importFrom(ff, filename)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 exportClasses(DataFrameCNV, RangedDataCNV, RangedDataCBS, RangedDataHMM,
 	      TrioSet, LogRatioSet, TrioSetList)
 exportMethods("[", baf, "baf<-",
 	      calculateMindist,
-	      computeBayesFactor,
+	      ##computeBayesFactor,
 	      ##copyNumber,
 	      coverage,
 	      fatherNames,

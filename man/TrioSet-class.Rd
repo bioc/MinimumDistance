@@ -65,12 +65,12 @@ No methods defined with class "TrioSet" in the signature.
 	B <- array(runif(10*2*3, 0, 1), dim=dim(R), dimnames=dimnames(R))
 	fD <- annotatedDataFrameFrom(R, byrow=T)
 
+	## One could also use 'ff' objects in the assayData insteadof matrices
+
 	ldPath("~/")
 	R <- createFF("r", dim=c(10,2,3), vmode="double")
 	B <- createFF("r", dim=c(10,2,3), vmode="double")
 	x2 <- new("TrioSet", logRRatio=R, BAF=B,featureData=fD)
-
-	tmp <- list(x, x2)
 }
 
 showClass("TrioSet")

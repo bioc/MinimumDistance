@@ -84,8 +84,8 @@ setMethod("chromosome", signature(object="RangedDataCNV"), function(object) obje
 ##	  })
 
 setMethod("todf", signature(object="RangedDataCNV"), function(object, col=1:3, verbose=TRUE, ordered.y, ...){
-	require(SNPchip)
-	data(chromosomeAnnotation)
+	##require(SNPchip)
+	data(chromosomeAnnotation, package="SNPchip")
 	if(!"col" %in% names(list(...))) col <- 1:3 else col <- list(...)[["col"]]
 	##object <- object[object$state != normalIndex(hmm.params), ]
 	is.denovo <- isDenovo(state(object))

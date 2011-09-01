@@ -26,7 +26,6 @@ setMethod("close", "TrioSet", function(con, ...){
 })
 setMethod("initialize", signature(.Object="TrioSet"),
 	  function(.Object, phenoData2, ...){
-		  browser()
 		  .Object <- callNextMethod()
 		  if(!"logRRatio" %in% names(list(...))){
 			  .Object <- assayDataElementReplace(.Object, "logRRatio", array(NA, dim=c(0,0,0)))
