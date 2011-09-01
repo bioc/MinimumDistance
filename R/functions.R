@@ -1553,7 +1553,7 @@ computeLoglik <- function(id,
 
 	}
 	if(is.ff){
-		close(trioSet)
+		tryCatch(close(trioSet), error=function(e) NULL)
 	}
 	return(object)
 }
@@ -2600,12 +2600,6 @@ minimumDistanceCalls <- function(id, container,
 		prunedRanges <- narrow(prunedRanges, cbs.segs.offspring, thr=0.075)
 	}
 	if(calculate.lr){
-##		if(!missing(offspring.ranges)){
-##			ii <- which(sampleNames(offspring.ranges) %in% id & chromosome(offspring.ranges) %in% chromosomes)
-##			offspring.ranges <- offspring.ranges[ii, ]
-##			if(verbose) message("Narrowing ranges")
-##			prunedRanges <- narrow(prunedRanges, offspring.ranges)
-##		}
 		tau <- transitionProbability(states=0:4, epsilon=0.5)
 		log.pi <- log(initialStateProbs(states=0:4, epsilon=0.5))
 		message("Computing bayes factors")
@@ -3282,7 +3276,8 @@ narrow <- function(md.range, cbs.segs, thr, verbose=TRUE){
 		##ranges.below.thr <- split(!abs.thr[qhits], qhits)
 		##ns <- sapply(ranges.below.thr, sum)
 		uid <- paste(tmp$id, start(tmp), tmp$chrom, sep="")
-		duplicated(uid)
+		##duplicated(uid)
+		stopifnot(!all(duplicated(uid)))
 		tmp <- tmp[!duplicated(uid), ]
 		## for each subject, the following must be true
 		index <- which(tmp$id[-nrow(tmp)] == tmp$id[-1])
@@ -3291,7 +3286,7 @@ narrow <- function(md.range, cbs.segs, thr, verbose=TRUE){
 	}
 	if(verbose) close(pb)
 	if(length(rdN) > 1){
-		rdL <- stack(RangedDataList(rdN))
+		rdL <- IRstack(RangedDataList(rdN))
 		rd <- rdL[, -grep("sample", colnames(rdL))]
 		rdCbs <- RangedDataCBS(ranges=ranges(rd), values=values(rd))
 	} else rdCbs <- RangedDataCBS(ranges=ranges(rdN[[1]]), values=values(rdN[[1]]))

@@ -15,7 +15,7 @@ baf(object)
 baf(object) <- value
 logR(object)
 logR(object) <- value
-mad(object)
+mad(x, center=median(x), constant=1.4826, na.rm=FALSE,low=FALSE,high=FALSE)
 mad(object) <- value
 mindist(object)
 mindist(object) <- value
@@ -23,7 +23,11 @@ mindist(object) <- value
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{Object of class \code{\linkS4class{TrioSet}}}
-
+  \item{x}{Object of class \code{\linkS4class{TrioSet}}}
+  \item{constant}{ignored}
+  \item{na.rm}{ignored}
+  \item{low}{ignored}
+  \item{high}{ignored}
   \item{value}{
 
     An array or matrix.

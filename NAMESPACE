@@ -1,5 +1,5 @@
 useDynLib("MinimumDistance", .registration=TRUE)
-importFrom(utils, setTxtProgressBar, txtProgressBar, stack)
+importFrom(utils, setTxtProgressBar, txtProgressBar)#, stack)
 importFrom(graphics, abline, axis, layout, legend, mtext, par, plot,
 	   polygon, rect, segments, text)
 importClassesFrom(Biobase, eSet)
@@ -16,7 +16,7 @@ importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 		  DataFrame,
 		  DataTableORNULL)
 importMethodsFrom(IRanges, start, end, width,"[", "[[","[<-", "[[<-", "$",
-		  nrow, "start<-", "end<-", rbind)
+		  nrow, "start<-", "end<-", rbind, stack)
 importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   findOverlaps, countOverlaps,
 	   ranges, values,

@@ -12,6 +12,7 @@ setMethod("open", "TrioSet", function(con, ...){
 	return(TRUE)
 })
 setMethod("close", "TrioSet", function(con, ...){
+	browser()
 	##con is just to keep the same generic arguments
 	object <- con
 	if(!isFF(object)) return()

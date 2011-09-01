@@ -14,7 +14,8 @@
 \title{Classes in MinimumDistance for data on ranges}
 \description{
 
-  \code{RangedDataCNV} is a virtual class extending
+  \code{RangedDataCNV} is a class extending the virtual class
+  \code{RangedDataCopyNumber}. \code{RangedDataCopyNumber} extends
   \code{\linkS4class{RangedData}}.
 
   \code{RangedDataCBS} extends \code{\linkS4class{RangedDataCNV}} and is
@@ -74,31 +75,5 @@ R. Scharpf
   additional methods.
 
 }
-\examples{
-  ranges <- IRanges(c(1,2,3),c(4,5,6))
-  chrom <- 1:3
-  id <- letters[1:3]
-  num.mark <- rpois(3, 10)
-  seg.mean <- rnorm(3)
-  rd <- RangedDataCBS(ranges=ranges,
-		      chromosome=chrom,
-		      sampleId=id,
-		      coverage=num.mark,
-		      seg.mean=seg.mean)
-  ## accessors
-  chromosome(rd)
-  sampleNames(rd)
-  coverage(rd)
-
-  rd.hmm <- RangedDataHMM(ranges=ranges,
-			  chromosome=chrom,
-			  sampleId=id,
-			  num.mark=num.mark,
-			  state=2L)
-  ## accessors
-  chromosome(rd.hmm)
-  sampleNames(rd.hmm)
-  coverage(rd.hmm)
-  state(rd.hmm)
-}
+\examples{showClass("RangedDataCNV")}
 \keyword{classes}
