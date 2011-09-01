@@ -3,7 +3,6 @@
 \alias{RangedDataHMM}
 \alias{coverage}
 \alias{state}
-\alias{todf}
 \alias{trioNames}
 
 %- Also NEED an '\alias' for EACH other topic documented here.
@@ -24,7 +23,6 @@ RangedDataHMM(ranges=IRanges(), state=vector("integer",
   length(ranges)),...)
 coverage(object)
 state(object)
-todf(object)
 trioNames(object)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -56,11 +54,6 @@ trioNames(object)
   \code{trioNames} returns the family (trio) for which the individual
   belongs.  A error message is returned if 'family' is not a column name
   in the \code{RangedData} object.
-
-
-  \code{todf} coerces a \code{RangedData} object to a
-  \code{\linkS4class{DataFrameCNV}} object (potentially useful for
-  plotting).
 
 }
 

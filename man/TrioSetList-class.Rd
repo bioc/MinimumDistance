@@ -24,7 +24,7 @@
 }
 \section{Objects from the Class}{
 
-  Details regarding instantiation of a \code{\link{TrioSetList}} object
+  Details regarding instantiation of a \code{TrioSetList} object
   are included in the vignette.
 
 }
