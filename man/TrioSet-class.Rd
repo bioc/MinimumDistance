@@ -2,14 +2,33 @@
 \Rdversion{1.1}
 \docType{class}
 \alias{TrioSet-class}
+\alias{[,TrioSet-method}
+\alias{baf<-,TrioSet-method}
+\alias{dim,TrioSet-method}
+\alias{fatherNames,TrioSet-method}
+\alias{logR<-,TrioSet-method}
+\alias{mad,TrioSet-method}
+\alias{mad<-,TrioSet-method}
+\alias{mindist,TrioSet-method}
+\alias{mindist<-,TrioSet-method}
+\alias{motherNames,TrioSet-method}
+\alias{offspringNames,TrioSet-method}
+\alias{prune,TrioSet,RangedDataCNV-method}
+\alias{todf,TrioSet,RangedData-method}
+\alias{updateObject,TrioSet-method}
+\alias{xsegment,TrioSet-method}
+\alias{xyplot,formula,TrioSet-method}
 
 \title{Class \code{"TrioSet"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
+
+A TrioSet is a container for storing high throughput data from
+genotyping arrays for case-parent trio designs.  The assay data
+elements are 3-d arrays: marker x trio x trio membership.
+
 }
 \section{Objects from the Class}{
 Objects can be created by calls of the form \code{new("TrioSet", assayData, phenoData, featureData, experimentData, annotation, protocolData, ...)}.
-%%  ~~ describe objects here ~~
 }
 \section{Slots}{
   \describe{
@@ -32,20 +51,16 @@ Class \code{"\linkS4class{Versioned}"}, by class "eSet", distance 3.
 No methods defined with class "TrioSet" in the signature.
 }
 \references{
-%%  ~~put references to the literature/web site here~~
 }
 \author{
-%%  ~~who you are~~
+R. Scharpf
 }
 \note{
-%%  ~~further notes~~
+
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \seealso{
-%%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
-%%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
+	\code{\linkS4class{TrioSetList}}
 }
 \examples{
 \dontrun{
@@ -72,7 +87,6 @@ No methods defined with class "TrioSet" in the signature.
 	B <- createFF("r", dim=c(10,2,3), vmode="double")
 	x2 <- new("TrioSet", logRRatio=R, BAF=B,featureData=fD)
 }
-
 showClass("TrioSet")
 }
 \keyword{classes}

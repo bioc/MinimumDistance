@@ -1,9 +1,9 @@
 THISPKG <- "MinimumDistance"
 .mdEnv <- new.env(parent=emptyenv())
 
-.onLoad <- function(libname, pkgname) {
-	require("methods")
-}
+##.onLoad <- function(libname, pkgname) {
+##	require("methods")
+##}
 
 .onAttach <- function(libname, pkgname) {
 	version <- packageDescription("MinimumDistance", field="Version")

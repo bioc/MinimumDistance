@@ -8,7 +8,7 @@ importFrom(Biobase, assayDataElementReplace, sampleNames, varLabels, rowMedians,
 import(SNPchip)
 ##importFrom(SNPchip, integer2chromosome)
 importFrom(stats, mad)
-importClassesFrom(IRanges, RangedData, IRanges,
+importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 		  DataTable, Vector, Annotated,
 		  List, SimpleList, CompressedList,
 		  IntervalTree, RangesList, SimpleRangesList,
