@@ -84,6 +84,30 @@ R. Scharpf
   	\code{\linkS4class{TrioSetList}}
 }
 \examples{
+\dontrun{
+       R <- array(NA, dim=c(10, 2, 3))
+       dimnames(R) <- list(letters[1:10], c("A", "B"), c("F", "M", "O"))
+       B <- array(runif(10*2*3, 0, 1), dim=dim(R), dimnames=dimnames(R))
+       x <- new("TrioSet", logRRatio=R, BAF=B)
+       x[1:2, ]
+       x[1:2,1]
+       x[1:2,1,1]
+       x <- x[, , 1] ## should get all fathers
+       x <- x[, , 2] ## should get all mothers
+       x <- x[, , 3] ## should get all offspring
+
+       R <- array(NA, dim=c(10, 2, 3))
+       dimnames(R) <- list(letters[1:10], c("A", "B"), c("F", "M", "O"))
+       B <- array(runif(10*2*3, 0, 1), dim=dim(R), dimnames=dimnames(R))
+       fD <- annotatedDataFrameFrom(R, byrow=T)
+
+       ## One could also use 'ff' objects in the assayData insteadof matrices
+
+       ldPath("~/")
+       R <- createFF("r", dim=c(10,2,3), vmode="double")
+       B <- createFF("r", dim=c(10,2,3), vmode="double")
+       x2 <- new("TrioSet", logRRatio=R, BAF=B,featureData=fD)
+}
 showClass("TrioSet")
 }
 \keyword{classes}
