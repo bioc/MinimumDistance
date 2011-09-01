@@ -7,11 +7,12 @@
 
 \title{Class \code{"DataFrameCNV"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
+   A data.frame extension for organizing case-parent trio data.
+   This class is most useful for organizing the data in a way that
+   enables fairly direct application of 'xyplot' in lattice.
 }
 \section{Objects from the Class}{
 Objects can be created by calls of the form \code{new("DataFrameCNV", ...)}.
-%%  ~~ describe objects here ~~ 
 }
 \section{Slots}{
   \describe{
@@ -34,21 +35,11 @@ Class \code{"\linkS4class{vector}"}, by class "data.frame", distance 3.
     \item{xyplot}{\code{signature(x = "formula", data = "DataFrameCNV")}: ... }
 	 }
 }
-\references{
-%%  ~~put references to the literature/web site here~~
-}
 \author{
-%%  ~~who you are~~
+R. Scharpf
 }
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \seealso{
-%%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
-%%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
+  \code{link{xyplot}}
 }
 \examples{
 showClass("DataFrameCNV")

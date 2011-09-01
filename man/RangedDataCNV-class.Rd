@@ -3,8 +3,6 @@
 \docType{class}
 \alias{RangedDataCNV-class}
 \alias{coverage,RangedDataCNV-method}
-\alias{prune,TrioSetList,RangedDataCNV-method}
-\alias{prune,TrioSet,RangedDataCNV-method}
 \alias{state,RangedDataCNV-method}
 \alias{todf,RangedDataCNV,ANY-method}
 
@@ -26,7 +24,8 @@ Objects can be created by calls of the form \code{new("RangedDataCNV", ...)}.
   }
 }
 \section{Extends}{
-Class \code{"\linkS4class{RangedDataCopyNumber}"}, directly.
+  %Class \code{"\linkS4class{RangedDataCopyNumber}"}, directly.
+  Class \code{RangedDataCopyNumber}, directly.
 Class \code{"\linkS4class{RangedData}"}, by class "RangedDataCopyNumber", distance 2.
 Class \code{"\linkS4class{DataTable}"}, by class "RangedDataCopyNumber", distance 3.
 Class \code{"\linkS4class{List}"}, by class "RangedDataCopyNumber", distance 3.

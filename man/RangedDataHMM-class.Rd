@@ -9,7 +9,7 @@
 }
 \section{Objects from the Class}{
 Objects can be created by calls of the form \code{new("RangedDataHMM", ...)}.
-%%  ~~ describe objects here ~~ 
+%%  ~~ describe objects here ~~
 }
 \section{Slots}{
   \describe{
@@ -22,7 +22,7 @@ Objects can be created by calls of the form \code{new("RangedDataHMM", ...)}.
 }
 \section{Extends}{
 Class \code{"\linkS4class{RangedDataCNV}"}, directly.
-Class \code{"\linkS4class{RangedDataCopyNumber}"}, by class "RangedDataCNV", distance 2.
+Class \code{RangedDataCopyNumber}, by class "RangedDataCNV", distance 2.
 Class \code{"\linkS4class{RangedData}"}, by class "RangedDataCNV", distance 3.
 Class \code{"\linkS4class{DataTable}"}, by class "RangedDataCNV", distance 4.
 Class \code{"\linkS4class{List}"}, by class "RangedDataCNV", distance 4.
