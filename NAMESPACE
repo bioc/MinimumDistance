@@ -21,13 +21,11 @@ importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   findOverlaps, countOverlaps,
 	   ranges, values,
 	   matchMatrix, queryHits, subjectHits)
-##importMethodsFrom(oligoClasses, open, close)
-##importFrom(oligoClasses, isFF, getBar)
 importFrom(msm, qtnorm, dtnorm)
 importFrom(ff, filename)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 exportClasses(DataFrameCNV, RangedDataCNV, RangedDataCBS, RangedDataHMM,
-	      TrioSet, LogRatioSet, TrioSetList)
+	      TrioSet, TrioSetList) ##LogRatioSet, TrioSetList)
 exportMethods("[", baf, "baf<-",
 	      ##calculateMindist,
 	      ##computeBayesFactor,
@@ -51,30 +49,21 @@ exportMethods("[", baf, "baf<-",
 	      xsegment,
 	      xyplot)
 export("[",
-       ##completeTrios,
        concAtTop,
-##       concordanceFun,
        correspondingCall,
        discAtTop,
        fmoNames,
        fullId,
-##       getKey,
        gridlayout,
        gridlayout2,
        isDenovo,
-##       loadBatchFiles,
        minimumDistance,
        minimumDistanceCalls,
        minimumDistancePlot,
-       ##my.xypanel,
        narrow,
-##       plotRange,
-##       prepanel.fxn,
        RangedDataCNV,
        RangedDataCBS,
        RangedDataHMM,
-##       ssampleNames,
-##       sssampleNames, ss, s,
        todf,
        xypanel)
 

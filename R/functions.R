@@ -3286,7 +3286,7 @@ narrow <- function(md.range, cbs.segs, thr, verbose=TRUE){
 	}
 	if(verbose) close(pb)
 	if(length(rdN) > 1){
-		rdL <- IRstack(RangedDataList(rdN))
+		rdL <- stack(RangedDataList(rdN))
 		rd <- rdL[, -grep("sample", colnames(rdL))]
 		rdCbs <- RangedDataCBS(ranges=ranges(rd), values=values(rd))
 	} else rdCbs <- RangedDataCBS(ranges=ranges(rdN[[1]]), values=values(rdN[[1]]))

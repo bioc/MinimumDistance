@@ -50,6 +50,9 @@ trioNames(object)
   \item{seg.mean}{
     Numeric -- e.g., the mean copy number of a genomic interval
   }
+  \item{coverage}{number of markers in a segment}
+  \item{state}{typically an integer corresponding to the inferred copy number from a hidden
+    markov model}
   \item{\dots}{
     Additional covariates that can be accessed by \code{$} method}
 }

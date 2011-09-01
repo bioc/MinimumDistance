@@ -24,6 +24,7 @@ mindist(object) <- value
 \arguments{
   \item{object}{Object of class \code{\linkS4class{TrioSet}}}
   \item{x}{Object of class \code{\linkS4class{TrioSet}}}
+  \item{center}{ignored}
   \item{constant}{ignored}
   \item{na.rm}{ignored}
   \item{low}{ignored}
