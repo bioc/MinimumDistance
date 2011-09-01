@@ -8,7 +8,7 @@ setMethod("xyplot", signature(x="formula", data="DataFrameCNV"),
 		  } else{
 			  panel.specified <- TRUE
 		  }
-		  data(chromosomeAnnotation)
+		  data(chromosomeAnnotation, package="SNPchip")
 		  data <- as(data, "data.frame")
 		  ##data$y <- data$r
 		  ## could we do UseMethod here?

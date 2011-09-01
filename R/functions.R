@@ -705,7 +705,7 @@ cbsSegsForChrom <- function(CHR, envir){
 
 
 insertCentromereBreak <- function(range.object, insertWhere=c("centromereStart", "centromereEnd")){
-	data(chromosomeAnnotation)
+	data(chromosomeAnnotation, package="SNPchip")
 	stopifnot(insertWhere %in% c("centromereStart", "centromereEnd"))
 	chrom <- unique(range.object$chrom)
 	stopifnot(all(is.integer(chrom)))
