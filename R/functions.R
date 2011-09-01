@@ -358,7 +358,7 @@ getChromosomeArm <- function(chrom, pos){
 	data(chromosomeAnnotation, package="SNPchip", envir=environment())
 	chromosomeAnnotation <- as.matrix(chromosomeAnnotation)
 	chrAnn <- chromosomeAnnotation
-	uchrom <- unique(SNPchip:::integer2chromosome(chrom))
+	uchrom <- unique(integer2chromosome(chrom))
 	chromosomeArm <- vector("list", length(uchrom))
 	positionList <- split(pos, chrom)
 	positionList <- positionList[match(unique(chrom), names(positionList))]
@@ -487,8 +487,8 @@ featuresInXlim <- function(object, start, end, CHR, pos, chrom, FRAME=0, FRAME.L
 	if(missing(FRAME.RIGHT)) FRAME.RIGHT <- FRAME
 	if(missing(start)) start <- 0
 	if(missing(end)){
-		require(SNPchip)
-		data(chromosomeAnnotation)
+		##require(SNPchip)
+		data(chromosomeAnnotation, package="SNPchip")
 		end <- chromosomeAnnotation[CHR, "chromosomeSize"]
 	}
 	start <- start-FRAME.LEFT
@@ -505,8 +505,8 @@ framePositionIndex <- function(object,  ##LogRatioSet or something similar
 }
 
 overlapsCentromere <- function(myranges){
-	require(SNPchip)
-	data(chromosomeAnnotation)
+	##require(SNPchip)
+	data(chromosomeAnnotation, package="SNPchip")
 	centromere.ranges <- RangedData(IRanges(chromosomeAnnotation[, "centromereStart"],
 						chromosomeAnnotation[, "centromereEnd"]),
 					chrom=rownames(chromosomeAnnotation))

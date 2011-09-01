@@ -5,6 +5,8 @@ importFrom(graphics, abline, axis, layout, legend, mtext, par, plot,
 importClassesFrom(Biobase, eSet)
 importMethodsFrom(Biobase, annotatedDataFrameFrom, updateObject, "[", "$")
 importFrom(Biobase, assayDataElementReplace, sampleNames, varLabels, rowMedians, "sampleNames<-")
+import(SNPchip)
+##importFrom(SNPchip, integer2chromosome)
 importFrom(stats, mad)
 importClassesFrom(IRanges, RangedData, IRanges,
 		  DataTable, Vector, Annotated,

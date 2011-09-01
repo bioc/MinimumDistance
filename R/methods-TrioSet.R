@@ -26,6 +26,7 @@ setMethod("close", "TrioSet", function(con, ...){
 })
 setMethod("initialize", signature(.Object="TrioSet"),
 	  function(.Object, phenoData2, ...){
+		  browser()
 		  .Object <- callNextMethod()
 		  if(!"logRRatio" %in% names(list(...))){
 			  .Object <- assayDataElementReplace(.Object, "logRRatio", array(NA, dim=c(0,0,0)))
@@ -37,16 +38,11 @@ setMethod("initialize", signature(.Object="TrioSet"),
 		  .Object@mad <- matrix(NA, ncol(.Object), 3)
 		  dimnames(.Object@mad) <- list(sampleNames(.Object), c("F", "M", "O"))
 		  if(nrow(.Object) > 0){
-			  CHR <- unique(chromosome(.Object))
 			  md <- initializeBigMatrix(paste("mindist_chr", CHR, "_", sep=""),
 						    vmode="double",
 						    nr=nrow(logR(.Object)),
 						    nc=ncol(logR(.Object)),
 						    initdata=NA)
-##			  md <- createFF(paste("mindist_chr", CHR, "_", sep=""),
-##					 vmode="double",
-##					 dim=c(nrow(.Object), ncol(.Object)),
-##					 initdata=NA)
 			  dimnames(md) <- list(featureNames(.Object), sampleNames(.Object))
 			  mindist(.Object) <- md
 		  }
