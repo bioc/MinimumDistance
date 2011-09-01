@@ -55,6 +55,11 @@ setMethod("state", signature(object="RangedDataCNV"), function(object) object$st
 setMethod("nMarkers", signature(object="RangedDataCNV"), function(object) object$num.mark)
 setMethod("coverage", signature(object="RangedDataCNV"), function(object) object$num.mark)
 setMethod("sampleNames", signature(object="RangedDataCNV"), function(object) object$id)
+setMethod("trioNames", signature(object="RangedDataCNV"), function(object) {
+	res <- object$family
+	if(is.null(res)) stop("'family' not in the column names")
+	return(res)
+})
 ##setMethod("RangedDataCNV", signature(ranges="IRanges"),
 ##	  function(ranges=IRanges(), ...,
 ##		   space=NULL,

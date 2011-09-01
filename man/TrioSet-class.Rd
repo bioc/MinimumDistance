@@ -25,9 +25,12 @@
 \title{Class \code{"TrioSet"}}
 \description{
 
-  A TrioSet is a container for storing high throughput data from
-genotyping arrays for case-parent trio designs.  The assay data
-elements are 3-d arrays: marker x trio x trio membership.
+  A TrioSet is a container for storing high throughput data assay data
+  and metadata from genotyping arrays for case-parent trio designs.  It
+  extends eSet.  The primary difference for our application is that the
+  assay data elements are 3-d arrays: marker x trio x individual.
+  Typically, a TrioSet instance stores the data for a single chromosome
+  and an instance of TrioSetList is a list of TrioSets.
 
 }
 \section{Objects from the Class}{

@@ -400,17 +400,7 @@ loadRangesCbs <- function(outdir, pattern, CHR, name){
 }
 
 ## load and try to rbind the list
-loadBatchFiles <- function(outdir, pattern, name){
-	fnames <- list.files(outdir, pattern=pattern, full.name=TRUE)
-	dfl <- vector("list", length(fnames))
-	for(i in seq_along(fnames)){
-		load(fnames[i])
-		dfl[[i]] <- get(name)
-	}
-	if(length(dfl) == 1) dfl <- dfl[[1]]
-	##if(length(dfl) > 1) df <- tryCatch(df <- do.call("rbind", dfl), error=function(e) NULL)
-	return(dfl)
-}
+
 
 featuresInRange <- function(object, range, ...){
 	featuresInXlim(object, start=start(range), end=end(range), CHR=range$chrom, ...)
@@ -761,16 +751,7 @@ musInRange <- function(query, cbs.segs, id, chr){
 	cbs.sub[mm, ]
 }
 
-##short
-ssampleNames <- function(object) substr(sampleNames(object), 1, 8)
-##short short
-sssampleNames <- function(object) substr(sampleNames(object), 1, 5)
-##short short names
-ssnames <- function(x) ss(names(x))
-## short names
-snames <- function(x) s(names(x))
-ss <- function(x) substr(x, 1, 5)
-s <- function(x) substr(x, 1, 8)
+
 calculateChangeSd <- function(coverage=1:500, lambda=0.05, a=0.2, b=0.025)
 	a + lambda*exp(-lambda*coverage)/b
 
@@ -2012,7 +1993,8 @@ gridsetup <- function(figname, lattice.object, rd, ...){
 		upViewport(0)
 		grid.text("Log R Ratio", x=unit(0.25, "npc"), y=unit(0.96, "npc"), gp=gpar("cex"=0.8))
 		grid.text("B allele frequency", x=unit(0.75, "npc"), y=unit(0.96, "npc"), gp=gpar("cex"=0.8))
-		grid.text(paste(chr.name, ", Family", ss(rd$id[i])), x=unit(0.5, "npc"), y=unit(0.98, "npc"), gp=gpar("cex"=0.9))
+		##grid.text(paste(chr.name, ", Family", ss(rd$id[i])), x=unit(0.5, "npc"), y=unit(0.98, "npc"), gp=gpar("cex"=0.9))
+		grid.text(paste(chr.name, ", Family", trioNames(rd)[i]), x=unit(0.5, "npc"), y=unit(0.98, "npc"), gp=gpar("cex"=0.9))
 		upViewport(0)
 		print(lattice.object[[i]][[2]], position=c(0.48, 0, 1, 1), more=TRUE, prefix="baf")
 	}
@@ -2120,41 +2102,13 @@ joint1c <- function(loglik,##object,
 	return(res)
 }
 
-completeTrios <- function(bsSet){
-	is.father <- which(bsSet$father != "0")
-	is.mother <- which(bsSet$mother != "0")
-	dup.index <- grep("240", sssampleNames(bsSet)[is.father])
-	is.father <- is.father[-dup.index]
-	is.mother <- is.mother[-dup.index]
-	family <- sssampleNames(bsSet)[is.father]
-	trio.matrix <- cbind(bsSet$father[is.father],
-			     bsSet$mother[is.mother],
-			     ssampleNames(bsSet)[is.father])
-	colnames(trio.matrix) <- c("F", "M", "O")
-	rownames(trio.matrix) <- ss(trio.matrix[,1])
-	##
-	## we do not have data on all of the samples
-	##
-	nas <- match(as.character(trio.matrix), ssampleNames(bsSet))
-	namatrix <- matrix(nas, nc=3)
-	i <- which(rowSums(is.na(namatrix)) > 0)
-	trio.matrix <- trio.matrix[-i, ]
-	return(trio.matrix)
-}
-
-trioNames <- function(bsSet, pass.qc=TRUE){
-	if(pass.qc){
-		unique(sssampleNames(bsSet)[bsSet$complete.trio & bsSet$pass.qc & !bsSet$is.duplicate])
-	} else{
-		unique(sssampleNames(bsSet)[bsSet$complete.trio & !bsSet$is.duplicate])
-	}
-}
-
 qcFlag <- function(bsSet){
 	oligoClasses:::open(bsSet$MAD)
 	qcFlag <- bsSet$is.wga | bsSet$MAD[] >= 0.3
 	oligoClasses:::close(bsSet$MAD)
-	sns.flag <- unique(sssampleNames(bsSet)[qcFlag])
+	## RS:  commented following line to remove dependency on sssampleNames -- needs testing
+	##sns.flag <- unique(sssampleNames(bsSet)[qcFlag])
+	sns.flag <- unique(sampleNames(bsSet)[qcFlag])
 }
 
 calculateDenovoFrequency <- function(ranges.md, penn.offspring, bychrom=FALSE){
@@ -2922,7 +2876,10 @@ gridlayout <- function(figname, lattice.object, rd, cex.pch=0.3, ...){
 		     gp=gpar(...))
 		     ##gp=gpar(col="red", lwd=1, lty="dashed", col="purple"))
 	upViewport(0)
-	grid.text(paste(chr.name, ", Family", ss(rd$id)), x=unit(0.5, "npc"), y=unit(0.98, "npc"),
+	## RS: removed ss()
+##	grid.text(paste(chr.name, ", Family", ss(rd$id)), x=unit(0.5, "npc"), y=unit(0.98, "npc"),
+##		  gp=gpar(cex=0.9))
+	grid.text(paste(chr.name, ", Family", trioNames(rd)[i]), x=unit(0.5, "npc"), y=unit(0.98, "npc"),
 		  gp=gpar(cex=0.9))
 	grid.text("Position (Mb)", x=unit(0.5, "npc"), y=unit(0.02, "npc"),
 		  gp=gpar(cex=0.9))
@@ -3187,7 +3144,11 @@ minimumDistancePlot <- function(trioSets, ranges, md.segs, cbs.segs, frame=2e6,
 	if(length(index) > 0){
 		md.segs <- md.segs[index,]
 	}
-	index <- which(chromosome(cbs.segs) %in% chromosome(ranges) & sssampleNames(cbs.segs) %in% sssampleNames(ranges))
+	##---------------------------------------------------------------------------
+	## RS:  commented following line to remove dependency on sssampleNames -- needs testing
+	##---------------------------------------------------------------------------
+	##index <- which(chromosome(cbs.segs) %in% chromosome(ranges) & sssampleNames(cbs.segs) %in% sssampleNames(ranges))
+	index <- which(chromosome(cbs.segs) %in% chromosome(ranges) & trioNames(cbs.segs) %in% trioNames(ranges))
 	stopifnot(length(index) > 0)
 	if(length(index) > 0){
 		cbs.segs <- cbs.segs[index, ]

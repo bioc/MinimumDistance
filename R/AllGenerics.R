@@ -50,6 +50,7 @@ setGeneric("todf", function(object, range, frame, ...) standardGeneric("todf"))
 setGeneric("offspringNames", function(object) standardGeneric("offspringNames"))
 setGeneric("fatherNames", function(object) standardGeneric("fatherNames"))
 setGeneric("motherNames", function(object) standardGeneric("motherNames"))
+setGeneric("trioNames", function(object) standardGeneric("trioNames"))
 setGeneric("rbind", function(..., deparse.level=1) standardGeneric("rbind"),
            signature = "...")
 setGeneric("width", function(x) standardGeneric("width"))
