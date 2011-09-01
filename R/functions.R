@@ -2840,34 +2840,41 @@ xypanel <- function(x, y, panelLabels,
 			panel.segments(x0=start(cbs.sub)/1e6, x1=end(cbs.sub)/1e6, y0=cbs.sub$seg.mean, y1=cbs.sub$seg.mean, lwd=2, col="black")#gp=gpar("lwd"=2))
 		}
 	}
-	if(what == "genes"){
-		require(locuszoom)
-		data(rf, package="locuszoom")
-		rf <- rf[!duplicated(rf$geneName), ]
-		rf.chr <- rf[rf$txStart/1e6 <= xlimit[2] & rf$txEnd/1e6 >= xlimit[1] & rf$chrom==paste("chr", CHR, sep=""), ]
-		flatBed <- flatten.bed(rf.chr)
-		flatBed$start <- flatBed$start/1e3
-		flatBed$stop <- flatBed$stop/1e3
-		panel.flatbed(flat=flatBed,
-			      showIso=FALSE,
-			      rows=5,
-			      cex=0.6)
-	}
-	if(what=="CNV"){
-		require(locuszoom)
-		data(cnv, package="locuszoom")
-		cnv.chr <- cnv[cnv$txStart/1e6 <= xlimit[2] & cnv$txEnd/1e6 >= xlimit[1] & cnv$chrom==paste("chr", CHR, sep=""), ]
-		##cnv.chr$txStart=cnv.chr$txStart/1000
-		##cnv.chr$txEnd=cnv.chr$txEnd/1000
-		##current.viewport$xscale <- xlimit
-		flatBed <- flatten.bed(cnv.chr)
-		flatBed$start <- flatBed$start/1e3
-		flatBed$stop <- flatBed$stop/1e3
-		panel.flatbed(flat=flatBed,
-			      showIso=FALSE, rows=5,
-			      cex=0.6,
-			      col="red")
-	}
+	##---------------------------------------------------------------------------
+	##
+	## locuszoom is not available on bioconductor or cran...
+	##  -- comment the code for now
+	##
+	##---------------------------------------------------------------------------
+##	if(what == "genes"){
+##		require(locuszoom)
+##		data(rf, package="locuszoom")
+##		rf <- rf[!duplicated(rf$geneName), ]
+##		rf.chr <- rf[rf$txStart/1e6 <= xlimit[2] & rf$txEnd/1e6 >= xlimit[1] & rf$chrom==paste("chr", CHR, sep=""), ]
+##		flatBed <- flatten.bed(rf.chr)
+##		flatBed$start <- flatBed$start/1e3
+##		flatBed$stop <- flatBed$stop/1e3
+##		panel.flatbed(flat=flatBed,
+##			      showIso=FALSE,
+##			      rows=5,
+##			      cex=0.6)
+##	}
+##	if(what=="CNV"){
+##		require(locuszoom)
+##		data(cnv, package="locuszoom")
+##		cnv.chr <- cnv[cnv$txStart/1e6 <= xlimit[2] & cnv$txEnd/1e6 >= xlimit[1] & cnv$chrom==paste("chr", CHR, sep=""), ]
+##		##cnv.chr$txStart=cnv.chr$txStart/1000
+##		##cnv.chr$txEnd=cnv.chr$txEnd/1000
+##		##current.viewport$xscale <- xlimit
+##		flatBed <- flatten.bed(cnv.chr)
+##		flatBed$start <- flatBed$start/1e3
+##		flatBed$stop <- flatBed$stop/1e3
+##		panel.flatbed(flat=flatBed,
+##			      showIso=FALSE, rows=5,
+##			      cex=0.6,
+##			      col="red")
+##	}
+	if(what == "genes" || what == "CNV") stop("not supported at this time")
 }
 
 gridlayout <- function(figname, lattice.object, rd, cex.pch=0.3, ...){
@@ -3171,7 +3178,10 @@ minimumDistancePlot <- function(trioSets, ranges, md.segs, cbs.segs, frame=2e6,
 				pch=21,
 				panelLabelsRight=c("father", "mother", "offspring")){
 	stopifnot(all(panelLabelsRight %in% c("father", "mother", "offspring", "min dist", "genes", "CNV")))
-	if("genes" %in% panelLabelsRight) require(locuszoom)
+	if("genes" %in% panelLabelsRight) {
+		stop("plotting genes not supported at this time")
+		##require(locuszoom)
+	}
 	index <- which(chromosome(md.segs) %in% chromosome(ranges) & sampleNames(md.segs) %in% sampleNames(ranges))
 	stopifnot(length(index) > 0)
 	if(length(index) > 0){
