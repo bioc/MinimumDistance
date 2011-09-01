@@ -6,9 +6,9 @@ THISPKG <- "MinimumDistance"
 }
 
 .onAttach <- function(libname, pkgname) {
-	version <- packageDescription("MinimumDistance", field="Version")
+o	version <- packageDescription("MinimumDistance", field="Version")
 	##message(getBar())
-	packageStartUpMessage(paste("Welcome to MinimumDistance version ", version))
+	message(paste("Welcome to MinimumDistance version ", version))
 	options(prompt="R> ", continue=" ", width=70)##device=pdf
 	ocSamples(100)
 }
