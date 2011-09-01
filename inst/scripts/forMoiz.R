@@ -90,5 +90,12 @@ save(trioSetList, file="~/Projects/MinimumDistance/data/trioSetListExample-cleft
 
 
 
+trioRanges <- minimumDistanceCalls(
+				   container=tmp,
+				   chromosomes=1:22,## for all chromosomes
+                                  cbs.filename="ranges.rda") 
 
+
+tmp <- minimumDistance(container=trioSetList, readFiles=FALSE, calculate.md=TRUE,
+			       container.filename="~/trioSetList.rda")
 
