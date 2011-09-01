@@ -20,7 +20,12 @@
 }
 \usage{
 RangedDataCBS(ranges = IRanges(), seg.mean = vector("numeric",  length(ranges)), ...)
-RangedDataHMM(ranges=IRanges(), state=vector("integer", length(ranges)),...)
+RangedDataHMM(ranges=IRanges(), state=vector("integer",
+  length(ranges)),...)
+coverage(object)
+state(object)
+todf(object)
+trioNames(object)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -43,6 +48,15 @@ RangedDataHMM(ranges=IRanges(), state=vector("integer", length(ranges)),...)
 
   \code{coverage}, \code{state}, \code{trioNames} return a column
   (covariate) of the \code{RangedData} object.
+
+  Coverage refers to the number of markers in the interval.  State is a
+  method for \code{RangedDataHMM} objects and returns the copy number
+  state, typically estimated from a HMM.
+
+  \code{trioNames} returns the family (trio) for which the individual
+  belongs.  A error message is returned if 'family' is not a column name
+  in the \code{RangedData} object.
+
 
   \code{todf} coerces a \code{RangedData} object to a
   \code{\linkS4class{DataFrameCNV}} object (potentially useful for
