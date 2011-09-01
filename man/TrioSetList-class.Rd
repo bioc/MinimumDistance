@@ -14,11 +14,19 @@
 
 \title{Class \code{"TrioSetList"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
+
+
+ A list of \code{\linkS4class{TrioSet}} objects.  Each element in the
+ list is a \code{\linkS4class{TrioSet}} object for one
+ chromosome. Currently, only autosomes are supported by this package, so
+ instances of \code{\linkS4class{TrioSet}} typically have 22 elements.
+
 }
 \section{Objects from the Class}{
-Objects can be created by calls of the form \code{new("TrioSetList", ...)}.
-%%  ~~ describe objects here ~~
+
+  Details regarding instantiation of a \code{\link{TrioSetList}} object
+  are included in the vignette.
+
 }
 \section{Slots}{
   \describe{
@@ -45,21 +53,14 @@ Class \code{vectorORfactor}, by class "list", distance 3.
     \item{xyplot}{\code{signature(x = "formula", data = "TrioSetList")}: ... }
 	 }
 }
-\references{
-%%  ~~put references to the literature/web site here~~
-}
 \author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
+Rob Scharpf
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-%%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
-%%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
+  \code{\linkS4class{TrioSet}}
 }
 \examples{
 showClass("TrioSetList")

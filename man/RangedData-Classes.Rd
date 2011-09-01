@@ -15,7 +15,7 @@
 \description{
 
   \code{RangedDataCNV} is a virtual class extending
-  \code{\linkS4Class{RangedData}}.
+  \code{\linkS4class{RangedData}}.
 
   \code{RangedDataCBS} extends \code{\linkS4class{RangedDataCNV}} and is
   useful for storing ranges from segmentation algorithms such as
