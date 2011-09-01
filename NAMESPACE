@@ -11,7 +11,7 @@ importFrom(stats, mad)
 importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 		  DataTable, Vector, Annotated,
 		  List, SimpleList, CompressedList,
-		  IntervalTree, RangesList, SimpleRangesList,
+		  RangesList, SimpleRangesList,
 		  RangedDataList,
 		  DataFrame,
 		  DataTableORNULL)
