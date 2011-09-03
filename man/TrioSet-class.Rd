@@ -52,7 +52,7 @@ Objects can be created by calls of the form \code{new("TrioSet", phenoData2, ...
   }
 }
 \section{Extends}{
-Class \code{"\linkS4class{LogRatioSet}"}, directly.
+Class \code{LogRatioSet}, directly.
 Class \code{"\linkS4class{eSet}"}, by class "LogRatioSet", distance 2.
 Class \code{"\linkS4class{VersionedBiobase}"}, by class "LogRatioSet", distance 3.
 Class \code{"\linkS4class{Versioned}"}, by class "LogRatioSet", distance 4.

@@ -21,11 +21,11 @@
 ##	count <- countOverlaps(ir.q, ir.s)
 ##	return(count)
 ##}
-catFun2 <- function(rd.query, rd.subject){
+catFun2 <- function(rd.query, rd.subject, ...){
 	##stopifnot(nrow(rd.query) == nrow(rd.subject)) ## must compare same list size
 	ir.q <- IRanges(start(rd.query), end(rd.query))
 	ir.s <- IRanges(start(rd.subject), end(rd.subject))
-	mm <- findOverlaps(ir.q, ir.s)
+	mm <- findOverlaps(ir.q, ir.s, ...)
 	query.index <- queryHits(mm)
 	subject.index <- subjectHits(mm)
 	index <- which(chromosome(rd.query)[query.index] == chromosome(rd.subject)[subject.index] &
@@ -40,34 +40,37 @@ catFun2 <- function(rd.query, rd.subject){
 	return(p)
 }
 
-discAtTop <- function(rd.query, rd.subject, verbose=TRUE){
-	ir.q <- IRanges(start(rd.query), end(rd.query))
-	ir.s <- IRanges(start(rd.subject), end(rd.subject))
-	mm <- findOverlaps(ir.q, ir.s)
+
+
+discAtTop <- function(ranges.query, ranges.subject, verbose=TRUE,...){
+	ir.q <- IRanges(start(ranges.query), end(ranges.query))
+	ir.s <- IRanges(start(ranges.subject), end(ranges.subject))
+	mm <- findOverlaps(ir.q, ir.s,...)
 	query.index <- queryHits(mm)
 	subject.index <- subjectHits(mm)
-	index <- which(chromosome(rd.query)[query.index] == chromosome(rd.subject)[subject.index] &
-		       sampleNames(rd.query)[query.index] == sampleNames(rd.subject)[subject.index])
+	index <- which(chromosome(ranges.query)[query.index] == chromosome(ranges.subject)[subject.index] &
+		       sampleNames(ranges.query)[query.index] == sampleNames(ranges.subject)[subject.index])
 	query.index <- unique(query.index[index])
 	##subject.index <- unique(subject.index[index])
-	notOverlapping.index <- seq(length=nrow(rd.query))[!seq(length=nrow(rd.query)) %in% query.index]
-	rd.query[notOverlapping.index, ]
+	notOverlapping.index <- seq(length=nrow(ranges.query))[!seq(length=nrow(ranges.query)) %in% query.index]
+	res <- ranges.query[notOverlapping.index, ]
+	return(res)
 }
 
-concAtTop <- function(ranges.query, ranges.subject, list.size, verbose=TRUE){
+concAtTop <- function(ranges.query, ranges.subject, list.size, verbose=TRUE, ...){
 	p <- rep(NA, length(list.size))
 	pAny1 <- rep(NA, length(list.size))
 	pAny2 <- rep(NA, length(list.size))
 	if(verbose) {
-		message("Calculating the proportion of ranges in common for list sizes 1 to ", max(list.size))
+		message("Calculating the proportion of ranges in common for the first ", max(list.size), " ranges")
 		pb <- txtProgressBar(min=0, max=length(p), style=3)
 	}
 	for(i in seq_along(list.size)){
 		if(verbose) setTxtProgressBar(pb, i)
 		L <- list.size[i]
-		p[i] <- catFun2(ranges.query[seq(length=L), ], ranges.subject[seq(length=L), ])
-		pAny1[i] <- catFun2(ranges.query[seq(length=L), ], ranges.subject)
-		pAny2[i] <- catFun2(ranges.subject[seq(length=L), ], ranges.query)
+		p[i] <- catFun2(ranges.query[seq(length=L), ], ranges.subject[seq(length=L), ], ...)
+		pAny1[i] <- catFun2(ranges.query[seq(length=L), ], ranges.subject, ...)
+		pAny2[i] <- catFun2(ranges.subject[seq(length=L), ], ranges.query, ...)
 	}
 	if(verbose) close(pb)
 	res <- list(p=p, pAny.queryList=pAny1, pAny.subjectList=pAny2)
@@ -288,15 +291,6 @@ correspondingCall <- function(ranges.query, ranges.subject, subject.method){
 	if(length(index) == 0) return("no overlap")
 	matching.index <- subj.index[index]
 	res <- ranges.subject[matching.index, ]
-##	chrom.subj <- ranges.subject$chrom[subj.index]
-##	chrom.quer <- ranges.query$chrom[quer.index]
-##	id.subj <- ranges.subject$id[subj.index]
-##	id.quer <- ranges.query$id[quer.index]
-##	##	## eliminate those for which the chromosome is not the same
-##	ii <- which(chrom.subj == chrom.quer & id.subj==id.quer)
-##	subj.index <- subj.index[ii]
-##	## index of ranges in query that have a match
-##	res <- ranges.subject[subj.index, ]
 	if(!missing(subject.method)) res$method <- subject.method
 	return(res)
 }
