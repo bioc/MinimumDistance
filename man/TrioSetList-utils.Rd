@@ -1,5 +1,6 @@
 \name{TrioSetList-utils}
 \alias{fatherNames}
+\alias{fmoNames}
 \alias{motherNames}
 \alias{offspringNames}
 \alias{xsegment}
@@ -14,6 +15,7 @@
 
 \usage{
 fatherNames(object)
+fmoNames(object)
 motherNames(object)
 offspringNames(object)
 }
@@ -23,9 +25,13 @@ offspringNames(object)
 }
 \details{
   Returns the name of the father, mother, or offspring in the trio.
+
+  \code{fmoNames} returns a matrix. The columns correspond to father,
+  mother, and offspring.
+
 }
 \value{
-  Character string
+  Character string or matrix.
 }
 \author{
 Rob Scharpf
@@ -36,6 +42,7 @@ Rob Scharpf
 \examples{
 data("trioSetListExample-cleft")
 fatherNames(trioSetList)
+fmoNames(trioSetList)
 motherNames(trioSetList)
 offspringNames(trioSetList)
 }

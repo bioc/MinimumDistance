@@ -2369,7 +2369,6 @@ minimumDistance <- function(path,
 			    calculate.md=TRUE,
 			    calculate.mad=TRUE,
 			    exclusionRule, ## for calculateing row-wise mads
-			    ..., ##additional arguments for segment
 			    verbose=TRUE){#samplesheet, ...){
 	if(missing(container)){
 		stopifnot(nrow(pedigree) > 0) ## need to fix initialization of trioSet object otherwise
@@ -2464,8 +2463,8 @@ minimumDistance <- function(path,
 	##---------------------------------------------------------------------------
 	if(calculate.mad){
 		container <- calculateMads(container, exclusionRule, chromosomes, verbose)
-		if(verbose) message("\tSaving updated container to ", container.filename)
-		save(container, file=container.filename)
+		##if(verbose) message("\tSaving updated container to ", container.filename)
+		##save(container, file=container.filename)
 	}
 	return(container)
 }
@@ -2819,9 +2818,9 @@ xypanel <- function(x, y, panelLabels,
 	if(what == "genes" || what == "CNV") stop("not supported at this time")
 }
 
-gridlayout <- function(figname, lattice.object, rd, cex.pch=0.3, ...){
-	if(!missing(figname))
-		trellis.device(device="pdf", file=figname, onefile=FALSE,
+gridlayout <- function(filename, lattice.object, rd, ...){
+	if(!missing(filename))
+		trellis.device(device="pdf", file=filename, onefile=FALSE,
 			       width=8, height=5)
 	stopifnot(!missing(rd))
 	chr.name <- paste("chr", rd$chrom[[1]], sep="")
@@ -2901,7 +2900,7 @@ gridlayout <- function(figname, lattice.object, rd, cex.pch=0.3, ...){
 ##		grid.points(x[index], y[index], pch=21,
 ##			    gp=gpar(cex=cex.pch, fill="lightblue", alpha=0.5))
 ##	}
-	if(!missing(figname)) dev.off()
+	if(!missing(filename)) dev.off()
 	TRUE
 }
 

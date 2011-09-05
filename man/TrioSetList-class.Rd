@@ -4,6 +4,7 @@
 \alias{TrioSetList-class}
 \alias{[,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}
+\alias{fmoNames,TrioSetList-method}
 \alias{motherNames,TrioSetList-method}
 \alias{ncol,TrioSetList-method}
 \alias{nrow,TrioSetList-method}

@@ -18,7 +18,7 @@ discAtTop(ranges.query, ranges.subject, verbose=TRUE)
 }
   \item{list.size}{size of list in query and subject ranges}
   \item{verbose}{logical}
-  \item{dots}{Additional arguments passed to \code{findOverlaps}.}
+  \item{\dots}{Additional arguments passed to \code{findOverlaps}.}
 }
 \details{
   \code{concAtTop} calculates three measures of concordance:

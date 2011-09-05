@@ -43,6 +43,7 @@ exportMethods("[", baf, "baf<-",
 	      prune,
 	      rbind,
 	      state,
+	      todf,
 	      trioNames,
 	      updateObject,
 	      width,
@@ -63,8 +64,8 @@ export("[",
        narrow,
        RangedDataCNV,
        RangedDataCBS,
-       RangedDataHMM,
-       todf,
-       xypanel)
+       RangedDataHMM)
+##       todf)
+##       xypanel)
 
 

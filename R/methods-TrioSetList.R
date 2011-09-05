@@ -28,6 +28,7 @@ setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 setMethod("offspringNames", signature(object="TrioSetList"), function(object) offspringNames(object[[1]]))
 setMethod("fatherNames", signature(object="TrioSetList"), function(object) fatherNames(object[[1]]))
 setMethod("motherNames", signature(object="TrioSetList"), function(object) motherNames(object[[1]]))
+setMethod("fmoNames", signature(object="TrioSetList"), function(object) fmoNames(object[[1]]))
 
 setMethod("computeBayesFactor", signature(object="TrioSetList"),
 	  function(object, ranges, id, states, baf.sds, mu.logr,
