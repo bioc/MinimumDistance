@@ -63,7 +63,8 @@ bordering the range in the \code{rd} object.
 	offspringNames(trioSetList)
 	offspringNames(trioSetList) <- gsub("@", "\\.", offspringNames(trioSetList))
 	motherNames(trioSetList) <- gsub("@", "\\.", motherNames(trioSetList))
-	fatherNames <- gsub("@", "\\.", fatherNames(trioSetList))
+	fatherNames(trioSetList) <- gsub("@", "\\.", fatherNames(trioSetList))
+	save(trioSetList, file="~/Projects/MinimumDistance/data/trioSetList.rda")
 	\dontrun{
 		md.segs <- minimumDistanceCalls(container=trioSetList,
 						chromosomes=1:2)
