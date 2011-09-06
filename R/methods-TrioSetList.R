@@ -1,8 +1,10 @@
 setMethod("xsegment", signature(object="TrioSetList"),
 	  function(object, id, ..., verbose=FALSE, DNAcopy.verbose=0){
+		  if(missing(id)) id <- sampleNames(object)
 		  dfl <- lapply(object, xsegment, id=id, ..., verbose=verbose,DNAcopy.verbose=DNAcopy.verbose)
-		  df <- do.call("rbind", dfl)
-		  return(df)
+		  ##df <- do.call("rbind", dfl)
+		  ranges <- stack(RangedDataList(dfl))
+		  return(ranges)
 	  })
 setMethod("sampleNames", signature(object="TrioSetList"),
 	  function(object) sampleNames(object[[1]]))

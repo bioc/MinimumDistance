@@ -381,8 +381,20 @@ setMethod("xsegment", signature(object="TrioSet"),
 				  close(logR(object))
 			  }
 		  }
-		  return(md.segs)
+		  ## add 'family' column to ranges
+		  ranges <- RangedDataCBS(ranges=IRanges(md.segs$loc.start, md.segs$loc.end),
+					  chromosome=md.segs$chrom,
+					  sampleId=md.segs$ID,
+					  coverage=md.segs$num.mark,
+					  seg.mean=md.segs$seg.mean,
+					  startIndexInChromosome=md.segs$start.index,
+					  endIndexInChromosome=md.segs$end.index)
+		  family <- getFamilyName(ranges, object)
+		  ranges$family <- family
+		  return(ranges)
 })
+
+
 
 ##setMethod("xsegment", signature(object="TrioSet"),
 xsegment2 <- function(object, id, ..., verbose=FALSE){

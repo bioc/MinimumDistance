@@ -2518,16 +2518,17 @@ minimumDistanceCalls <- function(id, container,
 	if(segment.md){
 		##stopifnot(!missing(cbs.filename))
 		##stopifnot(file.exists(dirname(cbs.filename)))
-		df <- xsegment(container[chromosomes], id=id, ..., verbose=verbose,
-			       DNAcopy.verbose=DNAcopy.verbose)
-		df$ID <- gsub("^[X]", "", df$ID)
-		mdRanges <- RangedDataCBS(ranges=IRanges(df$loc.start, df$loc.end),
-					  chromosome=df$chrom,
-					  sampleId=df$ID,
-					  coverage=df$num.mark,
-					  seg.mean=df$seg.mean,
-					  startIndexInChromosome=df$start.index,
-					  endIndexInChromosome=df$end.index)
+		mdRanges <- xsegment(container[chromosomes], id=id, ...,
+				     verbose=verbose,
+				     DNAcopy.verbose=DNAcopy.verbose)
+##		df$ID <- gsub("^[X]", "", df$ID)
+##		mdRanges <- RangedDataCBS(ranges=IRanges(df$loc.start, df$loc.end),
+##					  chromosome=df$chrom,
+##					  sampleId=df$ID,
+##					  coverage=df$num.mark,
+##					  seg.mean=df$seg.mean,
+##					  startIndexInChromosome=df$start.index,
+##					  endIndexInChromosome=df$end.index)
 		if(!missing(cbs.segs)){
 			##if(!missing(offspring.segs)){
 			message("\tChecking the offspring segmentation to see whether breakpoints occur within the minimum distance interval...")
@@ -3335,4 +3336,22 @@ concordanceFun <- function(penn332, md332, rank.by="coverage", list.size=500, by
 	plist2 <- concAtTop(ranges.query=md332.llr, ranges.subject=penn332, list.size=list.size)
 	names(plist2) <- c("cat", "topMD", "topPenn")
 	return(list(coverageList=plist, posteriorList=plist2))
+}
+
+getFamilyName <- function(cbs.segs, trioSet){
+	family <- rep(NA, nrow(cbs.segs))
+	father.index <- which(sampleNames(cbs.segs) %in% fatherNames(trioSet))
+	father.names <- sampleNames(cbs.segs)[father.index]
+	trio.index <- match(father.names, fatherNames(trioSet))
+	family[father.index] <- sampleNames(trioSet)[trio.index]
+	mother.index <- which(sampleNames(cbs.segs) %in% motherNames(trioSet))
+	mother.names <- sampleNames(cbs.segs)[mother.index]
+	trio.index <- match(mother.names, motherNames(trioSet))
+	family[mother.index] <- sampleNames(trioSet)[trio.index]
+	offspring.index <- which(sampleNames(cbs.segs) %in% offspringNames(trioSet))
+	offspring.names <- sampleNames(cbs.segs)[offspring.index]
+	trio.index <- match(offspring.names, offspringNames(trioSet))
+	family[offspring.index] <- sampleNames(trioSet)[trio.index]
+	stopifnot(all(family %in% sampleNames(trioSet)))
+	return(family)
 }

@@ -75,7 +75,7 @@ bordering the range in the \code{rd} object.
 						    narrowRanges=FALSE)
 		save(called.ranges, file="~/Projects/MinimumDistance/data/called.ranges.rda")
 	}
-	data(mindist.ranges)
+	data(called.ranges)
 	data(md.segs)
 	data(cbs.segs)
 	trellisList <- minimumDistancePlot(trioSetList=trioSetList,
