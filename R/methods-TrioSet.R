@@ -631,12 +631,28 @@ setMethod("prune", signature(object="TrioSet", ranges="RangedDataCNV"),
 setMethod("offspringNames", signature(object="TrioSet"), function(object){
 	phenoData2(object)[, "Sample.Name", "O"]
 })
+setReplaceMethod("offspringNames", signature(object="TrioSet", value="character"),
+		 function(object, value){
+			 phenoData2(object)[, "Sample.Name", "O"] <- value
+			 object
+		 })
+
 setMethod("fatherNames", signature(object="TrioSet"), function(object){
 	phenoData2(object)[, "Sample.Name", "F"]
 })
+setReplaceMethod("fatherNames", signature(object="TrioSet", value="character"),
+		 function(object, value){
+			 phenoData2(object)[, "Sample.Name", "F"] <- value
+			 object
+		 })
 setMethod("motherNames", signature(object="TrioSet"), function(object){
 	phenoData2(object)[, "Sample.Name", "M"]
 })
+setReplaceMethod("motherNames", signature(object="TrioSet", value="character"),
+		 function(object, value){
+			 phenoData2(object)[, "Sample.Name", "M"] <- value
+			 object
+		 })
 
 fmoNames <- function(object){
 	tmp <- cbind(fatherNames(object), motherNames(object), offspringNames(object))

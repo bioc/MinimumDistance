@@ -1,11 +1,11 @@
 \name{mdRanges}
-\alias{mdRanges}
+\alias{cbs.segs}
 \docType{data}
 \title{Segmentation of log R ratios}
 \description{
 %%  ~~ A concise (1-5 lines) description of the dataset. ~~
 }
-\usage{data(mdRanges)}
+\usage{data(cbs.segs)}
 \format{
 }
 \details{
@@ -20,7 +20,7 @@
 \examples{
 \dontrun{
         ## show how 'cbs_segs' object was created
-	data("trioSet-hapmap")
+	data("trioSetList")
 	cbs.segs <- vector("list", length(trioSetList))
 	chrom <- seq_along(trioSetList)
 	for(i in chrom){
@@ -57,8 +57,13 @@
 					endIndexInChromosome=tmp$endRow)
 		cbs.segs[[i]] <- rd.cnv
 	}
-	cbs_segs <- stack(RangedDataList(cbs.segs))
+	cbs.segs <- stack(RangedDataList(cbs.segs))
+	## add the 'trio' name.  Can be the name of the offspring.
+	father.index <- which(sampleNames(cbs.segs) %in% fatherNames(trioSetList))
+	father.names <- sampleNames(cbs.segs)[father.index]
+	cbs.segs[father.index] <-
+
 }
-data(cbs_segs)
+data(cbs.segs)
 }
 \keyword{datasets}

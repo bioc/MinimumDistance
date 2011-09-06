@@ -26,8 +26,20 @@ setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 
 
 setMethod("offspringNames", signature(object="TrioSetList"), function(object) offspringNames(object[[1]]))
+setReplaceMethod("offspringNames", signature(object="TrioSetList", value="character"), function(object, value){
+	offspringNames(object[[1]]) <- value
+	return(object)
+})
 setMethod("fatherNames", signature(object="TrioSetList"), function(object) fatherNames(object[[1]]))
+setReplaceMethod("fatherNames", signature(object="TrioSetList", value="character"), function(object, value){
+	fatherNames(object[[1]]) <- value
+	return(object)
+})
 setMethod("motherNames", signature(object="TrioSetList"), function(object) motherNames(object[[1]]))
+setReplaceMethod("motherNames", signature(object="TrioSetList", value="character"), function(object, value){
+	motherNames(object[[1]]) <- value
+	return(object)
+})
 setMethod("fmoNames", signature(object="TrioSetList"), function(object) fmoNames(object[[1]]))
 
 setMethod("computeBayesFactor", signature(object="TrioSetList"),
