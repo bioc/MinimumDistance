@@ -99,7 +99,7 @@ Rob Scharpf
 	See \code{\link{segment}} for additional details regarding the
   segmentation provided by CBS.
 
-  See \code{\link{grid.layout}} for plotting the low-level summaries
+  See \code{\link{gridlayout}} for plotting the low-level summaries
   for inferred deletions and amplifications.
 
   }

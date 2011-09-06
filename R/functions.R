@@ -3125,7 +3125,7 @@ myfilter <- function(x, filter, ...){
 	return(res)
 }
 
-minimumDistancePlot <- function(trioSets, ranges, md.segs, cbs.segs, frame=2e6,
+minimumDistancePlot <- function(trioSetList, ranges, md.segs, cbs.segs, frame=2e6,
 				cex=0.2,
 				scales.cex=0.5,
 				pch=21,
@@ -3153,7 +3153,7 @@ minimumDistancePlot <- function(trioSets, ranges, md.segs, cbs.segs, frame=2e6,
 	f1 <- f2 <- list()
 	for(i in 1:nrow(r1)){
 		panelLabels <- c("father", "mother", "offspring", "min dist")
-		f1[[i]] <- xyplot(r ~ x | id, trioSets, ##range=penn.offspring[index, ],
+		f1[[i]] <- xyplot(r ~ x | id, trioSetList, ##range=penn.offspring[index, ],
 				  panel=xypanel,
 				  range=r1[i, ],
 				  panelLabels=panelLabels,
@@ -3180,7 +3180,7 @@ minimumDistancePlot <- function(trioSets, ranges, md.segs, cbs.segs, frame=2e6,
 		} else{
 			alternating <- c(0,0,2,2,2)
 		}
-		f2[[i]] <- xyplot(b ~ x | id, trioSets, range=r1[i, ],
+		f2[[i]] <- xyplot(b ~ x | id, trioSetList, range=r1[i, ],
 				  panelLabels=panelLabelsRight,
 				  frame=frame,
 				  scales=list(x=list(cex=scales.cex, tick.number=10,
@@ -3295,8 +3295,8 @@ narrow <- function(md.range, cbs.segs, thr, verbose=TRUE){
 	return(rdCbs)
 }
 
-plotRange <- function(range, trioSets, md.segs,cbs.segs, penn.offspring, frame=2e6){
-	tmp <- MinimumDistance:::minimumDistancePlot(trioSets=trioSets,
+plotRange <- function(range, trioSetList, md.segs,cbs.segs, penn.offspring, frame=2e6){
+	tmp <- MinimumDistance:::minimumDistancePlot(trioSetList=trioSetList,
 						     ranges=range,
 						     md.segs=md.segs,
 						     cbs.segs=cbs.segs,

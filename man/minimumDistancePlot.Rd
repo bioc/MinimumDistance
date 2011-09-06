@@ -11,11 +11,11 @@
 
 }
 \usage{
-minimumDistancePlot(trioSets, ranges, md.segs, cbs.segs, frame = 2e+06, cex = 0.2, scales.cex = 0.5, pch = 21, panelLabelsRight = c("father", "mother", "offspring"))
+minimumDistancePlot(trioSetList, ranges, md.segs, cbs.segs, frame = 2e+06, cex = 0.2, scales.cex = 0.5, pch = 21, panelLabelsRight = c("father", "mother", "offspring"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{trioSets}{
+  \item{trioSetList}{
     A \code{TrioSetList} object.
 }
   \item{ranges}{

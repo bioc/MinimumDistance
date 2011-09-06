@@ -59,7 +59,33 @@ bordering the range in the \code{rd} object.
 
 }
 \examples{
+	data(trioSetList)
+	\dontrun{
+		md.segs <- minimumDistanceCalls(container=trioSetList,
+						chromosomes=1:2)
+		save(md.segs, file="~/Projects/MinimumDistance/data/md.segs.rda")
+		called.ranges <- minimumDistanceCalls(container=trioSetList,
+						    chromosomes=1:2,
+						    ranges=mdRanges,
+						    narrowRanges=FALSE)
+		save(called.ranges, file="~/Projects/MinimumDistance/data/called.ranges.rda")
+	}
 
+	data(mindist.ranges)
+	data(md.segs)
+	data(cbs.segs)
+	trellisList <- minimumDistancePlot(trioSetList=trioSetList,
+					   ranges=called.ranges[3,],
+					   md.segs=md.segs,
+					   cbs.segs=cbs.segs,
+					   cex=0.2,
+					   scales.cex=0.6)
+	lvp <- viewport(x=0,
+			y=0.05,
+			width=unit(0.50, "npc"),
+			height=unit(0.95, "npc"), just=c("left", "bottom"),
+			name="lvp")
+	pushViewport(lvp)
 }
 \keyword{plot}
 %\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
