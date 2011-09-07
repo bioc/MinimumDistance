@@ -25,6 +25,8 @@
 \dontrun{
         ## show how 'cbs_segs' object was created
 	data("trioSetList")
+
+	sampleNames(trioSetList) <- offspringNames(trioSetList)
 	md.segs <- xsegment(object=trioSetList, verbose=TRUE)
 	cbs.segs <- xsegment(object=trioSetList,
 			     segment.mindist=FALSE, verbose=TRUE)

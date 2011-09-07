@@ -3341,17 +3341,23 @@ concordanceFun <- function(penn332, md332, rank.by="coverage", list.size=500, by
 getFamilyName <- function(cbs.segs, trioSet){
 	family <- rep(NA, nrow(cbs.segs))
 	father.index <- which(sampleNames(cbs.segs) %in% fatherNames(trioSet))
-	father.names <- sampleNames(cbs.segs)[father.index]
-	trio.index <- match(father.names, fatherNames(trioSet))
-	family[father.index] <- sampleNames(trioSet)[trio.index]
+	if(length(father.index) > 0){
+		father.names <- sampleNames(cbs.segs)[father.index]
+		trio.index <- match(father.names, fatherNames(trioSet))
+		family[father.index] <- sampleNames(trioSet)[trio.index]
+	}
 	mother.index <- which(sampleNames(cbs.segs) %in% motherNames(trioSet))
-	mother.names <- sampleNames(cbs.segs)[mother.index]
-	trio.index <- match(mother.names, motherNames(trioSet))
-	family[mother.index] <- sampleNames(trioSet)[trio.index]
+	if(length(mother.index) > 0){
+		mother.names <- sampleNames(cbs.segs)[mother.index]
+		trio.index <- match(mother.names, motherNames(trioSet))
+		family[mother.index] <- sampleNames(trioSet)[trio.index]
+	}
 	offspring.index <- which(sampleNames(cbs.segs) %in% offspringNames(trioSet))
-	offspring.names <- sampleNames(cbs.segs)[offspring.index]
-	trio.index <- match(offspring.names, offspringNames(trioSet))
-	family[offspring.index] <- sampleNames(trioSet)[trio.index]
+	if(length(offspring.index) > 0){
+		offspring.names <- sampleNames(cbs.segs)[offspring.index]
+		trio.index <- match(offspring.names, offspringNames(trioSet))
+		family[offspring.index] <- sampleNames(trioSet)[trio.index]
+	}
 	stopifnot(all(family %in% sampleNames(trioSet)))
 	return(family)
 }

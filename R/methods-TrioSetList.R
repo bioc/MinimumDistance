@@ -9,6 +9,15 @@ setMethod("xsegment", signature(object="TrioSetList"),
 	  })
 setMethod("sampleNames", signature(object="TrioSetList"),
 	  function(object) sampleNames(object[[1]]))
+setReplaceMethod("sampleNames", signature(object="TrioSetList", value="character"),
+		 function(object, value){
+			 object <- lapply(object, function(x, value ){
+				 sampleNames(x) <- value
+				 return(x)
+				 }, value=value)
+			 object <- as(object, "TrioSetList")
+			 return(object)
+	 })
 setMethod("ncol", signature(x="TrioSetList"),
 	  function(x) ncol(x[[1]]))
 setMethod("nrow", signature(x="TrioSetList"),
@@ -30,17 +39,29 @@ setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 
 setMethod("offspringNames", signature(object="TrioSetList"), function(object) offspringNames(object[[1]]))
 setReplaceMethod("offspringNames", signature(object="TrioSetList", value="character"), function(object, value){
-	offspringNames(object[[1]]) <- value
+	object <- lapply(object, function(x, value ){
+		offspringNames(x) <- value
+		return(x)
+	}, value=value)
+	object <- as(object, "TrioSetList")
 	return(object)
 })
 setMethod("fatherNames", signature(object="TrioSetList"), function(object) fatherNames(object[[1]]))
-setReplaceMethod("fatherNames", signature(object="TrioSetList", value="character"), function(object, value){
-	fatherNames(object[[1]]) <- value
+setReplaceMethod("offspringNames", signature(object="TrioSetList", value="character"), function(object, value){
+	object <- lapply(object, function(x, value ){
+		fatherNames(x) <- value
+		return(x)
+	}, value=value)
+	object <- as(object, "TrioSetList")
 	return(object)
 })
 setMethod("motherNames", signature(object="TrioSetList"), function(object) motherNames(object[[1]]))
-setReplaceMethod("motherNames", signature(object="TrioSetList", value="character"), function(object, value){
-	motherNames(object[[1]]) <- value
+setReplaceMethod("offspringNames", signature(object="TrioSetList", value="character"), function(object, value){
+	object <- lapply(object, function(x, value ){
+		motherNames(x) <- value
+		return(x)
+	}, value=value)
+	object <- as(object, "TrioSetList")
 	return(object)
 })
 setMethod("fmoNames", signature(object="TrioSetList"), function(object) fmoNames(object[[1]]))

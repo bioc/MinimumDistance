@@ -55,7 +55,8 @@ setReplaceMethod("sampleNames", signature(object="TrioSet"), function(object, va
 		colnames(mindist(object)) <- value
 	}
 	if(!is.null(mad(object))){
-		colnames(mad(object)) <- value
+		##colnames(mad(object)) <- value
+		rownames(mad(object)) <- value
 	}
 	return(object)
 })
