@@ -48,12 +48,10 @@ Rob Scharpf
 \code{\linkS4class{TrioSet}}
 }
 \examples{
-data("trioSetListExample-cleft")
+data(trioSetList)
 trioSet <- trioSetList[[1]]
 ## log R ratios for the first trio and markers 1-5
 logR(trioSet)[1:5, 1, ]
-## log R ratios for the father for the first 5 trios and markers 1-5
-logR(trioSet)[1:5, 1:5, "F"]
 
 ## the minimum distance for the first five markers, first trio
 mindist(trioSet)[1:5, 1]

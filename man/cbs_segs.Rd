@@ -42,9 +42,9 @@
 
         ## how the 'called.ranges' object was created
 	called.ranges <- minimumDistanceCalls(container=trioSetList,
-					      chromosomes=1:2,
 					      cbs.segs=cbs.segs,
-					      ranges=md.segs)
+					      ranges=md.segs,
+					      mindistance.threshold=0.09)
 
 
 }

@@ -63,19 +63,32 @@ bordering the range in the \code{rd} object.
 	data(called.ranges)
 	data(md.segs)
 	data(cbs.segs)
+	cbs.segs$family <- MinimumDistance:::getFamilyName(cbs.segs, trioSetList)
 	##trace(minimumDistancePlot, browser)
+	##plot the first third range
 	trellisList <- minimumDistancePlot(trioSetList=trioSetList,
-					   ranges=called.ranges[3,],
+					   ranges=called.ranges[92,],
 					   md.segs=md.segs,
 					   cbs.segs=cbs.segs,
 					   cex=0.2,
 					   scales.cex=0.6)
-	lvp <- viewport(x=0,
-			y=0.05,
-			width=unit(0.50, "npc"),
-			height=unit(0.95, "npc"), just=c("left", "bottom"),
-			name="lvp")
-	pushViewport(lvp)
+	logr.trellis.list <- trellisList[[1]]
+	baf.trellis.list <- trellisList[[2]]
+	gridlayout(lattice.object=list(logr.trellis.list[[1]],
+		   baf.trellis.list[[1]]), rd=called.ranges[92,])
+
+	## use a frame of 500kb around the start and end position of the segment
+	trellisList <- minimumDistancePlot(trioSetList=trioSetList,
+					   ranges=called.ranges[92,],
+					   md.segs=md.segs,
+					   cbs.segs=cbs.segs,
+					   cex=0.2,
+					   scales.cex=0.6,
+					   frame=500e3)
+	logr.trellis.list <- trellisList[[1]]
+	baf.trellis.list <- trellisList[[2]]
+	gridlayout(lattice.object=list(logr.trellis.list[[1]],
+		   baf.trellis.list[[1]]), rd=called.ranges[92,])
 }
 \keyword{plot}
 

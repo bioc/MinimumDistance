@@ -1,8 +1,11 @@
 \name{TrioSetList-utils}
 \alias{fatherNames}
+\alias{fatherNames<-}
 \alias{fmoNames}
 \alias{motherNames}
+\alias{motherNames<-}
 \alias{offspringNames}
+\alias{offspringNames<-}
 \alias{xyplot}
 
 %- Also NEED an '\alias' for EACH other topic documented here.
@@ -39,7 +42,7 @@ Rob Scharpf
 \code{\linkS4class{TrioSet}}
 }
 \examples{
-data("trioSetListExample-cleft")
+data("trioSetList")
 fatherNames(trioSetList)
 fmoNames(trioSetList)
 motherNames(trioSetList)

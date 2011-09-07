@@ -6,7 +6,7 @@
   minimum distance segment.
 }
 \usage{
-minimumDistanceCalls(id, container, chromosomes = 1:22, ranges, cbs.segs, mindistance.threshold = 0.075, narrowRanges = TRUE, prOutlier = c(0.01, 1e-15), prMosaic = 0.01, prob.nonMendelian = 1.5e-06, mu.logr = c(-2, -0.5, 0, 0.3, 0.75), baf.sds = c(0.005, 0.2, 0.005), pruneMinimumDistance = FALSE, prune.by.call = TRUE, min.coverage = 10, returnEmission = FALSE, ..., verbose = TRUE, DNAcopy.verbose = 0)
+minimumDistanceCalls(id, container, chromosomes = 1:22, ranges, cbs.segs, mindistance.threshold = 0.09, narrowRanges = TRUE, prOutlier = c(0.01, 1e-15), prMosaic = 0.01, prob.nonMendelian = 1.5e-06, mu.logr = c(-2, -0.5, 0, 0.3, 0.75), baf.sds = c(0.005, 0.2, 0.005), pruneMinimumDistance = FALSE, prune.by.call = TRUE, min.coverage = 10, returnEmission = FALSE, ..., verbose = TRUE, DNAcopy.verbose = 0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -105,13 +105,12 @@ Rob Scharpf
 
 \examples{
 	data(trioSetList)
-	mdRanges <- minimumDistanceCalls(container=trioSetList, chromosomes=1:2)
-	colnames(mdRanges)
-	mdRanges <- minimumDistanceCalls(container=trioSetList,
-					 chromosomes=1:2,
-					 ranges=mdRanges,
-					 narrowRanges=FALSE)
-	colnames(mdRanges)
-	state(mdRanges)
+	data(md.segs)
+	called.ranges <- minimumDistanceCalls(container=trioSetList,
+					      chromosomes=1:2,
+					      ranges=md.segs,
+					      narrowRanges=FALSE)
+	colnames(called.ranges)
+	state(called.ranges)
 }
 \keyword{models}

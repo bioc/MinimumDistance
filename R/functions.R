@@ -2476,7 +2476,8 @@ minimumDistanceCalls <- function(id, container,
 				 chromosomes=1:22,
 				 ranges,
 				 cbs.segs,
-				 mindistance.threshold=0.075,
+				 ##mindistance.threshold=0.075,
+				 mindistance.threshold=0.09,
 				 narrowRanges=TRUE,
 				 prOutlier=c(0.01, 1e-15),
 				 prMosaic=0.01,
@@ -2505,7 +2506,7 @@ minimumDistanceCalls <- function(id, container,
 				     DNAcopy.verbose=DNAcopy.verbose)
 		message("Returning mdRanges. Rerun with ranges = mdRanges")
 		return(mdRanges)
-	} else mdRanges <- md.segs
+	} else mdRanges <- ranges
 	mads <- container[[1]]$mindist.mad
 	ix <- match(sampleNames(mdRanges), id)
 	mdRanges$mindist.mad <- mads[ix]
@@ -2815,7 +2816,7 @@ gridlayout <- function(filename, lattice.object, rd, ...){
 	## RS: removed ss()
 ##	grid.text(paste(chr.name, ", Family", ss(rd$id)), x=unit(0.5, "npc"), y=unit(0.98, "npc"),
 ##		  gp=gpar(cex=0.9))
-	grid.text(paste(chr.name, ", Family", trioNames(rd)[i]), x=unit(0.5, "npc"), y=unit(0.98, "npc"),
+	grid.text(paste(chr.name, ", Family", trioNames(rd)[1]), x=unit(0.5, "npc"), y=unit(0.98, "npc"),
 		  gp=gpar(cex=0.9))
 	grid.text("Position (Mb)", x=unit(0.5, "npc"), y=unit(0.02, "npc"),
 		  gp=gpar(cex=0.9))
