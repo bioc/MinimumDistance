@@ -23,9 +23,6 @@ xsegment(object, id, segment.mindist = TRUE, ..., verbose = FALSE, DNAcopy.verbo
   \item{DNAcopy.verbose}{Integer. Level of verbosity for segmentation.
   See \code{segment}.}
 }
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
 \value{
   A \code{RangedDataCBS} object.
 }

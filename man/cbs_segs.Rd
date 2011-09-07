@@ -1,39 +1,31 @@
-\name{xsegment}
+\name{RangedDataCBS_Examples}
 \alias{cbs.segs}
 \alias{md.segs}
 \docType{data}
 \title{Segmentation of log R ratios}
 \description{
-%%  ~~ A concise (1-5 lines) description of the dataset. ~~
+  Example \code{RangedDataCBS} objects created from the segmentation of
+  the log R ratios (object \code{cbs.segs}) and the minimum distance
+  (object \code{md.segs}).
 }
 \usage{
 	data(cbs.segs)
 	data(md.segs)
 }
-\format{
-}
-\details{
-%%  ~~ If necessary, more details than the __description__ above ~~
-}
-\source{
-%%  ~~ reference to a publication or URL from which the data were obtained ~~
-}
-\references{
-%%  ~~ possibly secondary sources and usages ~~
-}
+\seealso{See \code{\linkS4class{RangedDataCBS}}  for accessors and
+  methods available for objects of this class. }
 \examples{
 \dontrun{
 	data("trioSetList")
 	## how the 'md.segs' object was created
 	md.segs <- xsegment(object=trioSetList,
 			    verbose=TRUE)
-	save(md.segs,file="~/Projects/MinimumDistance/data/md.segs.rda")
 	## how the 'cbs.segs' object was created
 	cbs.segs <- xsegment(object=trioSetList,
 			     segment.mindist=FALSE,
 			     verbose=TRUE)
-	save(cbs.segs,file="~/Projects/MinimumDistance/data/cbs.segs.rda")
 }
 data(cbs.segs)
+data(md.segs)
 }
 \keyword{datasets}

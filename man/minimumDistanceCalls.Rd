@@ -34,9 +34,9 @@ minimumDistanceCalls(id, container, chromosomes = 1:22, ranges, cbs.segs, segmen
     concatenated (breakpoint removed) if the coverage of the 5-prime segment
     is below a threshold value given by \code{min.coverage} or if the standardized difference in
     segment means is small.}
-  \item{min.coverage}{Numeric.}
   \item{prune.by.call}{Adjacent segments with the same trio copy number
     state call are concatenated, forming a single segment.}
+  \item{min.coverage}{Numeric.}
   \item{returnEmission}{Logical.  If TRUE, an object containing the
     emission probabilities for the log R ratios and B allele frequecies
     is returned.  This is primarily for debugging -- users should set

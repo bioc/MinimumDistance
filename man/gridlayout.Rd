@@ -74,6 +74,7 @@ bordering the range in the \code{rd} object.
 	data(called.ranges)
 	data(md.segs)
 	data(cbs.segs)
+	trace(minimumDistancePlot, browser)
 	trellisList <- minimumDistancePlot(trioSetList=trioSetList,
 					   ranges=called.ranges[3,],
 					   md.segs=md.segs,
@@ -88,4 +89,4 @@ bordering the range in the \code{rd} object.
 	pushViewport(lvp)
 }
 \keyword{plot}
-%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+

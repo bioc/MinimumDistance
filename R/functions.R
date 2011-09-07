@@ -2472,9 +2472,7 @@ minimumDistance <- function(path,
 minimumDistanceCalls <- function(id, container,
 				 chromosomes=1:22,
 				 ranges,
-				 ##cbs.filename,
 				 cbs.segs,
-				 ##segment.md=missing(cbs.filename)&missing(ranges),
 				 segment.md=missing(ranges),
 				 mindistance.threshold=0.075,
 				 narrowRanges=TRUE,
@@ -2484,8 +2482,8 @@ minimumDistanceCalls <- function(id, container,
 				 mu.logr=c(-2, -0.5, 0, 0.3, 0.75),
 				 baf.sds=c(0.005, 0.2, 0.005),
 				 pruneMinimumDistance=FALSE,
-				 min.coverage=10,
 				 prune.by.call=TRUE,
+				 min.coverage=10,
 				 returnEmission=FALSE,
 				 ..., verbose=TRUE, DNAcopy.verbose=0){
 	##---------------------------------------------------------------------------
@@ -2500,42 +2498,13 @@ minimumDistanceCalls <- function(id, container,
 	} else stopifnot(all(id %in% sampleNames(container)))
 	stopifnot(all(chromosomes %in% 1:22))
 	if(missing(ranges)){
-		##if(!missing(cbs.filename)){
-		##	if(file.exists(cbs.filename)) {
-		##		loadRanges <- TRUE
-		##		segment.md <- FALSE
-		##	} else {
-##		loadRanges <- FALSE
-		segment.md <- TRUE
-		##	}
-##		} else {
-##			stop("Must provide name of file to store results from circular binary segmentation of the minimum distance")
-##		}
-	} else {
-		segment.md <- FALSE
-##		loadRanges <- FALSE
-	}
-	if(segment.md){
-		##stopifnot(!missing(cbs.filename))
-		##stopifnot(file.exists(dirname(cbs.filename)))
 		mdRanges <- xsegment(container[chromosomes], id=id, ...,
 				     verbose=verbose,
 				     DNAcopy.verbose=DNAcopy.verbose)
 		message("Returning mdRanges. Rerun with ranges = mdRanges")
 		return(mdRanges)
-	} else {
-		mdRanges <- md.segs
-	}
-##		df$ID <- gsub("^[X]", "", df$ID)
-##		mdRanges <- RangedDataCBS(ranges=IRanges(df$loc.start, df$loc.end),
-##					  chromosome=df$chrom,
-##					  sampleId=df$ID,
-##					  coverage=df$num.mark,
-##					  seg.mean=df$seg.mean,
-##					  startIndexInChromosome=df$start.index,
-##					  endIndexInChromosome=df$end.index)
+	} else mdRanges <- md.segs
 	if(!missing(cbs.segs) & narrowRanges){
-		##if(!missing(offspring.segs)){
 		message("\tChecking the offspring segmentation to see whether breakpoints occur within the minimum distance interval...")
 		mdRanges <- narrow(mdRanges, cbs.segs, thr=mindistance.threshold)
 		message("\tFinished 'narrowing' the minimum distance ranges")
@@ -2544,20 +2513,6 @@ minimumDistanceCalls <- function(id, container,
 	mads <- container[[1]]$mindist.mad
 	ix <- match(sampleNames(mdRanges), id)
 	mdRanges$mindist.mad <- mads[ix]
-	##message("Saving the segmentation results from CBS (prior to pruning) to ", cbs.filename)
-		##save(mdRanges, file=cbs.filename)
-##	} ##else {
-##		if(loadRanges){
-##			if(missing(cbs.filename)) stop("cbs.filename is missing, but segment.md=FALSE")
-##			if(verbose) message("Loading saved cbs segmentation results")
-##			load(cbs.filename)
-##			nm <- strsplit(basename(cbs.filename), ".rda")[[1]][1]
-##			mdRanges <- get(nm)
-##		} else {
-##			mdRanges <- ranges
-##			rm(ranges);gc()
-##		}
-##	}
 	##---------------------------------------------------------------------------
 	##
 	## Prune the minimum distance ranges
@@ -2584,30 +2539,6 @@ minimumDistanceCalls <- function(id, container,
 		prunedRanges <- prunedRanges[sampleNames(prunedRanges) %in% id & chromosome(prunedRanges) %in% chromosomes, ]
 		rm(ranges); gc()
 	}
-##	if(narrowRanges & !segment.md){
-##	if(narrowRanges){
-##		##if(missing(cbs.segs.offspring)){
-##		if(missing(cbs.segs)){
-##			message("narrowRanges is TRUE, but cbs.segs not provided.  Segmenting the offspring log R ratios...")
-##			df <- xsegment(container[chromosomes],
-##				       id=id,
-##				       segment.mindist=FALSE, ...,
-##				       verbose=verbose,
-##				       DNAcopy.verbose=DNAcopy.verbose)
-##			df$ID <- gsub("^[X]", "", df$ID)
-##			cbs.segs <- RangedDataCBS(ranges=IRanges(df$loc.start, df$loc.end),
-##						  chromosome=df$chrom,
-##						  sampleId=df$ID,
-##						  coverage=df$num.mark,
-##						  seg.mean=df$seg.mean,
-##						  startIndexInChromosome=df$start.index,
-##						  endIndexInChromosome=df$end.index)
-##			##message("Returning segmentation of offspring log R ratios")
-##			##return(cbs.segs)
-##			##save(cbs.segs, file=file.path(dirname(cbs.filename), "cbs.segs.rda"))
-##		}
-##		prunedRanges <- narrow(prunedRanges, cbs.segs, thr=0.075)
-##	}
 	tau <- transitionProbability(states=0:4, epsilon=0.5)
 	log.pi <- log(initialStateProbs(states=0:4, epsilon=0.5))
 	message("Computing bayes factors")

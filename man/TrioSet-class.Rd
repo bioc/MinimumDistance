@@ -7,13 +7,16 @@
 \alias{calculateMindist,TrioSet-method}
 \alias{dim,TrioSet-method}
 \alias{fatherNames,TrioSet-method}
+\alias{fatherNames<-,TrioSet,character-method}
 \alias{logR<-,TrioSet-method}
 \alias{mad<-,TrioSet-method}
 \alias{mad,TrioSet-method}
 \alias{mindist<-,TrioSet-method}
 \alias{mindist,TrioSet-method}
 \alias{motherNames,TrioSet-method}
+\alias{motherNames<-,TrioSet,character-method}
 \alias{offspringNames,TrioSet-method}
+\alias{offspringNames<-,TrioSet,character-method}
 \alias{phenoData2<-,TrioSet-method}
 \alias{phenoData2,TrioSet-method}
 \alias{prune,TrioSet,RangedDataCNV-method}

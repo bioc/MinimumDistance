@@ -4,11 +4,14 @@
 \alias{TrioSetList-class}
 \alias{[,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}
+\alias{fatherNames<-,TrioSetList,character-method}
 \alias{fmoNames,TrioSetList-method}
 \alias{motherNames,TrioSetList-method}
+\alias{motherNames<-,TrioSetList,character-method}
 \alias{ncol,TrioSetList-method}
 \alias{nrow,TrioSetList-method}
 \alias{offspringNames,TrioSetList-method}
+\alias{offspringNames<-,TrioSetList,character-method}
 \alias{prune,TrioSetList,RangedDataCNV-method}
 \alias{xsegment,TrioSetList-method}
 \alias{xyplot,formula,TrioSetList-method}
@@ -45,20 +48,21 @@ Class \code{vectorORfactor}, by class "list", distance 3.
   \describe{
     \item{[}{\code{signature(x = "TrioSetList")}: ... }
     \item{fatherNames}{\code{signature(object = "TrioSetList")}: ... }
+    \item{fatherNames<-}{\code{signature(object = "TrioSetList", value="character")}: ... }
     \item{motherNames}{\code{signature(object = "TrioSetList")}: ... }
+    \item{motherNames<-}{\code{signature(object = "TrioSetList", value="character")}: ... }
     \item{ncol}{\code{signature(x = "TrioSetList")}: ... }
     \item{nrow}{\code{signature(x = "TrioSetList")}: ... }
-    \item{offspringNames}{\code{signature(object = "TrioSetList")}: ... }
+    \item{offspringNames}{\code{signature(object = "TrioSetList")}:
+ ... }
+    \item{offspringNames<-}{\code{signature(object = "TrioSetList", value="character")}: ... }
     \item{prune}{\code{signature(object = "TrioSetList", ranges = "RangedDataCNV")}: ... }
-    \item{xsegment}{\code{signature(object = "TrioSetList")}: ... }
     \item{xyplot}{\code{signature(x = "formula", data = "TrioSetList")}: ... }
 	 }
 }
 \author{
 Rob Scharpf
 }
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
   \code{\linkS4class{TrioSet}}

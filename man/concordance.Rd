@@ -6,7 +6,7 @@
 \description{Functions for assessing concordance and discordance of copy number variant calls}
 \usage{
 concAtTop(ranges.query, ranges.subject, list.size, verbose = TRUE, ...)
-discAtTop(ranges.query, ranges.subject, verbose=TRUE)
+discAtTop(ranges.query, ranges.subject, verbose=TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

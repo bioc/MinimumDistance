@@ -3,7 +3,6 @@
 \alias{fmoNames}
 \alias{motherNames}
 \alias{offspringNames}
-\alias{xsegment}
 \alias{xyplot}
 
 %- Also NEED an '\alias' for EACH other topic documented here.
