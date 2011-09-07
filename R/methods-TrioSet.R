@@ -337,6 +337,7 @@ setMethod("xsegment", signature(object="TrioSet"),
 			  }
 			  ##segment offspring copy number
 			  CN <- logR(object)[marker.index, 3, sample.index, drop=FALSE]
+			  browser() ## the id should be fatherNames, motherNames, offspringNames
 		  }
 		  CN <- matrix(as.numeric(CN), nrow(CN), ncol(CN))
 		  dimnames(CN) <- list(featureNames(object)[marker.index], sampleNames(object)[sample.index])
