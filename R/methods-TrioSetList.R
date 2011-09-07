@@ -1,8 +1,8 @@
 setMethod("xsegment", signature(object="TrioSetList"),
-	  function(object, id, ..., verbose=FALSE, DNAcopy.verbose=0){
+	  function(object, id, segment.mindist=TRUE, ..., verbose=FALSE, DNAcopy.verbose=0){
 		  if(missing(id)) id <- sampleNames(object)
 		  ##if(missing(id)) id <- offspringNames(object)
-		  dfl <- lapply(object, xsegment, id=id, ..., verbose=verbose,DNAcopy.verbose=DNAcopy.verbose)
+		  dfl <- lapply(object, xsegment, id=id, segment.mindist=segment.mindist, ..., verbose=verbose,DNAcopy.verbose=DNAcopy.verbose)
 		  ##df <- do.call("rbind", dfl)
 		  ranges <- stack(RangedDataList(dfl))
 		  return(ranges)
@@ -47,7 +47,7 @@ setReplaceMethod("offspringNames", signature(object="TrioSetList", value="charac
 	return(object)
 })
 setMethod("fatherNames", signature(object="TrioSetList"), function(object) fatherNames(object[[1]]))
-setReplaceMethod("offspringNames", signature(object="TrioSetList", value="character"), function(object, value){
+setReplaceMethod("fatherNames", signature(object="TrioSetList", value="character"), function(object, value){
 	object <- lapply(object, function(x, value ){
 		fatherNames(x) <- value
 		return(x)
@@ -56,7 +56,7 @@ setReplaceMethod("offspringNames", signature(object="TrioSetList", value="charac
 	return(object)
 })
 setMethod("motherNames", signature(object="TrioSetList"), function(object) motherNames(object[[1]]))
-setReplaceMethod("offspringNames", signature(object="TrioSetList", value="character"), function(object, value){
+setReplaceMethod("motherNames", signature(object="TrioSetList", value="character"), function(object, value){
 	object <- lapply(object, function(x, value ){
 		motherNames(x) <- value
 		return(x)

@@ -23,68 +23,21 @@
 }
 \examples{
 \dontrun{
-        ## show how 'cbs_segs' object was created
 	data("trioSetList")
-
 	sampleNames(trioSetList) <- offspringNames(trioSetList)
-	md.segs <- xsegment(object=trioSetList, verbose=TRUE)
+	offspringNames(trioSetList) <- offspringNames(trioSetList)
+	fatherNames(trioSetList) <- fatherNames(trioSetList)
+	motherNames(trioSetList) <- motherNames(trioSetList)
+	save(trioSetList, file="~/Projects/MinimumDistance/data/trioSetList.rda")
+	## how the 'md.segs' object was created
+	md.segs <- xsegment(object=trioSetList,
+			    verbose=TRUE)
+	save(md.segs,file="~/Projects/MinimumDistance/data/md.segs.rda")
+	## how the 'cbs.segs' object was created
 	cbs.segs <- xsegment(object=trioSetList,
-			     segment.mindist=FALSE, verbose=TRUE)
-
-	cbs.segs <- vector("list", length(trioSetList))
-	chrom <- seq_along(trioSetList)
-
-	for(i in chrom){
-		trioSet <- trioSetList[[i]]
-		marker.index <- which(!duplicated(position(trioSet)))
-		##lR <- logR(trioSet)[marker.index, , ]
-		pos <- position(trioSet)[marker.index]
-		if(any(diff(order(pos)) < 0)){
-			index <- order(pos)
-			marker.index <- marker.index[index]
-			trioSet <- trioSet[marker.index, ]
-			pos <- position(trioSet)
-		}
-		lR <- logR(trioSet)[marker.index, , , drop=FALSE]
-		res <- vector("list", ncol(lR))
-		for(j in 1:ncol(lR)){
-			CNA.object <- CNA(genomdat=lR[, j, ],
-					  chrom=chromosome(trioSet)[marker.index],
-					  maploc=pos,
-					  data.type="logratio",
-					  sampleid=fmoNames(trioSet)[j, ])
-			smu.object <- smooth.CNA(CNA.object)
-			tmp <- segment(smu.object, verbose=0, alpha=0.01)
-			res[[j]] <- cbind(tmp$output, tmp$segRows)
-		}
-		tmp <- do.call("rbind", res)
-		ranges <- IRanges(tmp$loc.start, tmp$loc.end)
-		rd.cnv <- RangedDataCBS(ranges=ranges,
-					chromosome=tmp$chrom,
-					sampleId=tmp$ID,
-					coverage=tmp$num.mark,
-					seg.mean=tmp$seg.mean,
-					startIndexInChromosome=tmp$startRow,
-					endIndexInChromosome=tmp$endRow)
-		cbs.segs[[i]] <- rd.cnv
-	}
-	cbs.segs <- stack(RangedDataList(cbs.segs))
-	## add the 'trio' name.  Can be the name of the offspring.
-	cbs.segs$family <- NA
-	father.index <- which(sampleNames(cbs.segs) %in% fatherNames(trioSetList))
-	father.names <- sampleNames(cbs.segs)[father.index]
-	trio.index <- match(father.names, fatherNames(trioSetList))
-	cbs.segs$family[father.index] <- sampleNames(trioSetList)[trio.index]
-	mother.index <- which(sampleNames(cbs.segs) %in% motherNames(trioSetList))
-	mother.names <- sampleNames(cbs.segs)[mother.index]
-	trio.index <- match(mother.names, motherNames(trioSetList))
-	cbs.segs$family[mother.index] <- sampleNames(trioSetList)[trio.index]
-	offspring.index <- which(sampleNames(cbs.segs) %in% offspringNames(trioSetList))
-	offspring.names <- sampleNames(cbs.segs)[offspring.index]
-	trio.index <- match(offspring.names, offspringNames(trioSetList))
-	cbs.segs$family[offspring.index] <- sampleNames(trioSetList)[trio.index]
-	stopifnot(all(trioNames(cbs.segs) %in% sampleNames(trioSetList)))
-	save(cbs.segs, file="~/Projects/MinimumDistance/data/cbs.segs.rda")
+			     segment.mindist=FALSE,
+			     verbose=TRUE)
+	save(cbs.segs,file="~/Projects/MinimumDistance/data/cbs.segs.rda")
 }
 data(cbs.segs)
 }

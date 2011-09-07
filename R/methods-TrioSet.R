@@ -12,7 +12,7 @@ setMethod("open", "TrioSet", function(con, ...){
 	return(TRUE)
 })
 setMethod("close", "TrioSet", function(con, ...){
-	browser()
+	##browser()
 	##con is just to keep the same generic arguments
 	object <- con
 	if(!isFF(object)) return()
@@ -331,17 +331,28 @@ setMethod("xsegment", signature(object="TrioSet"),
 		  chrom <- chromosome(object)[marker.index]
 		  if(segment.mindist){
 			  CN <- mindist(object)[marker.index, sample.index, drop=FALSE]
+			  CN <- matrix(as.numeric(CN), nrow(CN), ncol(CN))
+			  dimnames(CN) <- list(featureNames(object)[marker.index], sampleNames(object)[sample.index])
 		  } else{
 			  is.ff <- is(logR(object), "ff")
 			  if(is.ff){
 				  open(logR(object))
 			  }
 			  ##segment offspring copy number
-			  CN <- logR(object)[marker.index, 3, sample.index, drop=FALSE]
-			  browser() ## the id should be fatherNames, motherNames, offspringNames
+			  CN <- logR(object)[marker.index, sample.index, , drop=FALSE]
+			  CN2 <- matrix(NA, nrow(CN), prod(dim(CN)[2:3]))
+			  trio.factor <- rep(1:(ncol(CN)), each=3)
+			  J <- split(1:ncol(CN2), trio.factor)
+			  for(j in seq_along(sample.index)){
+				  index <- J[[j]]
+				  CN2[, index] <- CN[, j, ]
+			  }
+			  dns <- list(rownames(CN), as.character(t(fmoNames(object)[sample.index, ])))
+			  dimnames(CN2) <- dns
+			  CN <- CN2
+			  rm(CN2); gc()
+			  ##browser() ## the id should be fatherNames, motherNames, offspringNames
 		  }
-		  CN <- matrix(as.numeric(CN), nrow(CN), ncol(CN))
-		  dimnames(CN) <- list(featureNames(object)[marker.index], sampleNames(object)[sample.index])
 		  arm <- splitByDistance(pos, thr=75e3)
 		  ##arm <- getChromosomeArm(chrom, pos)
 		  index.list <- split(seq_along(marker.index), arm)
@@ -356,7 +367,7 @@ setMethod("xsegment", signature(object="TrioSet"),
 					    chrom=chrom[j],
 					    maploc=pos[j],
 					    data.type="logratio",
-					    sampleid=id)
+					    sampleid=colnames(CN))
 			  smu.object <- smooth.CNA(CNA.object)
 			  tmp <- segment(smu.object, verbose=DNAcopy.verbose)
 			  df <- tmp$output
