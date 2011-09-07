@@ -24,11 +24,6 @@
 \examples{
 \dontrun{
 	data("trioSetList")
-	sampleNames(trioSetList) <- offspringNames(trioSetList)
-	offspringNames(trioSetList) <- offspringNames(trioSetList)
-	fatherNames(trioSetList) <- fatherNames(trioSetList)
-	motherNames(trioSetList) <- motherNames(trioSetList)
-	save(trioSetList, file="~/Projects/MinimumDistance/data/trioSetList.rda")
 	## how the 'md.segs' object was created
 	md.segs <- xsegment(object=trioSetList,
 			    verbose=TRUE)

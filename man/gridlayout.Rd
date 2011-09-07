@@ -60,19 +60,15 @@ bordering the range in the \code{rd} object.
 }
 \examples{
 	data(trioSetList)
-	offspringNames(trioSetList)
-	offspringNames(trioSetList) <- gsub("@", "\\.", offspringNames(trioSetList))
-	motherNames(trioSetList) <- gsub("@", "\\.", motherNames(trioSetList))
-	fatherNames(trioSetList) <- gsub("@", "\\.", fatherNames(trioSetList))
-	save(trioSetList, file="~/Projects/MinimumDistance/data/trioSetList.rda")
 	\dontrun{
-		md.segs <- minimumDistanceCalls(container=trioSetList,
-						chromosomes=1:2)
-		save(md.segs, file="~/Projects/MinimumDistance/data/md.segs.rda")
+		data(md.segs)
+		data(cbs.segs)
+		trace(minimumDistanceCalls, browser)
 		called.ranges <- minimumDistanceCalls(container=trioSetList,
-						    chromosomes=1:2,
-						    ranges=mdRanges,
-						    narrowRanges=FALSE)
+						      chromosomes=1:2,
+						      cbs.segs=cbs.segs,
+						      ranges=md.segs,
+						      narrowRanges=FALSE)
 		save(called.ranges, file="~/Projects/MinimumDistance/data/called.ranges.rda")
 	}
 	data(called.ranges)

@@ -18,6 +18,15 @@
 }
 \usage{data(trioSetList)}
 \examples{
+
+\dontrun{
+        ## code to create this object
+        ## ... (moiz)
+	sampleNames(trioSetList) <- offspringNames(trioSetList)
+	offspringNames(trioSetList) <- gsub("@", "\\.", offspringNames(trioSetList))
+	motherNames(trioSetList) <- gsub("@", "\\.", motherNames(trioSetList))
+	fatherNames(trioSetList) <- gsub("@", "\\.", fatherNames(trioSetList))
+}
 data(trioSetList)
 ## --------------------------------------------------
 ## accessors for the logR Ratios and B-Allele Frequencies
@@ -26,7 +35,7 @@ logR(trioSetList[[1]])[1:10, , ]
 logR(trioSetList[[1]])[1:10, ,"F" ]
 baf(trioSetList[[1]])[1:10, , ]
 ## --------------------------------------------------
-## accessors for Minimum Distance calculated by a call to 
+## accessors for Minimum Distance calculated by a call to
 ## minimumDistanceCalls
 ## --------------------------------------------------
 mindist(trioSetList[[1]])[1:10,]
