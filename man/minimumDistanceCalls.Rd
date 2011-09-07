@@ -6,7 +6,7 @@
   minimum distance segment.
 }
 \usage{
-minimumDistanceCalls(id, container, chromosomes = 1:22, ranges, cbs.segs, segment.md = missing(cbs.filename) & missing(ranges), mindistance.threshold = 0.075, narrowRanges = TRUE, prOutlier = c(0.01, 1e-15), prMosaic = 0.01, prob.nonMendelian = 1.5e-06, mu.logr = c(-2, -0.5, 0, 0.3, 0.75), baf.sds = c(0.005, 0.2, 0.005), pruneMinimumDistance = FALSE, prune.by.call = TRUE, min.coverage = 10, returnEmission = FALSE, ..., verbose = TRUE, DNAcopy.verbose = 0)
+minimumDistanceCalls(id, container, chromosomes = 1:22, ranges, cbs.segs, mindistance.threshold = 0.075, narrowRanges = TRUE, prOutlier = c(0.01, 1e-15), prMosaic = 0.01, prob.nonMendelian = 1.5e-06, mu.logr = c(-2, -0.5, 0, 0.3, 0.75), baf.sds = c(0.005, 0.2, 0.005), pruneMinimumDistance = FALSE, prune.by.call = TRUE, min.coverage = 10, returnEmission = FALSE, ..., verbose = TRUE, DNAcopy.verbose = 0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -16,7 +16,6 @@ minimumDistanceCalls(id, container, chromosomes = 1:22, ranges, cbs.segs, segmen
   \item{ranges}{A \code{RangedDataCBS} object containing the segmentation results of the minimum distance ranges.}
 %  \item{cbs.filename}{filename containing CBS results}
   \item{cbs.segs}{A \code{RangedDataCBS} object.}
-  \item{segment.md}{ Logical.  Whether to segment the minimum distance.}
   \item{mindistance.threshold}{Numeric. See \code{\link{narrow}}.}
   \item{narrowRanges}{Logical.  The breakpoint
     defining the start and end of a minimum distance segment are

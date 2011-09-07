@@ -60,21 +60,10 @@ bordering the range in the \code{rd} object.
 }
 \examples{
 	data(trioSetList)
-	\dontrun{
-		data(md.segs)
-		data(cbs.segs)
-		trace(minimumDistanceCalls, browser)
-		called.ranges <- minimumDistanceCalls(container=trioSetList,
-						      chromosomes=1:2,
-						      cbs.segs=cbs.segs,
-						      ranges=md.segs,
-						      narrowRanges=FALSE)
-		save(called.ranges, file="~/Projects/MinimumDistance/data/called.ranges.rda")
-	}
 	data(called.ranges)
 	data(md.segs)
 	data(cbs.segs)
-	trace(minimumDistancePlot, browser)
+	##trace(minimumDistancePlot, browser)
 	trellisList <- minimumDistancePlot(trioSetList=trioSetList,
 					   ranges=called.ranges[3,],
 					   md.segs=md.segs,

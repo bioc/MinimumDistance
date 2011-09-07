@@ -6,7 +6,7 @@
   \code{TrioSetList} container.
 }
 \usage{
-minimumDistance(path, samplesheet, pedigree, container, container.filename, chromosomes = 1:22, cdfName, file.ext = ".txt", readFiles = TRUE, calculate.md = TRUE, calculate.mad = TRUE, exclusionRule, ..., verbose = TRUE)
+minimumDistance(path, samplesheet, pedigree, container, container.filename, chromosomes = 1:22, cdfName, file.ext = ".txt", readFiles = TRUE, calculate.md = TRUE, calculate.mad = TRUE, exclusionRule, verbose = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -25,7 +25,6 @@ minimumDistance(path, samplesheet, pedigree, container, container.filename, chro
   \item{calculate.md}{logical.  If TRUE, the 'minimum distance' is calculated and stored in the slot 'mindist'.}
   \item{calculate.mad}{logical. If TRUE, we calculate the median absolute deviation of the log R ratios across all autosomes.  Results are stored in the slot 'mad' for each \code{TrioSet} object.}
   \item{exclusionRule}{Ignore.}
-  \item{\dots}{}
   \item{verbose}{logical}
 }
 \details{

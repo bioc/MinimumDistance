@@ -34,7 +34,7 @@ trioNames(object)
   \item{ranges}{
     an instance of \code{IRanges} class.}
 
-    \item{values}{ }
+    \item{values}{A \code{DataFrame} object.}
     \item{start}{integer -- physical position indicating start of copy number
       segment}
     \item{end}{integer -- physical position indicating end of copy

@@ -828,15 +828,18 @@ pruneMD <- function(genomdat,
 	starts <- physical.pos[segments0[, 1]]
 	ends <- physical.pos[segments0[, 2]]
 	id <- unique(range.object$id)
-	RangedData(IRanges(starts, ends),
-		   id=id,
-		   chrom=unique(range.object$chrom),
-		   num.mark=lseg,
-		   seg.mean=segmeans,
-		   start.index=segments0[,1],
-		   end.index=segments0[,2],
-		   mindist.mad=range.object$mindist.mad[1])
+	res <- RangedData(IRanges(starts, ends),
+			  id=id,
+			  chrom=unique(range.object$chrom),
+			  num.mark=lseg,
+			  seg.mean=segmeans,
+			  start.index=segments0[,1],
+			  end.index=segments0[,2],
+			  mindist.mad=range.object$mindist.mad[1])
+	res$family <- unique(range.object$family)
+	return(res)
 }
+
 initializeBigArray <- function(name, dim, vmode="integer", initdata=NA){
 	if(isPackageLoaded("ff")){
 		if(prod(dim) > 2^31){
@@ -2473,7 +2476,6 @@ minimumDistanceCalls <- function(id, container,
 				 chromosomes=1:22,
 				 ranges,
 				 cbs.segs,
-				 segment.md=missing(ranges),
 				 mindistance.threshold=0.075,
 				 narrowRanges=TRUE,
 				 prOutlier=c(0.01, 1e-15),
@@ -2504,15 +2506,15 @@ minimumDistanceCalls <- function(id, container,
 		message("Returning mdRanges. Rerun with ranges = mdRanges")
 		return(mdRanges)
 	} else mdRanges <- md.segs
+	mads <- container[[1]]$mindist.mad
+	ix <- match(sampleNames(mdRanges), id)
+	mdRanges$mindist.mad <- mads[ix]
 	if(!missing(cbs.segs) & narrowRanges){
 		message("\tChecking the offspring segmentation to see whether breakpoints occur within the minimum distance interval...")
 		mdRanges <- narrow(mdRanges, cbs.segs, thr=mindistance.threshold)
 		message("\tFinished 'narrowing' the minimum distance ranges")
 	}
 	if(missing(cbs.segs) & narrowRanges) stop("narrowRanges is TRUE, but cbs.segs is missing")
-	mads <- container[[1]]$mindist.mad
-	ix <- match(sampleNames(mdRanges), id)
-	mdRanges$mindist.mad <- mads[ix]
 	##---------------------------------------------------------------------------
 	##
 	## Prune the minimum distance ranges
@@ -2581,9 +2583,11 @@ minimumDistanceCalls <- function(id, container,
 			message("Not able to pruneByFactor. Return the ranges without pruning")
 			return(prunedRanges)
 		}
-		rd <- stack(RangedDataList(rd))
+		prunedRanges <- stack(RangedDataList(rd))
 		##prunedRanges <- rd[, -ncol(rd)]
 	}
+	index <- match("sample", colnames(prunedRanges))
+	if(length(index) > 0) prunedRanges <- prunedRanges[, -index]
 	prunedRanges$state <- trioStateNames()[prunedRanges$argmax]
 	prunedRanges <- prunedRanges[order(prunedRanges$id, prunedRanges$chrom, start(prunedRanges)), ]
 	return(prunedRanges)
@@ -3204,13 +3208,14 @@ narrow <- function(md.range, cbs.segs, thr, verbose=TRUE){
 		nm <- apply(cbind(st.index, en.index), 1, function(x) length(x[1]:x[2]))
 		## keep segment means the same as the minimum distance
 		tmp <- RangedData(IRanges(st, en),
-				    id=sampleNames(md)[qhits],
-				    chrom=chromosome(md)[qhits],
-				    num.mark=nm,
-				    seg.mean=md$seg.mean[qhits],
-				    start.index=st.index,
-				    end.index=en.index,
-				  mindist.mad=md$mindist.mad[qhits])
+				  id=sampleNames(md)[qhits],
+				  chrom=chromosome(md)[qhits],
+				  num.mark=nm,
+				  seg.mean=md$seg.mean[qhits],
+				  start.index=st.index,
+				  end.index=en.index,
+				  mindist.mad=md$mindist.mad[qhits],
+				  family=md$family[qhits])
 		##ranges.below.thr <- split(!abs.thr[qhits], qhits)
 		##ns <- sapply(ranges.below.thr, sum)
 		uid <- paste(tmp$id, start(tmp), tmp$chrom, sep="")
@@ -3231,7 +3236,7 @@ narrow <- function(md.range, cbs.segs, thr, verbose=TRUE){
 	return(rdCbs)
 }
 
-plotRange <- function(range, trioSetList, md.segs,cbs.segs, penn.offspring, frame=2e6){
+plotRange <- function(range, trioSetList, md.segs,cbs.segs, penn.offsprng, frame=2e6){
 	tmp <- MinimumDistance:::minimumDistancePlot(trioSetList=trioSetList,
 						     ranges=range,
 						     md.segs=md.segs,
