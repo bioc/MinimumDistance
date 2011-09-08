@@ -404,9 +404,11 @@ setMethod("xsegment", signature(object="TrioSet"),
 					  endIndexInChromosome=md.segs$end.index)
 		  family <- getFamilyName(ranges, object)
 		  ranges$family <- family
-		  mads <- object$mindist.mad
-		  ix <- match(sampleNames(ranges), sampleNames(object))
-		  ranges$mindist.mad <- mads[ix]
+		  if(segment.mindist){
+			  mads <- object$mindist.mad
+			  ix <- match(sampleNames(ranges), sampleNames(object))
+			  ranges$mindist.mad <- mads[ix]
+		  }
 		  return(ranges)
 })
 
