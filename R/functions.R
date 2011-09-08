@@ -2507,9 +2507,9 @@ minimumDistanceCalls <- function(id, container,
 		message("Returning mdRanges. Rerun with ranges = mdRanges")
 		return(mdRanges)
 	} else mdRanges <- ranges
-	mads <- container[[1]]$mindist.mad
-	ix <- match(sampleNames(mdRanges), id)
-	mdRanges$mindist.mad <- mads[ix]
+##	mads <- container[[1]]$mindist.mad
+##	ix <- match(sampleNames(mdRanges), id)
+##	mdRanges$mindist.mad <- mads[ix]
 	if(!missing(cbs.segs) & narrowRanges){
 		message("\tChecking the offspring segmentation to see whether breakpoints occur within the minimum distance interval...")
 		mdRanges <- narrow(mdRanges, cbs.segs, thr=mindistance.threshold)
@@ -2594,14 +2594,14 @@ minimumDistanceCalls <- function(id, container,
 	return(prunedRanges)
 }
 
-calculateMads <- function(container, exclusionRule, chromosomes, verbose){
+calculateMads <- function(container, exclusionRule, verbose=TRUE){
 	##---------------------------------------------------------------------------
 	##
 	## Calculate the MAD of minimum distance
 	##    -> put in phenoData slot
 	##
 	##---------------------------------------------------------------------------
-	message("Computing mad of the minimum distance.")
+	if(verbose) message("Computing mad of the minimum distance.")
 	is.ff <- is(mindist(container[[1]]), "ff")
 	if(is.ff){
 		sapply(container, function(x) invisible(open(mindist(x))))
@@ -2618,8 +2618,10 @@ calculateMads <- function(container, exclusionRule, chromosomes, verbose){
 	}
 	## inefficient to put mad in each TrioSet if there is a large number of samples
 	## just put in first
-	if(verbose) message("\tStoring MAD in first element of the TrioSetList container")
-	container[[1]]$mindist.mad <- mads.md
+	##if(verbose) message("\tStoring MAD in first element of the TrioSetList container")
+	for(i in seq_along(container))
+		container[[i]]$mindist.mad <- mads.md
+
 	rm(mads.md, m, mm); gc()
 	## this is not a ff object, so we might want to update the .rda file here
 	##---------------------------------------------------------------------------
@@ -3143,6 +3145,7 @@ minimumDistancePlot <- function(trioSetList, ranges, md.segs, cbs.segs, frame=2e
 }
 
 narrow <- function(md.range, cbs.segs, thr, verbose=TRUE){
+	stopifnot("mindist.mad" %in% colnames(md.range))
 	i <- which(sampleNames(cbs.segs) %in% sampleNames(md.range))
 	cbs.segs <- cbs.segs[i, ]
 	i <- which(chromosome(cbs.segs) %in% chromosome(md.range))

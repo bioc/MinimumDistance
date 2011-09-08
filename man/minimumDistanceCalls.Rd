@@ -69,7 +69,12 @@ a posteriori probability.  If \code{prune.by.call} is true, adjacent
 segments that have the same copy number state are concatenated into a
 single segment.  The maximum a posteriori probability as well as the
 posterior probability for the normal copy number state are returned
-for each segment.
+for each segment.  The call for non-denovo regions can be interpreted
+as the dominant trio copy number state for the region.  In particular,
+there may be multiple non-denovo trio copy number states in such
+regions. For obtain more accurate calls in non-denovo regions,
+alternative algorithms to minimum distance such as HMMs may be
+preferable.
 
 The copy number states is represented by an integer (1 + inferred copy
 number).  For example, '1' corresponds to copy number zero, '2'
@@ -82,6 +87,7 @@ parent as de novo, irrespective of whether the alteration is
 Mendelian.  For example, we regard the states '332', '331', '321',
 '334', etc as de novo copy number states, whereas '333', '322', '311',
 etc are not de novo.
+
 
 }
 
