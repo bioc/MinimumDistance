@@ -15,8 +15,11 @@ importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 		  RangedDataList,
 		  DataFrame,
 		  DataTableORNULL)
+importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 importMethodsFrom(IRanges, start, end, width,"[", "[[","[<-", "[[<-", "$",
 		  nrow, "start<-", "end<-", rbind, stack)
+importMethodsFrom(oligoClasses, state, coverage, chromosome)
+importFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   findOverlaps, countOverlaps,
 	   ranges, values,
@@ -24,13 +27,9 @@ importFrom(IRanges, IRanges, RangedData, RangedDataList,
 importFrom(msm, qtnorm, dtnorm)
 importFrom(ff, filename)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
-exportClasses(DataFrameCNV, RangedDataCNV, RangedDataCBS, RangedDataHMM,
+exportClasses(DataFrameCNV, ##RangedDataCNV, RangedDataCBS, RangedDataHMM,
 	      TrioSet, TrioSetList) ##LogRatioSet, TrioSetList)
 exportMethods("[", baf, "baf<-",
-	      ##calculateMindist,
-	      ##computeBayesFactor,
-	      ##copyNumber,
-	      coverage,
 	      fatherNames, "fatherNames<-",
 	      logR, "logR<-",
 	      mad, "mad<-",
@@ -39,33 +38,22 @@ exportMethods("[", baf, "baf<-",
 	      ncol,
 	      nrow,
 	      offspringNames, "offspringNames<-",
-	      ##phenoData2, "phenoData2<-",
 	      prune,
 	      rbind,
-	      state,
-##	      todf,
 	      trioNames,
 	      updateObject,
 	      width,
 	      xsegment,
 	      xyplot)
-export(##"[",
-       concAtTop,
+export(concAtTop,
        correspondingCall,
        discAtTop,
        fmoNames,
-       ##fullId,
        gridlayout,
-       ##gridlayout2,
        isDenovo,
        minimumDistance,
        minimumDistanceCalls,
        minimumDistancePlot,
-       narrow,
-       RangedDataCNV,
-       RangedDataCBS,
-       RangedDataHMM)
-##       todf)
-##       xypanel)
+       narrow)
 
 

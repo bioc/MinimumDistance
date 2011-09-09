@@ -1,20 +1,12 @@
 setOldClass("ffdf")
 setOldClass("ff_matrix")
 setOldClass("ff_array")
-setClass("RangedDataCopyNumber", contains="RangedData",
-	 representation("VIRTUAL"))
-setClass("RangedDataCNV", contains="RangedDataCopyNumber")
+
+
 setClass("RangedDataCNVTrios", contains="RangedDataCNV")
 ## It would be much cleaner to add slots to the RangedData class for
 ## chrom, id, and num.mark?  This way we can force these slots to be a
 ## specific class like numeric, integer, etc.
-setValidity("RangedDataCNV", function(object){
-	all(c("chrom", "id", "num.mark") %in% colnames(object))
-})
-setClass("RangedDataCBS", contains="RangedDataCNV")
-setValidity("RangedDataCBS", function(object) all(c("seg.mean", "start.index", "end.index") %in% colnames(object)))
-setClass("RangedDataHMM", contains="RangedDataCNV")
-setValidity("RangedDataHMM", function(object) "state" %in% colnames(object))
 ##setClassUnion("dataFrame", "data.frame")
 setClass("DataFrameCNV", contains="data.frame")
 setClass("RangedDataCNVList", contains="list")
