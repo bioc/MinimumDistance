@@ -18,6 +18,8 @@
 \newcommand{\logRratio}{$\log_2$ R ratio}
 \newcommand{\baf}{B allele frequency}
 \newcommand{\bafs}{B allele frequencies}
+\newcommand{\tsl}{trioSetList}
+\newcommand{\ts}{trioSet object}
 \usepackage[margin=1in]{geometry}
 
 
@@ -36,7 +38,9 @@ options(prompt="R> ", continue=" ", device=pdf, width=68)
 
 \begin{abstract}
 
-  This vignette describes the \ldots.
+  This vignette provides an example of computing the minimum distance
+  using the \R{} package \md{} which is used to detect de novo copy
+  number alterations in case-parent trios from HapMap Phase 2 Data.
 
 \end{abstract}
 
@@ -50,28 +54,27 @@ how to format the data appropriately for reproducing our analysis.
 
 This package requires
 \begin{itemize}
-  \item \logRratio{}s and \bafs{}.  How these files should be organized.
-  \item chromosome and physical position for each marker
-  \item a pedigree file (need an example of such a file)
-  \item 'samplesheet' if available: contains info on gender, DNA
-    source, chemistry plate, etc.
+  \item a \tsl{}, each element of which is a \ts{}. Apart from the
+    regular slots in an \Rclass{eSet} object a \ts{} has slots for
+    \logRratio{}s, \bafs{} and minimum distance. Both the
+    \logRratio{}s and \bafs{} are organized as three dimensional
+    arrays; the dimensions of which are number of markers X number of
+    trios X 3 (the members in a trio i.e. Father, Mother and Offspring)
+  \item a pedigree file, each row of which contains the pedigree
+    information of the samples that make up a trio.
+  \item a samplesheet file which contains information on gender, DNA
+    source, chemistry plate, etc. This file must contain a Sample.Name column.
   \item \ldots
 \end{itemize}
 
-Here's a 3G HapMap file from CIDR that was processed using
-BeadStudio.  This should contain BAFs and log R Ratios for roughly 30
-HapMap CEU trios:
+An example of each of these files is provided with the \R{} package
+\md{}. They can be accessed as follows:
 
 <<exampleFile>>=
-example.beadStudioFile <- list.files("/thumper/ctsa/snpmicroarray/hapmap/processed/illumina/610kQuad",
-				     pattern="CEU_Final",
-				     full.names=TRUE)
-c("character", "character", rep(NULL, 7), rep("numeric", 2))
-header <- read.csv(example.beadStudioFile, skip=9,
-		     colClasses=c("character", "character", rep("NULL", 7), rep("numeric", 2)))
-##trace(MinimumDistance:::initializeTrioContainer,browser)
-##MinimumDistance::::initializeTrioContainer(pedigree,samplesheet)
-##untrace(MinimumDistance:::initializeTrioContainer)
+library(MinimumDistance)
+data(pedigreeExample)
+data(samplesheetExample)
+data(trioSetList)
 @
 
 The sample sheet is in the same directory 'HumanHap610Quadv1_Sample_Map.csv'.

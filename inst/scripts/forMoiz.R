@@ -89,6 +89,16 @@ stopifnot(validObject(trioSetList))
 save(trioSetList, file="~/Projects/MinimumDistance/data/trioSetListExample-cleft.rda")
 
 
+example.beadStudioFile <- list.files("/thumper/ctsa/snpmicroarray/hapmap/processed/illumina/610kQuad",
+				     pattern="CEU_Final",
+				     full.names=TRUE)
+c("character", "character", rep(NULL, 7), rep("numeric", 2))
+header <- read.csv(example.beadStudioFile, skip=9,
+		     colClasses=c("character", "character", rep("NULL", 7), rep("numeric", 2)))
+##trace(MinimumDistance:::initializeTrioContainer,browser)
+##MinimumDistance::::initializeTrioContainer(pedigree,samplesheet)
+##untrace(MinimumDistance:::initializeTrioContainer)
+
 
 trioRanges <- minimumDistanceCalls(
 				   container=tmp,
@@ -99,3 +109,15 @@ trioRanges <- minimumDistanceCalls(
 tmp <- minimumDistance(container=trioSetList, readFiles=FALSE, calculate.md=TRUE,
 			       container.filename="~/trioSetList.rda")
 
+
+##plot the first third range
+             trellisList <- minimumDistancePlot(trioSetList=trioSetList,
+                                                ranges=trioRanges[91,],
+                                                md.segs=mdRanges,
+                                                cbs.segs=cbs.segs
+                                                cex=0.2,
+                                                scales.cex=0.6)
+             logr.trellis.list <- trellisList[[1]]
+             baf.trellis.list <- trellisList[[2]]
+             gridlayout(lattice.object=list(logr.trellis.list[[1]],
+                        baf.trellis.list[[1]]), rd=called.ranges[91,])
