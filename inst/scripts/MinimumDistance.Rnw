@@ -46,13 +46,7 @@ options(prompt="R> ", continue=" ", device=pdf, width=68)
 
 \section{Exemplar dataset}
 
-This section should describe what data is required for the package and
-how to format the data appropriately for reproducing our analysis.
-{\it Ideally, we would include processed data in the package so that
-  users can reproduce all of the analytic steps after preprocessing
-  (e.g., after the BeadStudio analysis). }
-
-This package requires
+This package requires the following data objects:
 \begin{itemize}
   \item a \tsl{}, each element of which is a \ts{}. Apart from the
     regular slots in an \Rclass{eSet} object a \ts{} has slots for
@@ -63,18 +57,80 @@ This package requires
   \item a pedigree file, each row of which contains the pedigree
     information of the samples that make up a trio.
   \item a samplesheet file which contains information on gender, DNA
-    source, chemistry plate, etc. This file must contain a Sample.Name column.
+    source, chemistry plate, etc. This file must contain a \textbf{Sample.Name} column.
   \item \ldots
 \end{itemize}
 
 An example of each of these files is provided with the \R{} package
-\md{}. They can be accessed as follows:
+\md{}. The instructions below show how to initialize a \tsl{} using a
+pedigree file and a samplesheet file. We first create phenodata and
+feature data for the trios and then create \logRratio{} and \baf{}
+arrays. Finally, we combine all of the above objects into a \ts{} for
+one chromosome. Each \ts{} is stored as an element in a list and once
+\ts{}s for all 22 chromosomes are created the list is saved as a
+\tsl{}. Once an empty \tsl{} is initialized the \logRratio{}s and
+\bafs{} can be filled in from the processed data files using the
+appropriate accessors such as \Rcode{logR(trioSetList[[chromosome]])}
+and \Rcode{baf(trioSetList[[chromosome]])}. 
 
 <<exampleFile>>=
 library(MinimumDistance)
 data(pedigreeExample)
 data(samplesheetExample)
-data(trioSetList)
+
+stopifnot("Sample.Name" %in% colnames(samplesheetExample))
+cdfName <- "human610quadv1b"
+
+#Set up the feature data
+fD <- oligoClasses:::featureDataFrom(paste(cdfName, "Crlmm", sep=""))
+fD <- fD[order(fD$chromosome, fD$position), ]
+
+#Set up the pheno data
+ss <- array(NA, dim=c(nrow(pedigreeExample), ncol(samplesheetExample), 3),
+		    dimnames=list(rownames(pedigreeExample),
+		    colnames(samplesheetExample),
+		    c("F", "M", "O")))
+father.index <- match(substring(pedigreeExample[, "F"],3,7), 
+		      substring(samplesheetExample$Sample.Name,6,10))
+mother.index <- match(substring(pedigreeExample[, "M"],3,7), 
+		      substring(samplesheetExample$Sample.Name,6,10))
+offspring.index <- match(substring(pedigreeExample[, "O"],3,7), 
+			 substring(samplesheetExample$Sample.Name,6,10))
+ss[, , "F"] <- as.matrix(samplesheetExample[father.index, ])
+ss[, , "M"] <- as.matrix(samplesheetExample[mother.index, ])
+ss[, , "O"] <- as.matrix(samplesheetExample[offspring.index, ])
+rownames(ss) <- pedigreeExample[, "O"]
+
+#Create an array of BAF and logR ratios for each chromosome
+marker.list <- split(sampleNames(fD), fD$chromosome)
+marker.list <- marker.list[-(23:25)]
+np <- nrow(pedigreeExample)
+trioSetList <- vector("list", 22)
+names(trioSetList) <- 1:22
+for(chrom in seq_along(marker.list)){
+	## Use the name of the offspring as the name for the trio:
+	nr <- length(marker.list[[chrom]])
+	bafArray <- logRArray <- array(NA, dim=c(nr, np, 3))
+	dimnames(bafArray) <- dimnames(logRArray) <- list(marker.list[[chrom]],
+								    as.character(pedigreeExample[, "O"]),
+								    c("F", "M", "O"))
+	## For each chromosome, create a TrioSet
+	pD <- annotatedDataFrameFrom(as.matrix(logRArray[, , 1]), byrow=FALSE)
+	sampleNames(pD) <- colnames(logRArray)
+	index <- match(marker.list[[chrom]], sampleNames(fD))
+	## initialize 'TrioSet'
+	trioSetList[[chrom]] <- new("TrioSet",
+				    logRRatio=logRArray,
+				    BAF=bafArray,
+				    phenoData=pD,
+				    featureData=fD[index,],
+				    mindist=NULL,
+				    annotation=cdfName)
+	stopifnot(validObject(trioSetList[[chrom]]))
+	trioSetList[[chrom]]@phenoData2 <- ss
+}
+trioSetList <- as(trioSetList, "TrioSetList")
+stopifnot(validObject(trioSetList))
 @
 
 The sample sheet is in the same directory 'HumanHap610Quadv1_Sample_Map.csv'.
