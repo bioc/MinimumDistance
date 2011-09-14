@@ -81,11 +81,11 @@ data(samplesheetExample)
 stopifnot("Sample.Name" %in% colnames(samplesheetExample))
 cdfName <- "human610quadv1b"
 
-#Set up the feature data
+## Set up the feature data
 fD <- oligoClasses:::featureDataFrom(paste(cdfName, "Crlmm", sep=""))
 fD <- fD[order(fD$chromosome, fD$position), ]
 
-#Set up the pheno data
+## Set up the pheno data
 ss <- array(NA, dim=c(nrow(pedigreeExample), ncol(samplesheetExample), 3),
 		    dimnames=list(rownames(pedigreeExample),
 		    colnames(samplesheetExample),
@@ -101,7 +101,7 @@ ss[, , "M"] <- as.matrix(samplesheetExample[mother.index, ])
 ss[, , "O"] <- as.matrix(samplesheetExample[offspring.index, ])
 rownames(ss) <- pedigreeExample[, "O"]
 
-#Create an array of BAF and logR ratios for each chromosome
+## Create an array of BAF and logR ratios for each chromosome
 marker.list <- split(sampleNames(fD), fD$chromosome)
 marker.list <- marker.list[-(23:25)]
 np <- nrow(pedigreeExample)
@@ -133,16 +133,6 @@ trioSetList <- as(trioSetList, "TrioSetList")
 stopifnot(validObject(trioSetList))
 @
 
-The sample sheet is in the same directory 'HumanHap610Quadv1_Sample_Map.csv'.
-
-We really only need one father, mother, offspring trio for the
-vignette, but it would be good to find an example of a trio with a de
-novo amplification or deletion.  If not too big, we might include the
-data for a few of the trios and a subset of the chromosomes (e.g., 5
-trios and 4 chromosomes).  Example of the format currently required -- see
-
-``/thumper/ctsa/beaty/holger/txtfiles''
-
 You'll need the physical position and chromosome info.  The annotation
 packages should be available from BioConductor. Here's how you can see
 what annotation packages are available.  (You'll want to include this
@@ -155,35 +145,6 @@ provided and an annotation package is available.
 <<>>=
 library(oligoClasses)
 all.pkgs <- annotationPackages()
-@
-
-Show how to construct the container we use for analyzing trios from
-the above files.
-
-\begin{itemize}
-
-  \item create matrix of B allele frequencies
-
-  \item create matrix of \logRratio{}s
-
-  \item create matrix of \bafs{}
-
-  \item instantiate an object of class \Rclass{TrioSetList} object
-
-  \end{itemize}
-
-<<eval=FALSE>>=
-container <- minimumDistance(path, ## for parsed data
-			     samplesheet=samplesheet2,
-			     pedigree=pedigree,
-			     container.filename=container.filename,
-			     chromosomes=chromosomes,
-			     file.ext=".txt",
-			     readFiles=readFiles,
-			     calculate.mad=calculate.mad,
-			     calculate.md=calculate.md,
-			     exclusionRule=BeatyExperimentData:::excludeWGA,
-			     cdfName="human610quadv1b")
 @
 
 <<>>=
@@ -216,17 +177,48 @@ rd <- minimumDistanceCalls(container=trioSetList, chromosomes=1:5, cbs.filename=
 
 \section{Detection of de novo copy number}
 
+The detection of de novo copy number is divided into 3
+parts. Segmentation, Estimating posterior probabilities of trio copy
+number states and Visualization. 
+
 \subsection{Segmentation}
 
-The function call looks something like this.
+This part consists of computing the minimum distance and carrying out
+circular binary segmentation of the minimum distance and logR ratios.
 
-<<minimumDistanceCalls>>=
- ## segmentation
- ## classification
+<<segmentation>>=
+## computing the minimum distance
+trioSetList <- minimumDistance(container=trioSetList,
+                               chromosomes=1:22,
+			       readFiles=FALSE,
+                               cdfName="human610quadv1b",
+                               calculate.md=TRUE,
+                               calculate.mad=TRUE)
+
+## segmentation of minimum distances and logR ratios
+md.segs <- xsegment(object=trioSetList,
+                    verbose=TRUE)
+cbs.segs <- xsegment(object=trioSetList,
+                     segment.mindist=FALSE,
+                     verbose=TRUE)
 @
 
 
 \subsection{Posterior probabilities of trio copy number states}
+
+The next part consists of estimating the maximum a posteriori
+probabilities for each minimum distance segment. This allows the
+inference of trio copy number states. States 1,2 represent a deletion,
+State 3 represents normal copy number and States 4,5 represent an
+amplification. Hence a trio copy number state of 335 means father and
+mother are normal and offspring has an amplification.
+
+<<minimumDistanceCalls>>=
+called.ranges <- minimumDistanceCalls(container=trioSetList,
+                                      cbs.segs=cbs.segs,
+                                      ranges=md.segs,
+                                      mindistance.threshold=0.09)
+@ 
 
 \subsection{Visualizations}
 

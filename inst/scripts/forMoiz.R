@@ -106,8 +106,30 @@ trioRanges <- minimumDistanceCalls(
                                   cbs.filename="ranges.rda") 
 
 
-tmp <- minimumDistance(container=trioSetList, readFiles=FALSE, calculate.md=TRUE,
-			       container.filename="~/trioSetList.rda")
+md <- minimumDistance(container=trioSetList, readFiles=FALSE, calculate.md=TRUE,
+			       container.filename="~/md.rda")
+
+trioSetList <- minimumDistance(container=trioSetList,
+                               chromosomes=1:22,
+			       readFiles=FALSE,
+                               cdfName="human610quadv1b",
+                               calculate.md=TRUE,
+                               calculate.mad=TRUE)
+
+## how the 'md.segs' object was created
+md.segs <- xsegment(object=trioSetList,
+                    verbose=TRUE)
+## how the 'cbs.segs' object was created
+cbs.segs <- xsegment(object=trioSetList,
+                     segment.mindist=FALSE,
+                     verbose=TRUE)
+     
+## how the 'called.ranges' object was created
+called.ranges <- minimumDistanceCalls(container=trioSetList,
+                                      cbs.segs=cbs.segs,
+                                      ranges=md.segs,
+                                      mindistance.threshold=0.09)
+
 
 
 ##plot the first third range
@@ -121,3 +143,5 @@ tmp <- minimumDistance(container=trioSetList, readFiles=FALSE, calculate.md=TRUE
              baf.trellis.list <- trellisList[[2]]
              gridlayout(lattice.object=list(logr.trellis.list[[1]],
                         baf.trellis.list[[1]]), rd=called.ranges[91,])
+
+
