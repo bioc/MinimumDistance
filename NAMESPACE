@@ -18,7 +18,7 @@ importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 importMethodsFrom(IRanges, start, end, width,"[", "[[","[<-", "[[<-", "$",
 		  nrow, "start<-", "end<-", rbind, stack)
-importMethodsFrom(oligoClasses, state, coverage, chromosome)
+importMethodsFrom(oligoClasses, state, coverage2, chromosome)
 importFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   findOverlaps, countOverlaps,

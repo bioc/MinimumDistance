@@ -55,3 +55,4 @@ setGeneric("rbind", function(..., deparse.level=1) standardGeneric("rbind"),
            signature = "...")
 setGeneric("width", function(x) standardGeneric("width"))
 
+coverage <- coverage2
