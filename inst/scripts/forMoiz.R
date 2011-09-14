@@ -134,9 +134,9 @@ called.ranges <- minimumDistanceCalls(container=trioSetList,
 
 ##plot the first third range
              trellisList <- minimumDistancePlot(trioSetList=trioSetList,
-                                                ranges=trioRanges[91,],
-                                                md.segs=mdRanges,
-                                                cbs.segs=cbs.segs
+                                                ranges=called.ranges[92,],
+                                                md.segs=md.segs,
+                                                cbs.segs=cbs.segs,
                                                 cex=0.2,
                                                 scales.cex=0.6)
              logr.trellis.list <- trellisList[[1]]
