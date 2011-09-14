@@ -400,6 +400,23 @@ featuresInRange <- function(object, range, ...){
 	featuresInXlim(object, start=start(range), end=end(range), CHR=range$chrom, ...)
 }
 
+featuresInXlim <- function(object, start, end, CHR, pos, chrom, FRAME=0, FRAME.LEFT, FRAME.RIGHT){
+	stopifnot(!missing(CHR))
+	if(missing(FRAME.LEFT)) FRAME.LEFT <- FRAME
+	if(missing(FRAME.RIGHT)) FRAME.RIGHT <- FRAME
+	if(missing(start)) start <- 0
+	if(missing(end)){
+		##require(SNPchip)
+		data(chromosomeAnnotation, package="SNPchip")
+		end <- chromosomeAnnotation[CHR, "chromosomeSize"]
+	}
+	start <- start-FRAME.LEFT
+	end <- end+FRAME.RIGHT
+	if(missing(pos) | missing(chrom)){
+		which(position(object) >= start & position(object) <= end & chromosome(object) == CHR)
+	} else which(pos >= start & pos <= end & chrom == CHR)
+}
+
 addIndicesFromFeatureData <- function(rd.object, fD, FRAME=0){
 	uchrom.rd <- unique(rd.object$chrom)
 	uchrom.fd <- unique(fD$chromosome)
@@ -465,22 +482,7 @@ addIndicesForRanges <- function(rd.object, bsSet, FRAME=0, xlim,
 	rd.object
 }
 
-featuresInXlim <- function(object, start, end, CHR, pos, chrom, FRAME=0, FRAME.LEFT, FRAME.RIGHT){
-	stopifnot(!missing(CHR))
-	if(missing(FRAME.LEFT)) FRAME.LEFT <- FRAME
-	if(missing(FRAME.RIGHT)) FRAME.RIGHT <- FRAME
-	if(missing(start)) start <- 0
-	if(missing(end)){
-		##require(SNPchip)
-		data(chromosomeAnnotation, package="SNPchip")
-		end <- chromosomeAnnotation[CHR, "chromosomeSize"]
-	}
-	start <- start-FRAME.LEFT
-	end <- end+FRAME.RIGHT
-	if(missing(pos) | missing(chrom)){
-		which(position(object) >= start & position(object) <= end & chromosome(object) == CHR)
-	} else which(pos >= start & pos <= end & chrom == CHR)
-}
+
 
 framePositionIndex <- function(object,  ##LogRatioSet or something similar
 			       FRAME){  ##basepairs
