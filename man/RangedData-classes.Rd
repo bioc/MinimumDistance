@@ -5,7 +5,7 @@
 \alias{RangedDataCBS-class}
 \alias{RangedDataHMM-class}
 \alias{chromosome,RangedDataCNV-method}
-\alias{coverage,RangedDataCNV-method}
+\alias{coverage2,RangedDataCNV-method}
 \alias{sampleNames,RangedDataCNV-method}
 \alias{state,RangedDataCNV-method}
 \alias{todf,RangedDataCNV,ANY-method}
@@ -57,7 +57,7 @@ Class \code{"\linkS4class{Annotated}"}, by class "RangedDataCNV", distance 6.
 
 \section{Methods}{
   \describe{
-    \item{coverage}{\code{signature(object = "RangedDataCNV")}: ... }
+    \item{coverage2}{\code{signature(object = "RangedDataCNV")}: ... }
     \item{prune}{\code{signature(object = "TrioSetList", ranges = "RangedDataCNV")}: ... }
     \item{prune}{\code{signature(object = "TrioSet", ranges = "RangedDataCNV")}: ... }
     \item{state}{\code{signature(object = "RangedDataCNV")}: ... }
