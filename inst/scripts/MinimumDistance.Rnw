@@ -67,11 +67,11 @@ pedigree file and a samplesheet file. We first create phenodata and
 feature data for the trios and then create \logRratio{} and \baf{}
 arrays. Finally, we combine all of the above objects into a \ts{} for
 one chromosome. Each \ts{} is stored as an element in a list and once
-\ts{}s for all 22 chromosomes are created the list is saved as a
-\tsl{}. Once an empty \tsl{} is initialized the \logRratio{}s and
+\ts{}s for all 22 autosomal chromosomes are created the list is saved
+as a \tsl{}. Once an empty \tsl{} is initialized the \logRratio{}s and
 \bafs{} can be filled in from the processed data files using the
 appropriate accessors such as \Rcode{logR(trioSetList[[chromosome]])}
-and \Rcode{baf(trioSetList[[chromosome]])}. 
+and \Rcode{baf(trioSetList[[chromosome]])}.
 
 <<exampleFile>>=
 library(MinimumDistance)
@@ -82,19 +82,19 @@ stopifnot("Sample.Name" %in% colnames(samplesheetExample))
 cdfName <- "human610quadv1b"
 
 ## Set up the feature data
-fD <- oligoClasses:::featureDataFrom(paste(cdfName, "Crlmm", sep=""))
-fD <- fD[order(fD$chromosome, fD$position), ]
+## fD <- oligoClasses:::featureDataFrom(paste(cdfName, "Crlmm", sep=""))
+## fD <- fD[order(fD$chromosome, fD$position), ]
 
 ## Set up the pheno data
 ss <- array(NA, dim=c(nrow(pedigreeExample), ncol(samplesheetExample), 3),
 		    dimnames=list(rownames(pedigreeExample),
 		    colnames(samplesheetExample),
 		    c("F", "M", "O")))
-father.index <- match(substring(pedigreeExample[, "F"],3,7), 
+father.index <- match(substring(pedigreeExample[, "F"],3,7),
 		      substring(samplesheetExample$Sample.Name,6,10))
-mother.index <- match(substring(pedigreeExample[, "M"],3,7), 
+mother.index <- match(substring(pedigreeExample[, "M"],3,7),
 		      substring(samplesheetExample$Sample.Name,6,10))
-offspring.index <- match(substring(pedigreeExample[, "O"],3,7), 
+offspring.index <- match(substring(pedigreeExample[, "O"],3,7),
 			 substring(samplesheetExample$Sample.Name,6,10))
 ss[, , "F"] <- as.matrix(samplesheetExample[father.index, ])
 ss[, , "M"] <- as.matrix(samplesheetExample[mother.index, ])
@@ -123,9 +123,11 @@ for(chrom in seq_along(marker.list)){
 				    logRRatio=logRArray,
 				    BAF=bafArray,
 				    phenoData=pD,
-				    featureData=fD[index,],
+				    ##featureData=fD[index,],
 				    mindist=NULL,
 				    annotation=cdfName)
+	featureData(trioSetList[[chrom]]) <- addFeatureAnnotation(trioSetList[[chrom]])
+
 	stopifnot(validObject(trioSetList[[chrom]]))
 	trioSetList[[chrom]]@phenoData2 <- ss
 }
@@ -179,7 +181,7 @@ rd <- minimumDistanceCalls(container=trioSetList, chromosomes=1:5, cbs.filename=
 
 The detection of de novo copy number is divided into 3
 parts. Segmentation, Estimating posterior probabilities of trio copy
-number states and Visualization. 
+number states and Visualization.
 
 \subsection{Segmentation}
 
@@ -218,7 +220,7 @@ called.ranges <- minimumDistanceCalls(container=trioSetList,
                                       cbs.segs=cbs.segs,
                                       ranges=md.segs,
                                       mindistance.threshold=0.09)
-@ 
+@
 
 \subsection{Visualizations}
 
