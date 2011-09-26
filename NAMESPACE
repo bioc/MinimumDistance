@@ -54,6 +54,8 @@ export(concAtTop,
        minimumDistance,
        minimumDistanceCalls,
        minimumDistancePlot,
-       narrow)
+       narrow,
+       phenoDataArray,
+       TrioSetList)
 
 
