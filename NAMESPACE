@@ -46,6 +46,7 @@ exportMethods("[", baf, "baf<-",
 	      xsegment,
 	      xyplot)
 export(concAtTop,
+       constructTrioSetList,
        correspondingCall,
        discAtTop,
        fmoNames,
@@ -55,7 +56,6 @@ export(concAtTop,
        minimumDistanceCalls,
        minimumDistancePlot,
        narrow,
-       phenoDataArray,
-       TrioSetList)
+       phenoDataArray)
 
 
