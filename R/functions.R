@@ -3204,4 +3204,5 @@ TrioSetList <- function(pData, fD, pedigree, logR, baf, chromosome=1:22, cdfname
 	}
 	trioSetList <- as(trioSetList, "TrioSetList")
 	stopifnot(validObject(trioSetList))
+	return(trioSetList)
 }
