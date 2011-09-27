@@ -18,7 +18,7 @@ phenoDataArray(pedigree, samplesheet, mapFunction)
 }
 \details{The mapFunction is a user defined function which basically
 adds a column called "pedigree.Name" in the samplesheet file which
-contains a mapping between "Samle.Name" in samplesheet file and the
+contains a mapping between "Sample.Name" in samplesheet file and the
 trio identifiers in the pedigree file.
 
 If Sample.Name in samplesheet file and trio identifiers in
@@ -26,7 +26,7 @@ pedigree file are identical then the mapFunction is not
 required. Though the user must ensure that there is a column
 "pedigree.Name" in the samplesheet file which contains the same
 information as in "Sample.Name".}
-\value{an array with dimensions number of trios X number of columns in
+\value{An array with dimensions number of trios X number of columns in
 samplesheet X 3. Each row represents the phenoData for one trio.}
 
 \author{
