@@ -76,8 +76,8 @@ and \Rcode{baf(trioSetList[[chromosome]])}.
 library(MinimumDistance)
 data(pedigreeExample)
 data(samplesheetExample)
-data(logR)
-data(baf)
+data(logRArray)
+data(bafArray)
 
 stopifnot("Sample.Name" %in% colnames(samplesheetExample))
 
