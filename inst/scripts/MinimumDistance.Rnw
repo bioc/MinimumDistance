@@ -58,7 +58,6 @@ This package requires the following data objects:
     information of the samples that make up a trio.
   \item a samplesheet file which contains information on gender, DNA
     source, chemistry plate, etc. This file must contain a \textbf{Sample.Name} column.
-  \item \ldots
 \end{itemize}
 
 An example of each of these files is provided with the \R{} package
@@ -77,105 +76,43 @@ and \Rcode{baf(trioSetList[[chromosome]])}.
 library(MinimumDistance)
 data(pedigreeExample)
 data(samplesheetExample)
+data(logR)
+data(baf)
 
 stopifnot("Sample.Name" %in% colnames(samplesheetExample))
-cdfName <- "human610quadv1b"
-
-## Set up the feature data
-## fD <- oligoClasses:::featureDataFrom(paste(cdfName, "Crlmm", sep=""))
-## fD <- fD[order(fD$chromosome, fD$position), ]
 
 ## Set up the pheno data
-ss <- array(NA, dim=c(nrow(pedigreeExample), ncol(samplesheetExample), 3),
-		    dimnames=list(rownames(pedigreeExample),
-		    colnames(samplesheetExample),
-		    c("F", "M", "O")))
-father.index <- match(substring(pedigreeExample[, "F"],3,7),
-		      substring(samplesheetExample$Sample.Name,6,10))
-mother.index <- match(substring(pedigreeExample[, "M"],3,7),
-		      substring(samplesheetExample$Sample.Name,6,10))
-offspring.index <- match(substring(pedigreeExample[, "O"],3,7),
-			 substring(samplesheetExample$Sample.Name,6,10))
-ss[, , "F"] <- as.matrix(samplesheetExample[father.index, ])
-ss[, , "M"] <- as.matrix(samplesheetExample[mother.index, ])
-ss[, , "O"] <- as.matrix(samplesheetExample[offspring.index, ])
-rownames(ss) <- pedigreeExample[, "O"]
-
-## Create an array of BAF and logR ratios for each chromosome
-marker.list <- split(sampleNames(fD), fD$chromosome)
-marker.list <- marker.list[-(23:25)]
-np <- nrow(pedigreeExample)
-trioSetList <- vector("list", 22)
-names(trioSetList) <- 1:22
-for(chrom in seq_along(marker.list)){
-	## Use the name of the offspring as the name for the trio:
-	nr <- length(marker.list[[chrom]])
-	bafArray <- logRArray <- array(NA, dim=c(nr, np, 3))
-	dimnames(bafArray) <- dimnames(logRArray) <- list(marker.list[[chrom]],
-								    as.character(pedigreeExample[, "O"]),
-								    c("F", "M", "O"))
-	## For each chromosome, create a TrioSet
-	pD <- annotatedDataFrameFrom(as.matrix(logRArray[, , 1]), byrow=FALSE)
-	sampleNames(pD) <- colnames(logRArray)
-	index <- match(marker.list[[chrom]], sampleNames(fD))
-	## initialize 'TrioSet'
-	trioSetList[[chrom]] <- new("TrioSet",
-				    logRRatio=logRArray,
-				    BAF=bafArray,
-				    phenoData=pD,
-				    ##featureData=fD[index,],
-				    mindist=NULL,
-				    annotation=cdfName)
-	featureData(trioSetList[[chrom]]) <- addFeatureAnnotation(trioSetList[[chrom]])
-
-	stopifnot(validObject(trioSetList[[chrom]]))
-	trioSetList[[chrom]]@phenoData2 <- ss
+mapFunction <- function(samplesheet) {
+	pedigree.Name <- sapply(samplesheet$Sample.Name, substring, 6, 10)
+        pedigree.Name <- paste("NA", pedigree.Name, sep="")
+        samplesheet$pedigree.Name <- pedigree.Name
+        return(samplesheet)
 }
-trioSetList <- as(trioSetList, "TrioSetList")
-stopifnot(validObject(trioSetList))
+     
+pData <- phenoDataArray(pedigreeExample, samplesheetExample, mapFunction)
+
+## Create a TrioSetList
+trioSetList <- constructTrioSetList(pData=pData, 
+				    pedigree=pedigreeExample, 
+				    logR=logR, 
+				    baf=baf, 
+				    chromosome=1:22, 
+				    cdfname="human610quadv1bCrlmm")
 @
 
-You'll need the physical position and chromosome info.  The annotation
-packages should be available from BioConductor. Here's how you can see
-what annotation packages are available.  (You'll want to include this
-in the vignette since other people may have different platforms).  The
-R function minimumDistance initializes an object of class
-'TrioSetList' and automatically provides annotation of chromosome and
-physical position provided that the 'cdfname' for the package is
-provided and an annotation package is available.
+In the above code feature annotation such as chromosome and position
+for each snp is automatically done by the \Rcode{constructTrioSetList}
+function since an annotation package name supported by
+\Rpackage{crlmm} is provided in the function call. If the user uses an
+annotation package not supported by \Rpackage{crlmm} then they must
+provide feature annotation in the \Rcode{fD} option in the call to
+\Rcode{constructTrioSetList}. Annotation packages supported by
+\Rpackage{crlmm} can be viewed as follows:
 
 <<>>=
 library(oligoClasses)
-all.pkgs <- annotationPackages()
+annotationPackages()[grep("Crlmm", annotationPackages())]
 @
-
-<<>>=
-load("~mbootwal/packages/MinimumDistance/data/trioSet-hapmap.rda")
-##
-library(MinimumDistance)
-trioSetList <- minimumDistance(container=trioSetList, readFiles=FALSE, calculate.md=TRUE,
-		       container.filename="~/trioSetList.rda")
-##mads <- matrix(NA, ncol(trioSetList[[1]]), 3)
-##colnames(mads) <- c("F", "M", "O")
-##rownames(mads) <- sampleNames(trioSetList[[1]])
-#### need to calculate mad
-##fff <- function(object, trio.index){
-##	lR <- logR(object)[, trio.index, ]
-##}
-any(is.na(mad(trioSetList[[1]])))
-any(is.na(mad(trioSetList[[22]])))
-##for(j in seq(length=length(rownames(mads)))){
-##	logrs <- do.call("rbind", sapply(trioSetList, fff, trio.index=j))
-##	mads[j, ] <- apply(logrs, 2, mad, na.rm=TRUE)
-##}
-##for(k in seq(length=length(trioSetList))){
-##	mad(trioSetList[[k]]) <- mads
-##}
-##trace(MinimumDistance:::computeLoglik, browser)
-unlink("~/results.rda")
-rd <- minimumDistanceCalls(container=trioSetList, chromosomes=1:5, cbs.filename="~/results.rda")
-@
-
 
 \section{Detection of de novo copy number}
 
@@ -188,7 +125,7 @@ number states and Visualization.
 This part consists of computing the minimum distance and carrying out
 circular binary segmentation of the minimum distance and logR ratios.
 
-<<segmentation>>=
+<<segmentation,echo=FALSE>>=
 ## computing the minimum distance
 trioSetList <- minimumDistance(container=trioSetList,
                                chromosomes=1:22,
