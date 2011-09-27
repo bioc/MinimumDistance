@@ -3158,7 +3158,7 @@ phenoDataArray <- function(pedigree, samplesheet, mapFunction){
 
 constructTrioSetList <- function(pData, fD, pedigree, logR, baf, chromosome=1:22, cdfname=""){
 	if(missing(fD)){
-		fD <- oligoClasses:::featureDataFrom(cdfName)
+		fD <- oligoClasses:::featureDataFrom(cdfname)
 		fD <- fD[order(fD$chromosome, fD$position), ]
 	}
 	marker.list <- split(sampleNames(fD), fD$chromosome)
