@@ -3196,7 +3196,7 @@ constructTrioSetList <- function(pData, fD, pedigree, logR, baf, chromosome=1:22
 					    phenoData=pD,
 					    featureData=fD[index,],
 					    mindist=NULL,
-					    annotation=cdfName)
+					    annotation=cdfname)
 		## featureData(trioSetList[[chrom]]) <- fD[marker.list[[chrom]], ]
 
 		stopifnot(validObject(trioSetList[[chrom]]))
