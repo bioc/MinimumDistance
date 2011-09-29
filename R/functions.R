@@ -3156,29 +3156,91 @@ phenoDataArray <- function(pedigree, samplesheet, mapFunction){
 	return(ss)
 }
 
-constructTrioSetList <- function(pData, fD, pedigree, logR, baf, chromosome=1:22, cdfname=""){
-	if(missing(fD)){
-		fD <- oligoClasses:::featureDataFrom(cdfname)
-		fD <- fD[order(fD$chromosome, fD$position), ]
+##constructTrioSetList <- function(pData, fD, pedigree, logR, baf, chromosome=1:22, cdfname=""){
+##	if(missing(fD)){
+##		fD <- oligoClasses:::featureDataFrom(cdfname)
+##		fD <- fD[order(fD$chromosome, fD$position), ]
+##	}
+##	marker.list <- split(sampleNames(fD), fD$chromosome)
+##	marker.list <- marker.list[1:length(marker.list)%in%chromosome]
+##	np <- nrow(pedigree)
+##	trioSetList <- vector("list", length(chromosome))
+##	names(trioSetList) <- 1:length(chromosome)
+##	father.index <- match(pedigree[, "F"],
+##			      colnames(logR))
+##	mother.index <- match(pedigree[, "M"],
+##			      colnames(logR))
+##	offspring.index <- match(pedigree[, "O"],
+##			      colnames(logR))
+##	for(chrom in seq_along(marker.list)){
+##		## Use the name of the offspring as the name for the trio:
+##		nr <- length(marker.list[[chrom]])
+##		bafArray <- logRArray <- array(NA, dim=c(nr, np, 3))
+##		dimnames(bafArray) <- dimnames(logRArray) <- list(marker.list[[chrom]],
+##								  as.character(pedigreeExample[, "O"]),
+##								  c("F", "M", "O"))
+##		logRArray[,,"F"] <- logR[marker.list[[chrom]], father.index]
+##		logRArray[,,"M"] <- logR[marker.list[[chrom]], mother.index]
+##		logRArray[,,"O"] <- logR[marker.list[[chrom]], offspring.index]
+##		bafArray[,,"F"] <- baf[marker.list[[chrom]], father.index]
+##		bafArray[,,"M"] <- baf[marker.list[[chrom]], mother.index]
+##		bafArray[,,"O"] <- baf[marker.list[[chrom]], offspring.index]
+##		## For each chromosome, create a TrioSet
+##		pD <- annotatedDataFrameFrom(as.matrix(logRArray[, , 1]), byrow=FALSE)
+##		sampleNames(pD) <- colnames(logRArray)
+##		index <- match(marker.list[[chrom]], sampleNames(fD))
+##		## initialize 'TrioSet'
+##		trioSetList[[chrom]] <- new("TrioSet",
+##					    logRRatio=logRArray,
+##					    BAF=bafArray,
+##					    phenoData=pD,
+##					    featureData=fD[index,],
+##					    mindist=NULL,
+##					    annotation=cdfname)
+##		## featureData(trioSetList[[chrom]]) <- fD[marker.list[[chrom]], ]
+##
+##		stopifnot(validObject(trioSetList[[chrom]]))
+##		trioSetList[[chrom]]@phenoData2 <- pData
+##	}
+##	trioSetList <- as(trioSetList, "TrioSetList")
+##	stopifnot(validObject(trioSetList))
+##	return(trioSetList)
+##}
+
+TrioSetList <- function(trioAnnotation, logR, baf,
+			featureData,
+			chromosome=1:22,
+			cdfname){
+	stopifnot(is(trioAnnotation, "TrioAnnotation"))
+	phenoDataArray <- as(trioAnnotation, "array")
+	pedigree <- pedigree(trioAnnotation)
+	if(missing(featureData)){
+		stopifnot(!missing(cdfname))
+		featureData <- oligoClasses:::featureDataFrom(cdfname)
+		fD <- featureData[order(featureData$chromosome, featureData$position), ]
+	} else {
+		stopifnot(is(featureData, "AnnotatedDataFrame"))
+		fD <- featureData
 	}
 	marker.list <- split(sampleNames(fD), fD$chromosome)
 	marker.list <- marker.list[1:length(marker.list)%in%chromosome]
 	np <- nrow(pedigree)
 	trioSetList <- vector("list", length(chromosome))
 	names(trioSetList) <- 1:length(chromosome)
-	father.index <- match(pedigree[, "F"],
+	father.index <- match(fatherNames(pedigree),
 			      colnames(logR))
-	mother.index <- match(pedigree[, "M"],
+	mother.index <- match(motherNames(pedigree),
 			      colnames(logR))
-	offspring.index <- match(pedigree[, "O"],
-			      colnames(logR))
+	offspring.index <- match(offspringNames(pedigree),
+				 colnames(logR))
 	for(chrom in seq_along(marker.list)){
 		## Use the name of the offspring as the name for the trio:
 		nr <- length(marker.list[[chrom]])
 		bafArray <- logRArray <- array(NA, dim=c(nr, np, 3))
 		dimnames(bafArray) <- dimnames(logRArray) <- list(marker.list[[chrom]],
-								  as.character(pedigreeExample[, "O"]),
-								  c("F", "M", "O"))
+								  offspringNames(pedigree),
+								  colnames(pedigree))
+		##c("F", "M", "O"))
 		logRArray[,,"F"] <- logR[marker.list[[chrom]], father.index]
 		logRArray[,,"M"] <- logR[marker.list[[chrom]], mother.index]
 		logRArray[,,"O"] <- logR[marker.list[[chrom]], offspring.index]
@@ -3198,9 +3260,8 @@ constructTrioSetList <- function(pData, fD, pedigree, logR, baf, chromosome=1:22
 					    mindist=NULL,
 					    annotation=cdfname)
 		## featureData(trioSetList[[chrom]]) <- fD[marker.list[[chrom]], ]
-
 		stopifnot(validObject(trioSetList[[chrom]]))
-		trioSetList[[chrom]]@phenoData2 <- pData
+		trioSetList[[chrom]]@phenoData2 <- phenoDataArray
 	}
 	trioSetList <- as(trioSetList, "TrioSetList")
 	stopifnot(validObject(trioSetList))
