@@ -92,6 +92,7 @@ data(logRArray)
 data(bafArray)
 ## replace phenoDataArray with a coercion from TrioAnnotation to an array
 ## The coercion takes place in the 'TrioSetList' constructor
+trace(TrioSetList, browser)
 trioSetList <- TrioSetList(trioAnnotation=trio.ann,
 			   logR=logR,
 			   baf=baf,
