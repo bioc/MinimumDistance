@@ -25,7 +25,10 @@ setMethod("trioNames", signature(object="RangedDataCNV"), function(object) {
 ##		  plot(x=df, ...)
 ##	  })
 
-setMethod("todf", signature(object="RangedDataCNV"), function(object, col=1:3, verbose=TRUE, ordered.y, ...){
+setMethod("todf", signature(object="RangedDataCNV"),
+	  function(object, col=1:3,
+		   verbose=TRUE,
+		   ordered.y, ...){
 	##require(SNPchip)
 	data(chromosomeAnnotation, package="SNPchip")
 	if(!"col" %in% names(list(...))) col <- 1:3 else col <- list(...)[["col"]]
@@ -60,7 +63,6 @@ setMethod("todf", signature(object="RangedDataCNV"), function(object, col=1:3, v
 	xstates[states %in% offspring.homozygous()] <- "loss (homozygous)"
 	xstates[states %in% offspring.hemizygous()] <- "loss (hemizygous)"
 	xstates[states %in% duplicationStates()] <- "gain"
-	##
 	labels <- factor(xstates, levels=c("loss (homozygous)",
 				  "loss (hemizygous)",
 				  "gain"), ordered=TRUE)
