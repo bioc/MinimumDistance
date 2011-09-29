@@ -76,21 +76,20 @@ and \Rcode{baf(trioSetList[[chromosome]])}.
 library(MinimumDistance)
 library(human610quadv1bCrlmm)
 data(pedigreeExample)
-rownames(pedigreeExample) <- NULL
+rownames(pedigreeExample) <- NULL  ## no longer necessary to have rownames
 data(samplesheetExample)
 sample.sheet <- SampleSheet(filename=samplesheetExample$Sample.Name,
-			   id=paste("NA",substr(samplesheetExample$Sample.Name, 6, 10),sep=""),
-			   plate=samplesheetExample$Plate,
-			   well=samplesheetExample$Well,
-			   gender=samplesheetExample$Gender,
-			   SentrixPosition=samplesheetExample$SentrixPosition)
+			    id=paste("NA",substr(samplesheetExample$Sample.Name, 6, 10),sep=""),
+			    plate=samplesheetExample$Plate,
+			    well=samplesheetExample$Well,
+			    gender=samplesheetExample$Gender,
+			    SentrixPosition=samplesheetExample$SentrixPosition)
 pedigree <- as(pedigreeExample, "Pedigree")
 trio.ann <- new("TrioAnnotation", sampleSheet=sample.sheet, pedigree=pedigree)
 validObject(trio.ann)
 sampleNames(trio.ann)
 data(logRArray)
 data(bafArray)
-
 ## replace phenoDataArray with a coercion from TrioAnnotation to an array
 ## The coercion should take place in the 'TrioSetList' constructor
 ##pData <- as(trio.ann, "array")
