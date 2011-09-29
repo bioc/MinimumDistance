@@ -91,12 +91,12 @@ sampleNames(trio.ann)
 data(logRArray)
 data(bafArray)
 ## replace phenoDataArray with a coercion from TrioAnnotation to an array
-## The coercion should take place in the 'TrioSetList' constructor
-##pData <- as(trio.ann, "array")
+## The coercion takes place in the 'TrioSetList' constructor
 trioSetList <- TrioSetList(trioAnnotation=trio.ann,
 			   logR=logR,
 			   baf=baf,
 			   cdfname="human610quadv1bCrlmm")
+stop()
 ##trioSetList <- constructTrioSetList(pData=pData,
 ##				    pedigree=pedigreeExample,
 ##				    logR=logR,

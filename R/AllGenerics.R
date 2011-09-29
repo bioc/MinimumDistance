@@ -1,4 +1,3 @@
-setGeneric("[")
 setGeneric("mindist", function(object) standardGeneric("mindist"))
 setGeneric("family", function(object) standardGeneric("family"))
 setGeneric("plot", useAsDefault=function(x,y, ...) graphics::plot(x,y,...))
@@ -56,3 +55,6 @@ setGeneric("rbind", function(..., deparse.level=1) standardGeneric("rbind"),
 setGeneric("width", function(x) standardGeneric("width"))
 
 coverage <- coverage2
+setGeneric("sampleSheet", function(object) standardGeneric("sampleSheet"))
+setGeneric("pedigree", function(object) standardGeneric("pedigree"))
+

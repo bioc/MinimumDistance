@@ -28,7 +28,8 @@ importFrom(msm, qtnorm, dtnorm)
 importFrom(ff, filename)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 exportClasses(DataFrameCNV, ##RangedDataCNV, RangedDataCBS, RangedDataHMM,
-	      TrioSet, TrioSetList) ##LogRatioSet, TrioSetList)
+	      TrioSet, TrioSetList,
+	      Pedigree, SampleSheet, TrioAnnotation) ##LogRatioSet, TrioSetList)
 exportMethods("[", baf, "baf<-",
 	      fatherNames, "fatherNames<-",
 	      logR, "logR<-",
@@ -38,15 +39,19 @@ exportMethods("[", baf, "baf<-",
 	      ncol,
 	      nrow,
 	      offspringNames, "offspringNames<-",
+	      pedigree,
 	      prune,
 	      rbind,
+	      sampleSheet,
 	      trioNames,
 	      updateObject,
 	      width,
 	      xsegment,
-	      xyplot)
+	      xyplot,
+	      initialize)
 export(concAtTop,
-       constructTrioSetList,
+       ##constructTrioSetList,
+       TrioSetList,
        correspondingCall,
        discAtTop,
        fmoNames,
@@ -55,7 +60,7 @@ export(concAtTop,
        minimumDistance,
        minimumDistanceCalls,
        minimumDistancePlot,
-       narrow,
-       phenoDataArray)
+       narrow, SampleSheet)
+##       phenoDataArray)
 
 

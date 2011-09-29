@@ -120,10 +120,7 @@ setClass("Pedigree", contains="data.frame")
 setClass("TrioAnnotation",
 	 representation=representation(pedigree="Pedigree",
 	 sampleSheet="SampleSheet"))
-setMethod("sampleNames", signature(object="SampleSheet"),
-	  function(object){
-		  object$id
-	  })
+
 setValidity("SampleSheet", function(object){
 	if(!"id" %in% colnames(object))
 		return("'id' needs to be in the column name")
@@ -131,53 +128,19 @@ setValidity("SampleSheet", function(object){
 		return("'id' needs to be unique")
 	NULL
 })
+
 setValidity("Pedigree", function(object){
 	if(!identical(colnames(object), c("F", "M", "O")))
 		return("column names should be 'F', 'M', and 'O'")
+	if(any(duplicated(offspringNames(object))))
+		return("Duplicated offspring names.  The offspring names must be unique.")
+	if(any(is.na(unlist(object))))
+		return("Missing values not allowed in pedigree")
 	NULL
 })
-setGeneric("sampleSheet", function(object) standardGeneric("sampleSheet"))
-setGeneric("pedigree", function(object) standardGeneric("pedigree"))
-setMethod("sampleSheet", signature(object="TrioAnnotation"),
-	  function(object) object@sampleSheet)
-setMethod("pedigree", signature(object="TrioAnnotation"),
-	  function(object) object@pedigree)
-setMethod("sampleNames", signature(object="TrioAnnotation"),
-	  function(object) sampleNames(sampleSheet(object)))
-setMethod("nrow", signature(x="TrioAnnotation"),
-	  function(x) nrow(pedigree(object)))
 
-setMethod("offspringNames", signature(object="TrioAnnotation"), function(object){
-	offspringNames(pedigree(object))
-})
-setMethod("fatherNames", signature(object="TrioAnnotation"), function(object){
-	fatherNames(pedigree(object))
-})
-setMethod("motherNames", signature(object="TrioAnnotation"), function(object){
-	motherNames(pedigree(object))
-})
-setMethod("offspringNames", signature(object="Pedigree"), function(object) object$O)
-setMethod("fatherNames", signature(object="Pedigree"), function(object) object$F)
-setMethod("motherNames", signature(object="Pedigree"), function(object) object$M)
-
-setMethod("initialize", signature(.Object="TrioAnnotation"),
-	  function(.Object,
-		   pedigree=new("Pedigree"),
-		   sampleSheet=new("SampleSheet")){
-		  .Object@sampleSheet <- sampleSheet
-		  .Object@pedigree <- pedigree
-		  return(.Object)
-	  })
 setValidity("TrioAnnotation", function(object){
 	all(unlist(pedigree(object)) %in% sampleNames(object))
-}
-SampleSheet <- function(filename,
-			id,
-			plate, ...){
-	df <- data.frame(filename=filename,
-			 id=id,
-			 plate=plate,
-			 ..., stringsAsFactors=FALSE)
-	return(as(df, "SampleSheet"))
-}
+})
+
 
