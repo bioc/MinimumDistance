@@ -83,25 +83,40 @@ sample.sheet <- SampleSheet(filename=samplesheetExample$Sample.Name,
 			    well=samplesheetExample$Well,
 			    gender=samplesheetExample$Gender,
 			    SentrixPosition=samplesheetExample$SentrixPosition)
-pedigree <- as(pedigreeExample, "Pedigree")
-trio.ann <- new("TrioAnnotation", sampleSheet=sample.sheet, pedigree=pedigree)
-validObject(trio.ann)
-sampleNames(trio.ann)
+##pedigreeTrios <- ##as(pedigreeExample, "Pedigree")
+##pedigreeTrios <- as.matrix(pedigreeExample)
+indId <- unlist(pedigreeExample)
+trioFactor <- matrix(seq_len(nrow(pedigreeTrios)), nrow(pedigreeTrios), 3, byrow=FALSE)
+memberId <- substr(names(indId), 1, 1)
+## which row in the pedigree file
+trio.index <- as.integer(trioFactor) ## note this gives the index in the pedigree
+pedigreeIndex <- data.frame(individualId=indId,
+			    memberId=memberId,
+			    index.in.pedigree=trio.index,
+			    stringsAsFactors=FALSE)
+rownames(pedigreeIndex) <- NULL
+pedigreeData <- new("Pedigree", trios=pedigreeExample,
+		    trioIndex=pedigreeIndex)
+show(pedigreeData)
 data(logRArray)
 data(bafArray)
 ## replace phenoDataArray with a coercion from TrioAnnotation to an array
 ## The coercion takes place in the 'TrioSetList' constructor
-trioSetList <- TrioSetList(trioAnnotation=trio.ann,
-			   logR=logR,
+##trace(TrioSetList, browser)
+##tmp <- new("TrioSetList", pedigree=pedigree, sampleSheet=sample.sheet)
+##trace(TrioSetList, browser)
+trioSetList <- TrioSetList(logR=logR,
 			   baf=baf,
+			   pedigree=pedigreeData,
+			   sampleSheet=sample.sheet,
 			   cdfname="human610quadv1bCrlmm")
-stop()
-##trioSetList <- constructTrioSetList(pData=pData,
-##				    pedigree=pedigreeExample,
-##				    logR=logR,
-##				    baf=baf,
-##				    chromosome=1:22,
-##				    cdfname="human610quadv1bCrlmm")
+trioSetList
+sampleSheet(trioSetList)
+pedigree(trioSetList)
+trioSetList[1:5]
+trioSetList[[1]]
+## Note
+identical(sampleNames(trioSetList), offspringNames(trioSetList))
 @
 
 In the above code feature annotation such as chromosome and position
@@ -129,23 +144,78 @@ number states and Visualization.
 This part consists of computing the minimum distance and carrying out
 circular binary segmentation of the minimum distance and logR ratios.
 
-<<segmentation,echo=FALSE>>=
-## computing the minimum distance
-trioSetList <- minimumDistance(container=trioSetList,
-                               chromosomes=1:22,
-			       readFiles=FALSE,
-                               cdfName="human610quadv1b",
-                               calculate.md=TRUE,
-                               calculate.mad=TRUE)
+<<computeMinimumDistance,echo=FALSE>>=
+## computing the MAD of the log R ratios for each individual.
+mads.lrr <- calculateMADlrr(trioSetList)
+## adds identical mad to each TrioSet element ... inefficient
+mad(trioSetList) <- mads.lrr
+md <- calculateMindist(object=trioSetList)
+## calculate the mad of the minimum distance
+mads.md <- lapply(md, function(x) apply(x, 2, mad, na.rm=TRUE))
+## Add the mads of the minimum distance to the container
+minimumDistanceMad(trioSetList) <- mads.md
 
-## segmentation of minimum distances and logR ratios
-md.segs <- xsegment(object=trioSetList,
-                    verbose=TRUE)
-cbs.segs <- xsegment(object=trioSetList,
-                     segment.mindist=FALSE,
-                     verbose=TRUE)
+## add the minimumDistance to the container.
+mindist(trioSetList) <- md
+## Alternatively,
+##trioSetList <- minimumDistance(trioSetList)
 @
 
+Segment the minimum distance and return a \Robject{RangedDataCBS} object.
+
+<<segmentMinimumDistance>>=
+md.segs <- xsegment(object=trioSetList, segment.mindist=TRUE, verbose=TRUE)
+md.segs
+@
+
+Segment the log R ratios of the offspring and return a
+\Robject{RangedDataCBS} object.
+
+<<segmentLRR>>=
+lrr.segs <- xsegment(object=trioSetList, segment.mindist=FALSE,
+		     id=sampleNames(trioSetList),
+		     verbose=TRUE)
+@
+
+Narrow the minimum distance ranges.
+
+<<narrow>>=
+md.segs2 <- narrow(md.segs, lrr.segs, thr=0.1)
+@
+
+One can optionally prune the ranges.
+
+<<prune, eval=FALSE>>=
+@
+
+
+<<computeBayesFactor>>=
+tau <- MinimumDistance:::transitionProbability(states=0:4, epsilon=0.5)
+log.pi <- log(MinimumDistance:::initialStateProbs(states=0:4, epsilon=0.5))
+message("Computing bayes factors")
+##md.segs2$state <- NA
+object <- MinimumDistance:::computeBayesFactor(object=trioSetList[[1]],
+			     ranges=md.segs2,
+			     tau=tau,
+			     log.pi=log.pi,
+			     prOutlier=c(0.01, 1e-6),
+			     prMosaic=0.01,
+			     prob.nonMendelian=1.5e-6,
+			     mu.logr=c(-2, -0.5, 0, 0.3, 0.75),
+			     baf.sds=c(0.02, 0.03, 0.02),
+			     returnEmission=FALSE)
+
+object <- MinimumDistance:::computeBayesFactor(object=trioSetList,
+			     ranges=md.segs2,
+			     tau=tau,
+			     log.pi=log.pi,
+			     prOutlier=c(0.01, 1e-6),
+			     prMosaic=0.01,
+			     prob.nonMendelian=1.5e-6,
+			     mu.logr=c(-2, -0.5, 0, 0.3, 0.75),
+			     baf.sds=c(0.02, 0.03, 0.02),
+			     returnEmission=FALSE)
+@
 
 \subsection{Posterior probabilities of trio copy number states}
 
