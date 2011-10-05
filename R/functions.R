@@ -2474,7 +2474,155 @@ minimumDistance <- function(path,
 	return(container)
 }
 
+
+
+
+minimumDistance <- function(container, verbose=TRUE){
+	##---------------------------------------------------------------------------
+	##
+	## calculate minimum distance
+	##
+	##----------------------------------------------------------------------------
+	mads.logr <- calculateMADlrr(container)
+	mad(trioSetList) <- mads.logr
+	if(verbose) message("Computing the minimum distance")
+	md <- calculateMindist(container)
+	## calculate the MAD for the minimum distance
+	## Add both the mad and the minimum distance to the container
+	for(i in seq_along(md)){
+		trioSet <- container[[i]]
+		min.dist <- md[[i]]
+		mads <- apply(min.dist, 2, mad, na.rm=TRUE)
+		trioSet$mindist.mad <- mads
+		mindist(trioSet) <- min.dist
+		container[[i]] <- trioSet
+	}
+	return(container)
+}
+
 minimumDistanceCalls <- function(id, container,
+				 chromosomes=1:22,
+				 ranges,
+				 cbs.segs,
+				 ##mindistance.threshold=0.075,
+				 mindistance.threshold=0.09,
+				 narrowRanges=TRUE,
+				 prOutlier=c(0.01, 1e-15),
+				 prMosaic=0.01,
+				 prob.nonMendelian=1.5e-6,
+				 mu.logr=c(-2, -0.5, 0, 0.3, 0.75),
+				 baf.sds=c(0.005, 0.2, 0.005),
+				 pruneMinimumDistance=FALSE,
+				 prune.by.call=TRUE,
+				 min.coverage=10,
+				 returnEmission=FALSE,
+				 ..., verbose=TRUE, DNAcopy.verbose=0){
+	##---------------------------------------------------------------------------
+	##
+	## Segment the minimum distance
+	##
+	##---------------------------------------------------------------------------
+	stopifnot(!missing(container))
+	if(!missing(cbs.segs)) cbs.segs <- cbs.segs[sampleNames(cbs.segs) %in% offspringNames(container), ]
+	if(missing(id)) {
+		id <- sampleNames(container)
+	} else stopifnot(all(id %in% sampleNames(container)))
+	stopifnot(all(chromosomes %in% 1:22))
+	if(missing(ranges)){
+		mdRanges <- xsegment(container[chromosomes], id=id, ...,
+				     verbose=verbose,
+				     DNAcopy.verbose=DNAcopy.verbose)
+		message("Returning mdRanges. Rerun with ranges = mdRanges")
+		return(mdRanges)
+	} else mdRanges <- ranges
+##	mads <- container[[1]]$mindist.mad
+##	ix <- match(sampleNames(mdRanges), id)
+##	mdRanges$mindist.mad <- mads[ix]
+	if(!missing(cbs.segs) & narrowRanges){
+		message("\tChecking the offspring segmentation to see whether breakpoints occur within the minimum distance interval...")
+		mdRanges <- narrow(mdRanges, cbs.segs, thr=mindistance.threshold)
+		message("\tFinished 'narrowing' the minimum distance ranges")
+	}
+	if(missing(cbs.segs) & narrowRanges) stop("narrowRanges is TRUE, but cbs.segs is missing")
+	##---------------------------------------------------------------------------
+	##
+	## Prune the minimum distance ranges
+	##
+	##---------------------------------------------------------------------------
+	## compute likelihood ratio to infer most likely state
+	if(pruneMinimumDistance){
+		message("Pruning ranges")
+		pruned.segs <- prune(container[chromosomes],
+				     ranges=mdRanges,
+				     id=id,
+				     lambda=0.05,
+				     min.change=0.1,
+				     min.coverage=10,
+				     scale.exp=0.02,
+				     verbose=verbose)
+		rd <- stack(RangedDataList(pruned.segs))
+		rd <- rd[, -grep("sample", colnames(rd))]
+		prunedRanges <- RangedDataCBS(ranges=ranges(rd), values=values(rd))
+		rm(rd, pruned.segs); gc()
+	} else {
+		message("Minimum distance ranges not pruned")
+		prunedRanges <- mdRanges
+		prunedRanges <- prunedRanges[sampleNames(prunedRanges) %in% id & chromosome(prunedRanges) %in% chromosomes, ]
+		rm(ranges); gc()
+	}
+	tau <- transitionProbability(states=0:4, epsilon=0.5)
+	log.pi <- log(initialStateProbs(states=0:4, epsilon=0.5))
+	message("Computing bayes factors")
+	prunedRanges$state <- NA
+	object <- computeBayesFactor(object=container[chromosomes],
+				     ranges=prunedRanges,
+				     tau=tau,
+				     log.pi=log.pi,
+				     prOutlier=prOutlier,
+				     prMosaic=prMosaic,
+				     prob.nonMendelian=prob.nonMendelian,
+				     mu.logr=mu.logr,
+				     baf.sds=baf.sds,
+				     returnEmission=returnEmission)
+	if(returnEmission){
+		##return LogLik set
+		return(object)
+	} else {
+		prunedRanges <- object
+		rm(object);gc()
+	}
+	##---------------------------------------------------------------------------
+	## The following line needs to be commented. Here's why
+	##  suppose the x's indicate a CNV
+	##   9----------xxxxxx--------30
+	##  And the copy numbers are
+	##   222222222220000002222222222
+	##  If we remove small segments, we get
+	##   22222222222 <gap>2222222222
+	##  And after pruneByFactor, we would have
+	##   222222222222222222222222222
+	## prunedRanges <- prunedRanges[prunedRanges$num.mark >= min.coverage, ]
+	## do a second round of pruning for adjacent segments
+	## that have the same state
+	if(prune.by.call){
+		message("Pruning ranges")
+		rd <- tryCatch(pruneByFactor(prunedRanges, f=prunedRanges$argmax, verbose=verbose),
+			       error=function(e) NULL)
+		if(is.null(rd)){
+			message("Not able to pruneByFactor. Return the ranges without pruning")
+			return(prunedRanges)
+		}
+		prunedRanges <- stack(RangedDataList(rd))
+		##prunedRanges <- rd[, -ncol(rd)]
+	}
+	index <- match("sample", colnames(prunedRanges))
+	if(length(index) > 0) prunedRanges <- prunedRanges[, -index]
+	prunedRanges$state <- trioStateNames()[prunedRanges$argmax]
+	prunedRanges <- prunedRanges[order(prunedRanges$id, prunedRanges$chrom, start(prunedRanges)), ]
+	return(prunedRanges)
+}
+
+minimumDistanceCalls2 <- function(id, container,
 				 chromosomes=1:22,
 				 ranges,
 				 cbs.segs,
@@ -2981,7 +3129,7 @@ narrow <- function(md.range, cbs.segs, thr, verbose=TRUE){
 		cbs.segs <- cbs.segs[i, ]
 	}
 	chroms <- unique(chromosome(md.range))
-	rdN <- list()
+	rdN <- vector("list", length(chroms))
 	if(verbose) {
 		message("Narrowing the ranges with segment mean above ", thr, " if the offspring has a start/stop in the region")
 		pb <- txtProgressBar(min=0, max=length(chroms), style=3)
@@ -3046,8 +3194,8 @@ narrow <- function(md.range, cbs.segs, thr, verbose=TRUE){
 				  seg.mean=md$seg.mean[qhits],
 				  start.index=st.index,
 				  end.index=en.index,
-				  mindist.mad=md$mindist.mad[qhits],
-				  family=md$family[qhits])
+				  mindist.mad=md$mindist.mad[qhits])
+				  ##family=md$family[qhits])
 		##ranges.below.thr <- split(!abs.thr[qhits], qhits)
 		##ns <- sapply(ranges.below.thr, sum)
 		uid <- paste(tmp$id, start(tmp), tmp$chrom, sep="")
@@ -3207,63 +3355,16 @@ phenoDataArray <- function(pedigree, samplesheet, mapFunction){
 ##	return(trioSetList)
 ##}
 
-TrioSetList <- function(trioAnnotation, logR, baf,
-			featureData,
-			chromosome=1:22,
-			cdfname){
-	stopifnot(is(trioAnnotation, "TrioAnnotation"))
-	phenoDataArray <- as(trioAnnotation, "array")
-	pedigree <- pedigree(trioAnnotation)
-	if(missing(featureData)){
-		stopifnot(!missing(cdfname))
-		featureData <- oligoClasses:::featureDataFrom(cdfname)
-		fD <- featureData[order(featureData$chromosome, featureData$position), ]
-	} else {
-		stopifnot(is(featureData, "AnnotatedDataFrame"))
-		fD <- featureData
+calculateMADlrr <- function(object){
+	mads <- matrix(NA, ncol(object[[1]]), 3)
+	colnames(mads) <- c("F", "M", "O")
+	rownames(mads) <- sampleNames(object)
+	subsetLogR <- function(object, trio.index){
+		lR <- logR(object)[, trio.index, ]
 	}
-	marker.list <- split(sampleNames(fD), fD$chromosome)
-	marker.list <- marker.list[1:length(marker.list)%in%chromosome]
-	np <- nrow(pedigree)
-	trioSetList <- vector("list", length(chromosome))
-	names(trioSetList) <- 1:length(chromosome)
-	father.index <- match(fatherNames(pedigree),
-			      colnames(logR))
-	mother.index <- match(motherNames(pedigree),
-			      colnames(logR))
-	offspring.index <- match(offspringNames(pedigree),
-				 colnames(logR))
-	for(chrom in seq_along(marker.list)){
-		## Use the name of the offspring as the name for the trio:
-		nr <- length(marker.list[[chrom]])
-		bafArray <- logRArray <- array(NA, dim=c(nr, np, 3))
-		dimnames(bafArray) <- dimnames(logRArray) <- list(marker.list[[chrom]],
-								  offspringNames(pedigree),
-								  colnames(pedigree))
-		##c("F", "M", "O"))
-		logRArray[,,"F"] <- logR[marker.list[[chrom]], father.index]
-		logRArray[,,"M"] <- logR[marker.list[[chrom]], mother.index]
-		logRArray[,,"O"] <- logR[marker.list[[chrom]], offspring.index]
-		bafArray[,,"F"] <- baf[marker.list[[chrom]], father.index]
-		bafArray[,,"M"] <- baf[marker.list[[chrom]], mother.index]
-		bafArray[,,"O"] <- baf[marker.list[[chrom]], offspring.index]
-		## For each chromosome, create a TrioSet
-		pD <- annotatedDataFrameFrom(as.matrix(logRArray[, , 1]), byrow=FALSE)
-		sampleNames(pD) <- colnames(logRArray)
-		index <- match(marker.list[[chrom]], sampleNames(fD))
-		## initialize 'TrioSet'
-		trioSetList[[chrom]] <- new("TrioSet",
-					    logRRatio=logRArray,
-					    BAF=bafArray,
-					    phenoData=pD,
-					    featureData=fD[index,],
-					    mindist=NULL,
-					    annotation=cdfname)
-		## featureData(trioSetList[[chrom]]) <- fD[marker.list[[chrom]], ]
-		stopifnot(validObject(trioSetList[[chrom]]))
-		trioSetList[[chrom]]@phenoData2 <- phenoDataArray
+	for(j in seq_len(nrow(mads))){
+		logrs <- do.call("rbind", sapply(object, subsetLogR, trio.index=j))
+		mads[j, ] <- apply(logrs, 2, mad, na.rm=TRUE)
 	}
-	trioSetList <- as(trioSetList, "TrioSetList")
-	stopifnot(validObject(trioSetList))
-	return(trioSetList)
+	return(mads)
 }

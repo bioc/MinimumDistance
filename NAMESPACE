@@ -55,6 +55,7 @@ exportMethods("[", baf, "baf<-",
 	      xyplot,
 	      initialize)
 export(concAtTop,
+       calculateMADlrr,
        ##constructTrioSetList,
        TrioSetList,
        correspondingCall,
