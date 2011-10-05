@@ -17,7 +17,13 @@ setAs("BeadStudioSet", "LogRatioSet",
       })
 
 setMethod("logR", "LogRatioSet", function(object) assayData(object)[["logRRatio"]])
+setMethod("lrr", "LogRatioSet", function(object) assayData(object)[["logRRatio"]])
+
 setReplaceMethod("logR", c("LogRatioSet", "ANY"),
+		 function(object, value) {
+			 assayDataElementReplace(object, "logRRatio", value)
+	 })
+setReplaceMethod("lrr", c("LogRatioSet", "ANY"),
 		 function(object, value) {
 			 assayDataElementReplace(object, "logRRatio", value)
 	 })

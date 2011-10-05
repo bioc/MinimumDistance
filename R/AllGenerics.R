@@ -1,20 +1,23 @@
 setGeneric("mindist", function(object) standardGeneric("mindist"))
+setGeneric("mindist<-", function(object,value) standardGeneric("mindist<-"))
 setGeneric("family", function(object) standardGeneric("family"))
 setGeneric("plot", useAsDefault=function(x,y, ...) graphics::plot(x,y,...))
 setGeneric("xyplot", useAsDefault=function(x, data, ...) lattice::xyplot(x, data,...))
 setGeneric("loglik", function(object) standardGeneric("loglik"))
 setGeneric("loglik<-", function(object, value) standardGeneric("loglik<-"))
 setGeneric("range.index", function(object) standardGeneric("range.index"))
-setGeneric("mindist<-", function(object,value) standardGeneric("mindist<-"))
 setGeneric("calculateMindist", function(object, ...) standardGeneric("calculateMindist"))
 setGeneric("logR", function(object) standardGeneric("logR"))
 setGeneric("logR<-", function(object, value) standardGeneric("logR<-"))
+setGeneric("lrr<-", function(object, value) standardGeneric("lrr<-"))
 setGeneric("baf<-", function(object, value) standardGeneric("baf<-"))
-setGeneric("baf", function(object) standardGeneric("baf"))
+##setGeneric("baf", function(object) standardGeneric("baf"))
 setGeneric("mad")
 setGeneric("ncol")
-setGeneric("mad<-", function(object, value) standardGeneric("mad<-"))
-setGeneric("xsegment", function(object, id, segment.mindist=TRUE, ..., verbose=FALSE, DNAcopy.verbose=0) standardGeneric("xsegment"))
+setGeneric("mad<-", function(x, value) standardGeneric("mad<-"))
+setGeneric("minimumDistanceMad", function(object) standardGeneric("minimumDistanceMad"))
+setGeneric("minimumDistanceMad<-", function(object, value) standardGeneric("minimumDistanceMad<-"))
+setGeneric("xsegment", function(object, pedigreeData, id, segment.mindist=TRUE, ..., verbose=FALSE, DNAcopy.verbose=0) standardGeneric("xsegment"))
 setGeneric("phenoData2", function(object) standardGeneric("phenoData2"))
 setGeneric("phenoData2<-", function(object,value) standardGeneric("phenoData2<-"))
 setGeneric("varLabels2", function(object) standardGeneric("varLabels2"))
@@ -27,6 +30,7 @@ setGeneric("prune", function(object, ranges, id,
 	   standardGeneric("prune"))
 setGeneric("computeBayesFactor", function(object,
 					  ranges,
+					  pedigreeData,
 					  id,
 					  states=0:4,
 					  baf.sds=c(0.02, 0.03, 0.02),
@@ -57,4 +61,5 @@ setGeneric("width", function(x) standardGeneric("width"))
 coverage <- coverage2
 setGeneric("sampleSheet", function(object) standardGeneric("sampleSheet"))
 setGeneric("pedigree", function(object) standardGeneric("pedigree"))
+setGeneric("individualNames", function(object) standardGeneric("individualNames"))
 

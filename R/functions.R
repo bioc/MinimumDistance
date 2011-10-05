@@ -1251,7 +1251,6 @@ computeLoglik <- function(id,
 			  prOutlier.logR=0.01,
 			  prOutlier.baf=1e-5,
 			  prMosaic=0.01,
-			  df0=50,
 			  returnEmission=FALSE){
 	CHR <- chromosome(trioSet)[1]
 	##p1 <- prGtCorrect; rm(prGtCorrect)
@@ -1842,6 +1841,7 @@ joint1 <- function(LLT, ##object,
 }
 
 joint4 <- function(trioSet,
+		   pedigreeData,
 		   ranges, ## all the ranges from one subject , one chromosome
 		   states,
 		   baf.sds,
@@ -1854,20 +1854,20 @@ joint4 <- function(trioSet,
 		   verbose=TRUE,
 		   prOutlier=c(0.01, 1e-5),
 		   prMosaic=0.01,
-		   df0=50,
 		   prob.nonMendelian=1.5e-6,
 		   returnEmission=FALSE){ ## ignored
 	stopifnot(states == 0:4)
-	stopifnot(length(unique(ranges$chrom)) == 1)
+	stopifnot(length(unique(chromosome(ranges))) == 1)
 	##family.id <- unique(ss(ranges$id))
-	family.id <- unique(ranges$id)
+	family.id <- unique(sampleNames(ranges))
 	##fmonames <- paste(ss(family.id), c("03", "02", "01"), sep="_")
-	pd2 <- phenoData2(trioSet)
+	##pd2 <- phenoData2(trioSet)
 	i <- match(family.id, sampleNames(trioSet))
 	##j <- match("CIDR_Name", colnames(pd2))
 	##stopifnot(!missing(i) && !missing(j))
 	##fmonames <- pd2[i, j, ]
-	fmonames <- pd2[i, "id", ]
+	##fmonames <- pd2[i, "Sample.Name", ]
+	fmonames <- trios(pedigreeData)[i, ]
 	object <- computeLoglik(id=fmonames,
 				trioSet=trioSet,
 				ranges=ranges,
@@ -1877,7 +1877,6 @@ joint4 <- function(trioSet,
 				prOutlier.logR=prOutlier[1],
 				prOutlier.baf=prOutlier[2],
 				prMosaic=prMosaic,
-				df0=df0,
 				returnEmission=returnEmission)
 	if(returnEmission) return(object)
 	trio.states <- trioStates(states)
@@ -2363,7 +2362,9 @@ readParsedFiles <- function(path, member, container, chromosomes, file.ext, verb
 	return(mads)
 }
 
-minimumDistance <- function(path,
+
+
+minimumDistance2 <- function(path,
 			    samplesheet,
 			    pedigree,
 			    container,
