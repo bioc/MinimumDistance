@@ -19,7 +19,7 @@ importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 importMethodsFrom(IRanges, start, end, width,"[", "[[","[<-", "[[<-", "$",
 		  nrow, "start<-", "end<-", rbind, stack)
 importMethodsFrom(oligoClasses, state, coverage2, chromosome)
-importFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
+importFrom(oligoClasses, baf, lrr, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   findOverlaps, countOverlaps,
 	   ranges, values,
@@ -29,12 +29,17 @@ importFrom(ff, filename)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 exportClasses(DataFrameCNV, ##RangedDataCNV, RangedDataCBS, RangedDataHMM,
 	      TrioSet, TrioSetList,
-	      Pedigree, SampleSheet, TrioAnnotation) ##LogRatioSet, TrioSetList)
+	      Pedigree, SampleSheet)
 exportMethods("[", baf, "baf<-",
+	      calculateMindist,
+	      computeBayesFactor,
 	      fatherNames, "fatherNames<-",
 	      logR, "logR<-",
+	      lrr, "lrr<-",
 	      mad, "mad<-",
 	      mindist, "mindist<-",
+	      "minimumDistanceMad<-",
+	      minimumDistanceMad,
 	      motherNames, "motherNames<-",
 	      ncol,
 	      nrow,

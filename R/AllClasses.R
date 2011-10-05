@@ -1,7 +1,8 @@
-setOldClass("ffdf")
-setOldClass("ff_matrix")
+##setOldClass("ffdf")
+##setOldClass("ff_matrix")
 setOldClass("ff_array")
-
+##setOldClass("list")
+##setOldClass("data.frame")
 
 setClass("RangedDataCNVTrios", contains="RangedDataCNV")
 ## It would be much cleaner to add slots to the RangedData class for
@@ -9,17 +10,17 @@ setClass("RangedDataCNVTrios", contains="RangedDataCNV")
 ## specific class like numeric, integer, etc.
 ##setClassUnion("dataFrame", "data.frame")
 setClass("DataFrameCNV", contains="data.frame")
-setClass("RangedDataCNVList", contains="list")
-setMethod("stack", signature(x="RangedDataCNVList"),
-	  function(x){
-		  x <- lapply(x, function(x){
-			  browser()
-			  as(x, "RangedData")
-		  })
-		  rdl <- RangedDataList(x)
-		  rd <- stack(rdl)
-		  return(rd)
-	  })
+##setClass("RangedDataCNVList", contains="list")
+##setMethod("stack", signature(x="RangedDataCNVList"),
+##	  function(x){
+##		  x <- lapply(x, function(x){
+##			  browser()
+##			  as(x, "RangedData")
+##		  })
+##		  rdl <- RangedDataList(x)
+##		  rd <- stack(rdl)
+##		  return(rd)
+##	  })
 setClass("RangedDataCBS2", contains="RangedDataCBS")
 setValidity("RangedDataCBS2", function(object){
 	"state" %in% colnames(object)
@@ -48,6 +49,14 @@ setClass("TrioSet", contains="LogRatioSet",
 	                       new("VersionedBiobase",
 				   versions=c(classVersion("LogRatioSet"), TrioSet="0.0.4"))))
 
+setClass("TrioSet", contains="LogRatioSet",
+	 representation(phenoData2="array",
+			mindist="matrix",
+			mad="matrix"),
+	 prototype = prototype(
+	                       new("VersionedBiobase",
+				   versions=c(classVersion("LogRatioSet"), TrioSet="0.0.5"))))
+
 ## should we add a slot for trioNames
 ##  -- would be a R x 3 matrix, where R is the number of trios
 ##  -- R must be equal to the number of columns of the assayData arrays
@@ -58,7 +67,7 @@ setClass("TrioSet", contains="LogRatioSet",
 ## Other potential slots:
 ##  -- dna source
 ##  -- batch / plate
-setClass("TrioSetList", contains="list")
+
 ##setClass("TrioSetList",
 ##	 representation(trioSets="list",
 ##			phenoData="AnnotatedDataFrame",
@@ -116,10 +125,13 @@ setMethod("updateObject", signature(object="TrioSet"),
 	  })
 
 setClass("SampleSheet", contains="data.frame")
-setClass("Pedigree", contains="data.frame")
-setClass("TrioAnnotation",
-	 representation=representation(pedigree="Pedigree",
-	 sampleSheet="SampleSheet"))
+setClass("Pedigree", contains="list",
+	 representation(trios="data.frame",
+			trioIndex="data.frame"))
+
+##setClass("TrioAnnotation",
+##	 representation=representation(pedigree="Pedigree",
+##	 sampleSheet="SampleSheet"))
 
 setValidity("SampleSheet", function(object){
 	if(!"id" %in% colnames(object))
@@ -129,18 +141,19 @@ setValidity("SampleSheet", function(object){
 	NULL
 })
 
-setValidity("Pedigree", function(object){
-	if(!identical(colnames(object), c("F", "M", "O")))
-		return("column names should be 'F', 'M', and 'O'")
-	if(any(duplicated(offspringNames(object))))
-		return("Duplicated offspring names.  The offspring names must be unique.")
-	if(any(is.na(unlist(object))))
-		return("Missing values not allowed in pedigree")
-	NULL
-})
 
-setValidity("TrioAnnotation", function(object){
-	all(unlist(pedigree(object)) %in% sampleNames(object))
-})
 
+setClass("TrioSetList", contains="list",
+	 representation(pedigree="Pedigree",
+			sampleSheet="SampleSheet"))
+##			elementType="character"))
+
+setValidity("TrioSetList", function(object){
+	if(!all(unlist(pedigree(object)) %in% sampleNames(sampleSheet(object))))
+		return("All names in the pedigree object must be present in the sample sheet")
+	if(length(object) > 0){
+		if(!identical(sampleNames(pedigree(object)), colnames(lrr(object[[1]]))))
+			return("The sampleNames of the pedigree slot must be the same as the column names of the assayData elements in the TrioSet")
+	}
+})
 

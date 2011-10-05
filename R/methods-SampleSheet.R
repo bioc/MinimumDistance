@@ -11,3 +11,7 @@ setMethod("sampleNames", signature(object="SampleSheet"),
 	  function(object){
 		  object$id
 	  })
+setMethod("show", signature(object="SampleSheet"),
+	  function(object){
+		  print(head(object))
+	  })

@@ -1,3 +1,31 @@
+setMethod("initialize", signature(.Object="TrioSet"),
+	  function(.Object, phenoData2=array(),
+		   mindist=matrix(NA, ncol(.Object), 3),
+		   mad=matrix(NA, ncol(.Object), 3), ...){
+		  .Object <- callNextMethod()
+		  if(!"logRRatio" %in% names(list(...))){
+			  .Object <- assayDataElementReplace(.Object, "logRRatio", array(NA, dim=c(0,0,0)))
+		  }
+##		  if("phenoData2" %in% names(list(...))){
+##			  phenoData2 <- list(...)[["phenoData2"]]
+##		  } else phenoData2 <- NULL
+		  .Object@phenoData2 <- phenoData2
+##		  .Object@mad <- matrix(NA, ncol(.Object), 3)
+		  .Object@mad <- mad
+		  dimnames(.Object@mad) <- list(sampleNames(.Object), c("F", "M", "O"))
+		  mindist(.Object) <- mindist
+####		  if(nrow(.Object) > 0){
+####			  md <- initializeBigMatrix(paste("mindist_chr", CHR, "_", sep=""),
+####						    vmode="double",
+####						    nr=nrow(logR(.Object)),
+####						    nc=ncol(logR(.Object)),
+####						    initdata=NA)
+####			  dimnames(md) <- list(featureNames(.Object), sampleNames(.Object))
+####			  mindist(.Object) <- md
+####		  }
+		  .Object
+})
+
 setMethod("open", "TrioSet", function(con, ...){
 	object <- con
 	if(!isFF(object)) return()
@@ -25,29 +53,7 @@ setMethod("close", "TrioSet", function(con, ...){
 	close(mindist(object))
 	return()
 })
-setMethod("initialize", signature(.Object="TrioSet"),
-	  function(.Object, phenoData2, ...){
-		  .Object <- callNextMethod()
-		  if(!"logRRatio" %in% names(list(...))){
-			  .Object <- assayDataElementReplace(.Object, "logRRatio", array(NA, dim=c(0,0,0)))
-		  }
-		  if("phenoData2" %in% names(list(...))){
-			  phenoData2 <- list(...)[["phenoData2"]]
-		  } else phenoData2 <- NULL
-		  .Object@phenoData2 <- phenoData2
-		  .Object@mad <- matrix(NA, ncol(.Object), 3)
-		  dimnames(.Object@mad) <- list(sampleNames(.Object), c("F", "M", "O"))
-		  if(nrow(.Object) > 0){
-			  md <- initializeBigMatrix(paste("mindist_chr", CHR, "_", sep=""),
-						    vmode="double",
-						    nr=nrow(logR(.Object)),
-						    nc=ncol(logR(.Object)),
-						    initdata=NA)
-			  dimnames(md) <- list(featureNames(.Object), sampleNames(.Object))
-			  mindist(.Object) <- md
-		  }
-		  .Object
-})
+
 
 setReplaceMethod("sampleNames", signature(object="TrioSet"), function(object, value){
 	object <- callNextMethod(object, value)
@@ -271,29 +277,31 @@ setMethod("calculateMindist", signature(object="TrioSet"), function(object, ...)
 		invisible(open(logR(object)))
 		invisible(open(mindist(object)))
 	}
+	md <- matrix(NA, nrow(object), ncol(object))
 	for(j in seq(length=ncol(object))){
 		if(j %% 100 == 0) cat(".")
 		lr <- logR(object)[, j, ]
 		d1 <- lr[, "F"] - lr[, "O"]
 		d2 <- lr[, "M"] - lr[, "O"]
 		I <- as.numeric(abs(d1) <= abs(d2))
-		md <- I*d1 + (1-I)*d2
-		mindist(object)[, j] <- md
-		object$MAD[j] <- mad(md, na.rm=TRUE)
+		md[, j] <- I*d1 + (1-I)*d2
+		##mindist(object)[, j] <- md
+		##object$MAD[j] <- mad(md, na.rm=TRUE)
 	}
 	if(is.ff){
 		close(mindist(object))
 		close(logR(object))
 	}
-	return(object)
+	##return(object)
+	return(md)
 })
 
 setMethod("mad", signature(x="TrioSet"), function(x) x@mad)
 
-setReplaceMethod("mad", signature(object="TrioSet", value="ANY"),
-	  function(object, value){
-		  object@mad <- value
-		  return(object)
+setReplaceMethod("mad", signature(x="TrioSet", value="ANY"),
+	  function(x, value){
+		  x@mad <- value
+		  return(x)
 	  })
 
 setMethod("phenoData2", signature(object="TrioSet"), function(object) object@phenoData2)
@@ -303,9 +311,14 @@ setReplaceMethod("phenoData2", signature(object="TrioSet", value="ANY"), functio
 })
 setMethod("varLabels2", signature(object="TrioSet"), function(object) colnames(phenoData2(object)))
 
+offspringForId <- function(id, pedigree){
+	## we have a vector of ids.
+	index <- match(id, pedigree.char)
+}
 
-setMethod("xsegment", signature(object="TrioSet"),
-	  function(object, id, segment.mindist=TRUE, ..., verbose=FALSE, DNAcopy.verbose=0){
+
+setMethod("xsegment", signature(object="TrioSet", pedigreeData="Pedigree"),
+	  function(object, pedigreeData, id, segment.mindist=TRUE, ..., verbose=FALSE, DNAcopy.verbose=0){
 		  ## needs to be ordered
 		  if(verbose) message("Segmenting chromosome ", unique(chromosome(object)))
 		  ix <- order(chromosome(object), position(object))
@@ -314,12 +327,35 @@ setMethod("xsegment", signature(object="TrioSet"),
 		  ##
 		  ##
 		  ##dfl <- vector("list", 22) ## data.frame list
-		  if(missing(id)) id <- sampleNames(object)
-		  sample.index <- match(id, sampleNames(object))
+		  if(segment.mindist){
+			  if(missing(id)) id <- sampleNames(object)
+			  sample.index <- match(id, sampleNames(object))
+		  } else{
+			  ## all the samples in the samplesheet
+			  ##if(missing(id)) id <- individualNames(pedigreeData)
+			  if(missing(id)){
+				  id <- individualNames(pedigreeData)
+				  sample.index <- seq_len(nrow(trios(pedigreeData)))
+				  member.index <- 1:3
+			  } else{
+				  trio.index <- trioIndex(pedigreeData)
+				  indIds <- individualNames(pedigreeData)
+				  index <- match(id, indIds)
+				  sample.index <- trio.index$index.in.pedigree[index]
+				  member.id <- trio.index$memberId[index]
+				  member.index <- sapply(member.id, function(x) switch(x,
+										       F=1L,
+										       M=2L,
+										       O=3L))
+			  }
+		  }
 		  stopifnot(length(sample.index) > 0)
 		  is.ff <- is(mindist(object), "ff")
-		  if(is.ff){
+		  if(segment.mindist & is.ff){
 			  open(mindist(object))
+		  } else {
+			  if(!segment.mindist & is.ff)
+				  open(lrr(object))
 		  }
 		  fns <- featureNames(object)
 		  ##
@@ -334,33 +370,24 @@ setMethod("xsegment", signature(object="TrioSet"),
 			  CN <- matrix(as.numeric(CN), nrow(CN), ncol(CN))
 			  dimnames(CN) <- list(featureNames(object)[marker.index], sampleNames(object)[sample.index])
 		  } else{
-			  is.ff <- is(logR(object), "ff")
-			  if(is.ff){
-				  open(logR(object))
-			  }
 			  ##segment offspring copy number
-			  CN <- logR(object)[marker.index, sample.index, , drop=FALSE]
-			  CN2 <- matrix(NA, nrow(CN), prod(dim(CN)[2:3]))
-			  trio.factor <- rep(1:(ncol(CN)), each=3)
-			  J <- split(1:ncol(CN2), trio.factor)
-			  for(j in seq_along(sample.index)){
-				  index <- J[[j]]
-				  CN2[, index] <- CN[, j, ]
+			  ##offspring.id <- match(id,
+			  CN <- matrix(NA, length(marker.index), length(sample.index))
+			  for(i in seq_along(sample.index)){
+				  j <- sample.index[i]
+				  k <- member.index[i]
+				  CN[, i] <- logR(object)[marker.index, j, k]
 			  }
-			  dns <- list(rownames(CN), as.character(t(fmoNames(object)[sample.index, ])))
-			  dimnames(CN2) <- dns
-			  CN <- CN2
-			  rm(CN2); gc()
-			  ##browser() ## the id should be fatherNames, motherNames, offspringNames
+			  dimnames(CN) <- list(featureNames(object)[marker.index],
+					       id)
 		  }
+		  ##NR <- nrow(object)
+		  ##if(verbose) message("Running CBS by chromosome arm")
 		  arm <- splitByDistance(pos, thr=75e3)
-		  ##arm <- getChromosomeArm(chrom, pos)
 		  index.list <- split(seq_along(marker.index), arm)
 		  iMax <- sapply(split(marker.index, arm), max)
 		  pMax <- pos[iMax]
 		  md.segs <- list()
-		  ##NR <- nrow(object)
-		  ##if(verbose) message("Running CBS by chromosome arm")
 		  for(i in seq_along(index.list)){
 			  j <- index.list[[i]]
 			  CNA.object <- CNA(genomdat=CN[j, , drop=FALSE],
@@ -369,7 +396,7 @@ setMethod("xsegment", signature(object="TrioSet"),
 					    data.type="logratio",
 					    sampleid=colnames(CN))
 			  smu.object <- smooth.CNA(CNA.object)
-			  tmp <- segment(smu.object, verbose=DNAcopy.verbose)
+			  tmp <- segment(smu.object, verbose=DNAcopy.verbose, ...)
 			  df <- tmp$output
 			  sr <- tmp$segRows
 			  ##df <- cbind(tmp$output, tmp$segRows)
@@ -385,7 +412,7 @@ setMethod("xsegment", signature(object="TrioSet"),
 		  }
 		  if(length(md.segs) > 1){
 			  md.segs <- do.call("rbind", md.segs)
-		  } else md.segs=md.segs[[1]]
+		  } else md.segs <- md.segs[[1]]
 		  if(is.ff){
 			  close(mindist(object))
 		  }
@@ -402,10 +429,10 @@ setMethod("xsegment", signature(object="TrioSet"),
 					  seg.mean=md.segs$seg.mean,
 					  startIndexInChromosome=md.segs$start.index,
 					  endIndexInChromosome=md.segs$end.index)
-		  family <- getFamilyName(ranges, object)
-		  ranges$family <- family
+##		  family <- getFamilyName(ranges, object)
+##		  ranges$family <- family
 		  if(segment.mindist){
-			  mads <- object$mindist.mad
+			  mads <- minimumDistanceMad(object)
 			  ix <- match(sampleNames(ranges), sampleNames(object))
 			  ranges$mindist.mad <- mads[ix]
 		  }
@@ -415,75 +442,78 @@ setMethod("xsegment", signature(object="TrioSet"),
 
 
 ##setMethod("xsegment", signature(object="TrioSet"),
-xsegment2 <- function(object, id, ..., verbose=FALSE){
-		  ## needs to be ordered
-		  if(verbose) message("Segmenting chromosome ", unique(chromosome(object)))
-		  ix <- order(chromosome(object), position(object))
-		  stopifnot(all(diff(ix) > 0))
-		  stopifnot(length(unique(chromosome(object))) == 1)
-		  ##
-		  ##
-		  ##dfl <- vector("list", 22) ## data.frame list
-##		  if(missing(id)) id <- sampleNames(object)
-##		  sample.index <- match(id, sampleNames(object))
-##		  stopifnot(length(sample.index) > 0)
-##		  open(mindist(object))
-		  fns <- featureNames(object)
-		  ##
-		  ##
-		  ##marker.index.list <- split(seq(length=nrow(minDistanceSet)), chromosome(minDistanceSet))
-		  ##for(CHR in 1:22){
-		  marker.index <- seq(length=nrow(object))[!duplicated(position(object))]
-		  pos <- position(object)[marker.index]
-		  chrom <- chromosome(object)[marker.index]
-		  ##CN <- mindist(object)[marker.index, sample.index, drop=FALSE]
-		  CN <- cbind(logR(object)[marker.index, , 1],
-			      logR(object)[marker.index, , 2],
-			      logR(object)[marker.index, , 3])
-		  colnames(CN) <- c(fatherNames(object),
-				    motherNames(object),
-				    offspringNames(object))
-		  CN <- CN[, !duplicated(colnames(CN))]
-		  ##CN <- matrix(as.numeric(CN), nrow(CN), ncol(CN))
-		  ##dimnames(CN) <- list(featureNames(object)[marker.index], sampleNames(object)[sample.index])
-		  arm <- getChromosomeArm(chrom, pos)
-		  index.list <- split(seq_along(marker.index), arm)
-		  iMax <- sapply(split(marker.index, arm), max)
-		  pMax <- pos[iMax]
-		  cbs.segs <- list()
-		  ##NR <- nrow(object)
-		  ##if(verbose) message("Running CBS by chromosome arm")
-		  for(i in seq_along(index.list)){
-			  j <- index.list[[i]]
-			  CNA.object <- CNA(genomdat=CN[j, , drop=FALSE],
-					    chrom=chrom[j],
-					    maploc=pos[j],
-					    data.type="logratio",
-					    sampleid=colnames(CN))
-			  smu.object <- smooth.CNA(CNA.object)
-			  tmp <- segment(smu.object, verbose=as.integer(verbose), ...)
-			  df <- tmp$output
-			  sr <- tmp$segRows
-			  ##df <- cbind(tmp$output, tmp$segRows)
-			  ##md.segs[[i]] <-
-			  firstMarker <- rownames(CNA.object)[sr$startRow]
-			  endMarker <- rownames(CNA.object)[sr$endRow]
-			  df$start.index <- match(firstMarker, fns)
-			  df$end.index <- match(endMarker, fns)
-			  ## if the last marker was duplicated or
-			  ## missing, this might not be true
-			  stopifnot(max(df$end.index) <= iMax[i])
-			  cbs.segs[[i]] <- df
-		  }
-		  if(length(cbs.segs) > 1){
-			  cbs.segs <- do.call("rbind", cbs.segs)
-		  } else cbs.segs=cbs.segs[[1]]
-		  ##close(mindist(object))
-		  return(cbs.segs)
-}
+##xsegment2 <- function(object, id, ..., verbose=FALSE){
+##		  ## needs to be ordered
+##		  if(verbose) message("Segmenting chromosome ", unique(chromosome(object)))
+##		  ix <- order(chromosome(object), position(object))
+##		  stopifnot(all(diff(ix) > 0))
+##		  stopifnot(length(unique(chromosome(object))) == 1)
+##		  ##
+##		  ##
+##		  ##dfl <- vector("list", 22) ## data.frame list
+####		  if(missing(id)) id <- sampleNames(object)
+####		  sample.index <- match(id, sampleNames(object))
+####		  stopifnot(length(sample.index) > 0)
+####		  open(mindist(object))
+##		  fns <- featureNames(object)
+##		  ##
+##		  ##
+##		  ##marker.index.list <- split(seq(length=nrow(minDistanceSet)), chromosome(minDistanceSet))
+##		  ##for(CHR in 1:22){
+##		  marker.index <- seq(length=nrow(object))[!duplicated(position(object))]
+##		  pos <- position(object)[marker.index]
+##		  chrom <- chromosome(object)[marker.index]
+##		  ##CN <- mindist(object)[marker.index, sample.index, drop=FALSE]
+##		  CN <- cbind(logR(object)[marker.index, , 1],
+##			      logR(object)[marker.index, , 2],
+##			      logR(object)[marker.index, , 3])
+##		  colnames(CN) <- c(fatherNames(object),
+##				    motherNames(object),
+##				    offspringNames(object))
+##		  CN <- CN[, !duplicated(colnames(CN))]
+##		  ##CN <- matrix(as.numeric(CN), nrow(CN), ncol(CN))
+##		  ##dimnames(CN) <- list(featureNames(object)[marker.index], sampleNames(object)[sample.index])
+##		  arm <- getChromosomeArm(chrom, pos)
+##		  index.list <- split(seq_along(marker.index), arm)
+##		  iMax <- sapply(split(marker.index, arm), max)
+##		  pMax <- pos[iMax]
+##		  cbs.segs <- list()
+##		  ##NR <- nrow(object)
+##		  ##if(verbose) message("Running CBS by chromosome arm")
+##		  for(i in seq_along(index.list)){
+##			  j <- index.list[[i]]
+##			  CNA.object <- CNA(genomdat=CN[j, , drop=FALSE],
+##					    chrom=chrom[j],
+##					    maploc=pos[j],
+##					    data.type="logratio",
+##					    sampleid=colnames(CN))
+##			  smu.object <- smooth.CNA(CNA.object)
+##			  tmp <- segment(smu.object, verbose=as.integer(verbose), ...)
+##			  df <- tmp$output
+##			  sr <- tmp$segRows
+##			  ##df <- cbind(tmp$output, tmp$segRows)
+##			  ##md.segs[[i]] <-
+##			  firstMarker <- rownames(CNA.object)[sr$startRow]
+##			  endMarker <- rownames(CNA.object)[sr$endRow]
+##			  df$start.index <- match(firstMarker, fns)
+##			  df$end.index <- match(endMarker, fns)
+##			  ## if the last marker was duplicated or
+##			  ## missing, this might not be true
+##			  stopifnot(max(df$end.index) <= iMax[i])
+##			  cbs.segs[[i]] <- df
+##		  }
+##		  if(length(cbs.segs) > 1){
+##			  cbs.segs <- do.call("rbind", cbs.segs)
+##		  } else cbs.segs=cbs.segs[[1]]
+##		  ##close(mindist(object))
+##		  return(cbs.segs)
+##}
 
 setMethod("computeBayesFactor", signature(object="TrioSet"),
-	  function(object, ranges, id,
+	  function(object,
+		   ranges,
+		   pedigreeData,
+		   id,
 		   states,
 		   baf.sds,
 		   mu.logr,
@@ -494,7 +524,6 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 		   prOutlier=c(0.01, 1e-5),
 		   prMosaic=0.01,
 		   prob.nonMendelian,
-		   df0,
 		   verbose,
 		   returnEmission=FALSE){
 		  if(missing(tau)) tau <- transitionProbability(states=0:4, epsilon=0.5)
@@ -502,12 +531,12 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 		  CHR <- unique(chromosome(object))
 		  ranges <- ranges[chromosome(ranges) == CHR, ]
 		  if(missing(id)) {
-			  id <- unique(ranges$id)
+			  id <- unique(sampleNames(ranges))
 		  } else {
-			  id <- id[id %in% unique(ranges$id)]
+			  id <- id[id %in% unique(sampleNames(ranges))]
 		  }
 		  stopifnot(length(id) >0)
-		  ranges <- ranges[ranges$id %in% id, ]
+		  ranges <- ranges[sampleNames(ranges) %in% id, ]
 		  ranges$lik.state <- NA
 		  ranges$argmax <- NA
 		  ranges$lik.norm <- NA
@@ -525,6 +554,7 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 			  j <- which(ranges$id == this.id)
 			  rd <- joint4(trioSet=object,
 				       ranges=ranges[j, ],
+				       pedigreeData=pedigreeData,
 				       states=states,
 				       baf.sds=baf.sds,
 				       mu.logr=mu.logr,
@@ -534,7 +564,6 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 				       a=a,
 				       prOutlier=prOutlier,
 				       prMosaic=prMosaic,
-				       df0=df0,
 				       verbose=verbose,
 				       prob.nonMendelian=prob.nonMendelian,
 				       returnEmission=returnEmission)##, F=F, M=M, O=O)
@@ -750,3 +779,7 @@ setMethod("xyplot", signature(x="formula", data="TrioSet"),
 		  }
 	  })
 
+setMethod("order", "TrioSet",
+	  function(..., na.last=TRUE, decreasing=FALSE){
+		  chromosomePositionOrder(...)
+	  })
