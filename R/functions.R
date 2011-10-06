@@ -1240,27 +1240,30 @@ emissionLR <- function(mu.logr, CN.MIN, CN.MAX, prMosaic,
 	return(object)
 }
 
-computeLoglik <- function(id,
+computeLoglik <- function(id,## trio id (or offspring id)
 			  trioSet, #L,
 			  ranges,
+			  pedigreeData,
 			  mu.logr=c(-2, -0.5, 0, 0.3, 0.75),
 			  states=0:4,
 			  baf.sds=c(0.02, 0.03, 0.02),
-			  ##baf.sds=c(0.015, 0.02, 0.015),
-			  ##prGtCorrect=0.999, ##prob genotype is correct
 			  prOutlier.logR=0.01,
-			  prOutlier.baf=1e-5,
+			  prOutlier.baf=1e-6,
 			  prMosaic=0.01,
-			  returnEmission=FALSE){
+			  returnEmission=FALSE,
+			  ...){
 	CHR <- chromosome(trioSet)[1]
+	if(missing(id)) id <- sampleNames(trioSet)[1]
 	##p1 <- prGtCorrect; rm(prGtCorrect)
 	p1 <- 1-prOutlier.logR
 	## one obvious thing that p1 could depend on is the
 	## minor allele frequency.  If rare, p1 is smaller
-	##stopifnot(all(!is.na(match(id, s(fullId(trioSet))))))
-	stopifnot(all(!is.na(match(id, fullId(trioSet)))))
-	object <- constructSet(trioSet, CHR, id, states=states, ranges=ranges)
-	j <- match(id[["O"]], offspringNames(trioSet))
+	object <- LikSet(trioSet,
+			 pedigreeData=pedigreeData,
+			 CHR=CHR,
+			 id=id,
+			 ranges=ranges)
+	j <- match(id, sampleNames(trioSet))
 	sds.sample <- mad(trioSet)[j, ]
 	stopifnot(all(!is.na(sds.sample)))
 	sds.sample <- matrix(sds.sample, nrow(trioSet), 3, byrow=TRUE)
@@ -1281,7 +1284,6 @@ computeLoglik <- function(id,
 	## -- how much do we want to shrink towards a sample-level estimate of noise?
 	sds <- (sds.marker * df1 + (df1*4)*sds.sample)/(df1 + df1*4)
 	lR <- logR(object)
-
 	bf <- baf(object)
 	if(!is(baf.sds, "array")){
 		stopifnot(length(baf.sds)==3)
@@ -1314,97 +1316,11 @@ computeLoglik <- function(id,
 			     object=object,
 			     ranges=ranges)
 	##p1 <- 1-prOutlier.baf
-
 	object <- emissionB(p.roh=0.01,
 			    p.mos=p.mosaic,
 			    p.out=prOutlier.baf,
 			    sd0=sd0, sd1=sd1, sd.5=sd.5,
 			    object=object)
-##	p.mos <- prMosaic
-##	q.mos <- 1-p.mos
-##	p.out <- 1e-15
-##	q.out <- p.out
-##	TN0 <- TN(bf, 0, sd0);
-##	TN1 <- TN(bf, 1, sd1)
-##	TN.3 <- dnorm(bf, 1/3, sd.5)
-##	TN.6 <- dnorm(bf, 2/3, sd.5)
-##	TN.25 <- dnorm(bf, 0.25, sd.5);
-##	TN.5 <- dnorm(bf, 0.5, sd.5);
-##	TN.75 <- dnorm(bf, 0.75, sd.5)
-##	loglik(object)["baf", , , 1] <- dunif(b, 0, 1)
-##	loglik(object)["baf", , , 2] <- p.mos*dunif(b, 0, 1) + q.mos*(0.5*TN0 + 0.5*TN1)
-##	loglik(object)["baf", , , 3] <- q.roh*(p.mos*dunif(b, 0, 1) + q.mos*(1/3*TN0 + 1/3*TN.5 + 1/3*TN1)) +
-##		p.roh*(p.mos*dunif(b, 0, 1) + q.mos *(0.5*TN0 + 0.5*TN1))
-##	loglik(object)["baf", , , 4] <- p.mos*dunif(b, 0, 1) + q.mos*(1/4*TN0 + 1/4*TN.3 + 1/4*TN.6 + 1/4*TN1)
-##	loglik(object)["baf", , , 5] <- p.mos*dunif(b, 0, 1) + q.mos*(1/5*TN(bf, 0, sd0) + 1/5*TN(bf, 1/4, sd.5) + 1/5*TN(bf, 0.5, sd.5) + 1/5*TN(bf, 0.75, sd.5) + 1/5*TN(bf, 1, sd1))
-##	return(object)
-##}
-##
-##	ploh <- 0.01
-##	p.m <- prMosaic
-##	q.m <- 1-p.m
-##	pi.roh <- 0.01 ## region of homozygosity
-##	loglik(object)["baf", , , 1] <-  1
-##	##loglik(object)["baf", , , 2] <- p1*((1/2*TN(bf, 0, sd0) + 1/2*TN(bf, 1, sd1))) + (1-p1)  ## * dunif(bf, 0, 1) = 1
-##	t0 <- TN(bf, 0, sd0); t1 <- TN(bf, 1, sd1)
-##	t0.25 <- dnorm(bf, 0.25, sd.5); t0.75 <- dnorm(bf, 0.75, sd.5)
-####	tmp <- p1*(
-####					    p2*(1/2*t0 + 1/2*t1) + (1-p2)*(1/4*dunif(bf, 0, 0.2) + 1/4*dunif(bf, 0.8,1) + 1/4*t0.25 + 1/4*t0.75)
-####					    ) + (1-p1)  ## * dunif(bf, 0, 1) = 1
-##
-##	tmp <- q.m*(0.5*t0 + 0.5*t1) + p.m*dunif(bf, 0, 1)
-##					    p2*(1/2*t0 + 1/2*t1) + (1-p2)*(1/2*dunif(bf, 0, 0.4) + 1/2*dunif(bf, 0.6,1))
-##					    ) + (1-p1)  ## * dunif(bf, 0, 1) = 1
-####	tmp <- p1*(
-####					    p2*(1/2*t0 + 1/2*t1) + (1-p2)*(1/2*dunif(bf, 0, 0.4) + 1/2*dunif(bf, 0.6,1))
-####					    ) + (1-p1)  ## * dunif(bf, 0, 1) = 1
-##	loglik(object)["baf", , , 2] <- tmp
-##	## a better solution for loh would be to add a latent indicator for
-##	## LOH, and then integrate this out of the likelihood
-##
-##	tmp1 <- p1*(p2*(1/3*TN(bf, 0, sd0) + 1/3*TN(bf, 0.5, sd.5) + 1/3*TN(bf, 1, sd1)) + (1-p2)*(1/3*dunif(bf, 0, 0.2) + 1/3*dunif(bf, 0.3, 0.7) + 1/3*dunif(bf, 0.8, 1)))+ (1-p1)
-##	##tmp2 <- p1*(p2*(1/2*t0 + 1/2*t1) + (1-p2)*(1/2*dunif(bf, 0, 0.2) + 1/2*dunif(bf,0.8,1))) + 1-p1
-##	Lik.Nor <- matrix(NA, nrow(tmp1), ncol(tmp1))
-##	ri <- range.index(object)
-##	if(mean(is.na(ri)) > 0.50){
-##		##
-##		## For computing the bayes factor for just 1 range (e.g., a
-##		## range identified by another method)
-##		##
-##		##   -- would be better to explicitly indicate this
-##		##
-##		## assign 'fake' range indices to the other markers
-##		first <- which(!is.na(ri))[1]
-##		last <- rev(which(!is.na(ri)))[1]
-##		stopifnot(all(!is.na(ri[first:last])))
-##		ri[1:(first-1)] <- ri[first]-1
-##		ri[(last+1):length(ri)] <- ri[last]+1
-##	}
-##	counter <- 1
-##	while(any(is.na(ri))){
-##		isna.index <- which(is.na(ri))
-##		if(any(isna.index == length(ri))){
-##			ri[length(ri)] <- ri[length(ri)-1]
-##		}
-##		isna.index <- which(is.na(ri))
-##		if(length(isna.index) > 0)
-##			ri[isna.index] <- ri[isna.index+1]
-##		counter <- counter+1
-##		if(counter > 5) stop("problems with nas in range indx")
-##	}
-##	for(l in 1:3){
-##		lik.normal <- sapply(split(log(tmp1[, l]), ri), sum,na.rm=T)
-##		lik.loh <- sapply(split(log(tmp[, l]), ri), sum, na.rm=T)
-##		isloh <- lik.loh > lik.normal
-##		f <- sapply(split(ri, ri), length)
-##		isloh <- rep(isloh,f)
-##		Lik.Nor[, l] <- tmp1[, l]*(1-isloh) + isloh*(tmp[, l])
-##	}
-##	##loglik(object)["baf", , , 3] <- p1*((1-ploh)*(1/3*TN(bf, 0, sd0) + 1/3*TN(bf, 0.5, sd.5) + 1/3*TN(bf, 1, sd1)) + ploh*(1/2*t0 + 1/2*t1))+ (1-p1)
-##	loglik(object)["baf", , , 3] <- Lik.Nor
-##	loglik(object)["baf", , , 4] <- p1*((1/4*TN(bf, 0, sd0) + 1/4*TN(bf, 1/3, sd.5) + 1/4*TN(bf, 2/3, sd.5) + 1/4*TN(bf, 1, sd1))) + (1-p1)
-##	loglik(object)["baf", , , 5] <- p1*((1/5*TN(bf, 0, sd0) + 1/5*TN(bf, 1/4, sd.5) + 1/5*TN(bf, 0.5, sd.5) + 1/5*TN(bf, 3/4, sd.5) + 1/5*TN(bf, 1, sd1))) + (1-p1)
-##	loglik(object)["baf", , , ] <- log(loglik(object)["baf", , , ])
 	if(returnEmission){
 		return(object)
 	}
@@ -1546,9 +1462,6 @@ computeLoglik <- function(id,
 		       "normal",
 		       "1 copy dup",
 		       "2 copy dup", "outlier"))
-
-
-
 	}
 	if(is.ff){
 		tryCatch(close(trioSet), error=function(e) NULL)
@@ -1710,8 +1623,8 @@ jointProb <- function(segment.index, ## so that we can insert a browser for a sp
 joint1 <- function(LLT, ##object,
 		   trio.states,
 		   tau,
-		   log.pi,
-		   normal.index,
+		   log.pi=log(c(0.125, 0.125, 0.5, 0.125, 0.125)),
+		   normal.index=3,
 		   segment.index,
 		   state.index,
 		   table1,
@@ -1722,6 +1635,7 @@ joint1 <- function(LLT, ##object,
 		   state.prev) {
 	Prob.DN <- prob.nonMendelian
 	state <- trio.states[state.index, ]
+	if(missing(tau)) tau <- transitionProbability(states=0:4, epsilon=0.5)
 	fmo <- c(LLT[1, state[1]], LLT[2, state[2]], LLT[3, state[3]])
 	if(segment.index == 1 | is.null(state.prev)){
 		## assume Pr(z_1,f | lambda) = Pr(z_2,m | lambda) = pi
@@ -1840,53 +1754,23 @@ joint1 <- function(LLT, ##object,
 	return(res)
 }
 
-joint4 <- function(trioSet,
+joint4 <- function(id,
+		   trioSet,
 		   pedigreeData,
-		   ranges, ## all the ranges from one subject , one chromosome
-		   states,
-		   baf.sds,
-		   THR=-50,
-		   mu.logr=c(-2,-0.5, 0, 0.3, 0.75),
-		   log.pi,
-		   tau,
-		   normal.index,
+		   ranges,
 		   a=0.0009,
-		   verbose=TRUE,
-		   prOutlier=c(0.01, 1e-5),
-		   prMosaic=0.01,
 		   prob.nonMendelian=1.5e-6,
-		   returnEmission=FALSE){ ## ignored
-	stopifnot(states == 0:4)
-	stopifnot(length(unique(chromosome(ranges))) == 1)
-	##family.id <- unique(ss(ranges$id))
-	family.id <- unique(sampleNames(ranges))
-	##fmonames <- paste(ss(family.id), c("03", "02", "01"), sep="_")
-	##pd2 <- phenoData2(trioSet)
-	i <- match(family.id, sampleNames(trioSet))
-	##j <- match("CIDR_Name", colnames(pd2))
-	##stopifnot(!missing(i) && !missing(j))
-	##fmonames <- pd2[i, j, ]
-	##fmonames <- pd2[i, "Sample.Name", ]
-	fmonames <- trios(pedigreeData)[i, ]
-	object <- computeLoglik(id=fmonames,
+		   returnEmission=FALSE,
+		   ...){## all the ranges from one subject , one chromosome
+	if(missing(id)) id <- sampleNames(trioSet)[1]
+	ranges <- ranges[sampleNames(ranges) == id, ]
+	object <- computeLoglik(id,
 				trioSet=trioSet,
 				ranges=ranges,
-				mu.logr=mu.logr,
-				states=states,
-				baf.sds=baf.sds,
-				prOutlier.logR=prOutlier[1],
-				prOutlier.baf=prOutlier[2],
-				prMosaic=prMosaic,
-				returnEmission=returnEmission)
+				pedigreeData=pedigreeData, ...)
 	if(returnEmission) return(object)
-	trio.states <- trioStates(states)
-	##tmp <- matrix(NA, nrow(trio.states), 2)
+	trio.states <- trioStates(0:4)
 	tmp <- rep(NA, nrow(trio.states))
-	##colnames(tmp) <- c("DN=0", "DN=1")
-	## take into account 'the prior'
-	##  -- the probability of transitioning to and from an altered state for each range
-	##  -- the initial state probability if range is denovo
-	##  -- the initial state probability of range is not denovo
 	state.prev <- NULL
 	denovo.prev <- NULL
 	table1 <- readTable1(a=a)
@@ -1895,7 +1779,9 @@ joint4 <- function(trioSet,
 	state.names <- trioStateNames()
 	norm.index <- which(state.names=="333")
 	ranges <- ranges[order(start(ranges)), ]
-	for(i in seq(length=nrow(ranges))){
+	ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
+	states <- 0:4
+	for(i in seq_len(nrow(ranges))){
 		##if(i==7) break()
 		obj <- object[which(range.index(object) == i), ]
 		if(nrow(obj) < 2){
@@ -1921,16 +1807,15 @@ joint4 <- function(trioSet,
 		for(j in 1:nrow(trio.states)){
 			tmp[j] <- joint1(LLT=LLT,
 					 trio.states=trio.states,
-					 tau=tau,
-					 log.pi=log.pi,
-					 normal.index=normal.index,
 					 segment.index=i,
 					 state.index=j,
 					 table1=table1,
 					 table3=table3,
 					 state.prev=state.prev,
-					 prob.nonMendelian=prob.nonMendelian)
-		}
+					 prob.nonMendelian=prob.nonMendelian,
+					 ...)
+
+		}##j loop
 		## RS 4/29/2011
 		argmax <- which.max(tmp)
 		lik.norm <- tmp[norm.index]
@@ -3355,17 +3240,24 @@ phenoDataArray <- function(pedigree, samplesheet, mapFunction){
 ##	stopifnot(validObject(trioSetList))
 ##	return(trioSetList)
 ##}
-
-calculateMADlrr <- function(object){
-	mads <- matrix(NA, ncol(object[[1]]), 3)
-	colnames(mads) <- c("F", "M", "O")
-	rownames(mads) <- sampleNames(object)
-	subsetLogR <- function(object, trio.index){
-		lR <- logR(object)[, trio.index, ]
-	}
-	for(j in seq_len(nrow(mads))){
-		logrs <- do.call("rbind", sapply(object, subsetLogR, trio.index=j))
-		mads[j, ] <- apply(logrs, 2, mad, na.rm=TRUE)
+calculateMADlrr <- function(object, by.sample){
+	if(by.sample){
+		mads <- matrix(NA, ncol(object[[1]]), 3)
+		colnames(mads) <- c("F", "M", "O")
+		rownames(mads) <- sampleNames(object)
+		subsetLogR <- function(object, trio.index){
+			lR <- logR(object)[, trio.index, ]
+		}
+		for(j in seq_len(nrow(mads))){
+			logrs <- do.call("rbind", sapply(object, subsetLogR, trio.index=j))
+			mads[j, ] <- apply(logrs, 2, mad, na.rm=TRUE)
+		}
+	} else {
+		mads <- vector("list", length(object))
+		for(i in seq_len(length(object))){
+			lRR <- lrr(object[[i]])[, , 3]
+			mads[[i]] <- rowMAD(lRR, na.rm=TRUE)
+		}
 	}
 	return(mads)
 }

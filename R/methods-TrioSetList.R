@@ -244,17 +244,12 @@ setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 ##setMethod("fmoNames", signature(object="TrioSetList"), function(object) fmoNames(object[[1]]))
 
 setMethod("computeBayesFactor", signature(object="TrioSetList"),
-	  function(object, ranges, id, states, baf.sds, mu.logr,
-		   log.pi, tau, normal.index, a,
-		   prOutlier=c(0.01, 1e-5),
-		   prMosaic=0.01,
-		   prob.nonMendelian,
-		   verbose,
-		   returnEmission){
-		  if(missing(id)) id <- unique(ranges$id) else stopifnot(id %in% unique(ranges$id))
+	  function(object, ranges,
+		   returnEmission=FALSE, verbose=TRUE, ...){
+		  ##if(missing(id)) id <- unique(ranges$id) else stopifnot(id %in% unique(ranges$id))
 		  chromosomes <- sapply(object, function(x) unique(chromosome(x)))
 		  ranges <- ranges[chromosome(ranges) %in% chromosomes, ]
-		  ranges <- ranges[ranges$id %in% id, ]
+##		  ranges <- ranges[ranges$id %in% id, ]
 ##		  if(!"bayes.factor" %in% colnames(ranges)){
 ##			  ranges$bayes.factor <- NA
 ##		  }
@@ -267,34 +262,32 @@ setMethod("computeBayesFactor", signature(object="TrioSetList"),
 		  if(!"argmax" %in% colnames(ranges)){
 			  ranges$argmax <- NA
 		  }
+		  if(verbose){
+			  message("\t\tComputing Bayes factors for ", length(id), " files.")
+			  pb <- txtProgressBar(min=0, max=length(id), style=3)
+		  }
 		  for(i in seq_along(object)){
-			  if(verbose)
-				  message("\tProcessing chromosome ", i, " of ", length(object))
+			  if (verbose) setTxtProgressBar(pb, i)
+##			  if(verbose)
+##				  message("\tProcessing chromosome ", i, " of ", length(object))
 			  CHR <- unique(chromosome(object[[i]]))
 			  j <- which(chromosome(ranges) == CHR)
 			  if(length(j) < 1) next()
 			  rd <- computeBayesFactor(object[[i]],
 						   ranges[j, ],
 						   pedigreeData=pedigree(object),
-						   id=id,
-						   states=states,
-						   baf.sds=baf.sds,
-						   mu.logr=mu.logr,
-						   log.pi=log.pi,
-						   tau=tau,
-						   normal.index=normal.index,
-						   a=a,
-						   prOutlier=prOutlier,
-						   prMosaic=prMosaic,
-						   prob.nonMendelian=prob.nonMendelian,
 						   returnEmission=returnEmission,
-						   verbose=verbose)
+						   verbose=FALSE, ...)
 			  if(returnEmission) return(rd)
 			  ranges$lik.state[j] <- rd$lik.state
 			  ranges$argmax[j] <- rd$argmax
 			  ranges$lik.norm[j] <- rd$lik.norm
 			  ##ranges$DN[j] <- rd$DN
 		  }
+		  if(verbose) close(pb)
+		  ranges$state <- trioStateNames()[ranges$argmax]
+##		  ranges <- RangedDataMinimumDistance(ranges=ranges(ranges),
+##						      values=values(ranges))
 		  return(ranges)
 	  })
 

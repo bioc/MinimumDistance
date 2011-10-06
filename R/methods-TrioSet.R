@@ -559,26 +559,15 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 		  for(i in seq_along(id)){
 			  if (verbose) setTxtProgressBar(pb, i)
 			  this.id <- id[i]
+			  k <- match(this.id, sampleNames(object))
 			  if(verbose){
 				  if(i %% 100 == 0)
 					  message("   sample ", this.id, " (", i, "/", length(id), ")")
 			  }
 			  j <- which(ranges$id == this.id)
-			  rd <- joint4(trioSet=object,
+			  rd <- joint4(trioSet=object[, k],
 				       ranges=ranges[j, ],
-				       pedigreeData=pedigreeData,
-				       states=states,
-				       baf.sds=baf.sds,
-				       mu.logr=mu.logr,
-				       log.pi=log.pi,
-				       tau=tau,
-				       normal.index=normal.index,
-				       a=a,
-				       prOutlier=prOutlier,
-				       prMosaic=prMosaic,
-				       verbose=verbose,
-				       prob.nonMendelian=prob.nonMendelian,
-				       returnEmission=returnEmission)##, F=F, M=M, O=O)
+				       ...)
 			  if(returnEmission) return(rd)
 			  ranges$lik.state[j] <- rd$lik.state
 			  ranges$argmax[j] <- rd$argmax

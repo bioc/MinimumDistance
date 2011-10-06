@@ -226,7 +226,18 @@ State 3 represents normal copy number and States 4,5 represent an
 amplification. Hence a trio copy number state of 335 means father and
 mother are normal and offspring has an amplification.
 
-<<minimumDistanceCalls>>=
+<<computeBayesFactor>>=
+tau <- transitionProbability(states=0:4, epsilon=0.5)
+log.pi <- log(initialStateProbs(states=0:4, epsilon=0.5))
+rd <- computeBayesFactor(object=trioSetList,
+			 ranges=md.segs2,
+			 tau=tau, log.pi=log.pi)
+rd <- MinimumDistance:::pruneByFactor(rd,f=rd$argmax,verbose=TRUE)
+rd <- rd[order(sampleNames(rd), chromosome(rd), start(rd)), ]
+@
+
+
+<<minimumDistanceCalls,eval=FALSE>>=
 called.ranges <- minimumDistanceCalls(container=trioSetList,
                                       cbs.segs=cbs.segs,
                                       ranges=md.segs,

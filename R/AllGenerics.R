@@ -36,21 +36,9 @@ setGeneric("prune", function(object, ranges, id,
 	   standardGeneric("prune"))
 setGeneric("computeBayesFactor", function(object,
 					  ranges,
-					  pedigreeData,
-					  id,
-					  states=0:4,
-					  baf.sds=c(0.02, 0.03, 0.02),
-					  mu.logr=c(-2, -0.5, 0, 0.3, 0.75),
-					  log.pi,
-					  tau,
-					  normal.index=61,
-					  a=0.0009,
-					  prOutlier=c(0.01, 1e-6),
-					  prMosaic=0.01,
-					  prob.nonMendelian=1.5e-6,
-					  df0=10,
+					  returnEmission=FALSE,
 					  verbose=TRUE,
-					  returnEmission=FALSE)
+					  ...)
 	   standardGeneric("computeBayesFactor"))
 setGeneric("todf", function(object, range, frame, ...) standardGeneric("todf"))
 setGeneric("offspringNames", function(object) standardGeneric("offspringNames"))
@@ -67,5 +55,5 @@ setGeneric("width", function(x) standardGeneric("width"))
 coverage <- coverage2
 setGeneric("sampleSheet", function(object) standardGeneric("sampleSheet"))
 setGeneric("pedigree", function(object) standardGeneric("pedigree"))
-setGeneric("individualNames", function(object) standardGeneric("individualNames"))
-
+setGeneric("allNames", function(object) standardGeneric("allNames"))
+setGeneric("trios", function(object) standardGeneric("trios"))
