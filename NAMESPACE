@@ -52,6 +52,7 @@ exportMethods("[", allNames,
 	      rbind,
 	      sampleSheet,
 	      trioNames,
+	      trios,
 	      updateObject,
 	      width,
 	      xsegment,
@@ -65,11 +66,13 @@ export(concAtTop,
        discAtTop,
        fmoNames,
        gridlayout,
+       initialStateProbs,
        isDenovo,
        minimumDistance,
        minimumDistanceCalls,
        minimumDistancePlot,
-       narrow, SampleSheet)
+       narrow, SampleSheet,
+       transitionProbability)
 ##       phenoDataArray)
 
 
