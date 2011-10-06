@@ -262,7 +262,7 @@ setReplaceMethod("baf", signature(object="TrioSet", value="ANY"),
 			 assayDataElementReplace(object, "BAF", value)
 		 })
 
-fullId <- function(object) object@phenoData2[, "Sample.Name", ]
+fullId <- function(object) object@phenoData2[, "id", ]
 
 setMethod("calculateMindist", signature(object="TrioSet"), function(object, ...){
 	sns <- sampleNames(object)
