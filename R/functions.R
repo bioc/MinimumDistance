@@ -2467,7 +2467,7 @@ minimumDistance <- function(path,
 	##    -> put in slot 'mad'
 	##---------------------------------------------------------------------------
 	if(calculate.mad){
-		container <- calculateMads(container, exclusionRule, chromosomes, verbose)
+		container <- calculateMads(container, exclusionRule, verbose)
 		##if(verbose) message("\tSaving updated container to ", container.filename)
 		##save(container, file=container.filename)
 	}
