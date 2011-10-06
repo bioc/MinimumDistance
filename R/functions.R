@@ -1268,8 +1268,8 @@ computeLoglik <- function(id,
 	if(is.ff){
 		open(logR(trioSet))
 	}
-##	sds.marker <- rowMAD(logR(trioSet)[, , "O"], na.rm=TRUE)
-	sds.marker <- fData(trioSet)$marker.mad  ## these can be really big in CNV
+	##sds.marker <- fData(trioSet)$marker.mad  ## these can be really big in CNV
+	sds.marker <- mad.marker(trioSet)
 	##1. shrink the marker to the marker sds
 	##   - at CNV the marker estimates will be much too high
 	##   - could be too small for markers that don't really work

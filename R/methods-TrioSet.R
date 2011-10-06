@@ -432,12 +432,24 @@ setMethod("xsegment", signature(object="TrioSet", pedigreeData="Pedigree"),
 ##		  family <- getFamilyName(ranges, object)
 ##		  ranges$family <- family
 		  if(segment.mindist){
-			  mads <- minimumDistanceMad(object)
+			  mads <- mad.mindist(object)
 			  ix <- match(sampleNames(ranges), sampleNames(object))
 			  ranges$mindist.mad <- mads[ix]
 		  }
 		  return(ranges)
 })
+
+
+setMethod("mad.mindist", signature(x="TrioSet"),
+	  function(x){
+		  x$mindist.mad
+	  })
+setReplaceMethod("mad.mindist", signature(x="TrioSet"),
+		 function(x, value){
+			 ## store in phenodata
+			 x$mindist.mad <- value
+			 return(x)
+		 })
 
 
 
