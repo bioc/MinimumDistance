@@ -14,7 +14,6 @@
 \newcommand{\Rclass}[1]{{\textit{#1}}}
 \newcommand{\R}{\textsf{R}}
 \newcommand{\md}{\Rpackage{MinimumDistance}}
-\newcommand{\md}{\Rpackage{MinimumDistance}}
 \newcommand{\logRratio}{$\log_2$ R ratio}
 \newcommand{\baf}{B allele frequency}
 \newcommand{\bafs}{B allele frequencies}

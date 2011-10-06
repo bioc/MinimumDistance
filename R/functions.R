@@ -1867,7 +1867,7 @@ joint4 <- function(trioSet,
 	##j <- match("CIDR_Name", colnames(pd2))
 	##stopifnot(!missing(i) && !missing(j))
 	##fmonames <- pd2[i, j, ]
-	fmonames <- pd2[i, "Sample.Name", ]
+	fmonames <- pd2[i, "id", ]
 	object <- computeLoglik(id=fmonames,
 				trioSet=trioSet,
 				ranges=ranges,
