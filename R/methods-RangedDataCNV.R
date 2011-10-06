@@ -1,13 +1,18 @@
-RangedDataCBS2 <- function(ranges=IRanges(),
-			   state=vector("character", length(ranges)), ...){
-	rd <- RangedDataCBS(ranges=ranges, state=state, ...)
-	new("RangedDataCBS2", ranges=ranges(rd), values=values(rd))
-}
-setMethod("trioNames", signature(object="RangedDataCNV"), function(object) {
-	res <- object$family
-	if(is.null(res)) stop("'family' not in the column names")
-	return(res)
-})
+##RangedDataMinimumDistance <- function(ranges=IRanges(), ...){
+##	browser()
+##	rd <- RangedDataCNV(ranges=ranges, ...)
+##	new("RangedDataMinimumDistance", ranges=ranges(rd), values=values(rd))
+##}
+##RangedDataCBS2 <- function(ranges=IRanges(),
+##			   state=vector("character", length(ranges)), ...){
+##	rd <- RangedDataCBS(ranges=ranges, state=state, ...)
+##	new("RangedDataCBS2", ranges=ranges(rd), values=values(rd))
+##}
+##setMethod("trioNames", signature(object="RangedDataCNV"), function(object) {
+##	res <- object$family
+##	if(is.null(res)) stop("'family' not in the column names")
+##	return(res)
+##})
 ##setMethod("RangedDataCNV", signature(ranges="IRanges"),
 ##	  function(ranges=IRanges(), ...,
 ##		   space=NULL,

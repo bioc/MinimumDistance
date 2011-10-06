@@ -15,3 +15,9 @@ setMethod("show", signature(object="SampleSheet"),
 	  function(object){
 		  print(head(object))
 	  })
+
+setMethod("[", signature(x="SampleSheet"),
+	  function(x, i, j, ..., drop=FALSE){
+		  x <- callNextMethod()
+		  as(x, "SampleSheet")
+	  })
