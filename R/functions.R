@@ -951,22 +951,30 @@ meanLogR <- function(i, id, trioSet){
 }
 
 
-constructSet <- function(trioSet, CHR, id, states, ranges){
+LikSet <- function(trioSet, pedigreeData, id, CHR, ranges){
 	is.ff <- is(logR(trioSet), "ff")
+	if(missing(id)) id <- sampleNames(trioSet)[1]
 	if(is.ff){
 		open(baf(trioSet))
-		open(logR(trioSet))
+		open(lrr(trioSet))
 	}
-	i <- match(id[["O"]], offspringNames(trioSet))
+	i <- match(id, sampleNames(trioSet))
+	stopifnot(length(i) == 1)
+	## the trios are in the same order as the sampleNames of the trioSetList object
+	## validity methods for the class ensure that this is correct
+	indNames <- as.character(trios(pedigreeData)[i,])
+	##offspring.id <- id[id %in% offspringNames(trioSet)]
+	##i <- match(offspring.id, sampleNames(trioSet))
+	##i <- match(id[["O"]], offspringNames(trioSet))
 	mads <- mad(trioSet)[i, ]
-	S <- length(states)
-	loglik <- array(NA, dim=c(2, nrow(trioSet), 3, S))
+	##S <- length(states)
+	loglik <- array(NA, dim=c(2, nrow(trioSet), 3, 5))
 	dimnames(loglik) <- list(c("logR", "baf"),
 				 featureNames(trioSet),
-				 id,
-				 states)
+				 indNames,
+				 0:4)
 	object <- new("LikSet",
-		      logR=as.matrix(logR(trioSet)[ ,i,]),
+		      logR=as.matrix(lrr(trioSet)[ ,i,]),
 		      BAF=as.matrix(baf(trioSet)[ ,i , ]),
 		      featureData=featureData(trioSet),
 		      loglik=loglik)
@@ -983,7 +991,7 @@ constructSet <- function(trioSet, CHR, id, states, ranges){
 	fData(object)$range.index[qhits] <- shits
 	if(is.ff){
 		close(baf(trioSet))
-		close(logR(trioSet))
+		close(lrr(trioSet))
 	}
 	return(object)
 }
