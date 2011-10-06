@@ -323,14 +323,14 @@ setMethod("xsegment", signature(object="TrioSet", pedigreeData="Pedigree"),
 			  sample.index <- match(id, sampleNames(object))
 		  } else{
 			  ## all the samples in the samplesheet
-			  ##if(missing(id)) id <- individualNames(pedigreeData)
+			  ##if(missing(id)) id <- allNames(pedigreeData)
 			  if(missing(id)){
-				  id <- individualNames(pedigreeData)
+				  id <- allNames(pedigreeData)
 				  sample.index <- seq_len(nrow(trios(pedigreeData)))
 				  member.index <- 1:3
 			  } else{
 				  trio.index <- trioIndex(pedigreeData)
-				  indIds <- individualNames(pedigreeData)
+				  indIds <- allNames(pedigreeData)
 				  index <- match(id, indIds)
 				  sample.index <- trio.index$index.in.pedigree[index]
 				  member.id <- trio.index$memberId[index]

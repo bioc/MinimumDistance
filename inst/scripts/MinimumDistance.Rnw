@@ -97,14 +97,10 @@ pedigreeIndex <- data.frame(individualId=indId,
 rownames(pedigreeIndex) <- NULL
 pedigreeData <- new("Pedigree", trios=pedigreeExample,
 		    trioIndex=pedigreeIndex)
+allNames(pedigreeData)
 show(pedigreeData)
 data(logRArray)
 data(bafArray)
-## replace phenoDataArray with a coercion from TrioAnnotation to an array
-## The coercion takes place in the 'TrioSetList' constructor
-##trace(TrioSetList, browser)
-##tmp <- new("TrioSetList", pedigree=pedigree, sampleSheet=sample.sheet)
-##trace(TrioSetList, browser)
 trioSetList <- TrioSetList(logR=logR,
 			   baf=baf,
 			   pedigree=pedigreeData,

@@ -24,7 +24,7 @@ setMethod("trioIndex", signature(object="Pedigree"),
 
 setMethod("offspringNames", signature(object="Pedigree"), function(object) trios(object)$O)
 setMethod("sampleNames", signature(object="Pedigree"), function(object) offspringNames(object))
-setMethod("individualNames", signature(object="Pedigree"), function(object) trioIndex(object)$individualId)
+setMethod("allNames", signature(object="Pedigree"), function(object) trioIndex(object)$individualId)
 setMethod("fatherNames", signature(object="Pedigree"), function(object) trios(object)$F)
 setMethod("motherNames", signature(object="Pedigree"), function(object) trios(object)$M)
 setMethod("show", signature(object="Pedigree"),
