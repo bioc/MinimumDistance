@@ -33,43 +33,42 @@ setMethod("motherNames", signature(object="TrioSetList"), function(object){
 })
 
 TrioSetList <- function(logR, baf,
-			pedigree,
-			sampleSheet=new("SampleSheet"),
+			pedigreeData,
+			sampleSheet,
 			featureData,
 			chromosome=1:22,
 			cdfname){
-	##stopifnot(is(trioAnnotation, "TrioAnnotation"))
-	##phenoDataArray <- as(trioAnnotation, "array")
-	##pedigree <- pedigree(trioAnnotation)
 	if(missing(featureData)){
 		stopifnot(!missing(cdfname))
 		featureData <- oligoClasses:::featureDataFrom(cdfname)
 		fD <- featureData[order(featureData$chromosome, featureData$position), ]
+		rm(featureData); gc()
 	} else {
 		stopifnot(is(featureData, "AnnotatedDataFrame"))
 		fD <- featureData
 	}
+	sampleSheet <- sampleSheet[match(allNames(pedigreeData), sampleNames(sampleSheet)), ]
 	marker.list <- split(sampleNames(fD), fD$chromosome)
 	marker.list <- marker.list[1:length(marker.list)%in%chromosome]
-	np <- nrow(trios(pedigree))
+	np <- nrow(trios(pedigreeData))
 	trioSetList <- vector("list", length(chromosome))
 	names(trioSetList) <- 1:length(chromosome)
-	father.index <- match(fatherNames(pedigree),
+	father.index <- match(fatherNames(pedigreeData),
 			      colnames(logR))
-	mother.index <- match(motherNames(pedigree),
+	mother.index <- match(motherNames(pedigreeData),
 			      colnames(logR))
-	offspring.index <- match(offspringNames(pedigree),
+	offspring.index <- match(offspringNames(pedigreeData),
 				 colnames(logR))
-	.Object <- new("TrioSetList", pedigree=pedigree,
+	.Object <- new("TrioSetList", pedigreeData=pedigreeData,
 		       sampleSheet=sampleSheet)
 	for(i in seq_along(marker.list)){
 		## Use the name of the offspring as the name for the trio:
 		nr <- length(marker.list[[i]])
 		bafArray <- logRArray <- array(NA, dim=c(nr, np, 3))
-		dimnames(bafArray) <- dimnames(logRArray) <- list(marker.list[[i]],
-								  offspringNames(pedigree),
-								  colnames(trios(pedigree)))
-		##c("F", "M", "O"))
+		dimnames(bafArray) <- list(marker.list[[i]],
+					  sampleNames(pedigreeData),
+					  c("F", "M", "O"))
+		dimnames(logRArray) <- dimnames(bafArray)
 		logRArray[,,"F"] <- logR[marker.list[[i]], father.index]
 		logRArray[,,"M"] <- logR[marker.list[[i]], mother.index]
 		logRArray[,,"O"] <- logR[marker.list[[i]], offspring.index]
@@ -123,16 +122,19 @@ setMethod("mindist", signature(object="TrioSetList"), function(object){
 	return(md)
 })
 
+
 setMethod("order", "TrioSetList",
 	  function(..., na.last=TRUE, decreasing=FALSE){
 		  orderTrioSetList(...)
 	  })
+
 orderTrioSetList <- function(object){
 	for(i in seq_along(object)){
 		object[[i]] <- order(object[[i]])
 	}
 	return(object)
 }
+
 
 setReplaceMethod("mindist", signature(object="TrioSetList"),
 		 function(object, value){
@@ -142,25 +144,16 @@ setReplaceMethod("mindist", signature(object="TrioSetList"),
 			 return(object)
 		 })
 
-setMethod("minimumDistanceMad", signature(object="TrioSet"),
-	  function(object){
-		  object$mindist.mad
-	  })
 
-setReplaceMethod("minimumDistanceMad", signature(object="TrioSetList"),
-		 function(object, value){
-			 for(i in seq_along(object)){
-				 minimumDistanceMad(object[[i]]) <- value[[i]]
+setReplaceMethod("mad.mindist", signature(x="TrioSetList"),
+		 function(x, value){
+			 for(i in seq_along(x)){
+				 mad.mindist(x[[i]]) <- value[[i]]
 			 }
-			 return(object)
+			 return(x)
 		 })
 
-setReplaceMethod("minimumDistanceMad", signature(object="TrioSet"),
-		 function(object, value){
-			 ## store in phenodata
-			 object$mindist.mad <- value
-			 return(object)
-		 })
+
 
 setMethod("xsegment", signature(object="TrioSetList"),
 	  function(object, pedigreeData, id, segment.mindist=TRUE, ...,
