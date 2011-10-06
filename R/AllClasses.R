@@ -3,8 +3,11 @@
 setOldClass("ff_array")
 ##setOldClass("list")
 ##setOldClass("data.frame")
-
-setClass("RangedDataCNVTrios", contains="RangedDataCNV")
+##setClass("RangedDataCNVTrios", contains="RangedDataCNV")
+##setClass("RangedDataCBS2", contains="RangedDataCBS")
+##setValidity("RangedDataCBS2", function(object){
+##	"state" %in% colnames(object)
+##})
 ## It would be much cleaner to add slots to the RangedData class for
 ## chrom, id, and num.mark?  This way we can force these slots to be a
 ## specific class like numeric, integer, etc.
@@ -21,10 +24,7 @@ setClass("DataFrameCNV", contains="data.frame")
 ##		  rd <- stack(rdl)
 ##		  return(rd)
 ##	  })
-setClass("RangedDataCBS2", contains="RangedDataCBS")
-setValidity("RangedDataCBS2", function(object){
-	"state" %in% colnames(object)
-})
+
 
 ##setClass("MinDistanceSet", contains="MultiSet")
 setClassUnion("matrixOrNULL", c("matrix", "NULL", "ff_matrix"))
@@ -49,13 +49,18 @@ setClass("TrioSet", contains="LogRatioSet",
 	                       new("VersionedBiobase",
 				   versions=c(classVersion("LogRatioSet"), TrioSet="0.0.4"))))
 
-setClass("TrioSet", contains="LogRatioSet",
+setClass("TrioSet", contains="LogRatioSet", ##contains="LogRatioSet",
 	 representation(phenoData2="array",
 			mindist="matrix",
 			mad="matrix"),
 	 prototype = prototype(
 	                       new("VersionedBiobase",
 				   versions=c(classVersion("LogRatioSet"), TrioSet="0.0.5"))))
+
+##setValidity("TrioSet", function(object){
+##	msg <- validMsg(assayDataValidMembers(assayData(object), c("logRRatio", "BAF")))
+##	if(is.null(msg)) TRUE else msg
+##})
 
 ## should we add a slot for trioNames
 ##  -- would be a R x 3 matrix, where R is the number of trios
@@ -155,5 +160,8 @@ setValidity("TrioSetList", function(object){
 		if(!identical(sampleNames(pedigree(object)), colnames(lrr(object[[1]]))))
 			return("The sampleNames of the pedigree slot must be the same as the column names of the assayData elements in the TrioSet")
 	}
+	if(!identical(allNames(pedigree(object)), sampleNames(sampleSheet(object))))
+		return("allNames of Pedigree must be identical to sampleNames of SampleSheet")
+	TRUE
 })
 
