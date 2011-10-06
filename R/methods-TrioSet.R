@@ -164,7 +164,7 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 	if (!missing(j)) {
 		phenoData(x) <- phenoData(x)[j,, ..., drop = drop]
 		protocolData(x) <- protocolData(x)[j,, ..., drop = drop]
-		mad(x) <- mad(x)[j,,...,drop=drop]
+		mad.sample(x) <- mad.sample(x)[j,,...,drop=drop]
 	}
 	if (!missing(i))
 		featureData(x) <- featureData(x)[i, ,..., drop=drop]
@@ -288,10 +288,16 @@ setMethod("calculateMindist", signature(object="TrioSet"), function(object, ...)
 })
 
 setMethod("mad", signature(x="TrioSet"), function(x) x@mad)
-
-setReplaceMethod("mad", signature(x="TrioSet", value="ANY"),
+setMethod("mad.marker", signature(x="TrioSet"), function(x) fData(x)$marker.mad)
+setMethod("mad.sample", signature(x="TrioSet"), function(x) x@mad)
+setReplaceMethod("mad.sample", signature(x="TrioSet", value="ANY"),
 	  function(x, value){
 		  x@mad <- value
+		  return(x)
+	  })
+setReplaceMethod("mad.marker", signature(x="TrioSet", value="ANY"),
+	  function(x, value){
+		  fData(x)$marker.mad <- value
 		  return(x)
 	  })
 
@@ -515,31 +521,19 @@ setReplaceMethod("mad.mindist", signature(x="TrioSet"),
 setMethod("computeBayesFactor", signature(object="TrioSet"),
 	  function(object,
 		   ranges,
-		   pedigreeData,
-		   id,
-		   states,
-		   baf.sds,
-		   mu.logr,
-		   log.pi,
-		   tau,
-		   normal.index,
-		   a,
-		   prOutlier=c(0.01, 1e-5),
-		   prMosaic=0.01,
-		   prob.nonMendelian,
-		   verbose,
-		   returnEmission=FALSE){
-		  if(missing(tau)) tau <- transitionProbability(states=0:4, epsilon=0.5)
-		  if(missing(log.pi)) log.pi <- log(initialStateProbs(states=0:4, epsilon=0.5))
+		   returnEmission=FALSE,
+		   verbose=TRUE, ...){
+		  ## a TrioSet has only one chromosome
 		  CHR <- unique(chromosome(object))
 		  ranges <- ranges[chromosome(ranges) == CHR, ]
-		  if(missing(id)) {
-			  id <- unique(sampleNames(ranges))
+		  stopifnot("pedigreeData" %in% names(list(...)))
+		  ##pedigreeData <- list(...)[["pedigreeData"]]
+		  if("id" %in% names(list(...))){
+			  id <- list(...)[["id"]]
+			  ranges <- ranges[sampleNames(ranges) %in% id, ]
 		  } else {
-			  id <- id[id %in% unique(sampleNames(ranges))]
+			  id <- unique(sampleNames(ranges))
 		  }
-		  stopifnot(length(id) >0)
-		  ranges <- ranges[sampleNames(ranges) %in% id, ]
 		  ranges$lik.state <- NA
 		  ranges$argmax <- NA
 		  ranges$lik.norm <- NA
