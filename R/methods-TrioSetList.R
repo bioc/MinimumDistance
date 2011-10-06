@@ -264,9 +264,12 @@ setMethod("computeBayesFactor", signature(object="TrioSetList"),
 		  if(!"argmax" %in% colnames(ranges)){
 			  ranges$argmax <- NA
 		  }
+		  if("id" %in% names(list(...))){
+			  nsamples <- length(id)
+		  } else nsamples <- ncol(object)
 		  if(verbose){
-			  message("\t\tComputing Bayes factors for ", length(id), " files.")
-			  pb <- txtProgressBar(min=0, max=length(id), style=3)
+			  message("\t\tComputing Bayes factors for ", length(object), " chromosomes and ", nsamples, " trios.")
+			  pb <- txtProgressBar(min=0, max=length(object), style=3)
 		  }
 		  for(i in seq_along(object)){
 			  if (verbose) setTxtProgressBar(pb, i)
