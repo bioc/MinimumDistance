@@ -2,7 +2,7 @@ setMethod("initialize", "LogRatioSet",
 	  function(.Object,
 		   logRRatio=new("matrix"),...){
 		  callNextMethod(.Object,
-				 logRRatio=logRRatio,...)
+				 logRRatio=logRRatio, ...)
 
 	  })
 
@@ -16,8 +16,10 @@ setAs("BeadStudioSet", "LogRatioSet",
 		  annotation=annotation(from))
       })
 
-setMethod("logR", "LogRatioSet", function(object) assayData(object)[["logRRatio"]])
-setMethod("lrr", "LogRatioSet", function(object) assayData(object)[["logRRatio"]])
+
+
+setMethod("logR", "LogRatioSet", function(object) assayDataElement(object, "logRRatio"))
+setMethod("lrr", "LogRatioSet", function(object) assayDataElement(object, "logRRatio"))
 
 setReplaceMethod("logR", c("LogRatioSet", "ANY"),
 		 function(object, value) {
@@ -35,7 +37,7 @@ setReplaceMethod("lrr", c("LogRatioSet", "ANY"),
 
 setMethod("baf", "LogRatioSet",
 	  function(object) {
-		  assayData(object)[["BAF"]]
+		  assayDataElement(object, "BAF")
 	 })
 
 ##setReplaceMethod("baf", c("LogRatioSet", "ffdf"),

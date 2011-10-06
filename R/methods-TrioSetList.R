@@ -7,14 +7,16 @@
 
 setMethod("initialize", signature(.Object="TrioSetList"),
 	  function(.Object,
-		   pedigree=new("Pedigree"),
+		   pedigreeData=new("Pedigree"),
 		   sampleSheet=new("SampleSheet")){
-		  .Object@pedigree <- pedigree
+		  .Object@pedigree <- pedigreeData
 		  .Object@sampleSheet <- sampleSheet
 		  return(.Object)
 	  })
 
+
 setMethod("pedigree", signature(object="TrioSetList"), function(object) object@pedigree)
+setMethod("trios", signature(object="TrioSetList"), function(object) trios(pedigree(object)))
 setMethod("sampleSheet", signature(object="TrioSetList"), function(object) object@sampleSheet)
 setMethod("sampleNames", signature(object="TrioSetList"),
 	  function(object) sampleNames(pedigree(object)))
@@ -80,28 +82,35 @@ TrioSetList <- function(logR, baf,
 		index <- match(marker.list[[i]], sampleNames(fD))
 		## initialize 'TrioSet'
 		.Object[[i]] <- new("TrioSet",
-					logRRatio=logRArray,
-					BAF=bafArray,
-					phenoData=pD,
-					featureData=fD[index,],
-					mindist=NULL,
-					annotation=cdfname)
-		##trioSetList[[chrom]]@phenoData2 <- phenoDataArray
+				    logRRatio=logRArray,
+				    BAF=bafArray,
+				    phenoData=pD,
+				    featureData=fD[index,],
+				    annotation=cdfname)
 	}
 	names(.Object@.Data) <- names(marker.list)
-	##trioSetList <- as(trioSetList, "TrioSetList")
 	stopifnot(validObject(.Object))
 	return(.Object)
 }
 
+
 ##setMethod("names", signature(x="TrioSetList") names(x@.Data))
 
+##setMethod("mad", signature(x="TrioSetList"), function(x) mad(x[[1]]))
 setMethod("mad", signature(x="TrioSetList"), function(x) mad(x[[1]]))
 
-setReplaceMethod("mad", signature(x="TrioSetList", value="ANY"),
+setReplaceMethod("mad.sample", signature(x="TrioSetList", value="ANY"),
 		 function(x, value){
 			 for(i in seq_along(x)){
-				 mad(x[[i]]) <- value
+				 mad.sample(x[[i]]) <- value
+			 }
+			 return(x)
+		 })
+
+setReplaceMethod("mad.marker", signature(x="TrioSetList", value="ANY"),
+		 function(x, value){
+			 for(i in seq_along(x)){
+				 mad.marker(x[[i]]) <- value[[i]]
 			 }
 			 return(x)
 		 })

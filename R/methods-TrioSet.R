@@ -1,29 +1,20 @@
 setMethod("initialize", signature(.Object="TrioSet"),
-	  function(.Object, phenoData2=array(),
-		   mindist=matrix(NA, ncol(.Object), 3),
-		   mad=matrix(NA, ncol(.Object), 3), ...){
-		  .Object <- callNextMethod()
-		  if(!"logRRatio" %in% names(list(...))){
-			  .Object <- assayDataElementReplace(.Object, "logRRatio", array(NA, dim=c(0,0,0)))
-		  }
-##		  if("phenoData2" %in% names(list(...))){
-##			  phenoData2 <- list(...)[["phenoData2"]]
-##		  } else phenoData2 <- NULL
-		  .Object@phenoData2 <- phenoData2
-##		  .Object@mad <- matrix(NA, ncol(.Object), 3)
+	  function(.Object,
+		   logRRatio=array(NA, dim=c(0L,0L,1L)), ## Need the one so that annotatedDataFrameFromArray will work...
+		   BAF=array(NA, dim=dim(logRRatio)),
+		   phenoArray=array(NA, dim=dim(logRRatio)), ##perhaps replace with initializeBigArray
+		   mindist=matrix(NA, nrow(logRRatio), ncol(logRRatio)),##perhaps replace with initializeBigMatrix
+		   mad=matrix(NA, nrow(logRRatio), ncol(logRRatio)),
+		   ...){
+		  .Object@phenoData2 <- phenoArray
+		  .Object <- callNextMethod(.Object, logRRatio=logRRatio, BAF=BAF, ...)
+		  ##.Object <- callNextMethod(.Object, logRRatio=logRRatio, BAF=BAF, ...)
+		  ##.Object <- callNextMethod(.Object, BAF=BAF, ...)
+		  ##.Object <- callNextMethod(.Object)
+		  ##.Object <- assayDataElementReplace(.Object, "logRRatio", array(NA, dim=c(0,0,0)))
+		  .Object@mindist <- mindist
 		  .Object@mad <- mad
-		  dimnames(.Object@mad) <- list(sampleNames(.Object), c("F", "M", "O"))
-		  mindist(.Object) <- mindist
-####		  if(nrow(.Object) > 0){
-####			  md <- initializeBigMatrix(paste("mindist_chr", CHR, "_", sep=""),
-####						    vmode="double",
-####						    nr=nrow(logR(.Object)),
-####						    nc=ncol(logR(.Object)),
-####						    initdata=NA)
-####			  dimnames(md) <- list(featureNames(.Object), sampleNames(.Object))
-####			  mindist(.Object) <- md
-####		  }
-		  .Object
+		  return(.Object)
 })
 
 setMethod("open", "TrioSet", function(con, ...){
