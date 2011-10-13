@@ -25,7 +25,7 @@ importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   ranges, values,
 	   matchMatrix, queryHits, subjectHits)
 importFrom(msm, qtnorm, dtnorm)
-importFrom(ff, filename)
+##importFrom(ff, filename)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 exportClasses(DataFrameCNV, ##RangedDataCNV, RangedDataCBS, RangedDataHMM,
 	      TrioSet, TrioSetList,
