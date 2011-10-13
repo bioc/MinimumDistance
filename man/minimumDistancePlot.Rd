@@ -63,7 +63,7 @@ Rob Scharpf
 }
 
 \seealso{
-\code{\link{gridlayout}}, \code{\link{gridlayout2}}
+\code{\link{gridlayout}}%, \code{\link{gridlayout2}}
 }
 \examples{
 	\dontrun{

@@ -3,6 +3,8 @@
 \docType{class}
 \alias{TrioSetList-class}
 \alias{[,TrioSetList-method}
+\alias{allNames,TrioSetList-method}
+\alias{calculateMindist,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}
 \alias{fatherNames<-,TrioSetList,character-method}
 \alias{fmoNames,TrioSetList-method}

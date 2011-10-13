@@ -14,7 +14,7 @@ setMethod("initialize", signature(.Object="TrioSetList"),
 		  return(.Object)
 	  })
 
-
+setMethod("allNames", signature(object="TrioSetList"), function(object) allNames(pedigree(object)))
 setMethod("pedigree", signature(object="TrioSetList"), function(object) object@pedigree)
 setMethod("trios", signature(object="TrioSetList"), function(object) trios(pedigree(object)))
 setMethod("sampleSheet", signature(object="TrioSetList"), function(object) object@sampleSheet)
@@ -32,7 +32,7 @@ setMethod("motherNames", signature(object="TrioSetList"), function(object){
 	motherNames(pedigree(object))
 })
 
-TrioSetList <- function(logR, baf,
+TrioSetList <- function(lrr, baf,
 			pedigreeData,
 			sampleSheet,
 			featureData,

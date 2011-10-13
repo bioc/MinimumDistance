@@ -1,4 +1,5 @@
 \name{TrioSetList-utils}
+\alias{allNames}
 \alias{fatherNames}
 \alias{fatherNames<-}
 \alias{fmoNames}
@@ -17,7 +18,8 @@
 
 \usage{
 fatherNames(object)
-fmoNames(object)
+%fmoNames(object)
+allNames(object)
 motherNames(object)
 offspringNames(object)
 }
@@ -28,8 +30,9 @@ offspringNames(object)
 \details{
   Returns the name of the father, mother, or offspring in the trio.
 
-  \code{fmoNames} returns a matrix. The columns correspond to father,
-  mother, and offspring.
+%  \code{fmoNames} returns a matrix. The columns correspond to father,
+%  mother, and offspring.
+\code{allNames} returns all the sample names.
 
 }
 \value{
@@ -44,7 +47,7 @@ Rob Scharpf
 \examples{
 data("trioSetList")
 fatherNames(trioSetList)
-fmoNames(trioSetList)
+allNames(trioSetList)
 motherNames(trioSetList)
 offspringNames(trioSetList)
 }
