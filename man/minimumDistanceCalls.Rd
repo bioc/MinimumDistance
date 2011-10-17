@@ -109,7 +109,8 @@ Rob Scharpf
 
   }
 
-\examples{
+  \examples{
+\dontrun{
 	data(trioSetList)
 	data(md.segs)
 	called.ranges <- minimumDistanceCalls(container=trioSetList,
@@ -118,5 +119,6 @@ Rob Scharpf
 					      narrowRanges=FALSE)
 	colnames(called.ranges)
 	state(called.ranges)
+}
 }
 \keyword{models}

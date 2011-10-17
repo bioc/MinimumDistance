@@ -30,6 +30,7 @@ setMethod("open", "TrioSet", function(con, ...){
 	open(mindist(object))
 	return(TRUE)
 })
+
 setMethod("close", "TrioSet", function(con, ...){
 	##browser()
 	##con is just to keep the same generic arguments
@@ -178,7 +179,7 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 		x@phenoData2 <- x@phenoData2[, k, , drop=drop]
 	}
 	if(!missing(i) & missing(j)){
-		mindist(x) <- mindist(x)[i, ...,drop=drop]
+		mindist(x) <- mindist(x)[i, ,drop=drop]
 	}
 	if(!missing(i) & !missing(j)){
 		mindist(x) <- mindist(x)[i, j, drop=drop]
@@ -522,6 +523,7 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 	  function(object,
 		   ranges,
 		   returnEmission=FALSE,
+		   collapseRanges=TRUE,
 		   verbose=TRUE, ...){
 		  ## a TrioSet has only one chromosome
 		  CHR <- unique(chromosome(object))
@@ -559,19 +561,24 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 			  ranges$lik.norm[j] <- rd$lik.norm
 		  }
 		  if(verbose) close(pb)
+		  if(collapseRanges)
+			  ranges <- pruneByFactor(ranges, f=ranges$argmax, verbose=verbose)
 		  ranges
 	  })
 
-setMethod("todf", signature(object="TrioSet", range="RangedData"),
-	  function(object, range, frame, ...){
-		  stopifnot(nrow(range) == 1)
+setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
+	  function(object, rangeData, frame, ...){
+		  stopifnot(nrow(rangeData) == 1)
 		  if(missing(frame)){
-			  w <- width(range)
+			  w <- width(rangeData)
 			  frame <- w/0.05  * 1/2
 		  }
-		  marker.index <- featuresInRange(object, range, FRAME=frame)
-		  id <- range$id
-		  sample.index <- match(id, offspringNames(object))
+		  ##overlaps <- findOverlaps(object, rangeData, max.gap=frame)
+		  overlaps <- findOverlaps(rangeData, featureData(object), maxgap=frame)
+		  marker.index <- matchMatrix(overlaps)[, 2]
+		  ##marker.index <- featuresInRangeData(object, rangeData, FRAME=frame)
+		  id <- rangeData$id
+		  sample.index <- match(id, sampleNames(object))
 		  stopifnot(length(sample.index)==1)
 		  is.ff <- is(logR(object), "ff")
 		  if(is.ff){
@@ -676,6 +683,7 @@ setMethod("prune", signature(object="TrioSet", ranges="RangedDataCNV"),
 setMethod("offspringNames", signature(object="TrioSet"), function(object){
 	phenoData2(object)[, "id", "O"]
 })
+
 setReplaceMethod("offspringNames", signature(object="TrioSet", value="character"),
 		 function(object, value){
 			 phenoData2(object)[, "id", "O"] <- value
@@ -685,11 +693,13 @@ setReplaceMethod("offspringNames", signature(object="TrioSet", value="character"
 setMethod("fatherNames", signature(object="TrioSet"), function(object){
 	phenoData2(object)[, "id", "F"]
 })
+
 setReplaceMethod("fatherNames", signature(object="TrioSet", value="character"),
 		 function(object, value){
 			 phenoData2(object)[, "id", "F"] <- value
 			 object
 		 })
+
 setMethod("motherNames", signature(object="TrioSet"), function(object){
 	phenoData2(object)[, "id", "M"]
 })
@@ -707,63 +717,138 @@ fmoNames <- function(object){
 
 
 
-## perhaps make ... additional args to gpar()
 
+
+
+## perhaps make ... additional args to gpar()
+xyplotTrioSet <- function(x, data,
+			  pedigreeData,
+			  rangeData,
+			  panel,
+			  md.segs,
+			  lrr.segs,
+			  panelLabels=c("father", "mother", "offspring", "min dist"),
+			  layout=c(1,length(panelLabels)),
+			  index.cond=list(rev(seq_along(panelLabels))),
+			  frame=1e6,
+			  ...){
+	stopifnot(!missing(pedigreeData))
+##	if(!"panel" %in% names(list(...))){
+##		panel.specified <- FALSE
+##		panel <- xypanel
+##	} else {
+##		panel.specified <- TRUE
+##	}
+	if(missing(panel)) panel <- xypanel
+##	if("panelLabels" %in% names(list(...))){
+##		pL <- list(...)[["panelLabels"]]
+##		stopifnot(all(pL %in% c("father", "mother", "offspring", "min dist", "genes", "CNV")))
+##	}
+##	rangeData <- list(...)[["rangeData"]]
+	##fmonames <- fmoNames(data)[match(rng$id, offspringNames(data)), ]
+	fmonames <- trios(pedigreeData)[match(sampleNames(rangeData), sampleNames(pedigreeData)), ]
+	data <- todf(data, rangeData=rangeData, frame=frame)
+	##data <- as(data, "DataFrameCNV")
+	if(sum(data$id == "min dist") > 0)
+		data$r[data$id == "min dist"] <- -1*data$r[data$id == "min dist"]
+	if("panelLabels" %in% names(list(...))){
+		panelLabels <- list(...)[["panelLabels"]]
+		data <- data[data$id %in% panelLabels, ]
+		data$id <- factor(data$id)
+	}
+	if("xlim" %in% names(list(...))) xlimit <- list(...)[["xlim"]] else xlimit <- range(data$x, na.rm=TRUE)
+	if("ylim" %in% names(list(...))) {
+		ylimit <- list(...)[["ylim"]]
+	} else {
+		string <- as.character(x)[[2]]
+		ylimit <- switch(string,
+				 b=c(0,1),
+				 r=range(data$r, na.rm=TRUE))
+	}
+	if("is.snp" %in% colnames(data)){
+		is.snp <- data$is.snp
+	}
+	## this does not call DataFrameCnv method -- it calls the method for data.frame
+	if(!panel.specified){
+		xyplot(x=x, data=data,
+		       panel=panel,
+		       fmonames=fmonames,
+		       xlimit=xlimit,
+		       ylimit=ylimit,
+		       what=data$id,
+		       is.snp=is.snp, ...)
+	} else{
+		xyplot(x=x, data=data,
+		       fmonames=fmonames,
+		       xlimit=xlimit,
+		       ylimit=ylimit,
+		       what=data$id,
+		       is.snp=is.snp, ...)
+	}
+}
+
+
+
+##setMethod("xyplot", signature(x="formula", data="TrioSet"),
+##	  function(x, data, ...){
+##		  xyplotTrioSet(x, data, ...)
+##	  })
 
 setMethod("xyplot", signature(x="formula", data="TrioSet"),
 	  function(x, data, ...){
-		  if(!"panel" %in% names(list(...))){
-			  panel.specified <- FALSE
-			  panel <- xypanel
+		  if("range" %in% names(list(...))){
+			  VanillaICE::xyplot2(x, data, ...)
 		  } else {
-			  panel.specified <- TRUE
-		  }
-		  if("panelLabels" %in% names(list(...))){
-			  pL <- list(...)[["panelLabels"]]
-			  stopifnot(all(pL %in% c("father", "mother", "offspring", "min dist", "genes", "CNV")))
-		  }
-		  stopifnot("range" %in% names(list(...)))
-		  rng <- list(...)[["range"]]
-		  fmonames <- fmoNames(data)[match(rng$id, offspringNames(data)), ]
-		  data <- todf(data, ...)
-		  ##data <- as(data, "DataFrameCNV")
-		  if(sum(data$id == "min dist") > 0)
-			  data$r[data$id == "min dist"] <- -1*data$r[data$id == "min dist"]
-		  if("panelLabels" %in% names(list(...))){
-			  panelLabels <- list(...)[["panelLabels"]]
-			  data <- data[data$id %in% panelLabels, ]
-			  data$id <- factor(data$id)
-		  }
-		  if("xlim" %in% names(list(...))) xlimit <- list(...)[["xlim"]] else xlimit <- range(data$x, na.rm=TRUE)
-		  if("ylim" %in% names(list(...))) {
-			  ylimit <- list(...)[["ylim"]]
-		  } else {
-			  string <- as.character(x)[[2]]
-			  ylimit <- switch(string,
-					   b=c(0,1),
-					   r=range(data$r, na.rm=TRUE))
-		  }
-		  if("is.snp" %in% colnames(data)){
-			  is.snp <- data$is.snp
-		  }
-		  ## this does not call DataFrameCnv method -- it calls the method for data.frame
-		  if(!panel.specified){
-			  xyplot(x=x, data=data,
-				 panel=panel,
-				 fmonames=fmonames,
-				 xlimit=xlimit,
-				 ylimit=ylimit,
-				 what=data$id,
-				 is.snp=is.snp, ...)
-		  } else{
-			  xyplot(x=x, data=data,
-				 fmonames=fmonames,
-				 xlimit=xlimit,
-				 ylimit=ylimit,
-				 what=data$id,
-				 is.snp=is.snp, ...)
+			  callNextMethod()
 		  }
 	  })
+
+##setMethod("xyplot", signature(x="formula", data="TrioSetList"),
+##	  function(x, data, ...){
+##		  if("range" %in% names(list(...))){
+##			  VanillaICE::xyplot2(x, data, ...)
+##		  } else {
+##			  callNextMethod()
+##		  }
+##	  })
+setAs("TrioSet", "data.frame",
+      function(from, to){
+	      ##cn <- copyNumber(from)
+	      browser()
+	      cn <- lrr(from)
+	      ##
+	      sns <- paste(sampleNames(from), c("F", "M", "O"), sep="_")
+
+	      ##gt <- calls(from)
+	      cn <- as.numeric(cn)
+	      ##gt <- as.integer(gt)
+	      bf <- as.numeric(baf(from))
+	      ##baf.present <- "baf" %in% ls(assayData(from))
+	      gt.present <- "call" %in% ls(assayData(from))
+	      if(gt.present){
+		      gt <- as.numeric(assayDataElement(from, "call"))
+	      }
+	      x <- rep(position(from)/1e6, ncol(from))
+	      ##x <- rep(position(object)[marker.index], 4)/1e6
+	      is.snp <- rep(isSnp(from), ncol(from))
+	      id <- rep(sampleNames(from), each=nrow(from))
+	      if(!gt.present){
+		      df <- data.frame(x=x, cn=cn, baf=bf, id=id,
+				       is.snp=is.snp,
+				       stringsAsFactors=FALSE)
+	      } else {
+		      df <- data.frame(x=x, cn=cn, gt=gt, baf=bf, id=id,
+				       is.snp=is.snp,
+				       stringsAsFactors=FALSE)
+	      }
+	      return(df)
+      })
+
+
+
+
+
+
 
 setMethod("order", "TrioSet",
 	  function(..., na.last=TRUE, decreasing=FALSE){

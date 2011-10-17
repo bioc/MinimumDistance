@@ -1,54 +1,57 @@
-setMethod("initialize", "LogRatioSet",
+setMethod("initialize", "LogRratioSet",
 	  function(.Object,
-		   logRRatio=new("matrix"),...){
+		   logRRatio=new("matrix"),
+		   BAF=matrix(NA, nrow(logRRatio), ncol(logRRatio)),
+		   ...){
 		  callNextMethod(.Object,
-				 logRRatio=logRRatio, ...)
-
+				 logRRatio=logRRatio,
+				 BAF=BAF, ...)
 	  })
 
-setAs("BeadStudioSet", "LogRatioSet",
-      function(from, to){
-	      new("LogRatioSet",
-		  logRRatio=logR(from),
-		  phenoData=phenoData(from),
-		  featureData=featureData(from),
-		  protocolData=protocolData(from),
-		  annotation=annotation(from))
-      })
+##setAs("BeadStudioSet", "LogRratioSet",
+##      function(from, to){
+##	      new("LogRratioSet",
+##		  logRRatio=lrr(from),
+##		  BAF=baf(from),
+##		  phenoData=phenoData(from),
+##		  featureData=featureData(from),
+##		  protocolData=protocolData(from),
+##		  annotation=annotation(from))
+##      })
 
 
 
-setMethod("logR", "LogRatioSet", function(object) assayDataElement(object, "logRRatio"))
-setMethod("lrr", "LogRatioSet", function(object) assayDataElement(object, "logRRatio"))
+setMethod("logR", "LogRratioSet", function(object) assayDataElement(object, "logRRatio"))
+setMethod("lrr", "LogRratioSet", function(object) assayDataElement(object, "logRRatio"))
 
-setReplaceMethod("logR", c("LogRatioSet", "ANY"),
+setReplaceMethod("logR", c("LogRratioSet", "ANY"),
 		 function(object, value) {
 			 assayDataElementReplace(object, "logRRatio", value)
 	 })
-setReplaceMethod("lrr", c("LogRatioSet", "ANY"),
+setReplaceMethod("lrr", c("LogRratioSet", "ANY"),
 		 function(object, value) {
 			 assayDataElementReplace(object, "logRRatio", value)
 	 })
 
-##setReplaceMethod("logR", c("LogRatioSet", "ffdf"),
+##setReplaceMethod("logR", c("LogRratioSet", "ffdf"),
 ##		 function(object, value) {
 ##			 assayDataElementReplace(object, "logRRatio", value)
 ##	 })
 
-setMethod("baf", "LogRatioSet",
+setMethod("baf", "LogRratioSet",
 	  function(object) {
 		  assayDataElement(object, "BAF")
 	 })
 
-##setReplaceMethod("baf", c("LogRatioSet", "ffdf"),
+##setReplaceMethod("baf", c("LogRratioSet", "ffdf"),
 ##		 function(object, value) {
 ##			 assayDataElementReplace(object, "BAF", value)
 ##	 })
-##setReplaceMethod("baf", c("LogRatioSet", "matrix"),
+##setReplaceMethod("baf", c("LogRratioSet", "matrix"),
 ##		 function(object, value) {
 ##			 assayDataElementReplace(object, "BAF", value)
 ##	 })
-setReplaceMethod("baf", c("LogRatioSet", "ANY"),
+setReplaceMethod("baf", c("LogRratioSet", "ANY"),
 		 function(object, value) {
 			 assayDataElementReplace(object, "BAF", value)
 	 })

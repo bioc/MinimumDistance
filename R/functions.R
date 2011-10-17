@@ -316,7 +316,7 @@ constructLogRatioSet <- function(fnames, filename, cdfName, samplesheet){
 	baf <- initializeBigMatrix("baf", nr, nc, vmode="double")
 	logR <- initializeBigMatrix("logR", nr, nc, vmode="double")
 	setMethod("annotatedDataFrameFrom", "ffdf", Biobase:::annotatedDataFrameFromMatrix)
-	bsSet <- new("LogRatioSet", logRRatio=logR, BAF=baf, annotation=cdfName)
+	bsSet <- new("LogRratioSet", logRRatio=logR, BAF=baf, annotation=cdfName)
 	position.order <- order(featureData$chromosome, featureData$position)
 	featureData <- featureData[position.order, ]
 	featureData(bsSet) <- featureData
@@ -484,7 +484,7 @@ addIndicesForRanges <- function(rd.object, bsSet, FRAME=0, xlim,
 
 
 
-framePositionIndex <- function(object,  ##LogRatioSet or something similar
+framePositionIndex <- function(object,  ##LogRratioSet or something similar
 			       FRAME){  ##basepairs
 		min.pos <- min(pos)-WINDOW.SIZE
 		max.pos <- max(pos)+WINDOW.SIZE
@@ -1266,6 +1266,11 @@ computeLoglik <- function(id,## trio id (or offspring id)
 	p1 <- 1-prOutlier.logR
 	## one obvious thing that p1 could depend on is the
 	## minor allele frequency.  If rare, p1 is smaller
+	## Need a subset method for pedigreeData
+	trs <- trios(pedigreeData)
+	trs <- trs[match(sampleNames(trioSet), sampleNames(pedigreeData)), ]
+	pedigreeData@trios <- trs
+	pedigreeData@trioIndex <- trioIndex(pedigreeData)[trioIndex(pedigreeData)$individualId %in% unlist(trs) , ]
 	object <- LikSet(trioSet,
 			 pedigreeData=pedigreeData,
 			 CHR=CHR,
@@ -1631,7 +1636,7 @@ jointProb <- function(segment.index, ## so that we can insert a browser for a sp
 joint1 <- function(LLT, ##object,
 		   trio.states,
 		   tau,
-		   log.pi=log(c(0.125, 0.125, 0.5, 0.125, 0.125)),
+		   log.pi,
 		   normal.index=3,
 		   segment.index,
 		   state.index,
@@ -1641,6 +1646,10 @@ joint1 <- function(LLT, ##object,
 		   prob.nonMendelian=1.5e-6,
 		   denovo.prev=FALSE,
 		   state.prev) {
+	if(missing(tau))
+		tau <- transitionProbability(states=0:4, epsilon=0.5)
+	if(missing(log.pi))
+		log.pi <- log(initialStateProbs(states=0:4, epsilon=0.5))
 	Prob.DN <- prob.nonMendelian
 	state <- trio.states[state.index, ]
 	if(missing(tau)) tau <- transitionProbability(states=0:4, epsilon=0.5)
@@ -1885,7 +1894,7 @@ gridsetup <- function(figname, lattice.object, rd, ...){
 		grid.text("Log R Ratio", x=unit(0.25, "npc"), y=unit(0.96, "npc"), gp=gpar("cex"=0.8))
 		grid.text("B allele frequency", x=unit(0.75, "npc"), y=unit(0.96, "npc"), gp=gpar("cex"=0.8))
 		##grid.text(paste(chr.name, ", Family", ss(rd$id[i])), x=unit(0.5, "npc"), y=unit(0.98, "npc"), gp=gpar("cex"=0.9))
-		grid.text(paste(chr.name, ", Family", trioNames(rd)[i]), x=unit(0.5, "npc"), y=unit(0.98, "npc"), gp=gpar("cex"=0.9))
+		grid.text(paste(chr.name, ", Family", sampleNames(rd)[i]), x=unit(0.5, "npc"), y=unit(0.98, "npc"), gp=gpar("cex"=0.9))
 		upViewport(0)
 		print(lattice.object[[i]][[2]], position=c(0.48, 0, 1, 1), more=TRUE, prefix="baf")
 	}
@@ -1907,6 +1916,7 @@ joint1c <- function(loglik,##object,
 		   Prob.DN=1.5e-6,
 		   denovo.prev,
 		   state.prev) {
+
 	state <- trio.states[state.index, ]
 	##fmo <- list()
 	fmo <- matrix(NA, nrow(loglik), 3)
@@ -2257,142 +2267,142 @@ readParsedFiles <- function(path, member, container, chromosomes, file.ext, verb
 
 
 
-minimumDistance2 <- function(path,
-			    samplesheet,
-			    pedigree,
-			    container,
-			    container.filename,
-			    chromosomes=1:22,
-			    cdfName, file.ext=".txt",
-			    readFiles=TRUE,
-			    calculate.md=TRUE,
-			    calculate.mad=TRUE,
-			    exclusionRule, ## for calculateing row-wise mads
-			    verbose=TRUE){#samplesheet, ...){
-	if(missing(container)){
-		stopifnot(nrow(pedigree) > 0) ## need to fix initialization of trioSet object otherwise
-		## the rownames of the samplesheet correspond to the name of the parsed beadstudio data
-		stopifnot(all(file.exists(file.path(path, paste(rownames(samplesheet), file.ext, sep="")))))
-		if(!file.exists(container.filename)){
-			##---------------------------------------------------------------------------
-			##
-			## initialize container
-			##
-			##----------------------------------------------------------------------------
-			stopifnot(file.exists(dirname(container.filename)))
-			stopifnot("Sample.Name" %in% colnames(samplesheet))
-			stopifnot(colnames(pedigree) == c("F", "M", "O"))
-			if(verbose) message("Instantiating a container for the assay data.")
-			container <- initializeTrioContainer(path,
-							     samplesheet,
-							     pedigree,
-							     trio.phenodata,
-							     chromosomes,
-							     cdfName,
-							     file.ext=file.ext,
-							     verbose=verbose)
-			if(verbose) message("Saving as ", container.filename)
-			container <- as(container, "TrioSetList")
-			save(container, file=container.filename)
-		} else {
-			load(container.filename)
-			container <- get("container")
-		}
-		##---------------------------------------------------------------------------
-		##
-		## reading processed files
-		##
-		##----------------------------------------------------------------------------
-		if(readFiles){
-			if(verbose) message("Reading ", nrow(pedigree), " files")
-			##fatherIds <- as.character(paste(fullId(container[[1]])[, "F"], file.ext, sep=""))
-			mads <- matrix(NA, nrow(pedigree), 3)
-			dimnames(mads) <- list(sampleNames(container), c("F", "M", "O"))
-			mads[, "F"] <- readParsedFiles(path, "F", container, chromosomes, file.ext, verbose)
-			##motherIds <- as.character(paste(fullId(container[[1]])[, "M"], file.ext, sep=""))
-			mads[, "M"] <- readParsedFiles(path, "M", container, chromosomes, file.ext, verbose)
-			##offspringIds <- as.character(paste(fullId(container[[1]])[, "O"], file.ext, sep=""))
-			mads[, "O"] <- readParsedFiles(path, "O", container, chromosomes, file.ext, verbose)
-			mad(container[[1]]) <- mads
-			for(CHR in 2:22){
-				container[[CHR]]@mad <- mad(container[[1]])
-			}
-			save(container, file=container.filename)
-		} else {
-			if(verbose) message("readFiles is FALSE.")
-		}
-	} else stopifnot(is(container, "TrioSetList"))
-	##---------------------------------------------------------------------------
-	##
-	##  if autosomal mad(logR) is missing, calculate...
-	##
-	##---------------------------------------------------------------------------
-	if(any(is.na(mad(container[[1]])))){
-		if(verbose) message("Computing autosomal mad")
-		mads <- matrix(NA, ncol(container[[1]]), 3)
-		colnames(mads) <- c("F", "M", "O")
-		rownames(mads) <- sampleNames(container[[1]])
-		#
-		fff <- function(object, trio.index){
-			lR <- logR(object)[, trio.index, ]
-		}
-		for(j in seq(length=length(rownames(mads)))){
-			logrs <- do.call("rbind", sapply(container, fff, trio.index=j))
-			mads[j, ] <- apply(logrs, 2, mad, na.rm=TRUE)
-		}
-		for(k in seq(length=length(trioSetList))){
-			mad(container[[k]]) <- mads
-		}
-	}
-	##---------------------------------------------------------------------------
-	##
-	## calculate minimum distance
-	##
-	##----------------------------------------------------------------------------
-	if(calculate.md){
-		if(verbose) message("Computing the minimum distance")
-		container <- lapply(container, calculateMindist)
-		container <- as(container, "TrioSetList")
-	}
-	##---------------------------------------------------------------------------
-	##
-	## Calculate the MAD of the log R ratios for every sample
-	##    -> ntrios x 3 matrix
-	##    -> put in slot 'mad'
-	##---------------------------------------------------------------------------
-	if(calculate.mad){
-		container <- calculateMads(container, exclusionRule, verbose)
-		##if(verbose) message("\tSaving updated container to ", container.filename)
-		##save(container, file=container.filename)
-	}
-	return(container)
-}
+##minimumDistance2 <- function(path,
+##			    samplesheet,
+##			    pedigree,
+##			    container,
+##			    container.filename,
+##			    chromosomes=1:22,
+##			    cdfName, file.ext=".txt",
+##			    readFiles=TRUE,
+##			    calculate.md=TRUE,
+##			    calculate.mad=TRUE,
+##			    exclusionRule, ## for calculateing row-wise mads
+##			    verbose=TRUE){#samplesheet, ...){
+##	if(missing(container)){
+##		stopifnot(nrow(pedigree) > 0) ## need to fix initialization of trioSet object otherwise
+##		## the rownames of the samplesheet correspond to the name of the parsed beadstudio data
+##		stopifnot(all(file.exists(file.path(path, paste(rownames(samplesheet), file.ext, sep="")))))
+##		if(!file.exists(container.filename)){
+##			##---------------------------------------------------------------------------
+##			##
+##			## initialize container
+##			##
+##			##----------------------------------------------------------------------------
+##			stopifnot(file.exists(dirname(container.filename)))
+##			stopifnot("Sample.Name" %in% colnames(samplesheet))
+##			stopifnot(colnames(pedigree) == c("F", "M", "O"))
+##			if(verbose) message("Instantiating a container for the assay data.")
+##			container <- initializeTrioContainer(path,
+##							     samplesheet,
+##							     pedigree,
+##							     trio.phenodata,
+##							     chromosomes,
+##							     cdfName,
+##							     file.ext=file.ext,
+##							     verbose=verbose)
+##			if(verbose) message("Saving as ", container.filename)
+##			container <- as(container, "TrioSetList")
+##			save(container, file=container.filename)
+##		} else {
+##			load(container.filename)
+##			container <- get("container")
+##		}
+##		##---------------------------------------------------------------------------
+##		##
+##		## reading processed files
+##		##
+##		##----------------------------------------------------------------------------
+##		if(readFiles){
+##			if(verbose) message("Reading ", nrow(pedigree), " files")
+##			##fatherIds <- as.character(paste(fullId(container[[1]])[, "F"], file.ext, sep=""))
+##			mads <- matrix(NA, nrow(pedigree), 3)
+##			dimnames(mads) <- list(sampleNames(container), c("F", "M", "O"))
+##			mads[, "F"] <- readParsedFiles(path, "F", container, chromosomes, file.ext, verbose)
+##			##motherIds <- as.character(paste(fullId(container[[1]])[, "M"], file.ext, sep=""))
+##			mads[, "M"] <- readParsedFiles(path, "M", container, chromosomes, file.ext, verbose)
+##			##offspringIds <- as.character(paste(fullId(container[[1]])[, "O"], file.ext, sep=""))
+##			mads[, "O"] <- readParsedFiles(path, "O", container, chromosomes, file.ext, verbose)
+##			mad(container[[1]]) <- mads
+##			for(CHR in 2:22){
+##				container[[CHR]]@mad <- mad(container[[1]])
+##			}
+##			save(container, file=container.filename)
+##		} else {
+##			if(verbose) message("readFiles is FALSE.")
+##		}
+##	} else stopifnot(is(container, "TrioSetList"))
+##	##---------------------------------------------------------------------------
+##	##
+##	##  if autosomal mad(logR) is missing, calculate...
+##	##
+##	##---------------------------------------------------------------------------
+##	if(any(is.na(mad(container[[1]])))){
+##		if(verbose) message("Computing autosomal mad")
+##		mads <- matrix(NA, ncol(container[[1]]), 3)
+##		colnames(mads) <- c("F", "M", "O")
+##		rownames(mads) <- sampleNames(container[[1]])
+##		#
+##		fff <- function(object, trio.index){
+##			lR <- logR(object)[, trio.index, ]
+##		}
+##		for(j in seq(length=length(rownames(mads)))){
+##			logrs <- do.call("rbind", sapply(container, fff, trio.index=j))
+##			mads[j, ] <- apply(logrs, 2, mad, na.rm=TRUE)
+##		}
+##		for(k in seq(length=length(trioSetList))){
+##			mad(container[[k]]) <- mads
+##		}
+##	}
+##	##---------------------------------------------------------------------------
+##	##
+##	## calculate minimum distance
+##	##
+##	##----------------------------------------------------------------------------
+##	if(calculate.md){
+##		if(verbose) message("Computing the minimum distance")
+##		container <- lapply(container, calculateMindist)
+##		container <- as(container, "TrioSetList")
+##	}
+##	##---------------------------------------------------------------------------
+##	##
+##	## Calculate the MAD of the log R ratios for every sample
+##	##    -> ntrios x 3 matrix
+##	##    -> put in slot 'mad'
+##	##---------------------------------------------------------------------------
+##	if(calculate.mad){
+##		container <- calculateMads(container, exclusionRule, verbose)
+##		##if(verbose) message("\tSaving updated container to ", container.filename)
+##		##save(container, file=container.filename)
+##	}
+##	return(container)
+##}
 
 
 
 
-minimumDistance <- function(container, verbose=TRUE){
-	##---------------------------------------------------------------------------
-	##
-	## calculate minimum distance
-	##
-	##----------------------------------------------------------------------------
-	mads.logr <- calculateMADlrr(container)
-	mad(trioSetList) <- mads.logr
-	if(verbose) message("Computing the minimum distance")
-	md <- calculateMindist(container)
-	## calculate the MAD for the minimum distance
-	## Add both the mad and the minimum distance to the container
-	for(i in seq_along(md)){
-		trioSet <- container[[i]]
-		min.dist <- md[[i]]
-		mads <- apply(min.dist, 2, mad, na.rm=TRUE)
-		trioSet$mindist.mad <- mads
-		mindist(trioSet) <- min.dist
-		container[[i]] <- trioSet
-	}
-	return(container)
-}
+##minimumDistance <- function(container, verbose=TRUE){
+##	##---------------------------------------------------------------------------
+##	##
+##	## calculate minimum distance
+##	##
+##	##----------------------------------------------------------------------------
+##	mads.logr <- calculateMADlrr(container)
+##	mad(trioSetList) <- mads.logr
+##	if(verbose) message("Computing the minimum distance")
+##	md <- calculateMindist(container)
+##	## calculate the MAD for the minimum distance
+##	## Add both the mad and the minimum distance to the container
+##	for(i in seq_along(md)){
+##		trioSet <- container[[i]]
+##		min.dist <- md[[i]]
+##		mads <- apply(min.dist, 2, mad, na.rm=TRUE)
+##		trioSet$mindist.mad <- mads
+##		mindist(trioSet) <- min.dist
+##		container[[i]] <- trioSet
+##	}
+##	return(container)
+##}
 
 minimumDistanceCalls <- function(id, container,
 				 chromosomes=1:22,
@@ -2724,7 +2734,11 @@ thresholdY <- function(object){
 	panel.args <- lapply(panel.args2, f, ylim)
 }
 
-xypanel <- function(x, y, panelLabels,
+xypanel <- function(x, y,
+		    panelLabels=c("father", "mother", "offspring", "min dist"),
+		    layout=c(1, length(panelLabels)),
+		    index.cond=list(rev(seq_along(panelLabels))),
+		    frame=1e6,
 		    xlimit,
 		    ylimit,
 		    is.snp,
@@ -2862,7 +2876,7 @@ gridlayout <- function(filename, lattice.object, rd, ...){
 	## RS: removed ss()
 ##	grid.text(paste(chr.name, ", Family", ss(rd$id)), x=unit(0.5, "npc"), y=unit(0.98, "npc"),
 ##		  gp=gpar(cex=0.9))
-	grid.text(paste(chr.name, ", Family", trioNames(rd)[1]), x=unit(0.5, "npc"), y=unit(0.98, "npc"),
+	grid.text(paste(chr.name, ", Family", sampleNames(rd)[1]), x=unit(0.5, "npc"), y=unit(0.98, "npc"),
 		  gp=gpar(cex=0.9))
 	grid.text("Position (Mb)", x=unit(0.5, "npc"), y=unit(0.02, "npc"),
 		  gp=gpar(cex=0.9))
@@ -2938,7 +2952,12 @@ myfilter <- function(x, filter, ...){
 	return(res)
 }
 
-minimumDistancePlot <- function(trioSetList, ranges, md.segs, cbs.segs, frame=2e6,
+minimumDistancePlot <- function(trioSetList,
+				panel.fun=xypanel,
+				rangeData,
+				md.segs,
+				cbs.segs,
+				frame=2e6,
 				cex=0.2,
 				scales.cex=0.5,
 				pch=21,
@@ -2948,7 +2967,7 @@ minimumDistancePlot <- function(trioSetList, ranges, md.segs, cbs.segs, frame=2e
 		stop("plotting genes not supported at this time")
 		##require(locuszoom)
 	}
-	index <- which(chromosome(md.segs) %in% chromosome(ranges) & sampleNames(md.segs) %in% sampleNames(ranges))
+	index <- which(chromosome(md.segs) %in% chromosome(rangeData) & sampleNames(md.segs) %in% sampleNames(rangeData))
 	stopifnot(length(index) > 0)
 	if(length(index) > 0){
 		md.segs <- md.segs[index,]
@@ -2956,19 +2975,19 @@ minimumDistancePlot <- function(trioSetList, ranges, md.segs, cbs.segs, frame=2e
 	##---------------------------------------------------------------------------
 	## RS:  commented following line to remove dependency on sssampleNames -- needs testing
 	##---------------------------------------------------------------------------
-	##index <- which(chromosome(cbs.segs) %in% chromosome(ranges) & sssampleNames(cbs.segs) %in% sssampleNames(ranges))
-	index <- which(chromosome(cbs.segs) %in% chromosome(ranges) & trioNames(cbs.segs) %in% trioNames(ranges))
+	##index <- which(chromosome(cbs.segs) %in% chromosome(rangeData) & sssampleNames(cbs.segs) %in% sssampleNames(rangeData))
+	index <- which(chromosome(cbs.segs) %in% chromosome(rangeData) & sampleNames(cbs.segs) %in% sampleNames(rangeData))
 	stopifnot(length(index) > 0)
 	if(length(index) > 0){
 		cbs.segs <- cbs.segs[index, ]
 	}
-	r1 <- ranges
+	r1 <- rangeData
 	f1 <- f2 <- list()
 	for(i in 1:nrow(r1)){
 		panelLabels <- c("father", "mother", "offspring", "min dist")
 		f1[[i]] <- xyplot(r ~ x | id, trioSetList, ##range=penn.offspring[index, ],
-				  panel=xypanel,
-				  range=r1[i, ],
+				  panel=panel.fun,
+				  rangeData=r1[i, ],
 				  panelLabels=panelLabels,
 				  layout=c(1,length(panelLabels)),
 				  index.cond=list(rev(seq_along(panelLabels))),
@@ -2993,7 +3012,9 @@ minimumDistancePlot <- function(trioSetList, ranges, md.segs, cbs.segs, frame=2e
 		} else{
 			alternating <- c(0,0,2,2,2)
 		}
-		f2[[i]] <- xyplot(b ~ x | id, trioSetList, range=r1[i, ],
+		f2[[i]] <- xyplot(b ~ x | id, trioSetList,
+				  panel=panel.fun,
+				  rangeData=r1[i, ],
 				  panelLabels=panelLabelsRight,
 				  frame=frame,
 				  scales=list(x=list(cex=scales.cex, tick.number=10,
@@ -3010,7 +3031,7 @@ minimumDistancePlot <- function(trioSetList, ranges, md.segs, cbs.segs, frame=2e
 				  xlim=f1[[i]]$x.limit,
 				  xlab="", ylab="B Allele frequency")
 	}
-	names(f1) <- names(f2) <- paste(sampleNames(ranges), start(ranges), sep="_")
+	names(f1) <- names(f2) <- paste(sampleNames(rangeData), start(rangeData), sep="_")
 	return(list(f1, f2))
 }
 

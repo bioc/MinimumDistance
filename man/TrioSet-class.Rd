@@ -5,45 +5,51 @@
 \alias{baf<-,TrioSet-method}
 \alias{[,TrioSet-method}
 \alias{calculateMindist,TrioSet-method}
+\alias{computeBayesFactor,TrioSet-method}
 \alias{dim,TrioSet-method}
-\alias{fatherNames,TrioSet-method}
 \alias{fatherNames<-,TrioSet,character-method}
-\alias{logR<-,TrioSet-method}
-\alias{mad<-,TrioSet-method}
-\alias{mad,TrioSet-method}
+\alias{fatherNames,TrioSet-method}
+\alias{initialize,TrioSet-method}
+\alias{mad.marker<-,TrioSet,ANY-method}
+\alias{mad.mindist<-,TrioSet-method}
+\alias{mad.sample<-,TrioSet,ANY-method}
 \alias{mindist<-,TrioSet-method}
 \alias{mindist,TrioSet-method}
-\alias{motherNames,TrioSet-method}
 \alias{motherNames<-,TrioSet,character-method}
-\alias{offspringNames,TrioSet-method}
+\alias{motherNames,TrioSet-method}
 \alias{offspringNames<-,TrioSet,character-method}
-\alias{phenoData2<-,TrioSet-method}
-\alias{phenoData2,TrioSet-method}
+\alias{offspringNames,TrioSet-method}
 \alias{prune,TrioSet,RangedDataCNV-method}
-\alias{todf,TrioSet,RangedData-method}
 \alias{updateObject,TrioSet-method}
-\alias{xsegment,TrioSet-method}
+\alias{xsegment,TrioSet,Pedigree-method}
 \alias{xyplot,formula,TrioSet-method}
 
 \title{Class \code{"TrioSet"}}
 \description{
 
-  A TrioSet is a container for storing high throughput data assay data
-  and metadata from genotyping arrays for case-parent trio designs.  It
-  extends eSet.  The primary difference for our application is that the
-  assay data elements are 3-d arrays: marker x trio x individual.
+    A TrioSet is a container for storing high throughput assay data and
+  metadata from genotyping arrays when the study design is case-parent
+  trios. In our application, de novo copy number alterations in affected
+  offspring were of the primary interest.  Examination of the joint
+  distribution of the log R ratios and B allele frequencies across
+  members in the trios was a motivating factor in developing the TrioSet
+  class. In particular, the assay data elements for a \code{TrioSet}
+  object are 3-dimensional arrays: marker x trio x individual.
   Typically, a TrioSet instance stores the data for a single chromosome
-  and an instance of TrioSetList is a list of TrioSets.
+  and an instance of TrioSetList is a list of TrioSets.  While having a
+  single TrioSet for the entire dataset would simplify the classes of
+  objects defined in this package, multiple arrays with thousands of
+  trios and roughly a million markers are impractical on most machines.
 
 }
 \section{Objects from the Class}{
-Objects can be created by calls of the form \code{new("TrioSet", phenoData2, ...)}.
-
+Objects can be created by calls of the form \code{new("TrioSet", logRRatio, BAF, phenoArray, mindist, mad, ...)}.
+%%  ~~ describe objects here ~~
 }
 \section{Slots}{
   \describe{
-    \item{\code{phenoData2}:}{Object of class \code{"arrayOrNULL"} ~~ }
-    \item{\code{mindist}:}{Object of class \code{"matrixOrNULL"} ~~ }
+    \item{\code{phenoData2}:}{Object of class \code{"array"} ~~ }
+    \item{\code{mindist}:}{Object of class \code{"matrix"} ~~ }
     \item{\code{mad}:}{Object of class \code{"matrix"} ~~ }
     \item{\code{assayData}:}{Object of class \code{"AssayData"} ~~ }
     \item{\code{phenoData}:}{Object of class \code{"AnnotatedDataFrame"} ~~ }
@@ -55,65 +61,74 @@ Objects can be created by calls of the form \code{new("TrioSet", phenoData2, ...
   }
 }
 \section{Extends}{
-Class \code{LogRatioSet}, directly.
-Class \code{"\linkS4class{eSet}"}, by class "LogRatioSet", distance 2.
-Class \code{"\linkS4class{VersionedBiobase}"}, by class "LogRatioSet", distance 3.
-Class \code{"\linkS4class{Versioned}"}, by class "LogRatioSet", distance 4.
+Class \code{"LogRratioSet"}, directly.
+Class \code{"\linkS4class{eSet}"}, by class "LogRratioSet", distance 2.
+Class \code{"\linkS4class{VersionedBiobase}"}, by class "LogRratioSet", distance 3.
+Class \code{"\linkS4class{Versioned}"}, by class "LogRratioSet", distance 4.
 }
 \section{Methods}{
   \describe{
-    \item{baf<-}{\code{signature(object = "TrioSet")}: ... }
-    \item{[}{\code{signature(x = "TrioSet")}: ... }
-    \item{calculateMindist}{\code{signature(object = "TrioSet")}: ... }
-    \item{dim}{\code{signature(x = "TrioSet")}: ... }
-    \item{fatherNames}{\code{signature(object = "TrioSet")}: ... }
-    \item{logR<-}{\code{signature(object = "TrioSet")}: ... }
-    \item{mad<-}{\code{signature(object = "TrioSet")}: ... }
-    \item{mad}{\code{signature(x = "TrioSet")}: ... }
-    \item{mindist<-}{\code{signature(object = "TrioSet")}: ... }
-    \item{mindist}{\code{signature(object = "TrioSet")}: ... }
+    \item{baf<-}{\code{signature(object = "TrioSet")}: accessor for B allele frequencies }
+    \item{[}{\code{signature(x = "TrioSet")}: ...}
+    \item{calculateMindist}{\code{signature(object = "TrioSet")}: Calculate the minimum distance.}
+    \item{computeBayesFactor}{\code{signature(object = "TrioSet")}: Compute the maximum a posterior probabilities for the trio copy number states }
+    \item{dim}{\code{signature(x = "TrioSet")}: Returns the dimension of the assay data elements. Each assay data element is a three dimensional array with dimensions for features, trios, and family membership, respectively.}
+    \item{fatherNames<-}{\code{signature(object = "TrioSet", value = "character")}: Assign father names}
+    \item{fatherNames}{\code{signature(object = "TrioSet")}: }
+    \item{initialize}{\code{signature(.Object = "TrioSet")}: ... }
+    \item{mad.marker<-}{\code{signature(x = "TrioSet", value = "ANY")}: ...}
+    \item{mad.mindist<-}{\code{signature(x = "TrioSet")}: ... }
+    \item{mad.sample<-}{\code{signature(x = "TrioSet", value = "ANY")}: ... }
+    \item{mindist<-}{\code{signature(object = "TrioSet")}: Assign the minimum distance to slot \code{mindist} }
+    \item{mindist}{\code{signature(object = "TrioSet")}: Accessor for the minimum distance}
+    \item{motherNames<-}{\code{signature(object = "TrioSet", value = "character")}: ... }
     \item{motherNames}{\code{signature(object = "TrioSet")}: ... }
+    \item{offspringNames<-}{\code{signature(object = "TrioSet", value = "character")}: ... }
     \item{offspringNames}{\code{signature(object = "TrioSet")}: ... }
-    \item{phenoData2<-}{\code{signature(object = "TrioSet")}: ... }
-    \item{phenoData2}{\code{signature(object = "TrioSet")}: ... }
     \item{prune}{\code{signature(object = "TrioSet", ranges = "RangedDataCNV")}: ... }
-    \item{todf}{\code{signature(object = "TrioSet", range = "RangedData")}: ... }
-    \item{updateObject}{\code{signature(object = "TrioSet")}: ... }
-    \item{xsegment}{\code{signature(object = "TrioSet")}: ... }
-    \item{xyplot}{\code{signature(x = "formula", data = "TrioSet")}: ... }
-	 }
+    \item{xsegment}{\code{signature(object = "TrioSet", pedigreeData = "Pedigree")}: Run circular binary segmentation on the minimum distance}
+    \item{xyplot}{\code{signature(x = "formula", data = "TrioSet")}: plot the log R ratios and B allele frequencies for a trio}
+  }
 }
-\author{
-R. Scharpf
-}
+\author{R. Scharpf}
+
+
 \seealso{
-  	\code{\linkS4class{TrioSetList}}
+	\code{\linkS4class{TrioSetList}}
 }
 \examples{
-\dontrun{
-       R <- array(NA, dim=c(10, 2, 3))
-       dimnames(R) <- list(letters[1:10], c("A", "B"), c("F", "M", "O"))
-       B <- array(runif(10*2*3, 0, 1), dim=dim(R), dimnames=dimnames(R))
-       x <- new("TrioSet", logRRatio=R, BAF=B)
-       x[1:2, ]
-       x[1:2,1]
-       x[1:2,1,1]
-       x <- x[, , 1] ## should get all fathers
-       x <- x[, , 2] ## should get all mothers
-       x <- x[, , 3] ## should get all offspring
-
-       R <- array(NA, dim=c(10, 2, 3))
-       dimnames(R) <- list(letters[1:10], c("A", "B"), c("F", "M", "O"))
-       B <- array(runif(10*2*3, 0, 1), dim=dim(R), dimnames=dimnames(R))
-       fD <- annotatedDataFrameFrom(R, byrow=T)
-
-       ## One could also use 'ff' objects in the assayData insteadof matrices
-
-       ldPath("~/")
-       R <- createFF("r", dim=c(10,2,3), vmode="double")
-       B <- createFF("r", dim=c(10,2,3), vmode="double")
-       x2 <- new("TrioSet", logRRatio=R, BAF=B,featureData=fD)
-}
-showClass("TrioSet")
+	showClass("TrioSet")
+	## instantiate a TrioSet with an array of log R ratios (logRR) and B
+	## allele frequencies
+	logRR <- array(rnorm(10*2*3), dim=c(10, 2, 3))
+	dimnames(logRR) <- list(paste("marker", 1:10, sep=""), paste("trio", 1:2, sep=""), c("F", "M", "O"))
+	BAFs <- array(runif(10*2*3, 0, 1), dim=dim(logRR), dimnames=dimnames(logRR))
+	trioSet <- new("TrioSet", logRRatio=logRR, BAF=BAFs)
+	## log R ratios for first five markers for all trios
+	lrr(trioSet)[1:5, , ]
+	## log R ratios for first five markers and the first trio
+	lrr(trioSet)[1:5, 1, ]
+	## log R ratios for only the offspring in the first trio
+	lrr(trioSet)[1:5, 1, "O"]
+	## similarly for B allele frequencies
+	baf(trioSet)[1:5, 1, "O"]
+	if(require("ff")){
+		## for large datasets, one can generate ff arrays for the assay data
+		## rather than store these in memory
+		##
+		## First, indicate the directory to store the ff objects
+		\dontrun{
+			ldPath(".")
+		}
+		logRR.ff <- oligoClasses:::initializeBigArray(name="lrr", dim=c(10,2,3), vmode="double")
+		## after initializion, one can read subsets of the data and write
+		## to disk by the "[<-" assignment method
+		## For example, here we write the data for 10 markers to disk
+		logRR.ff[1:10, , ] <- logRR[1:10, , ]
+		## Similarly for BAFs
+		BAF.ff <- oligoClasses:::initializeBigArray(name="baf", dim=c(10,2,3), vmode="double")
+		BAF.ff[1:10, , ] <- BAFs[1:10, , ]
+		trioSet.ff <- new("TrioSet", logRRatio=logRR.ff, BAF=BAF.ff)
+	}
 }
 \keyword{classes}

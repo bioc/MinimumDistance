@@ -1,28 +1,16 @@
 \name{pedigreeExample}
 \alias{pedigreeExample}
 \docType{data}
-\title{
-Pedigree File
-}
-\description{
-Example of a Pedigree File. Each row contains the pedigree information
-of the samples that make up a trio.
-}
+\title{Pedigree data for 2 trios}
+\description{Pedigree data for 2 trios}
 \usage{data(pedigreeExample)}
 \format{
-  A data frame with 2 observations on the following 3 variables.
-  \describe{
-    \item{\code{F}}{a character vector containing an identifier that
-    maps back to the file containing the raw data for the Father in the trio}
-    \item{\code{M}}{a character vector containing an identifier that
-    maps back to the file containing the raw data for the Mother in the trio}
-    \item{\code{O}}{a character vector containing an identifier that
-    maps back to the file containing the raw data for the Offspring in the trio}
-  }
+  object of class \code{Pedigree}
 }
-\source{
-HapMap Phase 2 Data
+\details{
+  Container for storing pedigree information
 }
+\source{HapMap}
 \examples{
 data(pedigreeExample)
 }

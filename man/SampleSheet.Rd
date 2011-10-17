@@ -9,9 +9,10 @@ SampleSheet(filename, id, plate, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{filename}{character}
+  \item{filename}{character. Ideally, the filename should be the name of
+  the file on disk.}
   \item{id}{character.  Can be the same as filename or any unique
-  identifier for a sample.}
+  identifier for a sample. This is useful if the filenames are very long.}
   \item{plate}{character. Chemistry plate upon which sample was processed.}
   \item{\dots}{Additional arguments passed to \code{data.frame}}
 }
@@ -25,13 +26,14 @@ SampleSheet(filename, id, plate, ...)
   \code{\linkS4class{SampleSheet}}
 }
 \examples{
-data(samplesheetExample)
-sample.sheet <- SampleSheet(filename=samplesheetExample$Sample.Name,
-			    id=paste("NA",substr(samplesheetExample$Sample.Name, 6, 10),sep=""),
-			    plate=samplesheetExample$Plate,
-			    well=samplesheetExample$Well,
-			    gender=samplesheetExample$Gender,
-			    SentrixPosition=samplesheetExample$SentrixPosition)
+path <- system.file("extdata", package="MinimumDistance")
+load(file.path(path, "sample.sheet.rda"))
+samplesheetExample <- SampleSheet(filename=sample.sheet$Sample.Name,
+				  id=paste("NA",substr(sample.sheet$Sample.Name, 6, 10),sep=""),
+				  plate=sample.sheet$Plate,
+				  well=sample.sheet$Well,
+				  gender=sample.sheet$Gender,
+				  SentrixPosition=sample.sheet$SentrixPosition)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

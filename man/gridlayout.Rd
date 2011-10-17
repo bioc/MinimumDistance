@@ -59,10 +59,62 @@ bordering the range in the \code{rd} object.
 
 }
 \examples{
-	data(trioSetList)
-	data(called.ranges)
-	data(md.segs)
-	data(cbs.segs)
+	data(trioSetListExample)
+	trioSetList <- minimumDistance(trioSetList[1:2])
+	md.segs <- xsegment(trioSetList, segment.mindist=TRUE, verbose=TRUE)
+	lrr.segs <- xsegment(trioSetList, segment.mindist=FALSE,
+			     id=sampleNames(trioSetList),
+			     verbose=TRUE)
+	md.segs <- narrow(md.segs, lrr.segs, thr=0.1)
+	rangeData <- computeBayesFactor(trioSetList, ranges=md.segs)
+
+	##trace(stack, browser, signature="TrioSetList")
+ 	trioSet <- stack(trioSetList)
+
+	trace(xyplot2, browser,signature=c("formula", "eSet", "RangedDataCNV"))
+	xyplot(cn~x|genomic.range, data=trioSet,
+	       range=rangeData[1:5, ],
+	       panel=xypanel)
+
+	## Use xyplot method defined for SNPset to make a trellis object
+	## for the log R ratios and B allele frequencies for each trio
+##	if(require("VanillaICE")){
+		trace(VanillaICE::xyplot2, browser, signature=c("formula", "eSet", "RangedDataCNV"))
+		xyplot(cn~x | genomic.range, data=trioSet, range=rangeData[1:5, ])
+##	}
+
+	f1[[i]] <- xyplotTrioSet(r ~ x | id,
+				 trioSetList[[chromosome(rd)[1]]], ##range=penn.offspring[index, ],
+				 rangeData=rd[1, ],
+				 panel=MinimumDistance:::xypanel,
+				 layout=c(1,length(panelLabels)),
+				 index.cond=list(rev(seq_along(panelLabels))),
+				 frame=frame,
+					 md.segs=md.segs,
+					 ylim=c(-2.5, 1),
+					 pch=pch,
+					 par.settings=list(plot.symbol=list(pch=pch, cex=cex, col="grey50"),
+					 par.xlab.text=list(cex=0.8),
+				  par.ylab.text=list(cex=0.8)),
+				  xlab="",
+				  ylab="log R ratio",
+				  scales=list(x=list(tick.number=10, cex=scales.cex, tck=c(1,0), axs="i"),
+  				              alternating=rep(1,3),
+				              y=list(cex=scales.cex)),
+				  par.strip.text=list(lines=0.8, cex=0.7),
+				  cbs.segs=cbs.segs)
+
+	fig.object <- minimumDistancePlot(trioSetList,
+					  rangeData=rd[1,],
+					  md.segs=md.segs,
+					  cbs.segs=lrr.segs)
+	gridlayout(lattice.object=fig.object)
+
+
+
+##	data(called.ranges)
+##	data(md.segs)
+##	data(cbs.segs)
 	cbs.segs$family <- MinimumDistance:::getFamilyName(cbs.segs, trioSetList)
 	##trace(minimumDistancePlot, browser)
 	##plot the first third range
@@ -76,8 +128,8 @@ bordering the range in the \code{rd} object.
 	baf.trellis.list <- trellisList[[2]]
 	gridlayout(lattice.object=list(logr.trellis.list[[1]],
 		   baf.trellis.list[[1]]), rd=called.ranges[92,])
-
 	## use a frame of 500kb around the start and end position of the segment
+
 	trellisList <- minimumDistancePlot(trioSetList=trioSetList,
 					   ranges=called.ranges[92,],
 					   md.segs=md.segs,

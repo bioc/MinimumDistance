@@ -6,12 +6,11 @@
   Segment the minimum distance or the log R ratios by circular binary segmentation
 }
 \usage{
-xsegment(object, id, segment.mindist = TRUE, ..., verbose = FALSE, DNAcopy.verbose = 0)
+xsegment(object, pedigreeData, id, segment.mindist = TRUE, ..., verbose = FALSE, DNAcopy.verbose = 0)
 }
 \arguments{
-  \item{object}{
-
-}
+  \item{object}{Object of class \code{TrioSetList} or \code{TrioSet}}
+  \item{pedigreeData}{Object of class \code{Pedigree}}
   \item{id}{character or missing.  Name of trio to segment. If missing,
   all trios are segmented. }
   \item{segment.mindist}{Logical.  If TRUE, the minimum distance is
@@ -29,12 +28,15 @@ xsegment(object, id, segment.mindist = TRUE, ..., verbose = FALSE, DNAcopy.verbo
 \author{
 Rob Scharpf
 }
+\note{
+  \code{pedigreeData} can be missing if object is of class \code{TrioSetList}.
+  }
 
 \seealso{
-See the function \code{\link{segment}} in the package DNAcopy.
+\code{\link[DNAcopy]{segment}}
 }
 \examples{
-data(trioSetList)
+data(trioSetListExample)
 ## To segment the minimum distance for chromosome 22 -- only the first trio
 mindist.segments <- xsegment(trioSetList[[22]], id=sampleNames(trioSetList)[1])
 }

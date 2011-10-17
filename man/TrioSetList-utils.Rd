@@ -7,6 +7,8 @@
 \alias{motherNames<-}
 \alias{offspringNames}
 \alias{offspringNames<-}
+\alias{pedigree}
+\alias{sampleSheet}
 \alias{xyplot}
 
 %- Also NEED an '\alias' for EACH other topic documented here.
@@ -22,6 +24,8 @@ fatherNames(object)
 allNames(object)
 motherNames(object)
 offspringNames(object)
+pedigree(object)
+sampleSheet(object)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -45,7 +49,7 @@ Rob Scharpf
 \code{\linkS4class{TrioSet}}
 }
 \examples{
-data("trioSetList")
+data("trioSetListExample")
 fatherNames(trioSetList)
 allNames(trioSetList)
 motherNames(trioSetList)

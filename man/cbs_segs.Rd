@@ -26,29 +26,10 @@
 
 \seealso{See \code{\linkS4class{RangedDataCBS}} for accessors and
   methods available for objects of this class.  See
-  \code{\link{minimumDistanceCalls}} for details regarding how the
+  \code{\link{computeBayesFactor}} for details regarding how the
   object \code{called.ranges} was instantiated.}
 
 \examples{
-\dontrun{
-	data("trioSetList")
-	## how the 'md.segs' object was created
-	md.segs <- xsegment(object=trioSetList,
-			    verbose=TRUE)
-	## how the 'cbs.segs' object was created
-	cbs.segs <- xsegment(object=trioSetList,
-			     segment.mindist=FALSE,
-			     verbose=TRUE)
-
-        ## how the 'called.ranges' object was created
-	called.ranges <- minimumDistanceCalls(container=trioSetList,
-					      cbs.segs=cbs.segs,
-					      ranges=md.segs,
-					      mindistance.threshold=0.09)
-
-
-}
-data(cbs.segs)
-data(md.segs)
+	data(called.ranges)
 }
 \keyword{datasets}

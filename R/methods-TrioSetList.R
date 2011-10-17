@@ -54,11 +54,11 @@ TrioSetList <- function(lrr, baf,
 	trioSetList <- vector("list", length(chromosome))
 	names(trioSetList) <- 1:length(chromosome)
 	father.index <- match(fatherNames(pedigreeData),
-			      colnames(logR))
+			      colnames(lrr))
 	mother.index <- match(motherNames(pedigreeData),
-			      colnames(logR))
+			      colnames(lrr))
 	offspring.index <- match(offspringNames(pedigreeData),
-				 colnames(logR))
+				 colnames(lrr))
 	.Object <- new("TrioSetList", pedigreeData=pedigreeData,
 		       sampleSheet=sampleSheet)
 	for(i in seq_along(marker.list)){
@@ -69,9 +69,9 @@ TrioSetList <- function(lrr, baf,
 					  sampleNames(pedigreeData),
 					  c("F", "M", "O"))
 		dimnames(logRArray) <- dimnames(bafArray)
-		logRArray[,,"F"] <- logR[marker.list[[i]], father.index]
-		logRArray[,,"M"] <- logR[marker.list[[i]], mother.index]
-		logRArray[,,"O"] <- logR[marker.list[[i]], offspring.index]
+		logRArray[,,"F"] <- lrr[marker.list[[i]], father.index]
+		logRArray[,,"M"] <- lrr[marker.list[[i]], mother.index]
+		logRArray[,,"O"] <- lrr[marker.list[[i]], offspring.index]
 		bafArray[,,"F"] <- baf[marker.list[[i]], father.index]
 		bafArray[,,"M"] <- baf[marker.list[[i]], mother.index]
 		bafArray[,,"O"] <- baf[marker.list[[i]], offspring.index]
@@ -98,7 +98,7 @@ TrioSetList <- function(lrr, baf,
 ##setMethod("mad", signature(x="TrioSetList"), function(x) mad(x[[1]]))
 setMethod("mad", signature(x="TrioSetList"), function(x) mad(x[[1]]))
 
-setReplaceMethod("mad.sample", signature(x="TrioSetList", value="ANY"),
+setReplaceMethod("mad.sample", signature(x="TrioSetList", value="matrix"),
 		 function(x, value){
 			 for(i in seq_along(x)){
 				 mad.sample(x[[i]]) <- value
@@ -106,7 +106,7 @@ setReplaceMethod("mad.sample", signature(x="TrioSetList", value="ANY"),
 			 return(x)
 		 })
 
-setReplaceMethod("mad.marker", signature(x="TrioSetList", value="ANY"),
+setReplaceMethod("mad.marker", signature(x="TrioSetList", value="list"),
 		 function(x, value){
 			 for(i in seq_along(x)){
 				 mad.marker(x[[i]]) <- value[[i]]
@@ -247,10 +247,12 @@ setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 
 setMethod("computeBayesFactor", signature(object="TrioSetList"),
 	  function(object, ranges,
-		   returnEmission=FALSE, verbose=TRUE, ...){
+		   returnEmission=FALSE, collapseRanges=TRUE, verbose=TRUE, ...){
 		  ##if(missing(id)) id <- unique(ranges$id) else stopifnot(id %in% unique(ranges$id))
 		  chromosomes <- sapply(object, function(x) unique(chromosome(x)))
 		  ranges <- ranges[chromosome(ranges) %in% chromosomes, ]
+		  stopifnot(!is.null(mad.marker(object[[1]])))
+		  stopifnot(!is.null(mad.sample(object[[1]])))
 ##		  ranges <- ranges[ranges$id %in% id, ]
 ##		  if(!"bayes.factor" %in% colnames(ranges)){
 ##			  ranges$bayes.factor <- NA
@@ -282,6 +284,7 @@ setMethod("computeBayesFactor", signature(object="TrioSetList"),
 						   ranges[j, ],
 						   pedigreeData=pedigree(object),
 						   returnEmission=returnEmission,
+						   collapseRanges=FALSE,
 						   verbose=FALSE, ...)
 			  if(returnEmission) return(rd)
 			  ranges$lik.state[j] <- rd$lik.state
@@ -291,6 +294,8 @@ setMethod("computeBayesFactor", signature(object="TrioSetList"),
 		  }
 		  if(verbose) close(pb)
 		  ranges$state <- trioStateNames()[ranges$argmax]
+		  if(collapseRanges)
+			  ranges <- pruneByFactor(ranges, f=ranges$argmax, verbose=verbose)
 ##		  ranges <- RangedDataMinimumDistance(ranges=ranges(ranges),
 ##						      values=values(ranges))
 		  return(ranges)
@@ -298,24 +303,21 @@ setMethod("computeBayesFactor", signature(object="TrioSetList"),
 
 setMethod("[", signature(x="TrioSetList"),
 	  function(x, i, j, ..., drop=FALSE){
+		  ## j and ... are ignored
 		  if(!missing(i)){
-			  nms <- names(x)[i]
-			  xlist <- as(x, "list")
-			  xlist <- xlist[i]
-			  names(xlist) <- nms
-			  x <- as(xlist, "TrioSetList")
+			  x@.Data <- x@.Data[i]
 		  }
 		  return(x)
 	  })
 
-setMethod("xyplot", signature(x="formula", data="TrioSetList"),
-	  function(x, data, ...){
-		  stopifnot("range" %in% names(list(...)))
-		  range <- list(...)[["range"]]
-		  stopifnot(nrow(range)==1)
-		  trioSet <- data[[range$chrom]]
-		  xyplot(x, trioSet, ...)
-	  })
+##setMethod("xyplot", signature(x="formula", data="TrioSetList"),
+##	  function(x, data, ...){
+##		  stopifnot("rangeData" %in% names(list(...)))
+##		  rangeData <- list(...)[["rangeData"]]
+##		  stopifnot(nrow(rangeData)==1)
+##		  trioSet <- data[[rangeData$chrom]]
+##		  xyplotTrioSet(x, data=trioSet, pedigreeData=pedigree(data), ...)
+##	  })
 
 setMethod("chromosome", signature(object="TrioSetList"),
 	  function(object) names(object))
@@ -358,4 +360,60 @@ setMethod("show", signature(object="TrioSet"),
                       "\n")
               cat("  element names:",
 		  paste(assayDataElementNames(object), collapse=", "), "\n")
+	  })
+
+
+setMethod("minimumDistance", signature(object="TrioSetList"),
+	  function(object, narrow.threshold=0.1, ...){
+		  mads.lrr.sample <- calculateMADlrr(object, by.sample=TRUE)
+		  mads.lrr.marker <- calculateMADlrr(object, by.sample=FALSE)
+		  mad.sample(object) <- mads.lrr.sample
+		  mad.marker(object) <- mads.lrr.marker
+		  md <- calculateMindist(object)
+		  mads.md <- lapply(md, function(x) apply(x, 2, mad, na.rm=TRUE))
+		  mad.mindist(object) <- mads.md
+		  ## add the minimumDistance to the container.
+		  mindist(object) <- md
+		  return(object)
+	  })
+
+
+setMethod("stack", signature(x="TrioSetList"),
+	  function(x, ...){
+		  bafList=lapply(x, baf)
+		  Rs <- sapply(bafList, nrow)
+		  C <- ncol(bafList[[1]])
+		  logRR <- bf <- array(NA, dim=c(sum(Rs), C, 3))
+		  md <- matrix(NA, sum(Rs), C)
+		  chrList <- lapply(x, chromosome)
+		  chrom <- unlist(chrList)
+		  pos <- unlist(lapply(x, position))
+		  is.snp <- unlist(lapply(x, isSnp))
+		  index <- split(seq_len(sum(Rs)), chrom)
+		  for(i in seq_along(trioSetList)){
+			  j <- index[[i]]
+			  bf[j, , ] <- baf(x[[i]])[,,]
+			  logRR[j, , ] <- lrr(x[[i]])[,,]
+			  md[j, ] <- mindist(x[[i]])[,]
+			  ##md.mad[j, ] <- mad(trioSetList[[i]])[,]
+		  }
+		  fns <- as.character(unlist(lapply(x, featureNames)))
+		  ##lrr.mad <- apply(md, 2, mad, na.rm=TRUE)
+		  dimnames(bf) <- dimnames(logRR) <- list(fns,
+							  sampleNames(x[[1]]),
+							  c("F","M","O"))
+		  featureData <- annotatedDataFrameFrom(as.matrix(bf[,,1]),
+							byrow=TRUE)
+		  dimnames(md) <- list(fns, sampleNames(x[[1]]))
+		  obj <- new("TrioSet",
+			     BAF=bf,
+			     logRRatio=logRR,
+			     mindist=md,
+			     phenoData=phenoData(x[[1]]),
+			     featureData=featureData)
+		  fData(obj)$chromosome <- chrom
+		  fData(obj)$position <- pos
+		  fData(obj)$isSnp <- is.snp
+		  annotation(obj) <- annotation(trioSetList[[1]])
+		  return(obj)
 	  })

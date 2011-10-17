@@ -33,12 +33,16 @@ Rob Scharpf
 }
 
 \seealso{
-See \code{\link{minimumDistanceCalls}} for assigning the trio copy
+See \code{\link{computeBayesFactor}} for assigning the trio copy
 number state to a \code{RangedDataCNV} object.  See \code{\link{state}}
 for the accessor to extract the trio copy number state.
 }
 \examples{
 isDenovo(c(333, 332, 311, 334, 344))
+data(called.ranges)
+table(isDenovo(state(called.ranges)))
+sts <- unique(state(called.ranges))
+sts[isDenovo(sts)]
 }
 \keyword{manip}
 

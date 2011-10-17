@@ -9,7 +9,7 @@
 \alias{sampleNames,RangedDataCNV-method}
 \alias{state,RangedDataCNV-method}
 \alias{todf,RangedDataCNV,ANY-method}
-\alias{trioNames,RangedDataCNV-method}
+%\alias{trioNames,RangedDataCNV-method}
 
 \title{Classes in MinimumDistance for data on ranges}
 \description{

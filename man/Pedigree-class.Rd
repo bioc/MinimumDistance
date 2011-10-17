@@ -8,7 +8,7 @@
 \alias{motherNames,Pedigree-method}
 \alias{offspringNames,Pedigree-method}
 \alias{trios,Pedigree-method}
-\alias{xsegment,TrioSet,Pedigree-method}
+%\alias{xsegment,TrioSet,Pedigree-method}
 
 \title{Container for storing pedigree information}
 \description{
@@ -31,7 +31,7 @@ Class \code{"\linkS4class{list}"}, from data part.
 Class \code{"\linkS4class{vector}"}, by class "list", distance 2.
 Class \code{"\linkS4class{AssayData}"}, by class "list", distance 2.
 Class \code{"\linkS4class{list_or_ffdf}"}, by class "list", distance 2.
-Class \code{"\linkS4class{vectorORfactor}"}, by class "list", distance 3.
+Class \code{"vectorORfactor"}, by class "list", distance 3.
 }
 \section{Methods}{
   \describe{
@@ -55,30 +55,15 @@ R. Scharpf
 \examples{
 showClass("Pedigree")
 data(pedigreeExample)
-rownames(pedigreeExample) <- NULL  ## no longer necessary to have rownames
-data(samplesheetExample)
-sample.sheet <- SampleSheet(filename=samplesheetExample$Sample.Name,
-			    id=paste("NA",substr(samplesheetExample$Sample.Name, 6, 10),sep=""),
-			    plate=samplesheetExample$Plate,
-			    well=samplesheetExample$Well,
-			    gender=samplesheetExample$Gender,
-			    SentrixPosition=samplesheetExample$SentrixPosition)
-indId <- unlist(pedigreeExample)
-trioFactor <- matrix(seq_len(nrow(pedigreeExample)), nrow(pedigreeExample), 3, byrow=FALSE)
-memberId <- substr(names(indId), 1, 1)
-## which row in the pedigree file
-trio.index <- as.integer(trioFactor) ## note this gives the index in the pedigree
-pedigreeIndex <- data.frame(individualId=indId,
-			    memberId=memberId,
-			    index.in.pedigree=trio.index,
-			    stringsAsFactors=FALSE)
-rownames(pedigreeIndex) <- NULL
-pedigreeData <- new("Pedigree", trios=pedigreeExample,
-		    trioIndex=pedigreeIndex)
-allNames(pedigreeData)
-fatherNames(pedigreeData)
-motherNames(pedigreeData)
-offspringNames(pedigreeData)
+## Note that
+sampleNames(pedigreeExample)
+## is the same as
+offspringNames(pedigreeExample)
+## To list all samples, use the accessor
+allNames(pedigreeExample)
+## see also
+fatherNames(pedigreeExample)
+motherNames(pedigreeExample)
 }
 
 \keyword{classes}
