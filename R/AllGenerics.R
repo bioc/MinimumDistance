@@ -2,7 +2,7 @@ setGeneric("mindist", function(object) standardGeneric("mindist"))
 setGeneric("mindist<-", function(object,value) standardGeneric("mindist<-"))
 setGeneric("family", function(object) standardGeneric("family"))
 setGeneric("plot", useAsDefault=function(x,y, ...) graphics::plot(x,y,...))
-setGeneric("xyplot", useAsDefault=function(x, data, ...) lattice::xyplot(x, data,...))
+##setGeneric("xyplot", useAsDefault=function(x, data, ...) lattice::xyplot(x, data,...))
 setGeneric("loglik", function(object) standardGeneric("loglik"))
 setGeneric("loglik<-", function(object, value) standardGeneric("loglik<-"))
 setGeneric("range.index", function(object) standardGeneric("range.index"))
@@ -37,10 +37,11 @@ setGeneric("prune", function(object, ranges, id,
 setGeneric("computeBayesFactor", function(object,
 					  ranges,
 					  returnEmission=FALSE,
+					  collapseRanges=TRUE,
 					  verbose=TRUE,
 					  ...)
 	   standardGeneric("computeBayesFactor"))
-setGeneric("todf", function(object, range, frame, ...) standardGeneric("todf"))
+setGeneric("todf", function(object, rangeData, frame, ...) standardGeneric("todf"))
 setGeneric("offspringNames", function(object) standardGeneric("offspringNames"))
 setGeneric("offspringNames<-", function(object,value) standardGeneric("offspringNames<-"))
 setGeneric("fatherNames", function(object) standardGeneric("fatherNames"))
@@ -57,3 +58,4 @@ setGeneric("sampleSheet", function(object) standardGeneric("sampleSheet"))
 setGeneric("pedigree", function(object) standardGeneric("pedigree"))
 setGeneric("allNames", function(object) standardGeneric("allNames"))
 setGeneric("trios", function(object) standardGeneric("trios"))
+setGeneric("minimumDistance", function(object, ...) standardGeneric("minimumDistance"))

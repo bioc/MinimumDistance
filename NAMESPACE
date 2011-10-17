@@ -2,6 +2,8 @@ useDynLib("MinimumDistance", .registration=TRUE)
 importFrom(utils, setTxtProgressBar, txtProgressBar)#, stack)
 importFrom(graphics, abline, axis, layout, legend, mtext, par, plot,
 	   polygon, rect, segments, text)
+importFrom(lattice, xyplot, simpleKey, panel.grid, panel.xyplot, lrect, ltext,
+	   lpoints, panel.number)
 importClassesFrom(Biobase, eSet)
 importMethodsFrom(Biobase, annotatedDataFrameFrom, updateObject, "[", "$")
 importFrom(Biobase, assayDataElementReplace, sampleNames, varLabels, rowMedians, "sampleNames<-")
@@ -27,7 +29,9 @@ importFrom(IRanges, IRanges, RangedData, RangedDataList,
 importFrom(msm, qtnorm, dtnorm)
 ##importFrom(ff, filename)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
+importMethodsFrom(VanillaICE, xyplot, xyplot2)
 exportClasses(DataFrameCNV, ##RangedDataCNV, RangedDataCBS, RangedDataHMM,
+##	      LogRratioSet,
 	      TrioSet, TrioSetList,
 	      Pedigree, SampleSheet)
 exportMethods("[", allNames,
@@ -35,14 +39,18 @@ exportMethods("[", allNames,
 	      calculateMindist,
 	      computeBayesFactor,
 	      fatherNames, "fatherNames<-",
-	      logR, "logR<-",
+	      ##logR, "logR<-",
 	      lrr, "lrr<-",
 ##	      mad, "mad<-",
-	      mad.sample, "mad.sample<-",
-	      mad.marker, "mad.marker<-",
-	      mindist, "mindist<-",
-	      mad.mindist,
+	      ##mad.sample,
+	      "mad.sample<-",
+	      ##mad.marker,
+	      "mad.marker<-",
+	      mindist,
+	      "mindist<-",
+##	      mad.mindist,
 	      "mad.mindist<-",
+	      minimumDistance,
 	      motherNames, "motherNames<-",
 	      ncol,
 	      nrow,
@@ -51,7 +59,8 @@ exportMethods("[", allNames,
 	      prune,
 	      rbind,
 	      sampleSheet,
-	      trioNames,
+	      stack,
+	      ##trioNames,
 	      trios,
 	      updateObject,
 	      width,
@@ -66,13 +75,11 @@ export(concAtTop,
        discAtTop,
        fmoNames,
        gridlayout,
-       initialStateProbs,
        isDenovo,
-       minimumDistance,
-       minimumDistanceCalls,
+##       minimumDistance,
+##       minimumDistanceCalls,
        minimumDistancePlot,
-       narrow, SampleSheet,
-       transitionProbability)
+       narrow, SampleSheet, xyplot, xypanel)
 ##       phenoDataArray)
 
 
