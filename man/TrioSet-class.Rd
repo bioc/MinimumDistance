@@ -19,6 +19,7 @@
 \alias{motherNames,TrioSet-method}
 \alias{offspringNames<-,TrioSet,character-method}
 \alias{offspringNames,TrioSet-method}
+\alias{phenoData2,TrioSet-method}
 \alias{prune,TrioSet,RangedDataCNV-method}
 \alias{updateObject,TrioSet-method}
 \alias{xsegment,TrioSet,Pedigree-method}
@@ -85,6 +86,8 @@ Class \code{"\linkS4class{Versioned}"}, by class "LogRratioSet", distance 4.
     \item{motherNames}{\code{signature(object = "TrioSet")}: ... }
     \item{offspringNames<-}{\code{signature(object = "TrioSet", value = "character")}: ... }
     \item{offspringNames}{\code{signature(object = "TrioSet")}: ... }
+    \item{phenoData2}{\code{signature(object = "TrioSet")}:  accessor
+      for phenoData2 slot.  }
     \item{prune}{\code{signature(object = "TrioSet", ranges = "RangedDataCNV")}: ... }
     \item{xsegment}{\code{signature(object = "TrioSet", pedigreeData = "Pedigree")}: Run circular binary segmentation on the minimum distance}
     \item{xyplot}{\code{signature(x = "formula", data = "TrioSet")}: plot the log R ratios and B allele frequencies for a trio}

@@ -136,8 +136,6 @@ trioSetList <- TrioSetList(lrr=logRratio,
 			   pedigree=pedigreeExample,
 			   sampleSheet=samplesheetExample,
 			   cdfname="human610quadv1bCrlmm")
-dim(lrr(trioSetList))
-dim(baf(trioSetList))
 trioSetList
 sampleSheet(trioSetList)
 pedigree(trioSetList)
@@ -160,6 +158,11 @@ annotationPackages()[grep("Crlmm", annotationPackages())]
 @
 
 \section{Detection of de novo copy number}
+
+<<>>=
+load("mbootwal/projects/packages/MinimumDistance/trioSet-2chrom.rda")
+dims(trioSetList)
+@
 
 For a given trio, the signed minimum absolute
 difference of the offspring and parental \lrrlong{}s (\blrr{}) is
@@ -191,7 +194,8 @@ chromosome.  We store the minimum distances in the \Rclass{TrioSet}
 objects using the replacment method \Rfunction{mindist}.
 
 <<computeMinimumDistance>>=
-md <- calculateMindist(object=trioSetList)
+##trioSetList <- trioSetList[1]
+md <- calculateMindist(trioSetList)
 mindist(trioSetList) <- md
 @
 
@@ -227,7 +231,7 @@ the \Rfunction{xsegment} wrapper as indicated in the helpfile for
 %% reference
 
 <<segmentMinimumDistance>>=
-md.segs <- xsegment(object=trioSetList[1:10], segment.mindist=TRUE, verbose=TRUE)
+md.segs <- xsegment(object=trioSetList, segment.mindist=TRUE, verbose=TRUE)
 md.segs
 @
 
@@ -235,7 +239,8 @@ We also segment the log R ratios by setting \texttt{segment.mindist}
 to \texttt{FALSE}:
 
 <<segmentLRR>>=
-lrr.segs <- xsegment(object=trioSetList[1:10], segment.mindist=FALSE,
+##trace(xsegment, browser, signature=c("TrioSet", "Pedigree"))
+lrr.segs <- xsegment(object=trioSetList, segment.mindist=FALSE,
 		     id=sampleNames(trioSetList),
 		     verbose=TRUE)
 @
@@ -265,10 +270,10 @@ collapsing consecutive ranges with the same state by specifying
 \texttt{collapseRanges=FALSE}.
 
 <<computeBayesFactor>>=
-rd <- computeBayesFactor(object=trioSetList,
-			 ranges=md.segs2)
-rd <- MinimumDistance:::pruneByFactor(rd,f=rd$argmax,verbose=TRUE)
+rd <- computeBayesFactor(object=trioSetList, ranges=md.segs2)
 rd <- rd[order(sampleNames(rd), chromosome(rd), start(rd)), ]
+table(state(rd), chromosome(rd))
+##rd.altered <- rd[state(rd) != 333, ]
 @
 
 
@@ -281,17 +286,48 @@ rd <- rd[order(sampleNames(rd), chromosome(rd), start(rd)), ]
 
 \subsection{Visualizations}
 
-Plot the MAD log R ratio by chemistry plate
+The \R{} package \Rpackage{VanillaICE} contains methods for
+visualizing \Rclass{RangedData} objects that build on the
+infrastructure in the \Rpackage{lattice} package.  We begin by
+constructing a trellis object for the log R ratios and minimum
+distance.
 
-Plot the MAD log R ratio by DNA source
-
-Plot the low-level summaries along with the minimum distance. Right
-now, the function is called \Rfunction{minimumDistancePlot}.
-
-'Rectangle' plots as in the paper (here, we'd only have de novo
-predictions from 5 offspring)
-
-
+<<visualizations>>=
+trioSet <- stack(trioSetList)
+rd.denovoDel <- rd[state(rd) == 332, ]
+library(VanillaICE)
+##trace(coerce, browser, signature=c("TrioSet", "data.frame"))
+lrrfig <- xyplot(lrr ~ x | id,
+		 data=trioSet,
+		 range=rd.denovoDel,
+		 lrr.segs=lrr.segs,
+		 md.segs=md.segs,
+		 frame=500e3,
+		 panel=xypanelMD,
+		 cex=0.2,
+		 pch=21,
+		 border="orange",
+		 scales=list(x="free"),
+		 par.strip.text=list(lines=0.8, cex=0.6),
+		 col.np="royalblue", fill.np="grey",
+		 index.cond=list(4:1),
+		 return.data.frame=FALSE)
+baffig <- xyplot(baf ~ x | id,
+		 data=trioSet,
+		 range=rd[1, ],
+		 lrr.segs=lrr.segs,
+		 md.segs=md.segs,
+		 frame=500e3,
+		 panel=VanillaICE::xypanel,
+		 cex=0.2,
+		 pch=21,
+		 border="orange",
+		 scales=list(x="free"),
+		 par.strip.text=list(lines=0.8, cex=0.6),
+		 col.np="royalblue", fill.np="grey",
+		 index.cond=list(3:1))
+VanillaICE:::arrangeSideBySide(lrrfig, baffig)
+@
 
 
 

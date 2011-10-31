@@ -3,13 +3,14 @@ importFrom(utils, setTxtProgressBar, txtProgressBar)#, stack)
 importFrom(graphics, abline, axis, layout, legend, mtext, par, plot,
 	   polygon, rect, segments, text)
 importFrom(lattice, xyplot, simpleKey, panel.grid, panel.xyplot, lrect, ltext,
-	   lpoints, panel.number)
+	   lpoints, panel.number, current.panel.limits, panel.segments)
 importClassesFrom(Biobase, eSet)
 importMethodsFrom(Biobase, annotatedDataFrameFrom, updateObject, "[", "$")
 importFrom(Biobase, assayDataElementReplace, sampleNames, varLabels, rowMedians, "sampleNames<-")
 import(SNPchip)
 ##importFrom(SNPchip, integer2chromosome)
 importFrom(stats, mad)
+importFrom(ff, open.ff, close.ff)
 importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 		  DataTable, Vector, Annotated,
 		  List, SimpleList, CompressedList,
@@ -20,7 +21,7 @@ importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 importMethodsFrom(IRanges, start, end, width,"[", "[[","[<-", "[[<-", "$",
 		  nrow, "start<-", "end<-", rbind, stack)
-importMethodsFrom(oligoClasses, state, coverage2, chromosome)
+importMethodsFrom(oligoClasses, state, coverage2, chromosome, openff, closeff)
 importFrom(oligoClasses, baf, lrr, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   findOverlaps, countOverlaps,
@@ -30,25 +31,21 @@ importFrom(msm, qtnorm, dtnorm)
 ##importFrom(ff, filename)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 importMethodsFrom(VanillaICE, xyplot, xyplot2)
-exportClasses(DataFrameCNV, ##RangedDataCNV, RangedDataCBS, RangedDataHMM,
-##	      LogRratioSet,
+exportClasses(##LogRratioSet,
 	      TrioSet, TrioSetList,
 	      Pedigree, SampleSheet)
 exportMethods("[", allNames,
 	      baf, "baf<-",
 	      calculateMindist,
 	      computeBayesFactor,
+	      dims,
 	      fatherNames, "fatherNames<-",
 	      ##logR, "logR<-",
 	      lrr, "lrr<-",
-##	      mad, "mad<-",
-	      ##mad.sample,
 	      "mad.sample<-",
-	      ##mad.marker,
 	      "mad.marker<-",
 	      mindist,
 	      "mindist<-",
-##	      mad.mindist,
 	      "mad.mindist<-",
 	      minimumDistance,
 	      motherNames, "motherNames<-",
@@ -56,6 +53,7 @@ exportMethods("[", allNames,
 	      nrow,
 	      offspringNames, "offspringNames<-",
 	      pedigree,
+	      phenoData2,
 	      prune,
 	      rbind,
 	      sampleSheet,
@@ -66,20 +64,19 @@ exportMethods("[", allNames,
 	      width,
 	      xsegment,
 	      xyplot,
+	      trioplot,
 	      initialize)
 export(concAtTop,
        calculateMADlrr,
-       ##constructTrioSetList,
        TrioSetList,
        correspondingCall,
        discAtTop,
-       fmoNames,
-       gridlayout,
+       ##fmoNames,
        isDenovo,
-##       minimumDistance,
-##       minimumDistanceCalls,
-       minimumDistancePlot,
-       narrow, SampleSheet, xyplot, xypanel)
-##       phenoDataArray)
+       narrow, SampleSheet,
+       segmentMatrix,
+       trioplot,
+       xyplot,
+       xypanelMD)
 
 

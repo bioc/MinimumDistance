@@ -4,12 +4,13 @@
 \title{Calculate the minimum distance }
 \description{Calculates the minimum distance }
 \usage{
-calculateMindist(object, ...)
+calculateMindist(object, ..., verbose=TRUE)
 }
 \arguments{
   \item{object}{
     \code{TrioSetList} or \code{TrioSet} object.}
   \item{\dots}{Ignored}
+  \item{verbose}{Logical. Displays a bar indicating progress if TRUE}
 }
 
 \details{

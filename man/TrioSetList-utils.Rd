@@ -9,7 +9,8 @@
 \alias{offspringNames<-}
 \alias{pedigree}
 \alias{sampleSheet}
-\alias{xyplot}
+%\alias{stack}
+%\alias{xyplot}
 
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{TrioSetList utility functions}
@@ -34,9 +35,7 @@ sampleSheet(object)
 \details{
   Returns the name of the father, mother, or offspring in the trio.
 
-%  \code{fmoNames} returns a matrix. The columns correspond to father,
-%  mother, and offspring.
-\code{allNames} returns all the sample names.
+  \code{allNames} returns all the sample names.
 
 }
 \value{

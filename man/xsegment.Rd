@@ -37,8 +37,13 @@ Rob Scharpf
 }
 \examples{
 data(trioSetListExample)
-## To segment the minimum distance for chromosome 22 -- only the first trio
-mindist.segments <- xsegment(trioSetList[[22]], id=sampleNames(trioSetList)[1])
+##  segment the minimum distance for the first 2 chromosomes
+trioSetList <- trioSetList[1:2]
+minimum.distance <- calculateMindist(trioSetList)
+mindist(trioSetList) <- minimum.distance
+mindist.segments <- xsegment(trioSetList,
+			     pedigreeData=pedigree(trioSetList),
+			     id=sampleNames(trioSetList))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

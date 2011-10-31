@@ -5,6 +5,7 @@
 \alias{lrr<-}
 \alias{mindist}
 \alias{mindist<-}
+\alias{phenoData2}
 
 \title{Utility functions for TrioSet}
 \description{ Utility functions for \code{TrioSet} objects}
@@ -15,6 +16,7 @@ baf(object) <- value
 lrr(object) <- value
 mindist(object)
 mindist(object) <- value
+phenoData2(object)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -29,6 +31,10 @@ mindist(object) <- value
   \code{lrr} is an accessor for the log R ratios.
 
   \code{mindist} is an accessor for the minimum distance.
+
+  \code{phenoData2} is an accessor for phenotypic information and
+   metadata on the trios stored as an array (trios x covariate x trio
+   member).
 
 }
 

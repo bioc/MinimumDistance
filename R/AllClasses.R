@@ -1,7 +1,7 @@
 setOldClass("ff_array")
 setOldClass("ff_matrix")
-setClass("DataFrameCNV", contains="data.frame")
 setClassUnion("matrixOrNULL", c("matrix", "NULL", "ff_matrix"))
+setClassUnion("matrixOrff", c("matrix", "ff_matrix"))
 setClassUnion("arrayOrNULL", c("array", "NULL"))
 setClass("LogRratioSet", contains="eSet")
 ##setValidity("LogRratioSet", function(object){
@@ -24,7 +24,7 @@ setClass("TrioSet", contains="LogRratioSet",
 
 setClass("TrioSet", contains="LogRratioSet", ##contains="LogRratioSet",
 	 representation(phenoData2="array",
-			mindist="matrix",
+			mindist="matrixOrNULL",
 			mad="matrix"),
 	 prototype = prototype(
 	                       new("VersionedBiobase",

@@ -2734,52 +2734,48 @@ thresholdY <- function(object){
 	panel.args <- lapply(panel.args2, f, ylim)
 }
 
-xypanel <- function(x, y,
-		    panelLabels=c("father", "mother", "offspring", "min dist"),
-		    layout=c(1, length(panelLabels)),
-		    index.cond=list(rev(seq_along(panelLabels))),
-		    frame=1e6,
-		    xlimit,
-		    ylimit,
-		    is.snp,
-		    ##segments=TRUE,
-		    ##segments.md=TRUE,
-		    range, fmonames,
-		    cbs.segs,
-		    md.segs,
-		    what,
-		    ##ylim,  ylim is not passed
-		    ..., subscripts){
-	##panel.grid(v=10,h=10, "grey")
-	panel.grid(v=0, h=4, "grey", lty=2)
-	what <- unique(as.character(what[subscripts]))
-	stopifnot(length(what) == 1)
-	##if(panelLabels[panel.number()] == "min dist") y <- -1*y
-	panel.xyplot(x, y, ...)
-	is.snp <- is.snp[subscripts]
-	lpoints(x[!is.snp], y[!is.snp], col="royalblue", ...)
-	index <- which(x >= start(range)/1e6 & x <= end(range)/1e6)
-	##panelLabels <- rev(panelLabels)
-	CHR <- range$chrom
-	##pL <- as.character(panelLabels[panel.number()])
-	if(what %in% c("father", "mother", "offspring")){
-		if(!missing(cbs.segs)){
-			segments <- TRUE
-			id <- switch(what,
-				     father=fmonames[1],
-				     mother=fmonames[2],
-				     offspring=fmonames[3])
-			cbs.sub <- cbs.segs[sampleNames(cbs.segs)==id & chromosome(cbs.segs)==CHR, ]
-		} else segments <- FALSE
+xypanelMD <- function(x, y,
+		      id,
+		      gt,
+		      is.snp,
+		      range,
+		      col.hom="grey20",
+		      fill.hom="lightblue",
+		      col.het="grey20" ,
+		      fill.het="salmon",
+		      col.np="grey20",
+		      fill.np="grey60",
+		      show.state=TRUE,
+		      lrr.segs,
+		      md.segs,
+		      ..., subscripts){
+	VanillaICE::xypanel(x, y,
+			    gt,
+			    is.snp,
+			    range,
+			    col.hom,
+			    fill.hom,
+			    col.het,
+			    fill.het,
+			    col.np,
+			    fill.np,
+			    show.state, ..., subscripts=subscripts)
+	id <- unique(id[subscripts])
+	CHR <- chromosome(range)
+	stopifnot(length(CHR)==1)
+	if(id != "min dist" & !missing(lrr.segs)){
+		cbs.sub <- lrr.segs[sampleNames(lrr.segs)==id & chromosome(lrr.segs)==CHR, ]
+		segments <- TRUE && nrow(cbs.sub) > 0
 	} else segments <- FALSE
-	if(!missing(md.segs) & what == "min dist"){
-		cbs.sub <- md.segs[md.segs$id %in% range$id, ]
-		cbs.sub <- cbs.sub[cbs.sub$chrom == range$chrom, ]
+	if(!missing(md.segs) & id == "min dist"){
+		cbs.sub <- md.segs[sampleNames(md.segs) %in% sampleNames(range), ]
+		cbs.sub <- cbs.sub[chromosome(cbs.sub) == chromosome(range), ]
 		cbs.sub$seg.mean <- -1*cbs.sub$seg.mean
-		segments.md <- TRUE
+		segments.md <- TRUE && nrow(cbs.sub) > 0
 	} else segments.md <- FALSE
 	if(segments | segments.md){
-		if(missing(ylimit)) ylimit <- range(y, na.rm=TRUE) ##else ylim <- ylimit
+		##if(missing(ylimit)) ylimit <- range(y, na.rm=TRUE) ##else ylim <- ylimit
+		ylimit <- current.panel.limits()$ylim
 		if(nrow(cbs.sub) > 0){
 			index <- which(cbs.sub$seg.mean < ylimit[1])
 			if(length(index) > 0)
@@ -2791,42 +2787,101 @@ xypanel <- function(x, y,
 			panel.segments(x0=start(cbs.sub)/1e6, x1=end(cbs.sub)/1e6, y0=cbs.sub$seg.mean, y1=cbs.sub$seg.mean, lwd=2, col="black")#gp=gpar("lwd"=2))
 		}
 	}
-	##---------------------------------------------------------------------------
-	##
-	## locuszoom is not available on bioconductor or cran...
-	##  -- comment the code for now
-	##
-	##---------------------------------------------------------------------------
-##	if(what == "genes"){
-##		require(locuszoom)
-##		data(rf, package="locuszoom")
-##		rf <- rf[!duplicated(rf$geneName), ]
-##		rf.chr <- rf[rf$txStart/1e6 <= xlimit[2] & rf$txEnd/1e6 >= xlimit[1] & rf$chrom==paste("chr", CHR, sep=""), ]
-##		flatBed <- flatten.bed(rf.chr)
-##		flatBed$start <- flatBed$start/1e3
-##		flatBed$stop <- flatBed$stop/1e3
-##		panel.flatbed(flat=flatBed,
-##			      showIso=FALSE,
-##			      rows=5,
-##			      cex=0.6)
-##	}
-##	if(what=="CNV"){
-##		require(locuszoom)
-##		data(cnv, package="locuszoom")
-##		cnv.chr <- cnv[cnv$txStart/1e6 <= xlimit[2] & cnv$txEnd/1e6 >= xlimit[1] & cnv$chrom==paste("chr", CHR, sep=""), ]
-##		##cnv.chr$txStart=cnv.chr$txStart/1000
-##		##cnv.chr$txEnd=cnv.chr$txEnd/1000
-##		##current.viewport$xscale <- xlimit
-##		flatBed <- flatten.bed(cnv.chr)
-##		flatBed$start <- flatBed$start/1e3
-##		flatBed$stop <- flatBed$stop/1e3
-##		panel.flatbed(flat=flatBed,
-##			      showIso=FALSE, rows=5,
-##			      cex=0.6,
-##			      col="red")
-##	}
-	if(what == "genes" || what == "CNV") stop("not supported at this time")
 }
+
+##xypanel <- function(x, y,
+##		    panelLabels=c("father", "mother", "offspring", "min dist"),
+##		    layout=c(1, length(panelLabels)),
+##		    index.cond=list(rev(seq_along(panelLabels))),
+##		    frame=1e6,
+##		    xlimit,
+##		    ylimit,
+##		    is.snp,
+##		    ##segments=TRUE,
+##		    ##segments.md=TRUE,
+##		    range, fmonames,
+##		    cbs.segs,
+##		    md.segs,
+##		    what,
+##		    ##ylim,  ylim is not passed
+##		    ..., subscripts){
+##	##panel.grid(v=10,h=10, "grey")
+##	panel.grid(v=0, h=4, "grey", lty=2)
+##	what <- unique(as.character(what[subscripts]))
+##	stopifnot(length(what) == 1)
+##	##if(panelLabels[panel.number()] == "min dist") y <- -1*y
+##	panel.xyplot(x, y, ...)
+##	is.snp <- is.snp[subscripts]
+##	lpoints(x[!is.snp], y[!is.snp], col="royalblue", ...)
+##	index <- which(x >= start(range)/1e6 & x <= end(range)/1e6)
+##	##panelLabels <- rev(panelLabels)
+##	CHR <- range$chrom
+##	##pL <- as.character(panelLabels[panel.number()])
+##	if(what %in% c("father", "mother", "offspring")){
+##		if(!missing(cbs.segs)){
+##			segments <- TRUE
+##			id <- switch(what,
+##				     father=fmonames[1],
+##				     mother=fmonames[2],
+##				     offspring=fmonames[3])
+##			cbs.sub <- cbs.segs[sampleNames(cbs.segs)==id & chromosome(cbs.segs)==CHR, ]
+##		} else segments <- FALSE
+##	} else segments <- FALSE
+##	if(!missing(md.segs) & what == "min dist"){
+##		cbs.sub <- md.segs[md.segs$id %in% range$id, ]
+##		cbs.sub <- cbs.sub[cbs.sub$chrom == range$chrom, ]
+##		cbs.sub$seg.mean <- -1*cbs.sub$seg.mean
+##		segments.md <- TRUE
+##	} else segments.md <- FALSE
+##	if(segments | segments.md){
+##		if(missing(ylimit)) ylimit <- range(y, na.rm=TRUE) ##else ylim <- ylimit
+##		if(nrow(cbs.sub) > 0){
+##			index <- which(cbs.sub$seg.mean < ylimit[1])
+##			if(length(index) > 0)
+##				cbs.sub$seg.mean[index] <- ylimit[1] + 0.2
+##			index <- which(cbs.sub$seg.mean > ylimit[2])
+##			if(length(index) > 0)
+##				cbs.sub$seg.mean[index] <- ylimit[2] - 0.2
+##			stopifnot(nrow(cbs.sub) > 0)
+##			panel.segments(x0=start(cbs.sub)/1e6, x1=end(cbs.sub)/1e6, y0=cbs.sub$seg.mean, y1=cbs.sub$seg.mean, lwd=2, col="black")#gp=gpar("lwd"=2))
+##		}
+##	}
+##	##---------------------------------------------------------------------------
+##	##
+##	## locuszoom is not available on bioconductor or cran...
+##	##  -- comment the code for now
+##	##
+##	##---------------------------------------------------------------------------
+####	if(what == "genes"){
+####		require(locuszoom)
+####		data(rf, package="locuszoom")
+####		rf <- rf[!duplicated(rf$geneName), ]
+####		rf.chr <- rf[rf$txStart/1e6 <= xlimit[2] & rf$txEnd/1e6 >= xlimit[1] & rf$chrom==paste("chr", CHR, sep=""), ]
+####		flatBed <- flatten.bed(rf.chr)
+####		flatBed$start <- flatBed$start/1e3
+####		flatBed$stop <- flatBed$stop/1e3
+####		panel.flatbed(flat=flatBed,
+####			      showIso=FALSE,
+####			      rows=5,
+####			      cex=0.6)
+####	}
+####	if(what=="CNV"){
+####		require(locuszoom)
+####		data(cnv, package="locuszoom")
+####		cnv.chr <- cnv[cnv$txStart/1e6 <= xlimit[2] & cnv$txEnd/1e6 >= xlimit[1] & cnv$chrom==paste("chr", CHR, sep=""), ]
+####		##cnv.chr$txStart=cnv.chr$txStart/1000
+####		##cnv.chr$txEnd=cnv.chr$txEnd/1000
+####		##current.viewport$xscale <- xlimit
+####		flatBed <- flatten.bed(cnv.chr)
+####		flatBed$start <- flatBed$start/1e3
+####		flatBed$stop <- flatBed$stop/1e3
+####		panel.flatbed(flat=flatBed,
+####			      showIso=FALSE, rows=5,
+####			      cex=0.6,
+####			      col="red")
+####	}
+##	if(what == "genes" || what == "CNV") stop("not supported at this time")
+##}
 
 gridlayout <- function(filename, lattice.object, rd, ...){
 	if(!missing(filename))
@@ -3197,27 +3252,27 @@ getFamilyName <- function(cbs.segs, trioSet){
 	return(family)
 }
 
-phenoDataArray <- function(pedigree, samplesheet, mapFunction){
-	if(!missing(mapFunction)){
-		samplesheet <- mapFunction(samplesheet)
-	}
-	stopifnot("pedigree.Name" %in% colnames(samplesheet))
-	ss <- array(NA, dim=c(nrow(pedigree), ncol(samplesheet), 3),
-		    dimnames=list(rownames(pedigree),
-		    colnames(samplesheet),
-		    c("F", "M", "O")))
-	father.index <- match(pedigree[, "F"],
-			      samplesheet$pedigree.Name)
-	mother.index <- match(pedigree[, "M"],
-			      samplesheet$pedigree.Name)
-	offspring.index <- match(pedigree[, "O"],
-			      samplesheet$pedigree.Name)
-	ss[, , "F"] <- as.matrix(samplesheet[father.index, ])
-	ss[, , "M"] <- as.matrix(samplesheet[mother.index, ])
-	ss[, , "O"] <- as.matrix(samplesheet[offspring.index, ])
-	rownames(ss) <- pedigree[, "O"]
-	return(ss)
-}
+##phenoDataArray <- function(pedigree, samplesheet, mapFunction){
+##	if(!missing(mapFunction)){
+##		samplesheet <- mapFunction(samplesheet)
+##	}
+##	stopifnot("pedigree.Name" %in% colnames(samplesheet))
+##	ss <- array(NA, dim=c(nrow(pedigree), ncol(samplesheet), 3),
+##		    dimnames=list(rownames(pedigree),
+##		    colnames(samplesheet),
+##		    c("F", "M", "O")))
+##	father.index <- match(pedigree[, "F"],
+##			      samplesheet$pedigree.Name)
+##	mother.index <- match(pedigree[, "M"],
+##			      samplesheet$pedigree.Name)
+##	offspring.index <- match(pedigree[, "O"],
+##			      samplesheet$pedigree.Name)
+##	ss[, , "F"] <- as.matrix(samplesheet[father.index, ])
+##	ss[, , "M"] <- as.matrix(samplesheet[mother.index, ])
+##	ss[, , "O"] <- as.matrix(samplesheet[offspring.index, ])
+##	rownames(ss) <- pedigree[, "O"]
+##	return(ss)
+##}
 
 ##constructTrioSetList <- function(pData, fD, pedigree, logR, baf, chromosome=1:22, cdfname=""){
 ##	if(missing(fD)){
@@ -3271,14 +3326,16 @@ phenoDataArray <- function(pedigree, samplesheet, mapFunction){
 ##}
 calculateMADlrr <- function(object, by.sample){
 	if(by.sample){
-		mads <- matrix(NA, ncol(object[[1]]), 3)
+		mads <- matrix(NA, ncol(object), 3)
 		colnames(mads) <- c("F", "M", "O")
 		rownames(mads) <- sampleNames(object)
 		subsetLogR <- function(object, trio.index){
-			lR <- logR(object)[, trio.index, ]
+			lR <- lrr(object)[, trio.index, ]
 		}
 		for(j in seq_len(nrow(mads))){
-			logrs <- do.call("rbind", sapply(object, subsetLogR, trio.index=j))
+			if(length(object) > 1){
+				logrs <- do.call("rbind", sapply(object, subsetLogR, trio.index=j))
+			} else logrs <- subsetLogR(object[[1]], trio.index=j)
 			mads[j, ] <- apply(logrs, 2, mad, na.rm=TRUE)
 		}
 	} else {

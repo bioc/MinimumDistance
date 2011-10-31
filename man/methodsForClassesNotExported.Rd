@@ -1,5 +1,6 @@
 \name{methodsForClassesNotExported}
 \docType{methods}
+%\alias{LogRRatioSet-class}
 \alias{[,LikSet-method}
 \alias{[,ff_array-method}
 \alias{baf,LogRratioSet-method}
