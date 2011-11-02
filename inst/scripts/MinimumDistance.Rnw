@@ -267,7 +267,9 @@ to \texttt{FALSE}:
 <<segmentLRR>>=
 lrr.segs <- segment2(object=lrr(trioSetList), pos=position(trioSetList),
 		     chrom=chromosome(trioSetList),
+		     id=trios(trioSetList),
 		     verbose=TRUE)
+##lrr.segs <- lrr.segs[sampleNames(lrr.segs)=sampleNames(lrr.segs)[1], ]
 @
 
 We \emph{narrow} the minimum distance breakpoints if there is an
@@ -325,9 +327,11 @@ library(VanillaICE)
 ##trace(xyplot2, browser, signature=c("formula", "eSet", "RangedDataCNV"))
 ##untrace(xyplot2, signature=c("formula", "eSet", "RangedDataCNV"))
 ##trace("coerce", browser, signature=c("TrioSet", "data.frame"))
+##trace(xypanelMD, browser)
+md.segs$seg.mean <- -1*md.segs$seg.mean
 lrrfig <- xyplot(lrr ~ x | id,
 		 data=trioSet,
-		 range=rd.denovoDel,
+		 range=rd.denovoDel[1, ],
 		 lrr.segs=lrr.segs,
 		 md.segs=md.segs,
 		 frame=500e3,

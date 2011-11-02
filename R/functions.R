@@ -2761,10 +2761,11 @@ xypanelMD <- function(x, y,
 			    fill.np,
 			    show.state, ..., subscripts=subscripts)
 	id <- unique(id[subscripts])
+	range <- range[1, ]
 	CHR <- chromosome(range)
-	stopifnot(length(CHR)==1)
+	##stopifnot(length(CHR)==1)
 	if(id != "min dist" & !missing(lrr.segs)){
-		cbs.sub <- lrr.segs[sampleNames(lrr.segs)==id & chromosome(lrr.segs)==CHR, ]
+		cbs.sub <- lrr.segs[sampleNames(lrr.segs)==as.character(id) & chromosome(lrr.segs)==CHR, ]
 		segments <- TRUE && nrow(cbs.sub) > 0
 	} else segments <- FALSE
 	if(!missing(md.segs) & id == "min dist"){
@@ -2783,7 +2784,6 @@ xypanelMD <- function(x, y,
 			index <- which(cbs.sub$seg.mean > ylimit[2])
 			if(length(index) > 0)
 				cbs.sub$seg.mean[index] <- ylimit[2] - 0.2
-			stopifnot(nrow(cbs.sub) > 0)
 			panel.segments(x0=start(cbs.sub)/1e6, x1=end(cbs.sub)/1e6, y0=cbs.sub$seg.mean, y1=cbs.sub$seg.mean, lwd=2, col="black")#gp=gpar("lwd"=2))
 		}
 	}

@@ -25,6 +25,7 @@ segment2(object, pos, chrom, verbose=TRUE, DNAcopy.verbose = 0, ...)
   \code{\link{xsegment}}
 }
 \examples{
+
 data(trioSetListExample)
 logRratios <- lrr(trioSetList[[1]])[, , 3]
 ##trace(segmentMatrix, browser)

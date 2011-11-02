@@ -334,8 +334,8 @@ setMethod("segment2", signature(object="matrix"),
 		  res <- segmentMatrix(object, pos, chrom, ...)
 	  })
 
-setMethod("segment2", signature(object="array"),
-	  function(object, pos, chrom, ...){
+setMethod("segment2", signature(object="array", id="data.frame"),
+	  function(object, pos, chrom, id, ...){
 		  stopifnot(length(dim(object))==3) ## expects a 3d array
 		  J <- dim(object)[[3]]
 		  resList <- vector("list", J)
@@ -344,7 +344,10 @@ setMethod("segment2", signature(object="array"),
 		  }
 		  for(j in seq_len(J)){
 			  if(verbose) message("Processing ", ncol(object), " samples")
-			  resList[[j]] <- segmentMatrix(object[, , j], pos, chrom, ...)
+			  obj <- object[, , j]
+			  colnames(obj) <- id[, j]
+			  resList[[j]] <- segmentMatrix(obj, pos, chrom, ...)
+			  rm(obj)
 		  }
 		  res <- stack(RangedDataList(resList))
 		  j <- match("sample", colnames(res))
@@ -352,8 +355,8 @@ setMethod("segment2", signature(object="array"),
 		  return(res)
 	  })
 
-setMethod("segment2", signature(object="list", pos="list", chrom="list"),
-	  function(object, pos, chrom, ...){
+setMethod("segment2", signature(object="list", pos="list", chrom="list", id="data.frame"),
+	  function(object, pos, chrom, id, ...){
 		  ## elements of list must be a matrix or an array
 		  is.matrix <- all(sapply(object, is, class2="matrix"))
 		  is.array <- all(sapply(object, is, class2="array"))
@@ -361,7 +364,7 @@ setMethod("segment2", signature(object="list", pos="list", chrom="list"),
 		  resList <- vector("list", length(object))
 		  for(i in seq_along(object)){
 			  resList <- segment2(object[[i]], pos=pos[[i]],
-					      chrom=chrom[[i]], ...)
+					      chrom=chrom[[i]], id=id, ...)
 		  }
 		  res <- stack(RangedDataList(resList))
 		  j <- match("sample", colnames(res))
