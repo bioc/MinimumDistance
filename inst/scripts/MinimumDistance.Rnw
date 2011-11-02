@@ -136,6 +136,33 @@ trioSetList <- TrioSetList(lrr=logRratio,
 			   pedigree=pedigreeExample,
 			   sampleSheet=samplesheetExample,
 			   cdfname="human610quadv1bCrlmm")
+
+## make the log R ratio matrix and baf matrix small
+##  -- 25 markers per chromosome
+setMethod("featureNames", signature(object="TrioSetList"), function(object){
+	fns <- lapply(object, featureNames)
+	unlist(fns)
+})
+setMethod("chromosome", signature(object="TrioSetList"), function(object){
+	chr <- lapply(object, chromosome)
+	unlist(chr)
+})
+fns <- featureNames(trioSetList)
+chr <- chromosome(trioSetList)
+fnsList <- split(fns, chr)
+keep.fns <- unlist(lapply(fnsList, sample, size=25))
+index.lrr <- match(keep.fns, rownames(logRratio))
+index.baf <- match(keep.fns, rownames(baf))
+logRratio <- logRratio[index.lrr,]
+baf <- baf[index.lrr, ]
+
+trace(TrioSetList, browser)
+trioSetList <- TrioSetList(lrr=logRratio,
+			   baf=baf,
+			   pedigree=pedigreeExample,
+			   sampleSheet=samplesheetExample,
+			   cdfname="human610quadv1bCrlmm")
+
 trioSetList
 sampleSheet(trioSetList)
 pedigree(trioSetList)

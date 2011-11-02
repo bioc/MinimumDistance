@@ -3090,101 +3090,135 @@ minimumDistancePlot <- function(trioSetList,
 	return(list(f1, f2))
 }
 
-narrow <- function(md.range, cbs.segs, thr, verbose=TRUE){
+narrow <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 	stopifnot("mindist.mad" %in% colnames(md.range))
-	i <- which(sampleNames(cbs.segs) %in% sampleNames(md.range))
-	cbs.segs <- cbs.segs[i, ]
-	i <- which(chromosome(cbs.segs) %in% chromosome(md.range))
-	if(length(i) > 0 & length(i) < nrow(cbs.segs)){
-		cbs.segs <- cbs.segs[i, ]
-	}
-	chroms <- unique(chromosome(md.range))
-	rdN <- vector("list", length(chroms))
-	if(verbose) {
-		message("Narrowing the ranges with segment mean above ", thr, " if the offspring has a start/stop in the region")
-		pb <- txtProgressBar(min=0, max=length(chroms), style=3)
-	}
-	for(i in seq_along(chroms)){
-		if(verbose) setTxtProgressBar(pb, i)
-		j <- chroms[i]
-		md <- md.range[chromosome(md.range) == j, ]
-		md <- md[order(sampleNames(md), start(md)), ]
-		jj <- which(chromosome(cbs.segs)==j)
-		cbs <- cbs.segs[jj, ]
-		cbs <- cbs[order(sampleNames(cbs), start(cbs)), ]
-		ir1 <- IRanges(start(md), end(md))
-		ir2 <- IRanges(start(cbs), end(cbs))
-		mm <- findOverlaps(ir1, ir2)
-		qhits <- queryHits(mm)
-		shits <- subjectHits(mm)
-		index <- which(sampleNames(md)[qhits] == sampleNames(cbs)[shits])
-		if(length(index) > 0){
-			qhits <- qhits[index]
-			shits <- shits[index]
-		} else stop("no overlap")
-		##---------------------------------------------------------------------------
-		##
-		## only narrow the range if the minimum distance is
-		## bigger than some nominal value. Otherwise, we use
-		## the minimum distance range as is.
-		##
-		##
-		##---------------------------------------------------------------------------
-		abs.thr <- abs(md$seg.mean) > thr
-		## I1 is an indicator for whether to use the cbs start
-		I1 <- start(cbs)[shits] >= start(md)[qhits] & start(cbs)[shits] <= end(md)[qhits] & abs.thr[qhits]
-		I2 <- end(cbs)[shits] <= end(md)[qhits] & end(cbs)[shits] >= start(md)[qhits] & abs.thr[qhits]
-		st <- start(cbs)[shits] * I1 + start(md)[qhits] * (1-I1)
-		en <- end(cbs)[shits] * I2 + end(md)[qhits] * (1-I2)
-		st.index <- (cbs$start.index[shits] * I1 + md$start.index[qhits]*(1-I1))
-		en.index <- (cbs$end.index[shits] * I2 + md$end.index[qhits]*(1-I2))
-		## For each md range, there should only be one I1 that is TRUE
-		## If I1 and I2 are true, then a range is completely contained within the md segment
-		ids <- md$id[qhits]
-		##  |--------------|
-		## ---|--------|-----
-		## Becomes
-		##  |-|--------|---|
-		index <- which(I1 & I2)-1
-		index <- index[index!=0]
-		index <- index[ids[index] == ids[index+1]]
-		if(length(index) > 1){
-			en[index] <- st[index+1]-1
-			en.index[index] <- st.index[index+1]-1
+	cbs.segs <- cbs.segs[sampleNames(cbs.segs) %in% sampleNames(md.range), ]
+	if(length(unique(chromosome(md.range))) > 1){
+		if(verbose)
+			message("narrowing the ranges by chromosome")
+		indexList <- split(seq_len(nrow(md.range)), chromosome(md.range))
+		indexList2 <- split(seq_len(nrow(cbs.segs)), chromosome(cbs.segs))
+		stopifnot(all.equal(names(indexList), names(indexList2)))
+		if(verbose) {
+			pb <- txtProgressBar(min=0, max=length(indexList), style=3)
 		}
-		##split(I1, qhits)
-		##split(I2, qhits)
-		stopifnot(sapply(split(st, qhits), function(x) all(diff(x) >= 0)))
-		nm <- apply(cbind(st.index, en.index), 1, function(x) length(x[1]:x[2]))
-		## keep segment means the same as the minimum distance
-		tmp <- RangedData(IRanges(st, en),
-				  id=sampleNames(md)[qhits],
-				  chrom=chromosome(md)[qhits],
-				  num.mark=nm,
-				  seg.mean=md$seg.mean[qhits],
-				  start.index=st.index,
-				  end.index=en.index,
-				  mindist.mad=md$mindist.mad[qhits])
-				  ##family=md$family[qhits])
-		##ranges.below.thr <- split(!abs.thr[qhits], qhits)
-		##ns <- sapply(ranges.below.thr, sum)
-		uid <- paste(tmp$id, start(tmp), tmp$chrom, sep="")
-		##duplicated(uid)
-		stopifnot(!all(duplicated(uid)))
-		tmp <- tmp[!duplicated(uid), ]
-		## for each subject, the following must be true
-		index <- which(tmp$id[-nrow(tmp)] == tmp$id[-1])
-		stopifnot(all(end(tmp)[index] < start(tmp)[index+1]))
-		rdN[[i]] <- tmp[order(tmp$id, start(tmp)), ]
+		segList <- vector("list", length(indexList))
+		for(i in seq_along(indexList)){
+			if(verbose) setTxtProgressBar(pb, i)
+			j <- indexList[[i]]
+			k <- indexList2[[i]]
+			md.segs <- md.range[j, ]
+			lr.segs <- cbs.segs[k, ]
+			segList[[i]] <- narrowRangeForChromosome(md.segs, lr.segs, thr=thr, verbose=FALSE)
+			rm(md.segs, lr.segs); gc()
+		}
+		if(verbose) close(pb)
+		segs <- stack(RangedDataList(segList))
+		j <- match("sample", colnames(segs))
+		if(length(j) == 1) segs <- segs[, -j]
+	} else {
+		segs <- narrowRangeForChromosome(md.range, cbs.segs, thr, verbose)
 	}
-	if(verbose) close(pb)
-	if(length(rdN) > 1){
-		rdL <- stack(RangedDataList(rdN))
-		rd <- rdL[, -grep("sample", colnames(rdL))]
-		rdCbs <- RangedDataCBS(ranges=ranges(rd), values=values(rd))
-	} else rdCbs <- RangedDataCBS(ranges=ranges(rdN[[1]]), values=values(rdN[[1]]))
-	return(rdCbs)
+	return(segs)
 }
+
+##	if(verbose) close(pb)
+##	if(length(rdN) > 1){
+##		rdL <- stack(RangedDataList(rdN))
+##		rd <- rdL[, -grep("sample", colnames(rdL))]
+##		rdCbs <- RangedDataCBS(ranges=ranges(rd), values=values(rd))
+##	} else rdCbs <- RangedDataCBS(ranges=ranges(rdN[[1]]), values=values(rdN[[1]]))
+##	return(rdCbs)
+##}
+
+narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
+	##i <- which(sampleNames(cbs.segs) %in% sampleNames(md.range))
+	##cbs.segs <- cbs.segs[i, ]
+	##i <- which(chromosome(cbs.segs) %in% chromosome(md.range))
+##	if(length(i) > 0 & length(i) < nrow(cbs.segs)){
+##		cbs.segs <- cbs.segs[i, ]
+##	}
+##	chroms <- unique(chromosome(md.range))
+##	rdN <- vector("list", length(chroms))
+##	if(verbose) {
+##		message("Narrowing the ranges with segment mean above ", thr, " if the offspring has a start/stop in the region")
+##		pb <- txtProgressBar(min=0, max=length(chroms), style=3)
+##	}
+##	for(i in seq_along(chroms)){
+##		if(verbose) setTxtProgressBar(pb, i)
+##		j <- chroms[i]
+##		md <- md.range[chromosome(md.range) == j, ]
+	md.range <- md.range[order(sampleNames(md.range), start(md.range)), ]
+##		jj <- which(chromosome(cbs.segs)==j)
+##		cbs <- cbs.segs[jj, ]
+	cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs)), ]
+	ir1 <- IRanges(start(md.range), end(md.range))
+	ir2 <- IRanges(start(cbs.segs), end(cbs.segs))
+	mm <- findOverlaps(ir1, ir2)
+	qhits <- queryHits(mm)
+	shits <- subjectHits(mm)
+	index <- which(sampleNames(md.range)[qhits] == sampleNames(cbs.segs)[shits])
+	if(length(index) > 0){
+		qhits <- qhits[index]
+		shits <- shits[index]
+	} else stop("no overlap")
+	##---------------------------------------------------------------------------
+	##
+	## only narrow the range if the minimum distance is
+	## bigger than some nominal value. Otherwise, we use
+	## the minimum distance range as is.
+	##
+	##
+	##---------------------------------------------------------------------------
+	abs.thr <- abs(md.range$seg.mean) > thr
+	## I1 is an indicator for whether to use the cbs start
+	I1 <- start(cbs.segs)[shits] >= start(md.range)[qhits] & start(cbs.segs)[shits] <= end(md.range)[qhits] & abs.thr[qhits]
+	I2 <- end(cbs.segs)[shits] <= end(md.range)[qhits] & end(cbs.segs)[shits] >= start(md.range)[qhits] & abs.thr[qhits]
+	st <- start(cbs.segs)[shits] * I1 + start(md.range)[qhits] * (1-I1)
+	en <- end(cbs.segs)[shits] * I2 + end(md.range)[qhits] * (1-I2)
+	st.index <- (cbs.segs$start.index[shits] * I1 + md.range$start.index[qhits]*(1-I1))
+	en.index <- (cbs.segs$end.index[shits] * I2 + md.range$end.index[qhits]*(1-I2))
+	## For each md.range range, there should only be one I1 that is TRUE
+	## If I1 and I2 are true, then a range is completely contained within the md.range segment
+	ids <- md.range$id[qhits]
+	##  |--------------|
+	## ---|--------|-----
+	## Becomes
+	##  |-|--------|---|
+	index <- which(I1 & I2)-1
+	index <- index[index!=0]
+	index <- index[ids[index] == ids[index+1]]
+	if(length(index) > 1){
+		en[index] <- st[index+1]-1
+		en.index[index] <- st.index[index+1]-1
+	}
+	##split(I1, qhits)
+	##split(I2, qhits)
+	stopifnot(sapply(split(st, qhits), function(x) all(diff(x) >= 0)))
+	nm <- apply(cbind(st.index, en.index), 1, function(x) length(x[1]:x[2]))
+	## keep segment means the same as the minimum distance
+	tmp <- RangedData(IRanges(st, en),
+			  id=sampleNames(md.range)[qhits],
+			  chrom=chromosome(md.range)[qhits],
+			  num.mark=nm,
+			  seg.mean=md.range$seg.mean[qhits],
+			  start.index=st.index,
+			  end.index=en.index,
+			  mindist.mad=md.range$mindist.mad[qhits])
+	##family=md.range$family[qhits])
+	##ranges.below.thr <- split(!abs.thr[qhits], qhits)
+	##ns <- sapply(ranges.below.thr, sum)
+	uid <- paste(tmp$id, start(tmp), tmp$chrom, sep="")
+	##duplicated(uid)
+	stopifnot(!all(duplicated(uid)))
+	tmp <- tmp[!duplicated(uid), ]
+	## for each subject, the following must be true
+	index <- which(tmp$id[-nrow(tmp)] == tmp$id[-1])
+	stopifnot(all(end(tmp)[index] < start(tmp)[index+1]))
+	res <- tmp[order(tmp$id, start(tmp)), ]
+	return(res)
+}
+
 
 plotRange <- function(range, trioSetList, md.segs,cbs.segs, penn.offsprng, frame=2e6){
 	tmp <- MinimumDistance:::minimumDistancePlot(trioSetList=trioSetList,

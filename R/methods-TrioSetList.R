@@ -54,6 +54,11 @@ TrioSetList <- function(lrr, baf,
 		stopifnot(is(featureData, "AnnotatedDataFrame"))
 		fD <- featureData
 	}
+	index <- match(rownames(lrr), sampleNames(fD))
+	if(any(is.na(index))){
+		warning("Some rownames of the log R ratio matrix are not in the corresponding featureData object.")
+	}
+	fD <- fD[index, ]
 	sampleSheet <- sampleSheet[match(allNames(pedigreeData), sampleNames(sampleSheet)), ]
 	marker.list <- split(sampleNames(fD), fD$chromosome)
 	marker.list <- marker.list[1:length(marker.list)%in%chromosome]
@@ -335,6 +340,8 @@ setMethod("[", signature(x="TrioSetList"),
 		  }
 		  return(x)
 	  })
+
+
 
 ##setMethod("xyplot", signature(x="formula", data="TrioSetList"),
 ##	  function(x, data, ...){

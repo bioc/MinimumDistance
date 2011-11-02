@@ -340,10 +340,10 @@ segmentMatrix <- function(object, pos, chrom, verbose=TRUE, DNAcopy.verbose=0, .
 	iMax <- sapply(split(marker.index, arm), max)
 	pMax <- pos[iMax]
 	if(verbose){
-		message("\t\tComputing Bayes factors for ", length(index.list), " regions.")
+		message("\t\tSmoothing outliers and running circular binary segmentation on ", ncol(object), " samples.")
 		pb <- txtProgressBar(min=0, max=length(index.list), style=3)
 	}
-	md.segs <- list()
+	md.segs <- vector("list", length(index.list))
 	for(i in seq_along(index.list)){
 		if (verbose) setTxtProgressBar(pb, i)
 		j <- index.list[[i]]
@@ -354,6 +354,7 @@ segmentMatrix <- function(object, pos, chrom, verbose=TRUE, DNAcopy.verbose=0, .
 				  sampleid=colnames(object))
 		smu.object <- smooth.CNA(CNA.object)
 		tmp <- segment(smu.object, verbose=DNAcopy.verbose, ...)
+		rm(smu.object); gc()
 		df <- tmp$output
 		sr <- tmp$segRows
 		##df <- cbind(tmp$output, tmp$segRows)
@@ -366,19 +367,30 @@ segmentMatrix <- function(object, pos, chrom, verbose=TRUE, DNAcopy.verbose=0, .
 		## missing, this might not be true
 		stopifnot(max(df$end.index) <= iMax[i])
 		md.segs[[i]] <- df
+		rm(tmp, df, firstMarker, endMarker, CNA.object); gc()
 	}
 	if(verbose) close(pb)
 	if(length(md.segs) > 1){
 		md.segs <- do.call("rbind", md.segs)
 	} else md.segs <- md.segs[[1]]
+	ids <- .harmonizeSampleNames(original.names=colnames(object),
+				     segment.ids=md.segs$ID)
 	ranges <- RangedDataCBS(ranges=IRanges(md.segs$loc.start, md.segs$loc.end),
 				chromosome=md.segs$chrom,
-				sampleId=md.segs$ID,
+				sampleId=ids,
 				coverage=md.segs$num.mark,
 				seg.mean=md.segs$seg.mean,
 				startIndexInChromosome=md.segs$start.index,
 				endIndexInChromosome=md.segs$end.index)
 	return(ranges)
+}
+
+.harmonizeSampleNames <- function(original.names, segment.ids){
+	sns <- split(segment.ids, unique(segment.ids))
+	L <- sapply(sns, length)
+	nms <- rep(original.names, L)
+
+	return(nms)
 }
 
 setMethod("xsegment", signature(object="TrioSet", pedigreeData="Pedigree"),
@@ -499,10 +511,13 @@ setMethod("xsegment", signature(object="TrioSet", pedigreeData="Pedigree"),
 })
 
 
+
+
 setMethod("mad.mindist", signature(x="TrioSet"),
 	  function(x){
 		  x$mindist.mad
 	  })
+
 setReplaceMethod("mad.mindist", signature(x="TrioSet"),
 		 function(x, value){
 			 ## store in phenodata
