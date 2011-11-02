@@ -302,6 +302,23 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 	return(md)
 })
 
+setMethod("mad", signature(x="list"),
+	  function(x, center=median(x), constant=1.4826, na.rm=FALSE,
+		   low=FALSE, high=FALSE){
+		  ilist <- splitIndicesByLength(seq_len(ncol(trioSetList)), 100)
+		  mads <- vector("numeric", ncol(trioSetList))
+		  for(j in seq_along(ilist)){
+			  i <- ilist[[j]]
+			  md <- vector("list", length(trioSetList))
+			  for(k in seq_along(minimum.distance)){
+				  md[[k]] <- minimum.distance[[k]][, i]
+			  }
+			  md <- do.call("rbind", md)
+			  mads[i] <- apply(md, 2, mad, na.rm=TRUE)
+		  }
+		  return(mads)
+	  })
+
 setMethod("mad", signature(x="TrioSet"), function(x) x@mad)
 setMethod("mad.marker", signature(x="TrioSet"), function(x) fData(x)$marker.mad)
 setMethod("mad.sample", signature(x="TrioSet"), function(x) x@mad)
@@ -355,7 +372,7 @@ setMethod("segment2", signature(object="array", id="data.frame"),
 		  return(res)
 	  })
 
-setMethod("segment2", signature(object="list", pos="list", chrom="list", id="data.frame"),
+setMethod("segment2", signature(object="list", pos="list", chrom="list"),
 	  function(object, pos, chrom, id, ...){
 		  ## elements of list must be a matrix or an array
 		  is.matrix <- all(sapply(object, is, class2="matrix"))
@@ -363,8 +380,13 @@ setMethod("segment2", signature(object="list", pos="list", chrom="list", id="dat
 		  stopifnot(is.matrix | is.array)
 		  resList <- vector("list", length(object))
 		  for(i in seq_along(object)){
-			  resList <- segment2(object[[i]], pos=pos[[i]],
-					      chrom=chrom[[i]], id=id, ...)
+			  if(!missing(id)){
+				  resList <- segment2(object[[i]], pos=pos[[i]],
+						      chrom=chrom[[i]], id=id, ...)
+			  } else {
+				  resList <- segment2(object[[i]], pos=pos[[i]],
+						      chrom=chrom[[i]], ...)
+			  }
 		  }
 		  res <- stack(RangedDataList(resList))
 		  j <- match("sample", colnames(res))

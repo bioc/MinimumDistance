@@ -267,7 +267,7 @@ to \texttt{FALSE}:
 <<segmentLRR>>=
 lrr.segs <- segment2(object=lrr(trioSetList), pos=position(trioSetList),
 		     chrom=chromosome(trioSetList),
-		     id=trios(trioSetList),
+		     id=trios(trioSetList), ## id is required
 		     verbose=TRUE)
 ##lrr.segs <- lrr.segs[sampleNames(lrr.segs)=sampleNames(lrr.segs)[1], ]
 @
