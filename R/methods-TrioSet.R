@@ -298,6 +298,7 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 		close(lrr(object))
 	}
 	##return(object)
+	dimnames(md) <- list(featureNames(object), sampleNames(object))
 	return(md)
 })
 
@@ -327,6 +328,49 @@ offspringForId <- function(id, pedigree){
 	index <- match(id, pedigree.char)
 }
 
+
+setMethod("segment2", signature(object="matrix"),
+	  function(object, pos, chrom, ...){
+		  res <- segmentMatrix(object, pos, chrom, ...)
+	  })
+
+setMethod("segment2", signature(object="array"),
+	  function(object, pos, chrom, ...){
+		  stopifnot(length(dim(object))==3) ## expects a 3d array
+		  J <- dim(object)[[3]]
+		  resList <- vector("list", J)
+		  if("verbose" %in% names(list(...))){
+			  verbose <- list(...)[["verbose"]]
+		  }
+		  for(j in seq_len(J)){
+			  if(verbose) message("Processing ", ncol(object), " samples")
+			  resList[[j]] <- segmentMatrix(object[, , j], pos, chrom, ...)
+		  }
+		  res <- stack(RangedDataList(resList))
+		  j <- match("sample", colnames(res))
+		  if(length(j) == 1) res <- res[, -j]
+		  return(res)
+	  })
+
+setMethod("segment2", signature(object="list", pos="list", chrom="list"),
+	  function(object, pos, chrom, ...){
+		  ## elements of list must be a matrix or an array
+		  is.matrix <- all(sapply(object, is, class2="matrix"))
+		  is.array <- all(sapply(object, is, class2="array"))
+		  stopifnot(is.matrix | is.array)
+		  resList <- vector("list", length(object))
+		  for(i in seq_along(object)){
+			  resList <- segment2(object[[i]], pos=pos[[i]],
+					      chrom=chrom[[i]], ...)
+		  }
+		  res <- stack(RangedDataList(resList))
+		  j <- match("sample", colnames(res))
+		  if(length(j) == 1) res <- res[, -j]
+		  return(res)
+	  })
+
+
+
 segmentMatrix <- function(object, pos, chrom, verbose=TRUE, DNAcopy.verbose=0, ...){
 	stopifnot(class(object) == "matrix")
 	fns <- rownames(object)
@@ -340,10 +384,22 @@ segmentMatrix <- function(object, pos, chrom, verbose=TRUE, DNAcopy.verbose=0, .
 	iMax <- sapply(split(marker.index, arm), max)
 	pMax <- pos[iMax]
 	if(verbose){
-		message("\t\tSmoothing outliers and running circular binary segmentation on ", ncol(object), " samples.")
+		##message("\t\tSmoothing outliers and running circular binary segmentation on ", ncol(object), " samples.")
 		pb <- txtProgressBar(min=0, max=length(index.list), style=3)
 	}
 	md.segs <- vector("list", length(index.list))
+	##
+	## The names returned by DNAcopy's segment are not necessarily the
+	## same as the original names
+	## (e.g., if '@' is embedded in the name, or the
+	##  first charcter is numeric)
+	##  The hash table guarantees that the sample names returned are identical
+	##  to the original names
+	##
+	hash.matrix <- cbind(paste("s", seq_len(ncol(object)), sep=""), colnames(object))
+	colnames(hash.matrix) <- c("key", "original.id")
+	##
+	##
 	for(i in seq_along(index.list)){
 		if (verbose) setTxtProgressBar(pb, i)
 		j <- index.list[[i]]
@@ -351,7 +407,7 @@ segmentMatrix <- function(object, pos, chrom, verbose=TRUE, DNAcopy.verbose=0, .
 				  chrom=chrom[j],
 				  maploc=pos[j],
 				  data.type="logratio",
-				  sampleid=colnames(object))
+				  sampleid=hash.matrix[, "key"])
 		smu.object <- smooth.CNA(CNA.object)
 		tmp <- segment(smu.object, verbose=DNAcopy.verbose, ...)
 		rm(smu.object); gc()
@@ -373,11 +429,11 @@ segmentMatrix <- function(object, pos, chrom, verbose=TRUE, DNAcopy.verbose=0, .
 	if(length(md.segs) > 1){
 		md.segs <- do.call("rbind", md.segs)
 	} else md.segs <- md.segs[[1]]
-	ids <- .harmonizeSampleNames(original.names=colnames(object),
-				     segment.ids=md.segs$ID)
+	key.index <- match(md.segs$ID, hash.matrix[, "key"])
+	orig.id <- hash.matrix[key.index, "original.id"]
 	ranges <- RangedDataCBS(ranges=IRanges(md.segs$loc.start, md.segs$loc.end),
 				chromosome=md.segs$chrom,
-				sampleId=ids,
+				sampleId=orig.id,
 				coverage=md.segs$num.mark,
 				seg.mean=md.segs$seg.mean,
 				startIndexInChromosome=md.segs$start.index,
@@ -385,13 +441,12 @@ segmentMatrix <- function(object, pos, chrom, verbose=TRUE, DNAcopy.verbose=0, .
 	return(ranges)
 }
 
-.harmonizeSampleNames <- function(original.names, segment.ids){
-	sns <- split(segment.ids, unique(segment.ids))
-	L <- sapply(sns, length)
-	nms <- rep(original.names, L)
-
-	return(nms)
-}
+##.harmonizeSampleNames <- function(original.names, segment.ids){
+##	sns <- split(segment.ids, segment.ids)
+##	L <- sapply(sns, length)
+##	nms <- rep(original.names, L)
+##	return(nms)
+##}
 
 setMethod("xsegment", signature(object="TrioSet", pedigreeData="Pedigree"),
 	  function(object, pedigreeData, id, segment.mindist=TRUE, ..., verbose=FALSE, DNAcopy.verbose=0){

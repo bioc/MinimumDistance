@@ -81,6 +81,8 @@ setValidity("TrioSetList", function(object){
 	}
 	if(!identical(allNames(pedigree(object)), sampleNames(sampleSheet(object))))
 		return("allNames of Pedigree must be identical to sampleNames of SampleSheet")
+	if(!identical(as.character(unlist(trios(object))), as.character(phenoData2(object[[1]])[, "sampleNames", ])))
+		return("The phenoData2 slot for the elements in the TrioSetList must have a sampleNames column equal to trios(object)")
 	TRUE
 })
 

@@ -3090,7 +3090,10 @@ minimumDistancePlot <- function(trioSetList,
 	return(list(f1, f2))
 }
 
-narrow <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
+narrow <- function(md.range, cbs.segs, thr=0.9, mad.minimumdistance=mad.md, verbose=TRUE){
+	stopifnot(!is.null(names(mad.minimumdistance)))
+	ix <- match(sampleNames(md.range), names(mad.minimumdistance))
+	md.range$mindist.mad <- mad.minimumdistance[ix]
 	stopifnot("mindist.mad" %in% colnames(md.range))
 	cbs.segs <- cbs.segs[sampleNames(cbs.segs) %in% sampleNames(md.range), ]
 	if(length(unique(chromosome(md.range))) > 1){
@@ -3119,7 +3122,8 @@ narrow <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 	} else {
 		segs <- narrowRangeForChromosome(md.range, cbs.segs, thr, verbose)
 	}
-	return(segs)
+	rd.cbs <- RangedDataCBS(ranges=ranges(segs), values=values(segs))
+	return(rd.cbs)
 }
 
 ##	if(verbose) close(pb)

@@ -69,11 +69,11 @@ TrioSetList <- function(lrr, baf,
 
 	trio.names <- array(NA, dim=c(length(offspringNames(pedigreeData)), 1, 3))
 	dimnames(trio.names) <- list(offspringNames(pedigreeData), "sampleNames", c("F", "M", "O"))
+	trio.names[, "sampleNames", ] <- as.matrix(trios(pedigreeData))
+
 	father.names <- fatherNames(pedigreeData)
 	mother.names <- motherNames(pedigreeData)
 	offspring.names <- offspringNames(pedigreeData)
-	trio.names[, "sampleNames", ] <- as.matrix(trios(pedigreeData))
-
 	father.index <- match(father.names,
 			      colnames(lrr))
 	mother.index <- match(mother.names,
@@ -450,4 +450,18 @@ setMethod("stack", signature(x="TrioSetList"),
 		  fData(obj)$isSnp <- is.snp
 		  annotation(obj) <- annotation(x[[1]])
 		  return(obj)
+	  })
+
+setMethod("lrr", signature(object="TrioSetList"),
+	  function(object){
+		  lapply(object, lrr)
+	  })
+
+setMethod("chromosome", signature(object="TrioSetList"),
+	  function(object){
+		  lapply(object, chromosome)
+	  })
+setMethod("position", signature(object="TrioSetList"),
+	  function(object){
+		  lapply(object, position)
 	  })

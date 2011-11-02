@@ -54,7 +54,7 @@ options(prompt="R> ", continue=" ", device=pdf, width=68)
 
 \end{abstract}
 
-\section{Exemplar dataset}
+\section{Required data structures}
 
 We begin by describing how to instantiate the data structures required
 for inferring changes in the de novo copy number.  A key design
@@ -136,36 +136,31 @@ trioSetList <- TrioSetList(lrr=logRratio,
 			   pedigree=pedigreeExample,
 			   sampleSheet=samplesheetExample,
 			   cdfname="human610quadv1bCrlmm")
-
 ## make the log R ratio matrix and baf matrix small
 ##  -- 25 markers per chromosome
-setMethod("featureNames", signature(object="TrioSetList"), function(object){
-	fns <- lapply(object, featureNames)
-	unlist(fns)
-})
-setMethod("chromosome", signature(object="TrioSetList"), function(object){
-	chr <- lapply(object, chromosome)
-	unlist(chr)
-})
-fns <- featureNames(trioSetList)
-chr <- chromosome(trioSetList)
-fnsList <- split(fns, chr)
-keep.fns <- unlist(lapply(fnsList, sample, size=25))
-index.lrr <- match(keep.fns, rownames(logRratio))
-index.baf <- match(keep.fns, rownames(baf))
-logRratio <- logRratio[index.lrr,]
-baf <- baf[index.lrr, ]
-
-trace(TrioSetList, browser)
-trioSetList <- TrioSetList(lrr=logRratio,
-			   baf=baf,
-			   pedigree=pedigreeExample,
-			   sampleSheet=samplesheetExample,
-			   cdfname="human610quadv1bCrlmm")
-
+##setMethod("featureNames", signature(object="TrioSetList"), function(object){
+##	fns <- lapply(object, featureNames)
+##	unlist(fns)
+##})
+##setMethod("chromosome", signature(object="TrioSetList"), function(object){
+##	chr <- lapply(object, chromosome)
+##	unlist(chr)
+##})
+##fns <- featureNames(trioSetList)
+##chr <- chromosome(trioSetList)
+##fnsList <- split(fns, chr)
+##keep.fns <- unlist(lapply(fnsList, sample, size=25))
+##index.lrr <- match(keep.fns, rownames(logRratio))
+##index.baf <- match(keep.fns, rownames(baf))
+##logRratio <- logRratio[index.lrr,]
+##baf <- baf[index.lrr, ]
+##save(logRratio, file="~/Software/MinimumDistance/inst/extdata/logRratio.rda")
+##save(baf, file="~/Software/MinimumDistance/inst/extdata/baf.rda")
 trioSetList
+dims(trioSetList)
 sampleSheet(trioSetList)
 pedigree(trioSetList)
+trios(trioSetList)
 trioSetList[1:5]
 trioSetList[[1]]
 ## Note
@@ -187,8 +182,9 @@ annotationPackages()[grep("Crlmm", annotationPackages())]
 \section{Detection of de novo copy number}
 
 <<>>=
-load("mbootwal/projects/packages/MinimumDistance/trioSet-2chrom.rda")
-dims(trioSetList)
+##load("~mbootwal/projects/packages/MinimumDistance/trioSet-2chrom.rda")
+data(trioSetListExample)
+##dims(trioSetList)
 @
 
 For a given trio, the signed minimum absolute
@@ -233,7 +229,8 @@ robust measures of noise are useful surrogate of sample quality.
 
 <<estimatesOfVariance>>=
 ## calculate the mad of the minimum distance
-mads.md <- lapply(md, function(x) apply(x, 2, mad, na.rm=TRUE))
+md.matrix <- do.call("rbind", md)
+mads.md <- apply(md.matrix, 2, mad, na.rm=TRUE)
 ## Add the mads of the minimum distance to the container
 mad.mindist(trioSetList) <- mads.md
 ## computing the MAD of the log R ratios for each individual (across markers)
@@ -258,7 +255,9 @@ the \Rfunction{xsegment} wrapper as indicated in the helpfile for
 %% reference
 
 <<segmentMinimumDistance>>=
-md.segs <- xsegment(object=trioSetList, segment.mindist=TRUE, verbose=TRUE)
+md.segs <- segment2(object=mindist(trioSetList),
+		    pos=position(trioSetList),
+		    chrom=chromosome(trioSetList), verbose=TRUE)
 md.segs
 @
 
@@ -266,9 +265,8 @@ We also segment the log R ratios by setting \texttt{segment.mindist}
 to \texttt{FALSE}:
 
 <<segmentLRR>>=
-##trace(xsegment, browser, signature=c("TrioSet", "Pedigree"))
-lrr.segs <- xsegment(object=trioSetList, segment.mindist=FALSE,
-		     id=sampleNames(trioSetList),
+lrr.segs <- segment2(object=lrr(trioSetList), pos=position(trioSetList),
+		     chrom=chromosome(trioSetList),
 		     verbose=TRUE)
 @
 
@@ -278,7 +276,7 @@ log R ratios.  The motivation for this step is to reduce the chance of
 a minimum distance segment spaning multiple offspring copy numbers.
 
 <<narrow>>=
-md.segs2 <- narrow(md.segs, lrr.segs, thr=0.1)
+md.segs2 <- narrow(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md)
 @
 
 To infer the trio copy number state of each genomic range in the
@@ -324,6 +322,9 @@ trioSet <- stack(trioSetList)
 rd.denovoDel <- rd[state(rd) == 332, ]
 library(VanillaICE)
 ##trace(coerce, browser, signature=c("TrioSet", "data.frame"))
+##trace(xyplot2, browser, signature=c("formula", "eSet", "RangedDataCNV"))
+##untrace(xyplot2, signature=c("formula", "eSet", "RangedDataCNV"))
+##trace("coerce", browser, signature=c("TrioSet", "data.frame"))
 lrrfig <- xyplot(lrr ~ x | id,
 		 data=trioSet,
 		 range=rd.denovoDel,
