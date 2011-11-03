@@ -1,10 +1,3 @@
-##setMethod("lapply", signature(X="TrioSetList"),
-##	  function(X, FUN, ...){
-##		  x <- as(X, "list")
-##		  res <- lapply(x, FUN)
-##		  X <- as(X, "TrioSetList")
-##	  })
-
 setMethod("initialize", signature(.Object="TrioSetList"),
 	  function(.Object,
 		   pedigreeData=new("Pedigree"),
@@ -120,23 +113,7 @@ TrioSetList <- function(lrr, baf,
 ##setMethod("names", signature(x="TrioSetList") names(x@.Data))
 
 ##setMethod("mad", signature(x="TrioSetList"), function(x) mad(x[[1]]))
-setMethod("mad", signature(x="TrioSetList"), function(x) mad(x[[1]]))
 
-setReplaceMethod("mad.sample", signature(x="TrioSetList", value="matrix"),
-		 function(x, value){
-			 for(i in seq_along(x)){
-				 mad.sample(x[[i]]) <- value
-			 }
-			 return(x)
-		 })
-
-setReplaceMethod("mad.marker", signature(x="TrioSetList", value="list"),
-		 function(x, value){
-			 for(i in seq_along(x)){
-				 mad.marker(x[[i]]) <- value[[i]]
-			 }
-			 return(x)
-		 })
 
 setMethod("mindist", signature(object="TrioSetList"), function(object){
 	md <- vector("list", length(object))
@@ -167,10 +144,6 @@ orderTrioSetList <- function(object){
 	return(object)
 }
 
-
-
-
-
 setReplaceMethod("mad.mindist", signature(x="TrioSetList"),
 		 function(x, value){
 			 for(i in seq_along(x)){
@@ -179,30 +152,6 @@ setReplaceMethod("mad.mindist", signature(x="TrioSetList"),
 			 return(x)
 		 })
 
-
-
-setMethod("xsegment", signature(object="TrioSetList"),
-	  function(object, pedigreeData, id, segment.mindist=TRUE, ...,
-		   verbose=FALSE, DNAcopy.verbose=0){
-		  ##if(missing(id)) id <- sampleNames(object)
-		  ##if(missing(id)) id <- offspringNames(object)
-		  dfl <- vector("list", length(object))
-		  for(i in seq_along(object)){
-			  dfl[[i]] <- xsegment(object[[i]], pedigree(object),
-					       id,
-					       segment.mindist=segment.mindist,...,
-					       verbose=verbose,
-					       DNAcopy.verbose=DNAcopy.verbose)
-		  }
-##		  dfl <- lapply(object, xsegment, pedigreeData=pedigree(object), id,
-##				segment.mindist=segment.mindist, ...,
-##				verbose=verbose, DNAcopy.verbose=DNAcopy.verbose)
-		  ##df <- do.call("rbind", dfl)
-		  ranges <- stack(RangedDataList(dfl))
-		  index <- match("sample", colnames(ranges))
-		  if(length(index) > 0) ranges <- ranges[, -index]
-		  return(ranges)
-	  })
 
 setMethod("calculateMindist", signature(object="TrioSetList"),
 	  function(object, ..., verbose=TRUE){
@@ -240,36 +189,6 @@ setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 		  return(rdList)
 	  })
 
-
-
-##setMethod("offspringNames", signature(object="TrioSetList"), function(object) offspringNames(object[[1]]))
-##setReplaceMethod("offspringNames", signature(object="TrioSetList", value="character"), function(object, value){
-##	object <- lapply(object, function(x, value ){
-##		offspringNames(x) <- value
-##		return(x)
-##	}, value=value)
-##	object <- as(object, "TrioSetList")
-##	return(object)
-##})
-##setMethod("fatherNames", signature(object="TrioSetList"), function(object) fatherNames(object[[1]]))
-##setReplaceMethod("fatherNames", signature(object="TrioSetList", value="character"), function(object, value){
-##	object <- lapply(object, function(x, value ){
-##		fatherNames(x) <- value
-##		return(x)
-##	}, value=value)
-##	object <- as(object, "TrioSetList")
-##	return(object)
-##})
-##setMethod("motherNames", signature(object="TrioSetList"), function(object) motherNames(object[[1]]))
-##setReplaceMethod("motherNames", signature(object="TrioSetList", value="character"), function(object, value){
-##	object <- lapply(object, function(x, value ){
-##		motherNames(x) <- value
-##		return(x)
-##	}, value=value)
-##	object <- as(object, "TrioSetList")
-##	return(object)
-##})
-##setMethod("fmoNames", signature(object="TrioSetList"), function(object) fmoNames(object[[1]]))
 
 setMethod("computeBayesFactor", signature(object="TrioSetList"),
 	  function(object, ranges,
@@ -343,15 +262,6 @@ setMethod("[", signature(x="TrioSetList"),
 
 
 
-##setMethod("xyplot", signature(x="formula", data="TrioSetList"),
-##	  function(x, data, ...){
-##		  stopifnot("rangeData" %in% names(list(...)))
-##		  rangeData <- list(...)[["rangeData"]]
-##		  stopifnot(nrow(rangeData)==1)
-##		  trioSet <- data[[rangeData$chrom]]
-##		  xyplotTrioSet(x, data=trioSet, pedigreeData=pedigree(data), ...)
-##	  })
-
 setMethod("chromosome", signature(object="TrioSetList"),
 	  function(object) names(object))
 
@@ -359,41 +269,9 @@ setMethod("show", signature(object="TrioSetList"),
 	  function(object){
 		  lo <- length(object)
 		  cat(class(object), " of length ", lo, "\n", sep="")
-##		  CHR <- chromosome(object)
-##		  if(lo == 0L){
-##			  return(NULL)
-##		  } else {
-##			  for(i in seq_along(CHR)){
-##				  adim <- dim(object[[i]])
-##				  if (length(adim)>1)
-##					  cat("Chr ", CHR[i], "assayData:",
-##					      if (length(adim)>1)
-##					      paste(adim[[1]], "features,",
-##						    adim[[2]], "samples") else NULL,
-##					      "\n")
-##			  }
-##			  cat(" element names:",
-##			      paste(assayDataElementNames(object[[1]]), collapse=", "), "\n")
-##		  }
-##		  cat("\nSampleSheet:\n")
-##		  show(sampleSheet(object))
-##		  cat("\nPedigree:\n")
-##		  show(pedigree(object))
 	  })
 
-setMethod("show", signature(object="TrioSet"),
-	  function(object){
-              cat(class( object ), " (storageMode: ", storageMode(object), ")\n", sep="")
-              adim <- dim(object)
-              if (length(adim)>1)
-                  cat("assayData:",
-                      if (length(adim)>1)
-                      paste(adim[[1]], "features,",
-                            adim[[2]], "samples") else NULL,
-                      "\n")
-              cat("  element names:",
-		  paste(assayDataElementNames(object), collapse=", "), "\n")
-	  })
+
 
 
 setMethod("minimumDistance", signature(object="TrioSetList"),

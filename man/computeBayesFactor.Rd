@@ -1,16 +1,28 @@
-
 \name{computeBayesFactor}
 \alias{computeBayesFactor}
+\alias{calculateMindist}
+\alias{segment2}
+\alias{mad2}
+\alias{mad.sample<-}
+\alias{mad.marker<-}
+\alias{mindist<-}
+\alias{narrow}
 
-\title{Compute Bayes' factors for minimum distance segments }
+\title{Compute Bayes factors for minimum distance segments }
 
 \description{ Estimate the trio copy number state for each minimum
   distance segment using the maximum a posterior probability. The
   posterior probability of the normal state is also returned.
 }
 \usage{
-computeBayesFactor(object, ranges, returnEmission = FALSE,
-  collapseRanges=TRUE, verbose = TRUE, ...)
+computeBayesFactor(object, ranges, returnEmission = FALSE, collapseRanges=TRUE, verbose = TRUE, ...)
+calculateMindist(object, ..., verbose)
+segment2(object, pos, chrom, ...)
+mad2(object, byrow, ...)
+mindist(object) <- value
+mad.sample(object) <- value
+mad.marker(object) <- value
+narrow(md.range, cbs.segs, thr=0.9, mad.minimumdistance, verbose=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -54,24 +66,22 @@ computeBayesFactor(object, ranges, returnEmission = FALSE,
   \code{\linkS4class{RangedDataCBS}}, \code{\link{calculateMindist}}
 }
 \examples{
-\dontrun{
+
 data(trioSetListExample)
-mads.lrr.sample <- calculateMADlrr(trioSetList, by.sample=TRUE)
-mads.lrr.marker <- calculateMADlrr(trioSetList, by.sample=FALSE)
+mads.lrr.sample <- mad2(lrr(trioSetList), byrow=FALSE)
+mads.lrr.marker <- mad2(lrr(trioSetList), byrow=TRUE)
 mad.sample(trioSetList) <- mads.lrr.sample
 mad.marker(trioSetList) <- mads.lrr.marker
-md <- calculateMindist(object=trioSetList)
-mads.md <- lapply(md, function(x) apply(x, 2, mad, na.rm=TRUE))
-mad.mindist(trioSetList) <- mads.md
-mindist(trioSetList) <- md
-md.segs <- xsegment(object=trioSetList[1:10], segment.mindist=TRUE,
-  verbose=TRUE)
-md.segs2 <- narrow(md.segs, lrr.segs, thr=0.1)
-rd <- computeBayesFactor(object=trioSetList,
-			 ranges=md.segs2)
-
-}
-
+mindist(trioSetList) <- calculateMindist(object=trioSetList)
+mads.md <- mad2(mindist(trioSetList), byrow=FALSE)
+md.segs <- segment2(mindist(trioSetList), chrom=chromosome(trioSetList),
+                    pos=position(trioSetList))
+lrr.segs <- segment2(lrr(trioSetList), chrom=chromosome(trioSetList),
+		     pos=position(trioSetList),
+		     id=trios(trioSetList))
+md.segs2 <- narrow(md.segs, lrr.segs, mad.minimumdistance=mads.md,
+		   thr=0.1)
+rd <- computeBayesFactor(object=trioSetList, ranges=md.segs2)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

@@ -40,8 +40,7 @@ calculateMindist(object, ..., verbose=TRUE)
 }
 \examples{
 data(trioSetListExample)
-mdlist <- calculateMindist(trioSetList[1:3])
-mdmatrix <- calculateMindist(trioSetList[[1]])
+mdlist <- calculateMindist(trioSetList)
 }
 \keyword{univar}
 

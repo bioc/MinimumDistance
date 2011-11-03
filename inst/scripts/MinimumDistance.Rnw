@@ -226,21 +226,17 @@ We calculate the median absolute deviation (MAD) of the minimum
 distance and the log R ratios. For the log R ratios, we calculate the
 noise both across markers and across independent offspring.  These
 robust measures of noise are useful surrogate of sample quality.
-
+d
 <<estimatesOfVariance>>=
 ## calculate the mad of the minimum distance
-md.matrix <- do.call("rbind", md)
-mads.md <- apply(md.matrix, 2, mad, na.rm=TRUE)
-## Add the mads of the minimum distance to the container
+mads.md <- mad2(mindist(trioSetList), byrow=FALSE)
 mad.mindist(trioSetList) <- mads.md
-## computing the MAD of the log R ratios for each individual (across markers)
-##  -- chromosome-specific in this implementation, but could do this across all autosomes
-mads.lrr.sample <- calculateMADlrr(trioSetList, by.sample=TRUE)
-## compute the MAD of the log R ratio for each marker (across individuals)
-mads.lrr.marker <- calculateMADlrr(trioSetList, by.sample=FALSE)
-## adds identical mad to each TrioSet element ... inefficient
+mads.lrr.sample <- mad2(lrr(trioSetList), byrow=FALSE)
+mads.lrr.marker <- mad2(lrr(trioSetList), byrow=TRUE)
 mad.sample(trioSetList) <- mads.lrr.sample
+mad(trioSetList)
 mad.marker(trioSetList) <- mads.lrr.marker
+fvarLabels(trioSetList[[1]])
 @
 
 We smooth the minimum distance using the circular binary segmentation
@@ -255,7 +251,7 @@ the \Rfunction{xsegment} wrapper as indicated in the helpfile for
 %% reference
 
 <<segmentMinimumDistance>>=
-md.segs <- segment2(object=mindist(trioSetList),
+md.segs <- segment2(object=mindist(trioSetList)
 		    pos=position(trioSetList),
 		    chrom=chromosome(trioSetList), verbose=TRUE)
 md.segs
@@ -265,10 +261,17 @@ We also segment the log R ratios by setting \texttt{segment.mindist}
 to \texttt{FALSE}:
 
 <<segmentLRR>>=
-lrr.segs <- segment2(object=lrr(trioSetList), pos=position(trioSetList),
+lrr.segs <- segment2(object=lrr(trioSetList),
+		     pos=position(trioSetList),
 		     chrom=chromosome(trioSetList),
 		     id=trios(trioSetList), ## id is required
 		     verbose=TRUE)
+
+##lrr.segs <- segment2(object=lrr(trioSetList[[1]]),
+##		     pos=position(trioSetList[[1]]),
+##		     chrom=chromosome(trioSetList[[1]]),
+##		     id=trios(trioSetList), ## id is required
+##		     verbose=TRUE)
 ##lrr.segs <- lrr.segs[sampleNames(lrr.segs)=sampleNames(lrr.segs)[1], ]
 @
 
@@ -346,7 +349,7 @@ lrrfig <- xyplot(lrr ~ x | id,
 		 return.data.frame=FALSE)
 baffig <- xyplot(baf ~ x | id,
 		 data=trioSet,
-		 range=rd[1, ],
+		 range=rd.denovoDel[1, ],
 		 lrr.segs=lrr.segs,
 		 md.segs=md.segs,
 		 frame=500e3,
