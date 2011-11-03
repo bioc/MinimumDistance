@@ -37,10 +37,12 @@ calculateMindist(object, ..., verbose=TRUE)
 }
 
 \seealso{
+  \code{\link{mindist}}, \code{\link{mindist<-}}
 }
 \examples{
 data(trioSetListExample)
 mdlist <- calculateMindist(trioSetList)
+mindist(trioSetList) <- mdlist
 }
 \keyword{univar}
 

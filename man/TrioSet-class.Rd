@@ -22,7 +22,7 @@
 \alias{phenoData2,TrioSet-method}
 \alias{prune,TrioSet,RangedDataCNV-method}
 \alias{updateObject,TrioSet-method}
-\alias{xsegment,TrioSet,Pedigree-method}
+%\alias{xsegment,TrioSet,Pedigree-method}
 \alias{xyplot,formula,TrioSet-method}
 
 \title{Class \code{"TrioSet"}}

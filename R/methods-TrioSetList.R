@@ -14,7 +14,9 @@ setMethod("sampleSheet", signature(object="TrioSetList"), function(object) objec
 setMethod("sampleNames", signature(object="TrioSetList"),
 	  function(object) sampleNames(pedigree(object)))
 setMethod("nrow", signature(x="TrioSetList"),
-	  function(x) nrow(pedigree(x)))
+	  function(x){
+	  sum(sapply(x, nrow))
+  })
 setMethod("offspringNames", signature(object="TrioSetList"), function(object){
 	offspringNames(pedigree(object))
 })

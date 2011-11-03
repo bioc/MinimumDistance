@@ -6,7 +6,9 @@
 
 \title{Container for storing meta-data on samples and experiment \code{"SampleSheet"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
+  Container for storing meta-data on samples and experiment
+  \code{"SampleSheet"}. Future versions may use
+  \code{AnnotatedDataFrame} for this.
 }
 \section{Objects from the Class}{
 Objects can be created by calls of the form \code{new("SampleSheet", ...)}.
@@ -31,12 +33,15 @@ Class \code{"\linkS4class{vector}"}, by class "data.frame", distance 3.
   \describe{
     \item{[}{\code{signature(x = "SampleSheet")}: ... }
 	 }
-}
+       }
+     }
 
+\section{note}{ 'id' is a required column name and must be unique.}
 \seealso{
   \code{\linkS4class{Pedigree}}
 }
 \examples{
 showClass("SampleSheet")
+data(samplesheetExample)
 }
 \keyword{classes}

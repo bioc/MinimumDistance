@@ -7,6 +7,7 @@
 \alias{mindist<-}
 \alias{phenoData2}
 
+
 \title{Utility functions for TrioSet}
 \description{ Utility functions for \code{TrioSet} objects}
 \usage{
@@ -21,7 +22,8 @@ phenoData2(object)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{Object of class \code{\linkS4class{TrioSet}}}
-  \item{value}{ An array }
+  \item{value}{ For \code{lrr} and \code{baf} methods, \code{value} is a
+    3-dimensional array.  For \code{mindist}, \code{value} is a matrix.}
 }
 
 \details{
