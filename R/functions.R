@@ -3090,7 +3090,7 @@ minimumDistancePlot <- function(trioSetList,
 	return(list(f1, f2))
 }
 
-narrow <- function(md.range, cbs.segs, thr=0.9, mad.minimumdistance=mad.md, verbose=TRUE){
+narrow <- function(md.range, cbs.segs, thr=0.9, mad.minimumdistance, verbose=TRUE){
 	stopifnot(!is.null(names(mad.minimumdistance)))
 	ix <- match(sampleNames(md.range), names(mad.minimumdistance))
 	md.range$mindist.mad <- mad.minimumdistance[ix]
@@ -3362,6 +3362,7 @@ getFamilyName <- function(cbs.segs, trioSet){
 ##	stopifnot(validObject(trioSetList))
 ##	return(trioSetList)
 ##}
+
 calculateMADlrr <- function(object, by.sample){
 	if(by.sample){
 		mads <- matrix(NA, ncol(object), 3)
@@ -3385,3 +3386,27 @@ calculateMADlrr <- function(object, by.sample){
 	}
 	return(mads)
 }
+
+
+stackListByColIndex <- function(object, i, j){
+	X <- vector("list", length(object))
+	is.matrix <- is(object[[1]], "matrix")
+	if(is.matrix){
+		for(k in seq_along(X)){
+			X[[k]] <- object[[k]][, i]
+		}
+		X <- do.call("rbind", X)
+	} else {
+		is.array <- is(object, "array")
+		for(k in seq_along(X)){
+			X[[k]] <- object[[k]][, i, j]
+		}
+		X <- do.call("rbind", X)
+	}
+	return(X)
+}
+
+
+
+
+
