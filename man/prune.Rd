@@ -1,11 +1,14 @@
 \name{prune}
 \alias{prune}
+\alias{prune,TrioSetList,RangedDataCNV-method}
 
 \title{Removing breakpoints from a segmented genome}
 
-\description{A function for removing splits as a function of the
-  standardized difference in adjacent segment means and coverage.  We
-  use an exponential rule of the form
+\description{
+
+  A function for removing splits as a function of the standardized
+  difference in adjacent segment means and coverage.  We use an
+  exponential rule of the form
   min.change+lambda*exp(-lambda*coverage)/scale.exp. The rule is applied
   recursively until no segments are removed.
 
@@ -58,8 +61,6 @@ prune(object, ranges, id, lambda = 0.05, min.change = 0.1, min.coverage = 3, sca
 \author{
 Rob Scharpf
 }
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
   \code{\link{segment}}

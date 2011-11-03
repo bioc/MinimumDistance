@@ -5,8 +5,10 @@
 ##---------------------------------------------------------------------------
 setMethod("mad2", signature(object="list"),
 	  function(object, byrow, ...){
-		  is.matrix <- is(object[[1]], "matrix")
-		  is.array <- is(object[[1]], "array")
+		  is.matrix <- is(object[[1]], "matrix") || is(object[[1]], "ff_matrix")
+		  is.array <- class(object[[1]])=="array" || is(object[[1]], "ff_array")
+		  ##is.matrix <- is(object[[1]], "matrix")
+		  ##is.array <- is(object[[1]], "array")
 		  stopifnot(is.matrix || is.array)
 		  if(!byrow){ ## by column
 			  if(is.matrix){
@@ -73,11 +75,13 @@ setMethod("mad2", signature(object="list"),
 setMethod("mad", signature(x="TrioSet"), function(x) x@mad)
 setMethod("mad.marker", signature(x="TrioSet"), function(x) fData(x)$marker.mad)
 setMethod("mad.sample", signature(x="TrioSet"), function(x) x@mad)
-setReplaceMethod("mad.sample", signature(x="TrioSet", value="ANY"),
+
+setReplaceMethod("mad.sample", signature(x="TrioSet", value="matrix"),
 	  function(x, value){
 		  x@mad <- value
 		  return(x)
 	  })
+
 setReplaceMethod("mad.marker", signature(x="TrioSet", value="numeric"),
 	  function(x, value){
 		  fData(x)$marker.mad <- value
@@ -97,7 +101,7 @@ setMethod("mad.mindist", signature(x="TrioSet"),
 		  x$mindist.mad
 	  })
 
-setReplaceMethod("mad.mindist", signature(x="TrioSet"),
+setReplaceMethod("mad.mindist", signature(x="TrioSet", value="numeric"),
 		 function(x, value){
 			 ## store in phenodata
 			 x$mindist.mad <- value
@@ -116,6 +120,14 @@ setReplaceMethod("mad.sample", signature(x="TrioSetList", value="matrix"),
 		 function(x, value){
 			 for(i in seq_along(x)){
 				 mad.sample(x[[i]]) <- value
+			 }
+			 return(x)
+		 })
+
+setReplaceMethod("mad.mindist", signature(x="TrioSetList", value="list"),
+		 function(x, value){
+			 for(i in seq_along(x)){
+				 mad.mindist(x[[i]]) <- value[[i]]
 			 }
 			 return(x)
 		 })

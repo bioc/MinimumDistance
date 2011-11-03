@@ -2,16 +2,12 @@ setGeneric("mindist", function(object) standardGeneric("mindist"))
 setGeneric("mindist<-", function(object,value) standardGeneric("mindist<-"))
 setGeneric("family", function(object) standardGeneric("family"))
 setGeneric("plot", useAsDefault=function(x,y, ...) graphics::plot(x,y,...))
-##setGeneric("xyplot", useAsDefault=function(x, data, ...) lattice::xyplot(x, data,...))
 setGeneric("loglik", function(object) standardGeneric("loglik"))
 setGeneric("loglik<-", function(object, value) standardGeneric("loglik<-"))
 setGeneric("range.index", function(object) standardGeneric("range.index"))
 setGeneric("calculateMindist", function(object, ..., verbose=TRUE) standardGeneric("calculateMindist"))
-setGeneric("logR", function(object) standardGeneric("logR"))
-setGeneric("logR<-", function(object, value) standardGeneric("logR<-"))
 setGeneric("lrr<-", function(object, value) standardGeneric("lrr<-"))
 setGeneric("baf<-", function(object, value) standardGeneric("baf<-"))
-##setGeneric("baf", function(object) standardGeneric("baf"))
 setGeneric("mad")
 setGeneric("ncol")
 setGeneric("mad<-", function(x, value) standardGeneric("mad<-"))
@@ -21,9 +17,6 @@ setGeneric("mad.sample<-", function(x, value) standardGeneric("mad.sample<-"))
 setGeneric("mad.marker<-", function(x, value) standardGeneric("mad.marker<-"))
 setGeneric("mad.mindist<-", function(x, value) standardGeneric("mad.mindist<-"))
 setGeneric("mad.mindist", function(x) standardGeneric("mad.mindist"))
-##setGeneric("minimumDistanceMad", function(object) standardGeneric("minimumDistanceMad"))
-##setGeneric("minimumDistanceMad<-", function(object, value) standardGeneric("minimumDistanceMad<-"))
-##setGeneric("xsegment", function(object, pedigreeData, id, segment.mindist=TRUE, ..., verbose=FALSE, DNAcopy.verbose=0) standardGeneric("xsegment"))
 setGeneric("phenoData2", function(object) standardGeneric("phenoData2"))
 setGeneric("phenoData2<-", function(object,value) standardGeneric("phenoData2<-"))
 setGeneric("varLabels2", function(object) standardGeneric("varLabels2"))
@@ -36,9 +29,6 @@ setGeneric("prune", function(object, ranges, id,
 	   standardGeneric("prune"))
 setGeneric("computeBayesFactor", function(object,
 					  ranges,
-					  returnEmission=FALSE,
-					  collapseRanges=TRUE,
-					  verbose=TRUE,
 					  ...)
 	   standardGeneric("computeBayesFactor"))
 setGeneric("todf", function(object, rangeData, frame, ...) standardGeneric("todf"))
@@ -52,8 +42,6 @@ setGeneric("trioNames", function(object) standardGeneric("trioNames"))
 setGeneric("rbind", function(..., deparse.level=1) standardGeneric("rbind"),
            signature = "...")
 setGeneric("width", function(x) standardGeneric("width"))
-
-coverage <- coverage2
 setGeneric("sampleSheet", function(object) standardGeneric("sampleSheet"))
 setGeneric("pedigree", function(object) standardGeneric("pedigree"))
 setGeneric("allNames", function(object) standardGeneric("allNames"))

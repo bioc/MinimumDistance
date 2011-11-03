@@ -125,7 +125,7 @@ setMethod("mindist", signature(object="TrioSetList"), function(object){
 	return(md)
 })
 
-setReplaceMethod("mindist", signature(object="TrioSetList"),
+setReplaceMethod("mindist", signature(object="TrioSetList", value="list"),
 		 function(object, value){
 			 for(i in seq_along(object)){
 				 mindist(object[[i]]) <- value[[i]]
@@ -146,13 +146,7 @@ orderTrioSetList <- function(object){
 	return(object)
 }
 
-setReplaceMethod("mad.mindist", signature(x="TrioSetList"),
-		 function(x, value){
-			 for(i in seq_along(x)){
-				 mad.mindist(x[[i]]) <- value[[i]]
-			 }
-			 return(x)
-		 })
+
 
 
 setMethod("calculateMindist", signature(object="TrioSetList"),
@@ -192,7 +186,7 @@ setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 	  })
 
 
-setMethod("computeBayesFactor", signature(object="TrioSetList"),
+setMethod("computeBayesFactor", signature(object="TrioSetList", ranges="RangedDataCNV"),
 	  function(object, ranges,
 		   returnEmission=FALSE, collapseRanges=TRUE, verbose=TRUE, ...){
 		  ##if(missing(id)) id <- unique(ranges$id) else stopifnot(id %in% unique(ranges$id))
@@ -335,6 +329,11 @@ setMethod("stack", signature(x="TrioSetList"),
 setMethod("lrr", signature(object="TrioSetList"),
 	  function(object){
 		  lapply(object, lrr)
+	  })
+
+setMethod("baf", signature(object="TrioSetList"),
+	  function(object){
+		  lapply(object, baf)
 	  })
 
 setMethod("chromosome", signature(object="TrioSetList"),

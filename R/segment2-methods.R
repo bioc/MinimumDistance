@@ -2,16 +2,22 @@ setMethod("segment2", signature(object="list", pos="list", chrom="list"),
 	  function(object, pos, chrom, id, ...){
 		  ## elements of list must be a matrix or an array
 		  is.matrix <- is(object[[1]], "matrix") || is(object[[1]], "ff_matrix")
-		  is.array <- is(object[[1]], "array") || is(object[[1]], "ff_array")
+		  is.array <- class(object[[1]]) == "array" || is(object[[1]], "ff_array")
 		  stopifnot(is.matrix | is.array)
 		  resList <- vector("list", length(object))
 		  for(i in seq_along(object)){
-			  if(!missing(id)){
-				  resList <- segment2(object[[i]], pos=pos[[i]],
+			  if(is.array){
+				  if(missing(id)) stop("When elements of the list are arrays, a data.frame for 'id' must be provided")
+				  resList[[i]] <- segment2(object[[i]], pos=pos[[i]],
 						      chrom=chrom[[i]], id=id, ...)
 			  } else {
-				  resList <- segment2(object[[i]], pos=pos[[i]],
-						      chrom=chrom[[i]], ...)
+				  if(is.null(colnames(object[[1]]))){
+					  stop("column names of the elements in the list can not be null.")
+				  }
+				  if(!missing(id))
+					  message("id is ignored as elements of list are matrices. Column names of the matrices will be used to label the segments")
+				  resList[[i]] <- segment2(object[[i]], pos=pos[[i]],
+							   chrom=chrom[[i]], ...)
 			  }
 		  }
 		  res <- stack(RangedDataList(resList))

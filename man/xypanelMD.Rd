@@ -90,10 +90,17 @@ R. Scharpf
   \code{\link{xyplot}}, \code{\link{xypanel}}, \code{\link{panel.xyplot}}
 }
 \examples{
-\dontrun{
+data(trioSetListExample)
+trioSet <- stack(trioSetList)
+data(map.segs)
+data(lrr.segs)
+data(md.segs)
+## select a range with a possible de novo copy number alteration in the offspring
+rd <- map.segs[which(isDenovo(state(map.segs)))[1], ]
+
 lrrfig <- xyplot(lrr ~ x | id,
 		 data=trioSet,
-		 range=rd[1, ],
+		 range=rd,
 		 lrr.segs=lrr.segs,
 		 md.segs=md.segs,
 		 frame=500e3,
@@ -108,11 +115,11 @@ lrrfig <- xyplot(lrr ~ x | id,
 		 return.data.frame=FALSE)
 baffig <- xyplot(baf ~ x | id,
 		 data=trioSet,
-		 range=rd[1, ],
+		 range=rd,
 		 lrr.segs=lrr.segs,
 		 md.segs=md.segs,
 		 frame=500e3,
-		 panel=VanillaICE::xypanel,
+		 panel=xypanel,
 		 cex=0.2,
 		 pch=21,
 		 border="orange",
@@ -121,7 +128,7 @@ baffig <- xyplot(baf ~ x | id,
 		 col.np="royalblue", fill.np="grey",
 		 index.cond=list(4:1))
 VanillaICE:::arrangeSideBySide(lrrfig, baffig)
-}
+
 }
 \keyword{dplot}
 \keyword{color}

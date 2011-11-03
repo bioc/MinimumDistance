@@ -1,42 +1,25 @@
 \name{mad2}
 \alias{mad2}
-%\alias{mad.marker}
-%\alias{mad.marker<-}
-%\alias{mad.sample<-}
-%\alias{mad.mindist<-}
+\alias{mad2,list-method}
 
-\title{Compute the median absolute deviation of the log R ratio
-}
-\description{Compute the median absolute deviation of the log R ratio
-}
+\title{Compute the median absolute deviation for elements in a list.}
+
+\description{Compute the median absolute deviation for elements in a list.
+	     Elements of the list can be matrices or arrays or ff-versions of these.}
+
 \usage{
-mad2(object, by.sample)
-mad.marker(x) <- value
-mad.sample(x) <- value
-mad.mindist(x) <- value
+mad2(object, byrow=FALSE)
 }
 
 \arguments{
   \item{object}{
     Object of class \code{TrioSetList} or \code{TrioSet}
   }
- \item{x}{
-    Object of class \code{TrioSetList} or \code{TrioSet}.
-  }
-  \item{by.sample}{Logical. If TRUE, the median absolute deviation is
-  calculated across all autosomal markers for each sample.  If FALSE,
-  the median absolute deviation of the log R ratios is calculated across
-  samples for each marker.
-}
-  \item{value}{a list if object is a \code{TrioSetList}.  If object is a
-  \code{TrioSet}, value must be a \code{matrix}.}
-}
 
-\details{
-
-  The replacment methods \code{mad.marker} and \code{mad.sample} are
-  used to attach information on the variability of markers and samples
-  to the \code{TrioSetList} object.
+  \item{byrow}{Logical. If TRUE, the median absolute deviation is
+  calculated for each row in the list elements (rows are markers).  If
+  FALSE, the median absolute deviation of the log R ratios is
+  calculated for each column (sample) across markers.  }
 
 }
 
@@ -54,7 +37,5 @@ mad.sample(trioSetList) <- mads.lrr.sample
 mads.lrr.marker <- mad2(lrr(trioSetList), byrow=TRUE)
 mad.marker(trioSetList) <- mads.lrr.marker
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{univar}
 \keyword{robust}

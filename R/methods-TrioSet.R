@@ -113,7 +113,17 @@ setReplaceMethod("sampleNames", signature(object="TrioSet"),
 		 })
 
 setMethod("mindist", "TrioSet", function(object) object@mindist)
-setReplaceMethod("mindist", signature(object="TrioSet", value="ANY"),
+setReplaceMethod("mindist", signature(object="TrioSet", value="matrix"),
+		 function(object, value){
+			 object@mindist <- value
+			 return(object)
+		 })
+setReplaceMethod("mindist", signature(object="TrioSet", value="ff_matrix"),
+		 function(object, value){
+			 object@mindist <- value
+			 return(object)
+		 })
+setReplaceMethod("mindist", signature(object="TrioSet", value="NULL"),
 		 function(object, value){
 			 object@mindist <- value
 			 return(object)
@@ -263,12 +273,6 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 	}
 })
 
-
-
-setReplaceMethod("logR", signature(object="TrioSet", value="ANY"),
-		 function(object, value){
-			 assayDataElementReplace(object, "logRRatio", value)
-		 })
 setReplaceMethod("baf", signature(object="TrioSet", value="ANY"),
 		 function(object, value){
 			 assayDataElementReplace(object, "BAF", value)
@@ -279,7 +283,7 @@ fullId <- function(object) object@phenoData2[, "id", ]
 setMethod("calculateMindist", signature(object="TrioSet"),
 	  function(object, ..., verbose=TRUE){
         sns <- sampleNames(object)
-	is.ff <- is(logR(object), "ff")
+	is.ff <- is(lrr(object), "ff")
 	if(is.ff){
 		invisible(open(lrr(object)))
 		if(!is.null(mindist(object)))
@@ -297,7 +301,7 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 	for(j in seq(length=ncol(object))){
 		##if(j %% 100 == 0) cat(".")
 		if(verbose) setTxtProgressBar(pb, j)
-		lr <- logR(object)[, j, ]
+		lr <- lrr(object)[, j, ]
 		d1 <- lr[, "F"] - lr[, "O"]
 		d2 <- lr[, "M"] - lr[, "O"]
 		I <- as.numeric(abs(d1) <= abs(d2))
@@ -330,7 +334,7 @@ offspringForId <- function(id, pedigree){
 }
 
 
-setMethod("computeBayesFactor", signature(object="TrioSet"),
+setMethod("computeBayesFactor", signature(object="TrioSet", ranges="RangedDataCNV"),
 	  function(object,
 		   ranges,
 		   returnEmission=FALSE,
@@ -391,18 +395,18 @@ setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
 		  id <- rangeData$id
 		  sample.index <- match(id, sampleNames(object))
 		  stopifnot(length(sample.index)==1)
-		  is.ff <- is(logR(object), "ff")
+		  is.ff <- is(lrr(object), "ff")
 		  if(is.ff){
 			  open(baf(object))
-			  open(logR(object))
+			  open(lrr(object))
 			  open(mindist(object))
 		  }
 		  b <- baf(object)[marker.index, sample.index, ]
-		  r <- logR(object)[marker.index, sample.index, ]
+		  r <- lrr(object)[marker.index, sample.index, ]
 		  md <- mindist(object)[marker.index, sample.index]
 		  if(is.ff){
 			  close(baf(object))
-			  close(logR(object))
+			  close(lrr(object))
 			  close(mindist(object))
 		  }
 		  id <- matrix(c("father", "mother", "offspring"), nrow(b), ncol(b), byrow=TRUE)

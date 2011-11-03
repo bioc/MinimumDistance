@@ -493,6 +493,7 @@ framePositionIndex <- function(object,  ##LogRratioSet or something similar
 overlapsCentromere <- function(myranges){
 	##require(SNPchip)
 	data(chromosomeAnnotation, package="SNPchip")
+	chromosomeAnnotation <- get("chromosomeAnnotation")
 	centromere.ranges <- RangedData(IRanges(chromosomeAnnotation[, "centromereStart"],
 						chromosomeAnnotation[, "centromereEnd"]),
 					chrom=rownames(chromosomeAnnotation))
@@ -939,20 +940,20 @@ pHet <- function(i, id, trioSet){
 meanLogR <- function(i, id, trioSet){
 	j <- match(id, sampleNames(trioSet))
 	stopifnot(length(j) > 0)
-	is.ff <- is(logR(trioSet), "ff")
+	is.ff <- is(lrr(trioSet), "ff")
 	if(is.ff){
-		open(logR(trioSet))
+		open(lrr(trioSet))
 	}
-	r <- logR(trioSet)[i, j, 3]
+	r <- lrr(trioSet)[i, j, 3]
 	if(is.ff){
-		close(logR(trioSet))
+		close(lrr(trioSet))
 	}
 	mean(r, na.rm=TRUE)
 }
 
 
 LikSet <- function(trioSet, pedigreeData, id, CHR, ranges){
-	is.ff <- is(logR(trioSet), "ff")
+	is.ff <- is(lrr(trioSet), "ff")
 	if(missing(id)) id <- sampleNames(trioSet)[1]
 	if(is.ff){
 		open(baf(trioSet))
@@ -1197,7 +1198,7 @@ emissionLR <- function(mu.logr, CN.MIN, CN.MAX, prMosaic,
 	##CN.MIN=-10
 	p.out <- prOutlier
 	q.out <- 1-p.out
-	lR <- logR(object)
+	lR <- lrr(object)
 	if(any(lR < CN.MIN, na.rm=TRUE)) lR[lR < CN.MIN] <- CN.MIN
 	if(any(lR > CN.MAX, na.rm=TRUE)) lR[lR > CN.MAX] <- CN.MAX
 	UNIF <- dunif(lR, CN.MIN, CN.MAX)
@@ -1280,9 +1281,9 @@ computeLoglik <- function(id,## trio id (or offspring id)
 	sds.sample <- mad(trioSet)[j, ]
 	stopifnot(all(!is.na(sds.sample)))
 	sds.sample <- matrix(sds.sample, nrow(trioSet), 3, byrow=TRUE)
-	is.ff <- is(logR(trioSet), "ff")
+	is.ff <- is(lrr(trioSet), "ff")
 	if(is.ff){
-		open(logR(trioSet))
+		open(lrr(trioSet))
 	}
 	##sds.marker <- fData(trioSet)$marker.mad  ## these can be really big in CNV
 	sds.marker <- mad.marker(trioSet)
@@ -1296,7 +1297,7 @@ computeLoglik <- function(id,## trio id (or offspring id)
 	##2. shrink to the sample-level variance
 	## -- how much do we want to shrink towards a sample-level estimate of noise?
 	sds <- (sds.marker * df1 + (df1*4)*sds.sample)/(df1 + df1*4)
-	lR <- logR(object)
+	lR <- lrr(object)
 	bf <- baf(object)
 	if(!is(baf.sds, "array")){
 		stopifnot(length(baf.sds)==3)
@@ -1818,7 +1819,7 @@ joint4 <- function(id,
 			apply(LLB[, 1, ], 2, sum, na.rm=TRUE)
 			apply(LLB[, 3, ], 2, sum, na.rm=TRUE)
 			apply(LLR[, 3, ], 2, sum, na.rm=TRUE)
-			r <- logR(obj)[, 3]
+			r <- lrr(obj)[, 3]
 			tmp <- cbind(LLR[, 3, c(2,3)], r)
 		}
 		for(j in 1:nrow(trio.states)){
@@ -1848,9 +1849,9 @@ joint4 <- function(id,
 
 calculateMarkerSd <- function(object, marker.index, sample.index){
 	## exclude wga samples
-	is.ff <- is(logR(object), "ff")
+	is.ff <- is(lrr(object), "ff")
 	if(is.ff){
-		open(logR(object))
+		open(lrr(object))
 	}
 	##autosome.index <- which(chromosome(object) %in% 1:22)
 	chr <- chromosome(object)[autosome.index]
@@ -1859,12 +1860,12 @@ calculateMarkerSd <- function(object, marker.index, sample.index){
 	j <- sample.index
 	message("excluding ", ncol(bsSet)-length(j), " WGA/CIDR samples")
 	sds <- ocLapply(marker.index, function(i, object, j){
-		lr <- as.matrix(logR(object)[i, j])
+		lr <- as.matrix(lrr(object)[i, j])
 		sds <- rowMAD(lr, na.rm=TRUE)
 		return(sds)
 	}, object=object, j=j)
 	if(is.ff){
-		close(logR(object))
+		close(lrr(object))
 	}
 	sds <- unlist(sds)
 	##i <- unlist(marker.index)
@@ -2248,16 +2249,16 @@ readParsedFiles <- function(path, member, container, chromosomes, file.ext, verb
 		mads[j] <- mad(dat[[1]], na.rm=TRUE)
 		for(k in seq_along(chromosomes)){
 			CHR <- chromosomes[k]
-			is.ff <- is(logR(container[[1]]), "ff")
+			is.ff <- is(lrr(container[[1]]), "ff")
 			if(is.ff){
-				open(logR(container[[CHR]]))
+				open(lrr(container[[CHR]]))
 				open(baf(container[[CHR]]))
 			}
 			marker.index <- match(featureNames(container[[k]]), nms)
-			logR(container[[k]])[, j, col.index] <- dat[[1]][marker.index]
+			lrr(container[[k]])[, j, col.index] <- dat[[1]][marker.index]
 			baf(container[[k]])[, j, col.index] <- dat[[2]][marker.index]
 			if(is.ff){
-				close(logR(container[[k]]))
+				close(lrr(container[[k]]))
 				close(baf(container[[k]]))
 			}
 		}
@@ -2344,7 +2345,7 @@ readParsedFiles <- function(path, member, container, chromosomes, file.ext, verb
 ##		rownames(mads) <- sampleNames(container[[1]])
 ##		#
 ##		fff <- function(object, trio.index){
-##			lR <- logR(object)[, trio.index, ]
+##			lR <- lrr(object)[, trio.index, ]
 ##		}
 ##		for(j in seq(length=length(rownames(mads)))){
 ##			logrs <- do.call("rbind", sapply(container, fff, trio.index=j))
@@ -2697,13 +2698,13 @@ calculateMads <- function(container, exclusionRule, verbose=TRUE){
 		for(i in seq_along(container)){
 			trioSet <- container[[i]]
 			if(is.ff){
-				invisible(open(logR(trioSet)))
+				invisible(open(lrr(trioSet)))
 			}
-			lR <- logR(trioSet)[, J, "O"]
+			lR <- lrr(trioSet)[, J, "O"]
 			if(is.matrix(lR)){
 				if(ncol(lR) > 1){
 					if(is.ff){
-						invisible(close(logR(trioSet)))
+						invisible(close(lrr(trioSet)))
 					}
 					fData(container[[i]])$marker.mad <- rowMAD(lR, na.rm=TRUE)
 				}
@@ -3090,17 +3091,17 @@ minimumDistancePlot <- function(trioSetList,
 	return(list(f1, f2))
 }
 
-narrow <- function(md.range, cbs.segs, thr=0.9, mad.minimumdistance, verbose=TRUE){
+narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE){
 	stopifnot(!is.null(names(mad.minimumdistance)))
-	ix <- match(sampleNames(md.range), names(mad.minimumdistance))
-	md.range$mindist.mad <- mad.minimumdistance[ix]
-	stopifnot("mindist.mad" %in% colnames(md.range))
-	cbs.segs <- cbs.segs[sampleNames(cbs.segs) %in% sampleNames(md.range), ]
-	if(length(unique(chromosome(md.range))) > 1){
+	ix <- match(sampleNames(object), names(mad.minimumdistance))
+	object$mindist.mad <- mad.minimumdistance[ix]
+	stopifnot("mindist.mad" %in% colnames(object))
+	lrr.segs <- lrr.segs[sampleNames(lrr.segs) %in% sampleNames(object), ]
+	if(length(unique(chromosome(object))) > 1){
 		if(verbose)
 			message("narrowing the ranges by chromosome")
-		indexList <- split(seq_len(nrow(md.range)), chromosome(md.range))
-		indexList2 <- split(seq_len(nrow(cbs.segs)), chromosome(cbs.segs))
+		indexList <- split(seq_len(nrow(object)), chromosome(object))
+		indexList2 <- split(seq_len(nrow(lrr.segs)), chromosome(lrr.segs))
 		stopifnot(all.equal(names(indexList), names(indexList2)))
 		if(verbose) {
 			pb <- txtProgressBar(min=0, max=length(indexList), style=3)
@@ -3110,8 +3111,8 @@ narrow <- function(md.range, cbs.segs, thr=0.9, mad.minimumdistance, verbose=TRU
 			if(verbose) setTxtProgressBar(pb, i)
 			j <- indexList[[i]]
 			k <- indexList2[[i]]
-			md.segs <- md.range[j, ]
-			lr.segs <- cbs.segs[k, ]
+			md.segs <- object[j, ]
+			lr.segs <- lrr.segs[k, ]
 			segList[[i]] <- narrowRangeForChromosome(md.segs, lr.segs, thr=thr, verbose=FALSE)
 			rm(md.segs, lr.segs); gc()
 		}
@@ -3120,7 +3121,7 @@ narrow <- function(md.range, cbs.segs, thr=0.9, mad.minimumdistance, verbose=TRU
 		j <- match("sample", colnames(segs))
 		if(length(j) == 1) segs <- segs[, -j]
 	} else {
-		segs <- narrowRangeForChromosome(md.range, cbs.segs, thr, verbose)
+		segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose)
 	}
 	rd.cbs <- RangedDataCBS(ranges=ranges(segs), values=values(segs))
 	return(rd.cbs)
@@ -3390,7 +3391,7 @@ calculateMADlrr <- function(object, by.sample){
 
 stackListByColIndex <- function(object, i, j){
 	X <- vector("list", length(object))
-	is.matrix <- is(object[[1]], "matrix")
+	is.matrix <- is(object[[1]], "matrix") || is(object[[1]], "ff_matrix")
 	if(is.matrix){
 		for(k in seq_along(X)){
 			X[[k]] <- object[[k]][, i]
