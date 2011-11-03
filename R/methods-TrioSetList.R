@@ -276,12 +276,12 @@ setMethod("show", signature(object="TrioSetList"),
 
 setMethod("minimumDistance", signature(object="TrioSetList"),
 	  function(object, narrow.threshold=0.1, ...){
-		  mads.lrr.sample <- calculateMADlrr(object, by.sample=TRUE)
-		  mads.lrr.marker <- calculateMADlrr(object, by.sample=FALSE)
+		  mads.lrr.sample <- mad2(lrr(object), byrow=FALSE)
+		  mads.lrr.marker <- mad2(lrr(object), byrow=TRUE)
 		  mad.sample(object) <- mads.lrr.sample
 		  mad.marker(object) <- mads.lrr.marker
 		  md <- calculateMindist(object)
-		  mads.md <- lapply(md, function(x) apply(x, 2, mad, na.rm=TRUE))
+		  mads.md <- mad2(md, byrow=FALSE)
 		  mad.mindist(object) <- mads.md
 		  ## add the minimumDistance to the container.
 		  mindist(object) <- md
