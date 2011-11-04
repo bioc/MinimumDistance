@@ -52,3 +52,4 @@ setGeneric("segment2", function(object, pos, chrom, id, ...) standardGeneric("se
 setGeneric("mad2", function(object, byrow=FALSE, ...) standardGeneric("mad2"))
 
 
+

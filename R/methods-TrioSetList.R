@@ -17,6 +17,8 @@ setMethod("nrow", signature(x="TrioSetList"),
 	  function(x){
 	  sum(sapply(x, nrow))
   })
+setMethod("ncol", signature(x="TrioSetList"),
+	  function(x) ncol(x[[1]]))
 setMethod("offspringNames", signature(object="TrioSetList"), function(object){
 	offspringNames(pedigree(object))
 })
@@ -25,6 +27,10 @@ setMethod("fatherNames", signature(object="TrioSetList"), function(object){
 })
 setMethod("motherNames", signature(object="TrioSetList"), function(object){
 	motherNames(pedigree(object))
+})
+
+setMethod("annotation", signature(object="TrioSetList"), function(object){
+	annotation(object[[1]])
 })
 
 setMethod("dims", signature(object="TrioSetList"), function(object){
@@ -60,7 +66,6 @@ TrioSetList <- function(lrr, baf,
 	np <- nrow(trios(pedigreeData))
 	trioSetList <- vector("list", length(chromosome))
 	names(trioSetList) <- 1:length(chromosome)
-
 
 	trio.names <- array(NA, dim=c(length(offspringNames(pedigreeData)), 1, 3))
 	dimnames(trio.names) <- list(offspringNames(pedigreeData), "sampleNames", c("F", "M", "O"))
@@ -168,10 +173,7 @@ setReplaceMethod("sampleNames", signature(object="TrioSetList", value="character
 			 object <- as(object, "TrioSetList")
 			 return(object)
 	 })
-setMethod("ncol", signature(x="TrioSetList"),
-	  function(x) ncol(x[[1]]))
-setMethod("nrow", signature(x="TrioSetList"),
-	  function(x) nrow(x[[1]]))
+
 setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 	  function(object, ranges, id, lambda, min.change, min.coverage,
 		   scale.exp, verbose, ...){

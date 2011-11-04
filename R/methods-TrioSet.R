@@ -302,8 +302,10 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 		##if(j %% 100 == 0) cat(".")
 		if(verbose) setTxtProgressBar(pb, j)
 		lr <- lrr(object)[, j, ]
-		d1 <- lr[, "F"] - lr[, "O"]
-		d2 <- lr[, "M"] - lr[, "O"]
+		##d1 <- lr[, "F"] - lr[, "O"]
+		d1 <- lr[, "O"] - lr[, "F"]
+		d2 <- lr[, "O"] - lr[, "M"]
+		##d2 <- lr[, "M"] - lr[, "O"]
 		I <- as.numeric(abs(d1) <= abs(d2))
 		md[, j] <- I*d1 + (1-I)*d2
 		##mindist(object)[, j] <- md

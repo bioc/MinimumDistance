@@ -37,28 +37,23 @@ setMethod("mad2", signature(object="list"),
 				  }
 			  }
 		  } else {
-			  nr <- sum(sapply(object, nrow))
-			  indexlist <- split(seq_len(nr), rep(seq_along(object), sapply(object, nrow)))
-			  null.fns <- is.null(rownames(object[[1]]))
-			  if(!null.fns)  {
-				  fns <- unlist(lapply(object, rownames))
-			  } else fns <- NULL
+			  mads <- vector("list", length(object))
 			  if(is.matrix){
-				  ## by row
-				  mads <- rep(NA, nr)
-				  names(mads) <- fns
 				  for(i in seq_along(object)){
-					  j <- indexlist[[i]]
-					  mads[j] <- rowMAD(object[[i]], na.rm=TRUE)
+					  ##j <- indexlist[[i]]
+					  mads[[i]] <- rowMAD(object[[i]], na.rm=TRUE)
+					  rownames(mads[[i]]) <- rownames(object[[i]])
 				  }
 			  } else {
 				  J <- dim(object[[1]])[[3]]
-				  mads <- matrix(NA, nr, 3)
-				  dimnames(mads) <- list(fns, c("F", "M", "O"))
+				  ##mads <- matrix(NA, nr, 3)
+				  ##dimnames(mads) <- list(fns, c("F", "M", "O"))
 				  for(i in seq_along(object)){
-					  k <- indexlist[[i]]
+					  mads[[i]] <- matrix(NA, nrow(object[[i]]), 3)
+					  dimnames(mads[[i]]) <- list(rownames(object[[i]]),
+								      c("F","M", "O"))
 					  for(j in seq_len(J)){
-						  mads[k, j] <- rowMAD(object[[i]][, ,j], na.rm=TRUE)
+						  mads[[i]][, j] <- rowMAD(object[[i]][, ,j], na.rm=TRUE)
 					  }
 				  }
 			  }
@@ -124,8 +119,18 @@ setReplaceMethod("mad.sample", signature(x="TrioSetList", value="matrix"),
 			 return(x)
 		 })
 
+setReplaceMethod("mad.mindist", signature(x="TrioSetList", value="numeric"),
+		 function(x, value){
+			 ## for genomewide estimation of mad parameter
+			 for(i in seq_along(x)){
+				 mad.mindist(x[[i]]) <- value
+			 }
+			 return(x)
+		 })
+
 setReplaceMethod("mad.mindist", signature(x="TrioSetList", value="list"),
 		 function(x, value){
+			 ## for chromosome-specific estimation of mad parameter
 			 for(i in seq_along(x)){
 				 mad.mindist(x[[i]]) <- value[[i]]
 			 }
@@ -140,13 +145,13 @@ setReplaceMethod("mad.marker", signature(x="TrioSetList", value="list"),
 			 return(x)
 		 })
 
-setReplaceMethod("mad.marker", signature(x="TrioSetList", value="matrix"),
-		 function(x, value){
-			 nr <- sum(sapply(x, nrow))
-			 indexlist <- split(seq_len(nr), rep(seq_along(x), sapply(x, nrow)))
-			 for(i in seq_along(x)){
-				 j <- indexlist[[i]]
-				 mad.marker(x[[i]]) <- value[j, ]
-			 }
-			 return(x)
-		 })
+##setReplaceMethod("mad.marker", signature(x="TrioSetList", value="matrix"),
+##		 function(x, value){
+##			 nr <- sum(sapply(x, nrow))
+##			 indexlist <- split(seq_len(nr), rep(seq_along(x), sapply(x, nrow)))
+##			 for(i in seq_along(x)){
+##				 j <- indexlist[[i]]
+##				 mad.marker(x[[i]]) <- value[j, ]
+##			 }
+##			 return(x)
+##		 })

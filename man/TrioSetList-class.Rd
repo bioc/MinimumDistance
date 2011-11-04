@@ -5,6 +5,7 @@
 \alias{allNames,TrioSetList-method}
 \alias{allNames}
 \alias{[,TrioSetList-method}
+\alias{annotation,TrioSetList-method}
 \alias{baf,TrioSetList-method}
 \alias{baf}
 \alias{calculateMindist,TrioSetList-method}
@@ -15,9 +16,9 @@
 \alias{initialize,TrioSetList-method}
 \alias{lrr,TrioSetList-method}
 \alias{mad.marker<-,TrioSetList,list-method}
-\alias{mad.marker<-,TrioSetList,matrix-method}
-%\alias{mad.mindist<-,TrioSetList-method}
+%\alias{mad.marker<-,TrioSetList,matrix-method}
 \alias{mad.mindist<-,TrioSetList,list-method}
+\alias{mad.mindist<-,TrioSetList,numeric-method}
 \alias{mad.sample<-,TrioSetList,matrix-method}
 \alias{mindist<-,TrioSetList,list-method}
 \alias{mindist,TrioSetList-method}
@@ -98,6 +99,9 @@
  mothers and fathers with multiple offspring would be included in
  multiple trios.}
 
+\item{}{\code{annotation(object)}: character string indicating the
+  array platform }
+
   \item{}{\code{baf(object)} Returns list of B allele frequencies for each chromosome.}
 
   \item{}{\code{dims(object)}: Return dimensions of the low-level
@@ -112,14 +116,16 @@
 
   \item{}{\code{mad.marker(object) <- value}: The median absolute
   deviation (mad) estimates are assigned to the \code{featureData} of
-  each \code{TrioSet} element.  \code{value} can be a \code{list},
-  \code{matrix}, or \code{numeric}.  }
+  each \code{TrioSet} element.  \code{value} must be a \code{list}.
+  Elements of the list can be \code{matrix} or \code{numeric} objects.  }
 
   \item{}{\code{mad.mindist(object) <- value}: Standard deviation
   estimates for the minimum distance (across markers for each sample) is
-  assigned to each \code{TrioSet} element. \code{value} is a list. Each
-  element in the list is the numeric vector of median absolute
-  deviations for one chromosome.  }
+  assigned to each \code{TrioSet} element. If \code{value} is a list,
+  each element in the list is a numeric vector of the MADs for one
+  chromosome.  IF \code{value} is numeric, the mad is assumed to have
+  been estimated across all chromosomes and assigned to each
+  \code{TrioSet} element.  }
 
   \item{}{\code{mad.sample(object) <- value}: Summary measures of the
   standard deviation of the log R ratios for each trio. \code{value} is
