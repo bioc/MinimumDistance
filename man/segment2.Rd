@@ -63,6 +63,7 @@ segment2(object, pos, chrom, id, ...)
 
 \examples{
 
+\dontrun{ ## examples are checked in the vignette
 data(trioSetListExample)
 ## segment the log R ratios for father mother and offspring
 rd <- segment2(lrr(trioSetList),
@@ -79,6 +80,7 @@ md.segs <- segment2(mindist(trioSetList),
 	             pos=position(trioSetList),
 	             chrom=chromosome(trioSetList),
                      verbose=0)
+}
 
 }
 

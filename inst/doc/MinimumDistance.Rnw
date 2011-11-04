@@ -486,12 +486,11 @@ distance, and B allele frequencies.
 trioSet <- stack(trioSetList)
 rd.denovoDel <- map.segs[state(map.segs) == 332, ]
 library("VanillaICE")
-##md.segs$seg.mean <- -1*md.segs$seg.mean
 lrrfig <- xyplot(lrr ~ x | id,
 		 data=trioSet,
 		 range=rd.denovoDel[1, ],
 		 lrr.segs=lrr.segs,
-		 md.segs=md.segs,
+		 md.segs=map.segs,
 		 frame=500e3,
 		 panel=xypanelMD,
                  xlab="physical position (Mb)",
@@ -509,7 +508,7 @@ baffig <- xyplot(baf ~ x | id,
 		 range=rd.denovoDel[1, ],
 		 xlab="",
 		 lrr.segs=lrr.segs,
-		 md.segs=md.segs,
+		 md.segs=map.segs,
 		 frame=500e3,
 		 panel=VanillaICE::xypanel,
 		 cex=0.2,

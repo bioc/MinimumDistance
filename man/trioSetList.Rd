@@ -31,6 +31,7 @@ An object of class \code{TrioSetList}
   \code{\linkS4class{TrioSetList}}
 }
 \examples{
+\dontrun{## this is checked in the vignette
 library(human610quadv1bCrlmm)
 data(pedigreeExample)
 data(samplesheetExample)
@@ -42,6 +43,7 @@ trioSetList <- TrioSetList(lrr=logRratio,
 			   pedigree=pedigreeExample,
 			   sampleSheet=samplesheetExample,
 			   cdfname="human610quadv1bCrlmm")
+}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

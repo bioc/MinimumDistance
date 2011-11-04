@@ -2599,7 +2599,7 @@ xypanelMD <- function(x, y,
 	if(!missing(md.segs) & id == "min dist"){
 		cbs.sub <- md.segs[sampleNames(md.segs) %in% sampleNames(range), ]
 		cbs.sub <- cbs.sub[chromosome(cbs.sub) == chromosome(range), ]
-		cbs.sub$seg.mean <- -1*cbs.sub$seg.mean
+		##cbs.sub$seg.mean <- -1*cbs.sub$seg.mean
 		segments.md <- TRUE && nrow(cbs.sub) > 0
 	} else segments.md <- FALSE
 	if(segments | segments.md){
