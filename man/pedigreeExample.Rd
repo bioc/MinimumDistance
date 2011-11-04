@@ -11,6 +11,7 @@
   Container for storing pedigree information
 }
 \source{HapMap}
+\seealso{\code{\linkS4class{Pedigree}}}
 \examples{
 data(pedigreeExample)
 }

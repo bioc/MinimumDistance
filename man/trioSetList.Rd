@@ -22,15 +22,13 @@ TrioSetList(lrr, baf, pedigreeData, sampleSheet, featureData, chromosome = 1:22,
   TrioSetList object.  }
 \item{cdfname}{character.  Name of annotation package.}
 }
-\details{
 
-}
 \value{
 An object of class \code{TrioSetList}
 }
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+  \code{\linkS4class{TrioSetList}}
 }
 \examples{
 library(human610quadv1bCrlmm)

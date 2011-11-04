@@ -65,7 +65,5 @@ Rob Scharpf
 \seealso{
   \code{\link{segment}}
 }
-\examples{
-}
 \keyword{manip}
 

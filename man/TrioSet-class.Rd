@@ -4,15 +4,18 @@
 \alias{TrioSet-class}
 \alias{[,TrioSet-method}
 \alias{baf<-,TrioSet-method}
+\alias{baf<-}
 \alias{calculateMindist,TrioSet-method}
 \alias{dim,TrioSet-method}
 \alias{fatherNames<-,TrioSet,character-method}
 \alias{fatherNames<-}
 \alias{fatherNames,TrioSet-method}
 \alias{initialize,TrioSet-method}
+\alias{lrr<-}
 \alias{mad.marker<-,TrioSet,matrix-method}
 \alias{mad.marker<-,TrioSet,numeric-method}
 \alias{mad.marker}
+\alias{mad.marker<-}
 \alias{mad.mindist<-,TrioSet,numeric-method}
 \alias{mad.mindist<-}
 \alias{mad.sample<-,TrioSet,matrix-method}
@@ -21,6 +24,8 @@
 \alias{mindist<-,TrioSet,ff_matrix-method}
 \alias{mindist<-,TrioSet,NULL-method}
 \alias{mindist,TrioSet-method}
+\alias{mindist}
+\alias{mindist<-}
 \alias{motherNames<-,TrioSet,character-method}
 \alias{motherNames,TrioSet-method}
 \alias{motherNames<-}
@@ -28,6 +33,7 @@
 \alias{offspringNames,TrioSet-method}
 \alias{offspringNames<-}
 \alias{phenoData2,TrioSet-method}
+\alias{phenoData2}
 \alias{prune,TrioSet,RangedDataCNV-method}
 \alias{updateObject,TrioSet-method}
 \alias{xyplot,formula,TrioSet-method}
@@ -117,7 +123,11 @@
     \item{}{\code{fatherNames(object) <- value}: Assign character string
     of father sample names.}
 
-  \item{}{\code{fatherNames(object)}: Return character string of father identifiers.}
+  \item{}{\code{fatherNames(object)}: Return character string of father
+    identifiers.}
+
+  \item{}{\code{lrr(object) <- value}: assign log R ratios to assayData.
+      \code{value} is a 3-dimensional array (feature x trio x sample).}
 
   \item{}{\code{mad.marker(object) <- value}: Assign robust estimates of
   the log R ratio standard deviation for each marker (estimated across

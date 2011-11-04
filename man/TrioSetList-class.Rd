@@ -19,7 +19,7 @@
 %\alias{mad.mindist<-,TrioSetList-method}
 \alias{mad.mindist<-,TrioSetList,list-method}
 \alias{mad.sample<-,TrioSetList,matrix-method}
-\alias{mindist<-,TrioSetList-method}
+\alias{mindist<-,TrioSetList,list-method}
 \alias{mindist,TrioSetList-method}
 \alias{motherNames,TrioSetList-method}
 \alias{motherNames}

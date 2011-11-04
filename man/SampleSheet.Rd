@@ -1,9 +1,10 @@
 \name{SampleSheet}
 \alias{SampleSheet}
 
-\title{Constructs and object of class SampleSheet }
+\title{Construct an object of class SampleSheet}
 
-\description{Constructs and object of class SampleSheet }
+\description{Construct an object of class SampleSheet}
+
 \usage{
 SampleSheet(filename, id, plate, ...)
 }
@@ -16,14 +17,11 @@ SampleSheet(filename, id, plate, ...)
   \item{plate}{character. Chemistry plate upon which sample was processed.}
   \item{\dots}{Additional arguments passed to \code{data.frame}}
 }
-\details{
 
-}
-\value{An object of class \code{SampleSheet}.
-}
+\value{An object of class \code{SampleSheet}.}
 
 \seealso{
-  \code{\linkS4class{SampleSheet}}
+  \code{\linkS4class{SampleSheet}}, \code{\link{samplesheetExample}}
 }
 \examples{
 path <- system.file("extdata", package="MinimumDistance")

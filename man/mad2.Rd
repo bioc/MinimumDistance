@@ -8,7 +8,7 @@
 	     Elements of the list can be matrices or arrays or ff-versions of these.}
 
 \usage{
-mad2(object, byrow=FALSE)
+mad2(object, byrow=FALSE, ...)
 }
 
 \arguments{
@@ -20,6 +20,8 @@ mad2(object, byrow=FALSE)
   calculated for each row in the list elements (rows are markers).  If
   FALSE, the median absolute deviation of the log R ratios is
   calculated for each column (sample) across markers.  }
+
+  \item{\dots}{Not currently implemented.}
 
 }
 

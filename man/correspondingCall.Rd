@@ -37,9 +37,5 @@ correspondingCall(ranges.query, ranges.subject, subject.method)
 Rob Scharpf
 }
 \seealso{\code{\link{findOverlaps}}}
-\examples{
-}
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{utilities}
 

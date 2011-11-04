@@ -68,7 +68,8 @@ data(trioSetListExample)
 rd <- segment2(lrr(trioSetList),
 	       pos=position(trioSetList),
 	       chrom=chromosome(trioSetList),
-	       id=trios(trioSetList))
+	       id=trios(trioSetList),
+               verbose=0)
 
 ## segment the minimum distance
 if(is.null(mindist(trioSetList))){
@@ -76,7 +77,8 @@ if(is.null(mindist(trioSetList))){
 }
 md.segs <- segment2(mindist(trioSetList),
 	             pos=position(trioSetList),
-	             chrom=chromosome(trioSetList))
+	             chrom=chromosome(trioSetList),
+                     verbose=0)
 
 }
 

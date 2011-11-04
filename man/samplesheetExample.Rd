@@ -16,8 +16,8 @@
   }
 }
 
-\details{
-}
+\seealso{\code{\link{SampleSheet}}, \code{\linkS4class{SampleSheet}}}
+
 \examples{
 data(samplesheetExample)
 ## maybe str(samplesheetExample) ; plot(samplesheetExample) ...

@@ -1,16 +1,21 @@
 \name{xypanelMD}
 \alias{xypanelMD}
+\alias{xypanel}
 
 \title{Panel function for plotting log R ratios and B allele frequencies
   for a trio}
 \description{
 
-  This is a panel function for lattice's xyplot that is useful for
+  This is a panel function for xyplot function in lattice that is useful for
   plotting log R ratios and B allele frequencies for a trio
 
 }
 \usage{
-xypanelMD(x, y, id, gt, is.snp, range, col.hom = "grey20", fill.hom = "lightblue", col.het = "grey20", fill.het = "salmon", col.np = "grey20", fill.np = "grey60", show.state = TRUE, lrr.segs, md.segs, ..., subscripts)
+xypanelMD(x, y, id, gt, is.snp, range, col.hom = "grey20", fill.hom =
+"lightblue", col.het = "grey20", fill.het = "salmon", col.np = "grey20",
+fill.np = "grey60", show.state = TRUE, lrr.segs, md.segs, ...,
+subscripts)
+
 }
 
 \arguments{
@@ -97,37 +102,39 @@ data(lrr.segs)
 data(md.segs)
 ## select a range with a possible de novo copy number alteration in the offspring
 rd <- map.segs[which(isDenovo(state(map.segs)))[1], ]
-
-lrrfig <- xyplot(lrr ~ x | id,
-		 data=trioSet,
-		 range=rd,
-		 lrr.segs=lrr.segs,
-		 md.segs=md.segs,
-		 frame=500e3,
-		 panel=xypanelMD,
-		 cex=0.2,
-		 pch=21,
-		 border="orange",
-		 scales=list(x="free"),
-		 par.strip.text=list(lines=0.8, cex=0.6),
-		 col.np="royalblue", fill.np="grey",
-		 index.cond=list(4:1),
-		 return.data.frame=FALSE)
-baffig <- xyplot(baf ~ x | id,
-		 data=trioSet,
-		 range=rd,
-		 lrr.segs=lrr.segs,
-		 md.segs=md.segs,
-		 frame=500e3,
-		 panel=xypanel,
-		 cex=0.2,
-		 pch=21,
-		 border="orange",
-		 scales=list(x="free"),
-		 par.strip.text=list(lines=0.8, cex=0.6),
-		 col.np="royalblue", fill.np="grey",
-		 index.cond=list(4:1))
-VanillaICE:::arrangeSideBySide(lrrfig, baffig)
+if(require("VanillaICE")){
+	lrrfig <- xyplot(lrr ~ x | id,
+			 data=trioSet,
+			 range=rd,
+			 lrr.segs=lrr.segs,
+			 md.segs=md.segs,
+			 frame=500e3,
+			 panel=xypanelMD,
+			 cex=0.2,
+			 pch=21,
+			 border="orange",
+			 scales=list(x="free"),
+			 par.strip.text=list(lines=0.8, cex=0.6),
+			 col.np="royalblue", fill.np="grey",
+			 index.cond=list(4:1),
+			 return.data.frame=FALSE)
+	## the xypanel functionn is defined in VanillaICE
+	baffig <- xyplot(baf ~ x | id,
+			 data=trioSet,
+			 range=rd,
+			 lrr.segs=lrr.segs,
+			 md.segs=md.segs,
+			 frame=500e3,
+			 panel=xypanel,
+			 cex=0.2,
+			 pch=21,
+			 border="orange",
+			 scales=list(x="free"),
+			 par.strip.text=list(lines=0.8, cex=0.6),
+			 col.np="royalblue", fill.np="grey",
+			 index.cond=list(4:1))
+	VanillaICE:::arrangeSideBySide(lrrfig, baffig)
+}
 
 }
 \keyword{dplot}

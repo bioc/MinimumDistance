@@ -50,3 +50,5 @@ setGeneric("minimumDistance", function(object, ...) standardGeneric("minimumDist
 setGeneric("trioplot", function(formula, object, range, ...) standardGeneric("trioplot"))
 setGeneric("segment2", function(object, pos, chrom, id, ...) standardGeneric("segment2"))
 setGeneric("mad2", function(object, byrow=FALSE, ...) standardGeneric("mad2"))
+
+

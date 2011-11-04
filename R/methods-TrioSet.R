@@ -328,10 +328,10 @@ setReplaceMethod("phenoData2", signature(object="TrioSet", value="ANY"), functio
 })
 setMethod("varLabels2", signature(object="TrioSet"), function(object) colnames(phenoData2(object)))
 
-offspringForId <- function(id, pedigree){
-	## we have a vector of ids.
-	index <- match(id, pedigree.char)
-}
+##offspringForId <- function(id, pedigree){
+##	## we have a vector of ids.
+##	index <- match(id, pedigree.char)
+##}
 
 
 setMethod("computeBayesFactor", signature(object="TrioSet", ranges="RangedDataCNV"),
