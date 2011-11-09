@@ -46,4 +46,4 @@ sts <- unique(state(map.segs))
 sts[isDenovo(sts)]
 }
 \keyword{manip}
-
+% Sam I am
