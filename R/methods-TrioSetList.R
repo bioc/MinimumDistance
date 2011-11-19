@@ -46,6 +46,7 @@ TrioSetList <- function(lrr, baf,
 			featureData,
 			chromosome=1:22,
 			cdfname){
+	stopifnot(identical(rownames(lrr), rownames(baf)))
 	if(missing(featureData)){
 		stopifnot(!missing(cdfname))
 		featureData <- oligoClasses:::featureDataFrom(cdfname)
@@ -56,11 +57,12 @@ TrioSetList <- function(lrr, baf,
 		fD <- featureData
 	}
 	fD <- fD[order(fD$chromosome, fD$position), ]
-	index <- match(sampleNames(fD), rownames(lrr))
-	if(any(is.na(index))){
+	is.present <- sampleNames(fD) %in% rownames(lrr)
+	if(!all(is.present)){
 		warning("Excluding SNP ids in featureData not present in rownames of lrr/baf matrices")
-		fD <- fD[sampleNames(fD) %in% rownames(lrr), ]
+		fD <- fD[is.present, ]
 	}
+	index <- match(sampleNames(fD), rownames(lrr))
 	##index <- match(rownames(lrr), sampleNames(fD))
 	lrr <- lrr[index, ]
 	baf <- baf[index, ]
