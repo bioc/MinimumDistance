@@ -55,10 +55,7 @@ setClass("Pedigree", contains="list",
 	 representation(trios="data.frame",
 			trioIndex="data.frame"))
 
-setValidity("Pedigree", function(object){
-	if(any(duplicated(offspringNames(object))))
-		return("offspring identifiers must uniquely identify a trio")
-})
+
 
 setValidity("SampleSheet", function(object){
 	if(!"id" %in% colnames(object))
@@ -83,6 +80,7 @@ setValidity("TrioSetList", function(object){
 		return("allNames of Pedigree must be identical to sampleNames of SampleSheet")
 	if(!identical(as.character(unlist(trios(object))), as.character(phenoData2(object[[1]])[, "sampleNames", ])))
 		return("The phenoData2 slot for the elements in the TrioSetList must have a sampleNames column equal to trios(object)")
+	if(!checkOrder(object)) return("each element in the TrioSetList must be ordered by chromosome and physical position.")
 	TRUE
 })
 

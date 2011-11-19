@@ -39,8 +39,8 @@ setGeneric("fatherNames<-", function(object,value) standardGeneric("fatherNames<
 setGeneric("motherNames", function(object) standardGeneric("motherNames"))
 setGeneric("motherNames<-", function(object,value) standardGeneric("motherNames<-"))
 setGeneric("trioNames", function(object) standardGeneric("trioNames"))
-setGeneric("rbind", function(..., deparse.level=1) standardGeneric("rbind"),
-           signature = "...")
+##setGeneric("rbind", function(..., deparse.level=1) standardGeneric("rbind"),
+##           signature = "...")
 setGeneric("width", function(x) standardGeneric("width"))
 setGeneric("sampleSheet", function(object) standardGeneric("sampleSheet"))
 setGeneric("pedigree", function(object) standardGeneric("pedigree"))
@@ -50,6 +50,7 @@ setGeneric("minimumDistance", function(object, ...) standardGeneric("minimumDist
 setGeneric("trioplot", function(formula, object, range, ...) standardGeneric("trioplot"))
 setGeneric("segment2", function(object, pos, chrom, id, ...) standardGeneric("segment2"))
 setGeneric("mad2", function(object, byrow=FALSE, ...) standardGeneric("mad2"))
+setGeneric("order2", function(object, ...) standardGeneric("order2"))
 
 
 

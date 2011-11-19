@@ -55,11 +55,17 @@ TrioSetList <- function(lrr, baf,
 		stopifnot(is(featureData, "AnnotatedDataFrame"))
 		fD <- featureData
 	}
-	index <- match(rownames(lrr), sampleNames(fD))
+	fD <- fD[order(fD$chromosome, fD$position), ]
+	index <- match(sampleNames(fD), rownames(lrr))
 	if(any(is.na(index))){
-		warning("Some rownames of the log R ratio matrix are not in the corresponding featureData object.")
+		warning("Excluding SNP ids in featureData not present in rownames of lrr/baf matrices")
+		fD <- fD[sampleNames(fD) %in% rownames(lrr), ]
 	}
-	fD <- fD[index, ]
+	##index <- match(rownames(lrr), sampleNames(fD))
+	lrr <- lrr[index, ]
+	baf <- baf[index, ]
+	stopifnot(all(identical(rownames(lrr), sampleNames(fD))))
+	##fD <- fD[index, ]
 	sampleSheet <- sampleSheet[match(allNames(pedigreeData), sampleNames(sampleSheet)), ]
 	marker.list <- split(sampleNames(fD), fD$chromosome)
 	marker.list <- marker.list[1:length(marker.list)%in%chromosome]
@@ -139,14 +145,14 @@ setReplaceMethod("mindist", signature(object="TrioSetList", value="list"),
 		 })
 
 
-setMethod("order", "TrioSetList",
-	  function(..., na.last=TRUE, decreasing=FALSE){
-		  orderTrioSetList(...)
+setMethod("order2", "TrioSetList",
+	  function(object, ...){
+		  orderTrioSetList(object, ...)
 	  })
 
 orderTrioSetList <- function(object){
 	for(i in seq_along(object)){
-		object[[i]] <- order(object[[i]])
+		object[[i]] <- order2(object[[i]])
 	}
 	return(object)
 }
@@ -212,6 +218,12 @@ setMethod("computeBayesFactor", signature(object="TrioSetList", ranges="RangedDa
 		  if("id" %in% names(list(...))){
 			  nsamples <- length(id)
 		  } else nsamples <- ncol(object)
+		  if("verbose" %in% names(list(...))){
+			  verbose <- list(...)[["verbose"]]
+		  } else verbose <- FALSE
+		  if("returnEmission" %in% names(list(...))){
+			  returnEmission <- list(...)[["returnEmission"]]
+		  }  else returnEmission <- FALSE
 		  if(verbose){
 			  message("\t\tComputing Bayes factors for ", length(object), " chromosomes and ", nsamples, " trios.")
 			  pb <- txtProgressBar(min=0, max=length(object), style=3)
@@ -226,7 +238,6 @@ setMethod("computeBayesFactor", signature(object="TrioSetList", ranges="RangedDa
 			  rd <- computeBayesFactor(object[[i]],
 						   ranges[j, ],
 						   pedigreeData=pedigree(object),
-						   returnEmission=returnEmission,
 						   collapseRanges=FALSE,
 						   verbose=FALSE, ...)
 			  if(returnEmission) return(rd)
@@ -237,12 +248,15 @@ setMethod("computeBayesFactor", signature(object="TrioSetList", ranges="RangedDa
 		  }
 		  if(verbose) close(pb)
 		  ranges$state <- trioStateNames()[ranges$argmax]
+		  if("collapseRanges" %in% names(list(...))){
+			  collapseRanges <- list(...)[["collapseRanges"]]
+		  } else collapseRanges <- TRUE
 		  if(collapseRanges)
 			  ranges <- pruneByFactor(ranges, f=ranges$argmax, verbose=verbose)
 ##		  ranges <- RangedDataMinimumDistance(ranges=ranges(ranges),
 ##						      values=values(ranges))
 		  return(ranges)
-	  })
+ 	  })
 
 setMethod("[", signature(x="TrioSetList"),
 	  function(x, i, j, ..., drop=FALSE){
@@ -260,8 +274,8 @@ setMethod("[", signature(x="TrioSetList"),
 
 
 
-setMethod("chromosome", signature(object="TrioSetList"),
-	  function(object) names(object))
+##setMethod("chromosome", signature(object="TrioSetList"),
+##	  function(object) names(object))
 
 setMethod("show", signature(object="TrioSetList"),
 	  function(object){
@@ -346,3 +360,18 @@ setMethod("position", signature(object="TrioSetList"),
 	  function(object){
 		  lapply(object, position)
 	  })
+
+setMethod("checkOrder", signature(object="TrioSetList"),
+	  function(object, verbose=FALSE){
+		  all(sapply(object, checkOrder, verbose=verbose))
+	  })
+
+setMethod("order", signature(...="TrioSetList"),
+	  function(..., na.last=TRUE,decreasing=FALSE){
+		  x <- list(...)[[1]]
+		  for(i in seq_along(x)){
+			  x[[i]] <- chromosomePositionOrder(x[[i]])
+		  }
+		  return(x)
+	  })
+

@@ -37,7 +37,7 @@ setMethod("segment2", signature(object="ff_matrix"),
 		  segment2(object[,], pos, chrom, ...)
 	  })
 
-setMethod("segment2", signature(object="array", id="data.frame"),
+setMethod("segment2", signature(object="array", pos="ANY", chrom="ANY", id="data.frame"),
 	  function(object, pos, chrom, id, ...){
 		  stopifnot(length(dim(object))==3) ## expects a 3d array
 		  J <- dim(object)[[3]]
@@ -45,10 +45,12 @@ setMethod("segment2", signature(object="array", id="data.frame"),
 		  if("verbose" %in% names(list(...))){
 			  verbose <- list(...)[["verbose"]]
 		  } else verbose <- FALSE
+		  fns <- rownames(object)
 		  for(j in seq_len(J)){
 			  if(verbose > 0) message("Processing ", ncol(object), " samples")
-			  obj <- object[, , j]
-			  colnames(obj) <- id[, j]
+			  obj <- object[, , j, drop=FALSE]
+			  dim(obj) <- c(nrow(object), ncol(object))
+			  dimnames(obj) <- list(fns, id[, j])
 			  resList[[j]] <- segmentMatrix(obj, pos, chrom, ...)
 			  rm(obj)
 		  }

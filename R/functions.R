@@ -571,9 +571,17 @@ pruneByFactor <- function(range.object, f, verbose){
 		rd[[i]] <- combineRangesByFactor(range.object[index, ], f=f[index])
 	}
 	if(verbose) close(pb)
-	ok <- tryCatch(tmp <- do.call("rbind", rd), error=function(e) FALSE)
-	if(is(ok, "logical")) tmp <- rd
-	return(tmp)
+	##ok <- tryCatch(tmp <- do.call("rbind", rd), error=function(e) FALSE)
+	ok <- tryCatch(stack(RangedDataList(rd)), error=function(e) FALSE)
+	if(!is(ok, "RangedData")) {
+		message("trouble combining RangedData objects.  Returning list")
+		ok <- rd
+	} else {
+		j <- match("sample",colnames(ok))
+		if(length(j) == 1)
+			ok <- ok[, -j]
+	}
+	return(ok)
 }
 
 combineRangesByFactor <- function(range.object, f){
@@ -3137,13 +3145,15 @@ stackListByColIndex <- function(object, i, j){
 	is.matrix <- is(object[[1]], "matrix") || is(object[[1]], "ff_matrix")
 	if(is.matrix){
 		for(k in seq_along(X)){
-			X[[k]] <- object[[k]][, i]
+			X[[k]] <- object[[k]][, i, drop=FALSE]
 		}
 		X <- do.call("rbind", X)
 	} else {
-		is.array <- is(object, "array")
+		is.array <- is(object[[1]], "array")
+		stopifnot(length(j)==1)
 		for(k in seq_along(X)){
-			X[[k]] <- object[[k]][, i, j]
+			X[[k]] <- object[[k]][, i, j, drop=FALSE]
+			dim(X[[k]]) <- c(nrow(X[[k]]), ncol(X[[k]])) ## drop 3rd dimension
 		}
 		X <- do.call("rbind", X)
 	}

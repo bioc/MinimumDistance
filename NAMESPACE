@@ -31,6 +31,7 @@ importFrom(msm, qtnorm, dtnorm)
 ##importFrom(ff, filename)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 importMethodsFrom(VanillaICE, xyplot, xyplot2)
+importFrom(BiocGenerics, order)
 exportClasses(##LogRratioSet,
 	      TrioSet, TrioSetList,
 	      Pedigree, SampleSheet)
@@ -53,10 +54,11 @@ exportMethods("[", allNames,
 	      ncol,
 	      nrow,
 	      offspringNames, "offspringNames<-",
+	      order,
 	      pedigree,
 	      phenoData2,
 	      prune,
-	      rbind,
+##	      rbind,
 	      sampleSheet,
 	      segment2,
 	      stack,

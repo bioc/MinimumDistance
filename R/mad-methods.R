@@ -48,13 +48,19 @@ setMethod("mad2", signature(object="list"),
 				  J <- dim(object[[1]])[[3]]
 				  ##mads <- matrix(NA, nr, 3)
 				  ##dimnames(mads) <- list(fns, c("F", "M", "O"))
-				  for(i in seq_along(object)){
-					  mads[[i]] <- matrix(NA, nrow(object[[i]]), 3)
-					  dimnames(mads[[i]]) <- list(rownames(object[[i]]),
-								      c("F","M", "O"))
-					  for(j in seq_len(J)){
-						  mads[[i]][, j] <- rowMAD(object[[i]][, ,j], na.rm=TRUE)
+				  if(ncol(object[[1]]) > 2){
+					  for(i in seq_along(object)){
+						  mads[[i]] <- matrix(NA, nrow(object[[i]]), 3)
+						  dimnames(mads[[i]]) <- list(rownames(object[[i]]),
+									      c("F","M", "O"))
+						  for(j in seq_len(J)){
+							  mads[[i]][, j] <- rowMAD(object[[i]][, ,j], na.rm=TRUE)
+						  }
 					  }
+				  } else {
+					  ##only 1 or two trios.
+					  message("fewer than 2 trios. Can not estimate the standard deviation of the log R ratios across independent subjects")
+					  return(NULL)
 				  }
 			  }
 		  }

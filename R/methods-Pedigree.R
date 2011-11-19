@@ -5,14 +5,18 @@ setMethod("initialize", signature(.Object="Pedigree"),
 		  .Object@trioIndex <- trioIndex
 		  return(.Object)
 	  })
+
 setValidity("Pedigree", function(object){
 	if(!identical(colnames(trios(object)), c("F", "M", "O")))
 		return("column names should be 'F', 'M', and 'O'")
 	if(any(duplicated(offspringNames(object))))
-		return("Duplicated offspring names.  The offspring names must be unique.")
+		return("offspring identifiers must uniquely identify a trio")
 	if(any(is.na(unlist(trios(object)))))
 		return("Missing values not allowed in pedigree")
-	NULL
+	if(!all(c(is(fatherNames(object), "character"),
+		  is(motherNames(object), "character"),
+		  is(sampleNames(object), "character"))))
+		return("sample identifiers must be character strings (e.g., not factors)")
 })
 
 setGeneric("trios", function(object) standardGeneric("trios"))

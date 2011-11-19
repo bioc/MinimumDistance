@@ -278,6 +278,13 @@ setReplaceMethod("baf", signature(object="TrioSet", value="ANY"),
 			 assayDataElementReplace(object, "BAF", value)
 		 })
 
+setMethod("checkOrder", signature(object="TrioSet"),
+	  function(object, verbose=FALSE){
+		  oligoClasses:::.checkOrder(object, verbose)
+	  })
+
+
+
 fullId <- function(object) object@phenoData2[, "id", ]
 
 setMethod("calculateMindist", signature(object="TrioSet"),
@@ -295,7 +302,7 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 					  vmode="double")
 	} else md <- mindist(object)
 	if(verbose){
-		message("\t\tComputing Bayes factors for ", ncol(object), " files.")
+		message("\t\tComputing the minimum distance for ", ncol(object), " files.")
 		pb <- txtProgressBar(min=0, max=ncol(object), style=3)
 	}
 	for(j in seq(length=ncol(object))){
@@ -586,7 +593,12 @@ setAs("TrioSet", "data.frame",
 	      return(df)
       })
 
-setMethod("order", "TrioSet",
-	  function(..., na.last=TRUE, decreasing=FALSE){
-		  chromosomePositionOrder(...)
+setMethod("order2", "TrioSet",
+	  function(object, ...){
+		  chromosomePositionOrder(object, ...)
+	  })
+setMethod("order", signature(...="TrioSet"),
+	  function(..., na.last=TRUE,decreasing=FALSE){
+		  x <- list(...)[[1]]
+		  chromosomePositionOrder(x)
 	  })
