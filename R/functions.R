@@ -98,7 +98,7 @@ concAtTop <- function(ranges.query, ranges.subject, list.size, verbose=TRUE, ...
 ####		## -- can do this by matching to itself
 ####		message("Matching by locus...")
 ####		message("\tIdentifying unique query regions ")
-####		nn <- coverage(ranges.query)
+####		nn <- coverage2(ranges.query)
 ####		ranges.by.size <- ranges.query[order(nn, decreasing=TRUE), ]
 ####		##r1 <- ranges.by.size
 ####		NR <- nrow(ranges.by.size)
@@ -115,7 +115,7 @@ concAtTop <- function(ranges.query, ranges.subject, list.size, verbose=TRUE, ...
 ####		}
 ####		ranges.query <- ranges.by.size
 ####		message("\tIdentifying unique subject regions ")
-####		nn <- coverage(ranges.subject)
+####		nn <- coverage2(ranges.subject)
 ####		ranges.by.size <- ranges.subject[order(nn, decreasing=TRUE), ]
 ####		NR <- nrow(ranges.by.size)
 ####		i <- 1
@@ -130,8 +130,8 @@ concAtTop <- function(ranges.query, ranges.subject, list.size, verbose=TRUE, ...
 ####		ranges.subject <- ranges.by.size
 ####	}
 ##	if(verbose) message("Ranking query and subject ranges by coverage")
-##	ranges.subject$rank <- rank(-coverage(ranges.subject), ties.method="min")
-##	ranges.query$rank <- rank(-coverage(ranges.query), ties.method="min")
+##	ranges.subject$rank <- rank(-coverage2(ranges.subject), ties.method="min")
+##	ranges.query$rank <- rank(-coverage2(ranges.query), ties.method="min")
 ##	listSize <- min(listSize, min(nrow(ranges.query), nrow(ranges.subject)))
 ##	top.query <- ranges.query[order(ranges.query$rank, decreasing=FALSE)[1:listSize], ]
 ##
@@ -195,7 +195,7 @@ concAtTop <- function(ranges.query, ranges.subject, list.size, verbose=TRUE, ...
 ##	I <- count > 0
 ##	message("returning proportion in common (p) and coverage in query (cov)")
 ##	p <- sapply(1:nrow(top.query), function(x, I) mean(I[1:x]), I=I)
-##	cov <- coverage(top.query)
+##	cov <- coverage2(top.query)
 ##	return(list(pAny=pAny,
 ##		    p=p, cov=cov,
 ##		    concordant=concordant,
@@ -214,8 +214,8 @@ concAtTop <- function(ranges.query, ranges.subject, list.size, verbose=TRUE, ...
 
 notCalled <- function(ranges.query, ranges.subject, listSize, sample.match=TRUE){
 	message("Returning ranges in query that do not overlap with top ranges in subject")
-	ranges.subject$rank <- rank(-coverage(ranges.subject), ties.method="min")
-	ranges.query$rank <- rank(-coverage(ranges.query), ties.method="min")
+	ranges.subject$rank <- rank(-coverage2(ranges.subject), ties.method="min")
+	ranges.query$rank <- rank(-coverage2(ranges.query), ties.method="min")
 	message("Assessing top ", listSize, " query ranges for hit in subject")
 	top.query <- ranges.query[order(ranges.query$rank, decreasing=FALSE)[1:listSize], ]
 	ranges.subject <- ranges.subject[order(ranges.subject$rank,decreasing=FALSE)[1:listSize], ]
@@ -957,15 +957,30 @@ LikSet <- function(trioSet, pedigreeData, id, CHR, ranges){
 		      loglik=loglik)
 	object$MAD <- mads
 	fData(object)$range.index <- NA
-	ir1 <- IRanges(start=position(object), end=position(object))
-	ir2 <- IRanges(start(ranges), end(ranges))
-	mm <- findOverlaps(ir1, ir2)
-	subject.index <- subjectHits(mm)
-	## there should be no query that is in more than 1 subject
-	qhits <- queryHits(mm)
-	shits <- subjectHits(mm)
-	fData(object)$range.index <- NA
-	fData(object)$range.index[qhits] <- shits
+	##tmp=findOverlaps(featureData(object), ranges)
+	fo=findOverlaps(ranges, featureData(object))
+	mm <- matchMatrix(fo)
+	i1 <- mm[, "subject"]
+	i2 <- mm[, "query"]
+	fData(object)$range.index[i1] <- i2
+	if(any(is.na(range.index(object)))){
+		msg <- paste("Segmentation was run on chunks of the data for which the markers are less than 75kb apart.\n",
+			     "When log R ratios are missing at the boundaries of the partioned data, not all markers \n",
+			     "will be covered by a segment.\n")
+		warning(msg)
+		object <- object[!is.na(range.index(object)), ]
+	}
+	## NA values occur if there are ranges that do not overlap the
+	## marker locations in object.
+##	ir1 <- IRanges(start=position(object), end=position(object))
+##	ir2 <- IRanges(start(ranges), end(ranges))
+##	mm <- findOverlaps(ir1, ir2)
+##	subject.index <- subjectHits(mm)
+##	## there should be no query that is in more than 1 subject
+##	qhits <- queryHits(mm)
+##	shits <- subjectHits(mm)
+##	fData(object)$range.index <- NA
+##	fData(object)$range.index[qhits] <- shits
 	if(is.ff){
 		close(baf(trioSet))
 		close(lrr(trioSet))
@@ -1024,7 +1039,7 @@ mosaicProb <- function(bf, sd.mosaic, sd0, sd.5, sd1, rangeIndex, normalCN=FALSE
 	while(any(is.na(rangeIndex))){
 		rangeIndex <- fillInMissing(rangeIndex)
 		iter <- iter+1
-		if(iter > 5) break()
+		if(iter > 5) stop("NA values in rangeIndex")
 	}
 	f1 <- tnorm(bf, 0, sd0)
 	f2 <- tnorm(bf, 1, sd1)
@@ -1253,6 +1268,10 @@ computeLoglik <- function(id,## trio id (or offspring id)
 			 CHR=CHR,
 			 id=id,
 			 ranges=ranges)
+	if(nrow(object) < nrow(trioSet)){
+		index <- match(featureNames(object), featureNames(trioSet))
+		trioSet <- trioSet[index, ]
+	}
 	j <- match(id, sampleNames(trioSet))
 	sds.sample <- mad(trioSet)[j, ]
 	stopifnot(all(!is.na(sds.sample)))
@@ -1951,7 +1970,7 @@ calculateDenovoFrequency <- function(ranges.md, penn.offspring, bychrom=FALSE){
 		colnames(df) <- c("state", "freq", "method")
 	}
 	stopifnot(all(penn.offspring$pass.qc))
-	not.normal <- coverage(penn.offspring) >= 10 & isDenovo(penn.offspring$state)
+	not.normal <- coverage2(penn.offspring) >= 10 & isDenovo(penn.offspring$state)
 	df2 <- as.data.frame(table(penn.offspring$state[not.normal]))
 	df2$method <- "PennCNV"
 	if(!bychrom){
@@ -2994,8 +3013,8 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 ##	md332 <- md332[order(sampleNames(penn332)), ]
 ##
 ##	if(rank.by=="coverage"){
-##		penn332$rank <- rank(-coverage(penn332), ties.method="first")
-##		md332$rank <- rank(-coverage(md332), ties.method="first")
+##		penn332$rank <- rank(-coverage2(penn332), ties.method="first")
+##		md332$rank <- rank(-coverage2(md332), ties.method="first")
 ##	}
 ##
 ##	md332 <- md332[order(md332$rank), ]

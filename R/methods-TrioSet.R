@@ -287,6 +287,16 @@ setMethod("checkOrder", signature(object="TrioSet"),
 
 fullId <- function(object) object@phenoData2[, "id", ]
 
+setMethod("calculateMindist", signature(object="matrix"),
+	  function(object,..., verbose=TRUE){
+		  stopifnot(ncol(object)==3)
+		  d1 <- object[, "O"] - object[, "F"]
+		  d2 <- object[, "O"] - object[, "M"]
+		  I <- as.numeric(abs(d1) <= abs(d2))
+		  md <- I*d1 + (1-I)*d2
+		  return(md)
+	  })
+
 setMethod("calculateMindist", signature(object="TrioSet"),
 	  function(object, ..., verbose=TRUE){
         sns <- sampleNames(object)
@@ -309,12 +319,8 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 		##if(j %% 100 == 0) cat(".")
 		if(verbose) setTxtProgressBar(pb, j)
 		lr <- lrr(object)[, j, ]
+		md[, j] <- calculateMindist(lr)
 		##d1 <- lr[, "F"] - lr[, "O"]
-		d1 <- lr[, "O"] - lr[, "F"]
-		d2 <- lr[, "O"] - lr[, "M"]
-		##d2 <- lr[, "M"] - lr[, "O"]
-		I <- as.numeric(abs(d1) <= abs(d2))
-		md[, j] <- I*d1 + (1-I)*d2
 		##mindist(object)[, j] <- md
 		##object$MAD[j] <- mad(md, na.rm=TRUE)
 	}
