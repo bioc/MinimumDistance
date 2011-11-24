@@ -967,7 +967,10 @@ LikSet <- function(trioSet, pedigreeData, id, CHR, ranges){
 		msg <- paste("Segmentation was run on chunks of the data for which the markers are less than 75kb apart.\n",
 			     "When log R ratios are missing at the boundaries of the partioned data, not all markers \n",
 			     "will be covered by a segment.\n")
-		warning(msg)
+		if(is.null(.GlobalEnv[[".warningMessageAlreadyDisplayed"]])){
+			warning(msg)
+			.GlobalEnv[[".warningMessageAlreadyDisplayed"]] <- TRUE
+		}
 		object <- object[!is.na(range.index(object)), ]
 	}
 	## NA values occur if there are ranges that do not overlap the
