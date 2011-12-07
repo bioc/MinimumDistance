@@ -39,3 +39,15 @@ setMethod("show", signature(object="Pedigree"),
 		  print(head(trioIndex(object)))
 		  cat("\n")
 	  })
+
+setMethod("[", signature(x="Pedigree"),
+	  function(x, i, j, ..., drop=FALSE){
+		  if(missing(i)) {
+			  return(x)
+		  } else {
+			  x@trios <- trios(x)[i, ]
+			  sns <- unlist(trios(x))
+			  x@trioIndex <- trioIndex(x)[sns%in% allNames(x), ]
+		  }
+		  return(x)
+	  })

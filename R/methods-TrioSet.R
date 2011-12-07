@@ -583,12 +583,16 @@ setAs("TrioSet", "data.frame",
 	      is.snp <- c(is.snp, isSnp(from))
 	      ##id <- rep(sampleNames(from), each=nrow(from))
 	      if(!gt.present){
-		      df <- data.frame(x=x, lrr=cn, baf=bf, id=sns,
+		      df <- data.frame(x=x,
+				       lrr=cn,
+				       baf=bf,
+				       id=sns,
 				       is.snp=is.snp,
 				       stringsAsFactors=FALSE,
 				       is.lrr=is.lrr)
 	      } else {
-		      df <- data.frame(x=x, lrr=cn,
+		      df <- data.frame(x=x,
+				       lrr=cn,
 				       gt=gt,
 				       baf=bf,
 				       id=sns,

@@ -2597,6 +2597,7 @@ xypanelMD <- function(x, y,
 		      gt,
 		      is.snp,
 		      range,
+		      cex,
 		      col.hom="grey20",
 		      fill.hom="lightblue",
 		      col.het="grey20" ,
@@ -2607,17 +2608,17 @@ xypanelMD <- function(x, y,
 		      lrr.segs,
 		      md.segs,
 		      ..., subscripts){
-	VanillaICE::xypanel(x, y,
+	VanillaICE:::xypanel(x, y,
 			    gt,
 			    is.snp,
 			    range,
-			    col.hom,
-			    fill.hom,
-			    col.het,
-			    fill.het,
-			    col.np,
-			    fill.np,
-			    show.state, ..., subscripts=subscripts)
+			    col.hom=col.hom,
+			    fill.hom=fill.hom,
+			    col.het=col.het,
+			    fill.het=fill.het,
+			    col.np=col.np,
+			    fill.np=fill.np,
+			    show.state, cex=cex, ..., subscripts=subscripts)
 	id <- unique(id[subscripts])
 	range <- range[1, ]
 	CHR <- chromosome(range)
@@ -2644,6 +2645,62 @@ xypanelMD <- function(x, y,
 				cbs.sub$seg.mean[index] <- ylimit[2] - 0.2
 			panel.segments(x0=start(cbs.sub)/1e6, x1=end(cbs.sub)/1e6, y0=cbs.sub$seg.mean, y1=cbs.sub$seg.mean, lwd=2, col="black")#gp=gpar("lwd"=2))
 		}
+	}
+}
+
+xypanelMD2 <- function(x, y,
+		       id,
+		       gt,
+		       is.snp,
+		       range,
+		       show.state=TRUE,
+		       lrr.segs,
+		       md.segs,
+		       col,
+		       cex=1,
+		       cex.state=1,
+		       col.state="blue",
+		       ..., subscripts){
+	panel.grid(v=0, h=4, "grey", lty=2)
+	panel.xyplot(x, y, cex=cex, col=col[subscripts], ...)
+	##lpoints(x, y, col=col[subscripts], cex=cex, ...)
+##	lpoints(x[!is.snp], y[!is.snp], col=col.np, cex=cex, ...)
+	id <- unique(id[subscripts])
+	range <- range[1, ]
+	CHR <- chromosome(range)
+	##stopifnot(length(CHR)==1)
+	if(id != "min dist" & !missing(lrr.segs)){
+		cbs.sub <- lrr.segs[sampleNames(lrr.segs)==as.character(id) & chromosome(lrr.segs)==CHR, ]
+		segments <- TRUE && nrow(cbs.sub) > 0
+	} else segments <- FALSE
+	if(!missing(md.segs) & id == "min dist"){
+		cbs.sub <- md.segs[sampleNames(md.segs) %in% sampleNames(range), ]
+		cbs.sub <- cbs.sub[chromosome(cbs.sub) == chromosome(range), ]
+		##cbs.sub$seg.mean <- -1*cbs.sub$seg.mean
+		segments.md <- TRUE && nrow(cbs.sub) > 0
+	} else segments.md <- FALSE
+	if(segments | segments.md){
+		##if(missing(ylimit)) ylimit <- range(y, na.rm=TRUE) ##else ylim <- ylimit
+		ylimit <- current.panel.limits()$ylim
+		if(nrow(cbs.sub) > 0){
+			index <- which(cbs.sub$seg.mean < ylimit[1])
+			if(length(index) > 0)
+				cbs.sub$seg.mean[index] <- ylimit[1] + 0.2
+			index <- which(cbs.sub$seg.mean > ylimit[2])
+			if(length(index) > 0)
+				cbs.sub$seg.mean[index] <- ylimit[2] - 0.2
+			panel.segments(x0=start(cbs.sub)/1e6, x1=end(cbs.sub)/1e6, y0=cbs.sub$seg.mean, y1=cbs.sub$seg.mean, lwd=2, col="black")#gp=gpar("lwd"=2))
+		}
+	}
+	j <- panel.number()
+	st <- start(range)[j]/1e6
+	lrect(xleft=st, xright=end(range)[j]/1e6,
+	      ybottom=-10, ytop=10, ...)
+	if(show.state){
+		## left justify the label to the start of the range
+		y.max <- current.panel.limits()$ylim[2]
+		ltext(st, y.max, labels=paste("state", state(range)[j]),
+		      adj=c(0,1), cex=cex.state, col=col.state)
 	}
 }
 
@@ -2781,88 +2838,6 @@ myfilter <- function(x, filter, ...){
 	return(res)
 }
 
-##minimumDistancePlot <- function(trioSetList,
-##				panel.fun=xypanel,
-##				rangeData,
-##				md.segs,
-##				cbs.segs,
-##				frame=2e6,
-##				cex=0.2,
-##				scales.cex=0.5,
-##				pch=21,
-##				panelLabelsRight=c("father", "mother", "offspring")){
-##	stopifnot(all(panelLabelsRight %in% c("father", "mother", "offspring", "min dist", "genes", "CNV")))
-##	if("genes" %in% panelLabelsRight) {
-##		stop("plotting genes not supported at this time")
-##		##require(locuszoom)
-##	}
-##	index <- which(chromosome(md.segs) %in% chromosome(rangeData) & sampleNames(md.segs) %in% sampleNames(rangeData))
-##	stopifnot(length(index) > 0)
-##	if(length(index) > 0){
-##		md.segs <- md.segs[index,]
-##	}
-##	##---------------------------------------------------------------------------
-##	## RS:  commented following line to remove dependency on sssampleNames -- needs testing
-##	##---------------------------------------------------------------------------
-##	##index <- which(chromosome(cbs.segs) %in% chromosome(rangeData) & sssampleNames(cbs.segs) %in% sssampleNames(rangeData))
-##	index <- which(chromosome(cbs.segs) %in% chromosome(rangeData) & sampleNames(cbs.segs) %in% sampleNames(rangeData))
-##	stopifnot(length(index) > 0)
-##	if(length(index) > 0){
-##		cbs.segs <- cbs.segs[index, ]
-##	}
-##	r1 <- rangeData
-##	f1 <- f2 <- list()
-##	for(i in 1:nrow(r1)){
-##		panelLabels <- c("father", "mother", "offspring", "min dist")
-##		f1[[i]] <- xyplot(r ~ x | id, trioSetList, ##range=penn.offspring[index, ],
-##				  panel=panel.fun,
-##				  rangeData=r1[i, ],
-##				  panelLabels=panelLabels,
-##				  layout=c(1,length(panelLabels)),
-##				  index.cond=list(rev(seq_along(panelLabels))),
-##				  frame=frame,
-##				  md.segs=md.segs,
-##				  ylim=c(-2.5, 1),
-##				  pch=pch,
-##				  par.settings=list(plot.symbol=list(pch=pch, cex=cex, col="grey50"),
-##				  par.xlab.text=list(cex=0.8),
-##				  par.ylab.text=list(cex=0.8)),
-##				  xlab="",
-##				  ylab="log R ratio",
-##				  scales=list(x=list(tick.number=10, cex=scales.cex, tck=c(1,0), axs="i"),
-##  				              alternating=rep(1,3),
-##				              y=list(cex=scales.cex)),
-##				  par.strip.text=list(lines=0.8, cex=0.7),
-##				  cbs.segs=cbs.segs)
-##		f1[[i]]$panel.args <- MinimumDistance:::thresholdY(f1[[i]])
-##		##print(f1a)
-##		if(length(panelLabelsRight) == 3){
-##			alternating <- c(2,2,2)
-##		} else{
-##			alternating <- c(0,0,2,2,2)
-##		}
-##		f2[[i]] <- xyplot(b ~ x | id, trioSetList,
-##				  panel=panel.fun,
-##				  rangeData=r1[i, ],
-##				  panelLabels=panelLabelsRight,
-##				  frame=frame,
-##				  scales=list(x=list(cex=scales.cex, tick.number=10,
-##					      tck=c(1,0), alternating=1),
-##				              y=list(cex=scales.cex, tck=c(0,1),
-##					             alternating=alternating)),
-##				  layout=c(1,length(panelLabelsRight)),
-##				  index.cond=list(length(panelLabelsRight):1),
-##				  pch=21,
-##				  par.settings=list(plot.symbol=list(pch=pch, cex=cex, col="grey50"),
-##				  par.xlab.text=list(cex=0.8),
-##				  par.ylab.text=list(cex=0.8)),
-##				  par.strip.text=list(lines=0.8, cex=0.7),
-##				  xlim=f1[[i]]$x.limit,
-##				  xlab="", ylab="B Allele frequency")
-##	}
-##	names(f1) <- names(f2) <- paste(sampleNames(rangeData), start(rangeData), sep="_")
-##	return(list(f1, f2))
-##}
 
 narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE){
 	stopifnot(!is.null(names(mad.minimumdistance)))
@@ -3183,5 +3158,32 @@ stackListByColIndex <- function(object, i, j){
 }
 
 
+
+
+arrangeSideBySide2 <- function(object1, object2){
+	grid.newpage()
+	lvp <- viewport(x=0,
+			y=0.05,
+			width=unit(0.50, "npc"),
+			height=unit(0.95, "npc"), just=c("left", "bottom"),
+			name="lvp")
+	pushViewport(lvp)
+	nfigs1 <- length(object1$condlevels[[1]])
+	nfigs2 <- length(object2$condlevels[[1]])
+	stopifnot(length(nfigs1) == length(nfigs2))
+	pushViewport(dataViewport(xscale=c(0,1), yscale=c(0.05,1), clip="on"))
+	object1$layout <- c(1, nfigs1)
+	print(object1, newpage=FALSE, prefix="plot1", more=TRUE)
+	upViewport(0)
+	lvp2 <- viewport(x=0.5,
+			 y=0.25,
+			 width=unit(0.50, "npc"),
+			 height=unit(0.95, "npc"), just=c("left", "bottom"),
+			 name="lvp2")
+	pushViewport(lvp2)
+	pushViewport(dataViewport(xscale=c(0,1), yscale=c(0.05,1), clip="on"))
+	object2$layout <- c(1, nfigs1)
+	print(object2, newpage=FALSE, prefix="plot2", more=TRUE)
+}
 
 

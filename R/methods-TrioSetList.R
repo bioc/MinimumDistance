@@ -70,7 +70,8 @@ TrioSetList <- function(lrr, baf,
 	##fD <- fD[index, ]
 	sampleSheet <- sampleSheet[match(allNames(pedigreeData), sampleNames(sampleSheet)), ]
 	marker.list <- split(sampleNames(fD), fD$chromosome)
-	marker.list <- marker.list[1:length(marker.list)%in%chromosome]
+	##marker.list <- marker.list[1:length(marker.list)%in%chromosome]
+	marker.list <- marker.list[names(marker.list)%in%chromosome]
 	np <- nrow(trios(pedigreeData))
 	trioSetList <- vector("list", length(chromosome))
 	names(trioSetList) <- 1:length(chromosome)
@@ -267,9 +268,11 @@ setMethod("[", signature(x="TrioSetList"),
 		  }
 		  if(!missing(i) & !missing(j)){
 			  suppressWarnings(x@.Data <- lapply(x, "[", i=i, j=j))
+			  x@pedigree <- pedigree(x)[j, ]
 		  }
 		  if(missing(i) & !missing(j)){
 			  suppressWarnings(x@.Data <- lapply(x, "[", j=j))
+			  x@pedigree <- pedigree(x)[j, ]
 		  }
 		  return(x)
 	  })
