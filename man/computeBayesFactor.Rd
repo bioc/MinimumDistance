@@ -49,6 +49,12 @@
   A object of class \code{RangedDataCBS}.
 }
 
+\references{
+
+  Wang et al, 2008 Nucleic Acids Research
+
+}
+
 \seealso{
   \code{\linkS4class{RangedDataCBS}}, \code{\link{calculateMindist}}
 }
