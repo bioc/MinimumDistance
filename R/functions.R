@@ -3187,3 +3187,89 @@ arrangeSideBySide2 <- function(object1, object2){
 }
 
 
+read.bsfiles <- function(path="./", filenames, ext="", row.names=1,
+			 sep="\t",
+			 as.is=TRUE, header=TRUE, ...){
+	fnames <- file.path(path, paste(filenames, ext, sep=""))
+	stopifnot(all(file.exists(fnames)))
+	for(i in seq_along(filenames)){
+		cat(".")
+		tmp <- read.table(file.path(path, paste(filenames[i], ext, sep="")), row.names=row.names,
+				  sep=sep,
+				  header=header,
+				  as.is=as.is, ...)
+		if(i==1){
+			j <- grep("Log.R.Ratio", colnames(tmp))
+			k <- grep("B.Allele", colnames(tmp))
+			dat <- array(NA, dim=c(nrow(tmp), 2, length(filenames)))
+			dimnames(dat) <- list(rownames(tmp),
+					      c("lrr", "baf"),
+					      filenames)
+			##lrr.data <- matrix(NA, nrow(tmp), length(filenames))
+			##baf.data <- matrix(NA, nrow(tmp), length(filenames))
+		}
+		dat[, 1, i] <- tmp[, j]
+		dat[, 2, i] <- tmp[, k]
+	}
+	cat("\n")
+	return(dat)
+}
+
+callDenovoSegments <- function(path="", filenames, ext=".txt", pedigreeData, cdfname,
+			       chromosome=1:22, segmentParents, verbose=FALSE, ...){
+	##trionames <- allNames(pedigreeData)
+	stopifnot(!missing(cdfname))
+	stopifnot(!missing(pedigreeData))
+	stopifnot(validObject(pedigreeData))
+	stopifnot(!missing(filenames))
+	trionames <- allNames(pedigreeData)
+	if(!identical(trionames,filenames)){
+		ss <- SampleSheet(row.names=filenames, id=trionames)
+	} else{
+		ss <- SampleSheet(row.names=filenames)
+	}
+	obj <- read.bsfiles(path=path, filenames=filenames, ext=ext)
+	trioSetList <- TrioSetList(lrr=obj[, "lrr",],
+				   baf=obj[, "baf",],
+				   pedigree=pedigreeData,
+				   chromosome=chromosome,
+				   cdfname=cdfname)
+	md <- calculateMindist(trioSetList, verbose=verbose)
+	mads.md <- mad2(md, byrow=FALSE)
+	mad.mindist(trioSetList) <- mads.md
+	mads.lrr.sample <- mad2(lrr(trioSetList), byrow=FALSE)
+	##trace(mad2, browser, signature="list")
+	mads.lrr.marker <- mad2(lrr(trioSetList), byrow=TRUE)
+	mad.sample(trioSetList) <- mads.lrr.sample
+	##mad(trioSetList)
+	mad.marker(trioSetList) <- mads.lrr.marker
+	md.segs <- segment2(object=md,
+			    pos=position(trioSetList),
+			    chrom=chromosome(trioSetList),
+			    verbose=verbose,
+			    ...)
+	lrrs <- lrr(trioSetList)
+	if(!segmentParents){
+		## when segmenting only the offspring,
+		## the trio names are the same as the sampleNames
+		lrrs <- lapply(lrrs, function(x){
+			dns <- dimnames(x)
+			x <- x[, , 3, drop=FALSE]
+			dim(x) <- c(nrow(x), ncol(x))
+			dimnames(x) <- list(dns[[1]], dns[[2]])
+			return(x)
+		})
+		id <- NULL
+	} else{
+		id=trios(trioSetList)
+	}
+	lrr.segs <- segment2(object=lrrs,
+			     pos=position(trioSetList),
+			     chrom=chromosome(trioSetList),
+			     id=id, ## NULL if segmentParents is FALSE
+			     verbose=verbose, ...)
+	md.segs2 <- narrow(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md)
+	map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2,
+				       verbose=verbose)
+	return(map.segs)
+}
