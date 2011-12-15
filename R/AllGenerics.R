@@ -48,7 +48,7 @@ setGeneric("allNames", function(object) standardGeneric("allNames"))
 setGeneric("trios", function(object) standardGeneric("trios"))
 setGeneric("minimumDistance", function(object, ...) standardGeneric("minimumDistance"))
 setGeneric("trioplot", function(formula, object, range, ...) standardGeneric("trioplot"))
-setGeneric("segment2", function(object, pos, chrom, id, ...) standardGeneric("segment2"))
+setGeneric("segment2", function(object, pos, chrom, id=NULL, ...) standardGeneric("segment2"))
 setGeneric("mad2", function(object, byrow=FALSE, ...) standardGeneric("mad2"))
 setGeneric("order2", function(object, ...) standardGeneric("order2"))
 

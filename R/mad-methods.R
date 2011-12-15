@@ -32,7 +32,7 @@ setMethod("mad2", signature(object="list"),
 					  index <- ilist[[i]]
 					  for(j in seq_len(J)){
 						  X <- stackListByColIndex(object, index, j)
-						  mads[index, j] <- apply(X, 2, mad, na.rm=TRUE)
+							  mads[index, j] <- apply(X, 2, mad, na.rm=TRUE)
 					  }
 				  }
 			  }
@@ -59,8 +59,8 @@ setMethod("mad2", signature(object="list"),
 					  }
 				  } else {
 					  ##only 1 or two trios.
-					  message("fewer than 2 trios. Can not estimate the standard deviation of the log R ratios across independent subjects")
-					  return(NULL)
+					  ##message("Fewer than 2 trios. Can not estimate the standard deviation of the log R ratios across independent subjects")
+					  mads <- NULL
 				  }
 			  }
 		  }
@@ -74,7 +74,19 @@ setMethod("mad2", signature(object="list"),
 ##---------------------------------------------------------------------------
 
 setMethod("mad", signature(x="TrioSet"), function(x) x@mad)
-setMethod("mad.marker", signature(x="TrioSet"), function(x) fData(x)$marker.mad)
+setMethod("mad.marker", signature(x="TrioSet"), function(x) {
+	res <- fData(x)$marker.mad
+	if(is.null(res)){
+		## message("Requesting NULL...too few samples to estimate sd")
+		##J <- ncol(x)
+		if(ncol(x) > 1) browser() ## which sample to use
+		tmp <- mad.sample(x)[, "O"]
+		res <- rep(tmp, nrow(x))
+	}
+	res
+})
+
+
 setMethod("mad.sample", signature(x="TrioSet"), function(x) x@mad)
 
 setReplaceMethod("mad.sample", signature(x="TrioSet", value="matrix"),
@@ -94,6 +106,18 @@ setReplaceMethod("mad.marker", signature(x="TrioSet", value="matrix"),
 		  fData(x)$marker.mad <- value[, 3]
 		  fData(x)$marker.mad.father <- value[, 1]
 		  fData(x)$marker.mad.mother <- value[, 2]
+		  return(x)
+	  })
+
+setReplaceMethod("mad.marker", signature(x="TrioSet", value="NULL"),
+	  function(x, value){
+		  if(!is.null(value)){
+			  fData(x)$marker.mad <- value[, 3]
+			  fData(x)$marker.mad.father <- value[, 1]
+			  fData(x)$marker.mad.mother <- value[, 2]
+		  } else{
+			  x$marker.mad <- NULL
+		  }
 		  return(x)
 	  })
 
@@ -150,6 +174,15 @@ setReplaceMethod("mad.marker", signature(x="TrioSetList", value="list"),
 			 }
 			 return(x)
 		 })
+
+setReplaceMethod("mad.marker", signature(x="TrioSetList", value="NULL"),
+		 function(x, value){
+			 for(i in seq_along(x)){
+				 mad.marker(x[[i]]) <- NULL
+			 }
+			 return(x)
+		 })
+
 
 ##setReplaceMethod("mad.marker", signature(x="TrioSetList", value="matrix"),
 ##		 function(x, value){

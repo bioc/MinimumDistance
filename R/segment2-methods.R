@@ -1,5 +1,5 @@
 setMethod("segment2", signature(object="list", pos="list", chrom="list"),
-	  function(object, pos, chrom, id, ...){
+	  function(object, pos, chrom, id=NULL, ...){
 		  ## elements of list must be a matrix or an array
 		  is.matrix <- is(object[[1]], "matrix") || is(object[[1]], "ff_matrix")
 		  is.array <- class(object[[1]]) == "array" || is(object[[1]], "ff_array")
@@ -14,7 +14,7 @@ setMethod("segment2", signature(object="list", pos="list", chrom="list"),
 				  if(is.null(colnames(object[[1]]))){
 					  stop("column names of the elements in the list can not be null.")
 				  }
-				  if(!missing(id))
+				  if(!is.null(id))
 					  message("id is ignored as elements of list are matrices. Column names of the matrices will be used to label the segments")
 				  resList[[i]] <- segment2(object[[i]], pos=pos[[i]],
 							   chrom=chrom[[i]], ...)
