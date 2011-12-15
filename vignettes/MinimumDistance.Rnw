@@ -170,7 +170,7 @@ library(human610quadv1bCrlmm)
 path <- system.file("extdata", package="MinimumDistance")
 load(file.path(path, "sample.sheet.rda"))
 samplesheetExample <- SampleSheet(filename=sample.sheet$Sample.Name,
-				  id=paste("NA",substr(sample.sheet$Sample.Name, 6, 10),sep=""),
+				  row.names=paste("NA",substr(sample.sheet$Sample.Name, 6, 10),sep=""),
 				  plate=sample.sheet$Plate,
 				  well=sample.sheet$Well,
 				  gender=sample.sheet$Gender,

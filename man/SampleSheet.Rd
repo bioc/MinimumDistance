@@ -22,7 +22,7 @@ SampleSheet( ...)
 \value{An object of class \code{SampleSheet}.}
 
 \seealso{
-  \code{\linkS4class{SampleSheet}}, \code{\link{samplesheetExample}},
+  \code{\linkS4class{SampleSheet}},
   \code{\linkS4class{DataFrame}}
 }
 \examples{

@@ -1,4 +1,3 @@
-
 make_test_Pedigree <- function(){
 	new("Pedigree")
 }

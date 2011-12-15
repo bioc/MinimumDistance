@@ -8,7 +8,6 @@ all: inst test
 
 inst: # Install package
 	cd ${TOP}/..;\
-	##${R} CMD INSTALL ${PKG}
 	/home/bst/student/rscharpf/bin/idevel ${PKG}
 
 test: # Run unit tests

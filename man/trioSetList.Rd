@@ -34,14 +34,12 @@ An object of class \code{TrioSetList}
 \dontrun{## this is checked in the vignette
 library(human610quadv1bCrlmm)
 data(pedigreeExample)
-data(samplesheetExample)
 path <- system.file("extdata", package="MinimumDistance")
 load(file.path(path, "logRratio.rda"))
 load(file.path(path, "baf.rda"))
 trioSetList <- TrioSetList(lrr=logRratio,
 			   baf=baf,
 			   pedigree=pedigreeExample,
-			   sampleSheet=samplesheetExample,
 			   cdfname="human610quadv1bCrlmm")
 }
 }
