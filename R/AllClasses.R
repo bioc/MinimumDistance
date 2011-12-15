@@ -48,8 +48,8 @@ setMethod("updateObject", signature(object="TrioSet"),
 		  }
 		  return(object)
 	  })
+setClass("SampleSheet", contains="DataFrame")
 
-setClass("SampleSheet", contains="data.frame")
 ## might try extending AnnotatedDataFrame instead of data.frame
 setClass("Pedigree", contains="list",
 	 representation(trios="data.frame",
@@ -57,13 +57,7 @@ setClass("Pedigree", contains="list",
 
 
 
-setValidity("SampleSheet", function(object){
-	if(!"id" %in% colnames(object))
-		return("'id' needs to be in the column name")
-	if(any(duplicated(object$id)))
-		return("'id' needs to be unique")
-	NULL
-})
+
 
 setClass("TrioSetList", contains="list",
 	 representation(pedigree="Pedigree",

@@ -3189,12 +3189,14 @@ arrangeSideBySide2 <- function(object1, object2){
 
 read.bsfiles <- function(path="./", filenames, ext="", row.names=1,
 			 sep="\t",
-			 as.is=TRUE, header=TRUE, ...){
+			 as.is=TRUE, header=TRUE,
+			 drop=FALSE, ...){
 	fnames <- file.path(path, paste(filenames, ext, sep=""))
 	stopifnot(all(file.exists(fnames)))
 	for(i in seq_along(filenames)){
 		cat(".")
-		tmp <- read.table(file.path(path, paste(filenames[i], ext, sep="")), row.names=row.names,
+		tmp <- read.table(file.path(path, paste(filenames[i], ext, sep="")),
+				  row.names=row.names,
 				  sep=sep,
 				  header=header,
 				  as.is=as.is, ...)
@@ -3202,9 +3204,11 @@ read.bsfiles <- function(path="./", filenames, ext="", row.names=1,
 			j <- grep("Log.R.Ratio", colnames(tmp))
 			k <- grep("B.Allele", colnames(tmp))
 			dat <- array(NA, dim=c(nrow(tmp), 2, length(filenames)))
-			dimnames(dat) <- list(rownames(tmp),
-					      c("lrr", "baf"),
-					      filenames)
+			if(!drop){
+				dimnames(dat) <- list(rownames(tmp),
+						      c("lrr", "baf"),
+						      basename(filenames))
+			}
 			##lrr.data <- matrix(NA, nrow(tmp), length(filenames))
 			##baf.data <- matrix(NA, nrow(tmp), length(filenames))
 		}
@@ -3215,8 +3219,13 @@ read.bsfiles <- function(path="./", filenames, ext="", row.names=1,
 	return(dat)
 }
 
-callDenovoSegments <- function(path="", filenames, ext=".txt", pedigreeData, cdfname,
-			       chromosome=1:22, segmentParents, verbose=FALSE, ...){
+callDenovoSegments <- function(path="", filenames,
+			       ext=".txt",
+			       pedigreeData,
+			       cdfname,
+			       chromosome=1:22,
+			       segmentParents,
+			       verbose=FALSE, ...){
 	##trionames <- allNames(pedigreeData)
 	stopifnot(!missing(cdfname))
 	stopifnot(!missing(pedigreeData))
