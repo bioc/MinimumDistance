@@ -154,6 +154,9 @@
      identifiers. Note that the offspring ids uniquely identify a trio, and the method \code{sampleNames} will
      return the same result.}
 
+   \item{}{\code{order(object)}: order \code{TrioSet} object by
+   chromosome and physical position}
+
 
    \item{pedigree}{\code{signature(object = "TrioSetList")}: Accessor
      for pedigree information.  See also \code{\linkS4class{Pedigree}}}

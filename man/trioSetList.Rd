@@ -5,7 +5,7 @@
 
 \description{Constructs and object of class \code{TrioSetList}}
 \usage{
-TrioSetList(lrr, baf, pedigreeData, sampleSheet, featureData, chromosome = 1:22, cdfname)
+TrioSetList(lrr, baf, pedigreeData, sampleSheet, featureAnnotation, chromosome = 1:22, cdfname)
 }
 
 \arguments{

@@ -37,7 +37,7 @@ subscripts)
   \item{range}{
     A genomic interval of class \code{RangedDataHMM}.
   }
-  \item{cex}{Size of plotting symbols  }
+  \item{cex}{Size of plotting symbols.  }
   \item{col.hom}{
     Color for homozygous genotypes.
 }

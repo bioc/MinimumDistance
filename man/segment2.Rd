@@ -21,7 +21,7 @@
   }
 
 \usage{
-segment2(object, pos, chrom, id, ...)
+segment2(object, pos, chrom, id=NULL, ...)
 }
 
 \arguments{
