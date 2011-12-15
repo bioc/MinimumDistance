@@ -8,6 +8,7 @@
 \alias{motherNames,Pedigree-method}
 \alias{offspringNames,Pedigree-method}
 \alias{trios,Pedigree-method}
+\alias{[,Pedigree-method}
 %\alias{xsegment,TrioSet,Pedigree-method}
 
 \title{Container for storing pedigree information}
@@ -59,6 +60,8 @@ Class \code{"vectorORfactor"}, by class "list", distance 3.
   \item{}{\code{trios(object)}: \code{data.frame} of sample ids. Each
   row in the \code{data.frame} contains the ids of father, mother, and
   offspring, respectively.}
+
+   \item{}{\code{object[i, ]}: subset the Pedigree by trio index \code{i}.}
 
   }
 

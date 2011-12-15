@@ -22,16 +22,6 @@
     A \code{RangedDataCBS} object.
 }
 
-%\item{returnEmission}{
-%  Whether to return the emission probabilities instead of a
-%  \code{RangedDataCBS} object.  This is used by the author for debugging
-%  and not intended for direct use.
-%}
-%
-%\item{collapseRanges}{ Logical.  If true, adjacent segments that have
-%  the same trio copy number state call are collapsed into a single segment}
-%\item{verbose}{Logical.}
-
   \item{\dots}{see details}
 }
 

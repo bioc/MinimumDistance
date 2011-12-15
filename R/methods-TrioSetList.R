@@ -7,59 +7,26 @@ setMethod("initialize", signature(.Object="TrioSetList"),
 		  return(.Object)
 	  })
 
-setMethod("allNames", signature(object="TrioSetList"), function(object) allNames(pedigree(object)))
-setMethod("pedigree", signature(object="TrioSetList"), function(object) object@pedigree)
-setMethod("trios", signature(object="TrioSetList"), function(object) trios(pedigree(object)))
-setMethod("sampleSheet", signature(object="TrioSetList"), function(object) object@sampleSheet)
-setMethod("sampleNames", signature(object="TrioSetList"),
-	  function(object) sampleNames(pedigree(object)))
-setMethod("nrow", signature(x="TrioSetList"),
-	  function(x){
-	  sum(sapply(x, nrow))
-  })
-setMethod("ncol", signature(x="TrioSetList"),
-	  function(x) ncol(x[[1]]))
-setMethod("offspringNames", signature(object="TrioSetList"), function(object){
-	offspringNames(pedigree(object))
-})
-setMethod("fatherNames", signature(object="TrioSetList"), function(object){
-	fatherNames(pedigree(object))
-})
-setMethod("motherNames", signature(object="TrioSetList"), function(object){
-	motherNames(pedigree(object))
-})
-
-setMethod("annotation", signature(object="TrioSetList"), function(object){
-	annotation(object[[1]])
-})
-
-setMethod("dims", signature(object="TrioSetList"), function(object){
-	names(object) <- paste("chr ", names(object), sep="")
-	res <- sapply(object, dim)
-	rownames(res)[3] <- c("F, M, O")
-	return(res)
-})
-
 TrioSetList <- function(lrr, baf,
 			pedigreeData,
 			sampleSheet,
-			featureData,
+			featureAnnotation,
 			chromosome=1:22,
 			cdfname){
 	stopifnot(identical(rownames(lrr), rownames(baf)))
-	if(missing(featureData)){
+	if(missing(featureAnnotation)){
 		stopifnot(!missing(cdfname))
-		featureData <- oligoClasses:::featureDataFrom(cdfname)
-		fD <- featureData[order(featureData$chromosome, featureData$position), ]
-		rm(featureData); gc()
+		featureAnnotation <- oligoClasses:::featureDataFrom(cdfname)
+		fD <- featureAnnotation[order(featureAnnotation$chromosome, featureAnnotation$position), ]
+		rm(featureAnnotation); gc()
 	} else {
-		stopifnot(is(featureData, "AnnotatedDataFrame"))
-		fD <- featureData
+		stopifnot(is(featureAnnotation, "AnnotatedDataFrame"))
+		fD <- featureAnnotation
 	}
 	fD <- fD[order(fD$chromosome, fD$position), ]
 	is.present <- sampleNames(fD) %in% rownames(lrr)
 	if(!all(is.present)){
-		warning("Excluding SNP ids in featureData not present in rownames of lrr/baf matrices")
+		##warning("Excluding SNP ids in featureData not present in rownames of lrr/baf matrices")
 		fD <- fD[is.present, ]
 	}
 	index <- match(sampleNames(fD), rownames(lrr))
@@ -68,7 +35,11 @@ TrioSetList <- function(lrr, baf,
 	baf <- baf[index, ]
 	stopifnot(all(identical(rownames(lrr), sampleNames(fD))))
 	##fD <- fD[index, ]
-	sampleSheet <- sampleSheet[match(allNames(pedigreeData), sampleNames(sampleSheet)), ]
+	if(!missing(sampleSheet)){
+		sampleSheet <- sampleSheet[match(allNames(pedigreeData), sampleNames(sampleSheet)), ]
+	} else{
+		sampleSheet <- SampleSheet(row.names=allNames(pedigreeData))
+	}
 	marker.list <- split(sampleNames(fD), fD$chromosome)
 	##marker.list <- marker.list[1:length(marker.list)%in%chromosome]
 	marker.list <- marker.list[names(marker.list)%in%chromosome]
@@ -124,6 +95,46 @@ TrioSetList <- function(lrr, baf,
 	stopifnot(validObject(.Object))
 	return(.Object)
 }
+
+setMethod("allNames", signature(object="TrioSetList"), function(object) allNames(pedigree(object)))
+setMethod("pedigree", signature(object="TrioSetList"), function(object) object@pedigree)
+setMethod("trios", signature(object="TrioSetList"), function(object) trios(pedigree(object)))
+setMethod("sampleSheet", signature(object="TrioSetList"), function(object) object@sampleSheet)
+setMethod("sampleNames", signature(object="TrioSetList"),
+	  function(object) sampleNames(pedigree(object)))
+setMethod("nrow", signature(x="TrioSetList"),
+	  function(x){
+	  sum(sapply(x, nrow))
+  })
+setMethod("ncol", signature(x="TrioSetList"),
+	  function(x) ncol(x[[1]]))
+setMethod("offspringNames", signature(object="TrioSetList"), function(object){
+	offspringNames(pedigree(object))
+})
+setMethod("fatherNames", signature(object="TrioSetList"), function(object){
+	fatherNames(pedigree(object))
+})
+setMethod("motherNames", signature(object="TrioSetList"), function(object){
+	motherNames(pedigree(object))
+})
+
+setMethod("annotation", signature(object="TrioSetList"), function(object){
+	annotation(object[[1]])
+})
+
+setMethod("dims", signature(object="TrioSetList"), function(object){
+	names(object) <- paste("chr ", names(object), sep="")
+	res <- sapply(object, dim)
+	rownames(res)[3] <- c("F, M, O")
+	return(res)
+})
+
+TrioSetList2 <- function(){
+
+
+}
+
+
 
 
 ##setMethod("names", signature(x="TrioSetList") names(x@.Data))

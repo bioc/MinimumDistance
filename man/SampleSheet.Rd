@@ -6,22 +6,24 @@
 \description{Construct an object of class SampleSheet}
 
 \usage{
-SampleSheet(filename, id, plate, ...)
+SampleSheet( ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{filename}{character. Ideally, the filename should be the name of
-  the file on disk.}
-  \item{id}{character.  Can be the same as filename or any unique
-  identifier for a sample. This is useful if the filenames are very long.}
-  \item{plate}{character. Chemistry plate upon which sample was processed.}
-  \item{\dots}{Additional arguments passed to \code{data.frame}}
+%  \item{filename}{character. Ideally, the filename should be the name of
+%  the file on disk.}
+%  \item{id}{character.  Can be the same as filename or any unique
+%  identifier for a sample. This is useful if the filenames are very long.}
+%  \item{plate}{character. Chemistry plate upon which sample was processed.}
+%  \item{\dots}{Additional arguments passed to \code{data.frame}}
+    \item{\dots}{Additional arguments passed to \code{DataFrame}}
 }
 
 \value{An object of class \code{SampleSheet}.}
 
 \seealso{
-  \code{\linkS4class{SampleSheet}}, \code{\link{samplesheetExample}}
+  \code{\linkS4class{SampleSheet}}, \code{\link{samplesheetExample}},
+  \code{\linkS4class{DataFrame}}
 }
 \examples{
 path <- system.file("extdata", package="MinimumDistance")

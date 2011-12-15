@@ -11,7 +11,7 @@
 
 }
 \usage{
-xypanelMD(x, y, id, gt, is.snp, range, col.hom = "grey20", fill.hom =
+xypanelMD(x, y, id, gt, is.snp, range, cex, col.hom = "grey20", fill.hom =
 "lightblue", col.het = "grey20", fill.het = "salmon", col.np = "grey20",
 fill.np = "grey60", show.state = TRUE, lrr.segs, md.segs, ...,
 subscripts)
@@ -36,7 +36,8 @@ subscripts)
 }
   \item{range}{
     A genomic interval of class \code{RangedDataHMM}.
-}
+  }
+  \item{cex}{Size of plotting symbols  }
   \item{col.hom}{
     Color for homozygous genotypes.
 }

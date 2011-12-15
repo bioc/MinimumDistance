@@ -16,7 +16,7 @@ TrioSetList(lrr, baf, pedigreeData, sampleSheet, featureData, chromosome = 1:22,
 }
   \item{pedigreeData}{Object of class \code{Pedigree}}
   \item{sampleSheet}{Object of class \code{SampleSheet}}
-  \item{featureData}{Object of class \code{AnnotatedDataFrame}
+  \item{featureAnnotation}{Object of class \code{AnnotatedDataFrame}
   containing feature annotation }
   \item{chromosome}{integer vector. Which chromosomes to include in the
   TrioSetList object.  }

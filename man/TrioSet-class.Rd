@@ -14,6 +14,7 @@
 \alias{lrr<-}
 \alias{mad.marker<-,TrioSet,matrix-method}
 \alias{mad.marker<-,TrioSet,numeric-method}
+\alias{mad.marker<-,TrioSet,NULL-method}
 \alias{mad.marker}
 \alias{mad.marker<-}
 \alias{mad.mindist<-,TrioSet,numeric-method}
@@ -32,6 +33,7 @@
 \alias{offspringNames<-,TrioSet,character-method}
 \alias{offspringNames,TrioSet-method}
 \alias{offspringNames<-}
+\alias{order,TrioSet-method}
 \alias{phenoData2,TrioSet-method}
 \alias{phenoData2}
 \alias{prune,TrioSet,RangedDataCNV-method}
@@ -161,6 +163,9 @@
  offspring identifiers.  Note that the result will identical to
  \code{sampleNames(object)} as the offspring identifiers uniquely
  identify a trio}
+
+   \item{}{\code{order(object)}: order \code{TrioSet} object by
+   chromosome and physical position}
 
     \item{}{\code{phenoData2(object)}: metadata for the samples stored
       as an array.  'sampleNames' is a required column header.}

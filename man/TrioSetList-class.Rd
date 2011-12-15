@@ -9,6 +9,7 @@
 \alias{baf,TrioSetList-method}
 \alias{baf}
 \alias{calculateMindist,TrioSetList-method}
+\alias{calculateMindist,matrix-method}
 \alias{calculateMindist}
 \alias{dims,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}
@@ -16,6 +17,7 @@
 \alias{initialize,TrioSetList-method}
 \alias{lrr,TrioSetList-method}
 \alias{mad.marker<-,TrioSetList,list-method}
+\alias{mad.marker<-,TrioSetList,NULL-method}
 %\alias{mad.marker<-,TrioSetList,matrix-method}
 \alias{mad.mindist<-,TrioSetList,list-method}
 \alias{mad.mindist<-,TrioSetList,numeric-method}
@@ -28,6 +30,7 @@
 \alias{nrow,TrioSetList-method}
 \alias{offspringNames,TrioSetList-method}
 \alias{offspringNames}
+\alias{order,TrioSetList-method}
 \alias{pedigree,TrioSetList-method}
 \alias{pedigree}
 \alias{sampleNames,TrioSetList-method}
