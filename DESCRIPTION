@@ -25,6 +25,7 @@ Collate: AllClasses.R
 	 segment2-methods.R
 	 mad-methods.R
 	 functions.R
+	 utils.R
 	 zzz.R
 LazyLoad: yes
 biocViews: Microarray, SNP, Bioinformatics, CopyNumberVariants
