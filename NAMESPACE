@@ -10,7 +10,7 @@ importFrom(Biobase, assayDataElementReplace, sampleNames, varLabels, rowMedians,
 import(SNPchip)
 ##importFrom(SNPchip, integer2chromosome)
 importFrom(stats, mad)
-importFrom(ff, open.ff, close.ff)
+##importFrom(ff, open.ff, close.ff)
 importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 		  DataTable, Vector, Annotated,
 		  List, SimpleList, CompressedList,

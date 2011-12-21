@@ -148,11 +148,11 @@ more manageable, we organize the low-level summaries by chromosome in
 an object termed a \Robject{TrioSet}.  We define a formal S4 class for
 a list of \Robject{TrioSet} objects as a \Robject{TrioSetList}.  In
 addition to containing a \Robject{TrioSet} for each chromosome, the
-\Robject{TrioSetList} class has a slot for pedigree information defining
-the family relationships and a slot for the \texttt{sampleSheet}
-containing metadata on the experiment.  We begin by constructing
-object of class \Robject{Pedigree} and \Robject{SampleSheet} that contain
-this information.
+\Robject{TrioSetList} class has a slot for pedigree information
+defining the family relationships and a slot for the
+\texttt{sampleSheet} containing metadata on the experiment.  We begin
+by constructing object of class \Robject{Pedigree} and
+\Robject{SampleSheet} that contain this information.
 
 A constructor for the \Robject{SampleSheet} class is the
 \Rfunction{SampleSheet} function.  The \Rfunction{SampleSheet} has 3
@@ -197,15 +197,104 @@ allNames(pedigreeExample)
 show(pedigreeExample)
 @
 
-Next, we load matrices of the \logRratio{}s and \bafs{} extracted from
-the BeadStudio output. These matrices contain 25 markers for each
-chromosome as the intent is to illustrate the steps required for
-initializing a data structure of the \Robject{TrioSetList} class. (In
-order to illustrate some of the smoothing functions downstream, we
-will use the \Robject{trioSetListExample} data provided with the
-package.  The \Robject{trioSetListExample} contains many more markers,
-but only for two autosomes). A \Rclass{TrioSetList} object can be
-created using the helper function \Rfunction{TrioSetList}.
+
+\section{Detection of de novo copy number}
+\label{smoothing}
+
+There are two options for processing.  Section \label{option1}
+provides a simple pipeline for reading a list of files containing log
+R ratios and B allele frequencies and returning the segmented data
+with the trio copy number calls.  The second option in
+Section \label{option2} provides a more detailed workflow of de novo
+copy number analysis with data structures for storing the log R ratios
+and B allele frequencies in a manner than can be easily accessed for
+subsequent plotting.  The latter can be particularly useful for visual
+inspection of the copy number calls, but requires several steps.
+
+\subsection{Simple Usage: generating ranged data with posterior calls}
+\label{option1}
+
+Here, we illustrate a simple pipeline for reading in BeadStudio files
+and returning a list of genomic ranges.  There are 3 files provided
+with the \Rpackage{MinimumDistance} package -- one for the father
+(``F.txt''), mother (``M.txt''), and offspring (``O.txt'').
+
+<<filenames>>=
+fnames <- list.files(path, pattern=".txt")
+fnames
+@
+
+Next, we create an object of class \Rclass{Pedigree} as we did in the
+previous section.
+
+<<pedigreeObject>>=
+ped <- new("Pedigree",
+	   trios=data.frame(F=fnames[1], M=fnames[2], O=fnames[3], stringsAsFactors=FALSE),
+	   trioIndex=data.frame(individualId=fnames,
+	                        memberId=c("F","M","O"),
+                                index.in.pedigree=rep(1,3),
+	                        stringsAsFactors=FALSE))
+show(ped)
+@
+
+The function \Rfunction{callDenovoSegments} performs the following steps:
+\begin{itemize}
+
+\item  reads the data files
+\item computes the minimum distance (defined in the Section \ref{option2}
+\item segments the minimum distance and the offspring log R ratios
+  using circular binary segmentation
+\item calls the trio copy number state using the maximum a posteriori
+  probability
+\end{itemize}
+
+Here, we read in files for one trio that were abbreviated to contain
+only 1000 markers.  The object returned by
+\Rfunction{callDenovoSegments} is an object of class
+\Robject{RangedDataHMM}. The cdfname is required to indicates the
+annotation package used to extract chromosome and physical position
+coordinates.
+
+<<callDenovoSegments>>=
+map.segs <- callDenovoSegments(path=path,
+			       filenames=fnames,
+			       ext="",
+			       pedigreeData=ped,
+			       cdfname="human610quadv1b",
+			       chromosome=1,
+			       segmentParents=FALSE)
+show(map.segs)
+@
+
+In this trivial example, no de novo copy number alterations were
+detected.  The state '333' indicates that the father, mother, and
+offspring appear to by diploid for the interval beginning at
+\Sexpr{start(map.segs)} bp and ending at \Sexpr{end(map.segs)}.
+
+
+\subsection{Pipeline using data strutures for low-level data}
+\label{option2}
+
+This section describes a pipeline for instantiating a data structure
+useful for storing the log R ratios and B allele frequences. We begin
+by describing how to create a data structure for storing the log R
+ratios and B allele frequencies using very small matrices provided
+with this package.
+
+\paragraph{Instantiating a \Robject{TrioSetList} object}.  We
+presume that a matrix of log R ratios and B allele freqencies are
+available. Again, we include example matrices with the
+\Rpackage{MinimumDistance} package to illustrate. These matrices
+contain 25 markers for each chromosome as the intent is to illustrate
+the steps required for initializing a data structure of the
+\Robject{TrioSetList} class. (In order to illustrate some of the
+smoothing functions downstream, we will use the
+\Robject{trioSetListExample} data provided with the package.  The
+\Robject{trioSetListExample} contains many more markers, but only for
+two autosomes). A \Rclass{TrioSetList} object can be created using the
+helper function \Rfunction{TrioSetList}.  We use the
+\Robject{pedigreeExample} and \Robject{samplesheetExample} objects
+instantiated in Section \ref{datastruct}.
 
 <<exampleFile>>=
 load(file.path(path, "logRratio.rda"))
@@ -217,9 +306,9 @@ trioSetList <- TrioSetList(lrr=logRratio,
 			   cdfname="human610quadv1bCrlmm")
 @
 
-Note that the log
-R ratio and B allele frequency matrices have been transformed into
-arrays using the information stored in the \Robject{pedigree} object.
+Note that the log R ratio and B allele frequency matrices have been
+transformed into arrays using the information stored in the
+\Robject{pedigree} object.
 
 <<trioSetListAccessors>>=
 trioSetList
@@ -252,20 +341,22 @@ below.
 annotationPackages()[grep("Crlmm", annotationPackages())]
 @
 
-\section{Detection of de novo copy number}
-\label{smoothing}
+\paragraph{Segmentation and posterior calls}.  In order to make the
+size of this package manageable, the \Robject{trioSetList} object
+created in the previous section contained only 25 markers for each of
+the 22 autosomes.  While useful for illustrating the steps for
+creating the required data structures, it is not useful for
+detetecting de novo copy number alterations.  To illustrate the
+smoothing steps, we load an object that contains all the markers for 2
+chromosomes (7 and 22) for 2 HapMap trios.
 
-In order to make the size of this package manageable, the
-\Robject{trioSetList} object created in the previous section contained
-only 25 markers for each of the 22 autosomes.  While useful for
-illustrating the steps for creating the required data structures, it
-is not useful for detetecting de novo copy number alterations.  To
-illustrate the smoothing steps, we load an object that contains all
-the markers for 2 chromosomes (7 and 22) for 2 HapMap trios. A few
-summary statistics for this object are displayed below.
+<<loadTrioSetListExample>>=
+data(trioSetListExample)
+@
+
+A few summary statistics for this object are displayed below.
 
 <<load2chromosomeExample>>=
-data(trioSetListExample)
 show(trioSetList)
 dims(trioSetList)
 sampleNames(trioSetList)

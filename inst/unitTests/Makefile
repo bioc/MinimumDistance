@@ -1,14 +1,13 @@
 TOP=../..
 PKG=${shell cd ${TOP};pwd}
 SUITE=doRUnit.R
-#R=${R_HOME}/bin/R
-R=~/bin/R-devel
+R=${R_HOME}/bin/R
 
 all: inst test
 
 inst: # Install package
 	cd ${TOP}/..;\
-	/home/bst/student/rscharpf/bin/idevel ${PKG}
+	${R} CMD INSTALL ${PKG}
 
 test: # Run unit tests
 	export RCMDCHECK=FALSE;\
