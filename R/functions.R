@@ -1790,7 +1790,9 @@ joint4 <- function(id,
 	state.prev <- NULL
 	denovo.prev <- NULL
 	table1 <- readTable1(a=a)
-	table3 <- readTable3(a=a)
+	loader("pennCNV_MendelianProb.rda")
+	table3 <- get("pennCNV_MendelianProb")
+	##table3 <- readTable3(a=a)
 	weightR <- 1/2
 	state.names <- trioStateNames()
 	norm.index <- which(state.names=="333")

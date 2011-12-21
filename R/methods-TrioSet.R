@@ -8,10 +8,6 @@ setMethod("initialize", signature(.Object="TrioSet"),
 		   ...){
 		  .Object@phenoData2 <- phenoArray
 		  .Object <- callNextMethod(.Object, logRRatio=logRRatio, BAF=BAF, ...)
-		  ##.Object <- callNextMethod(.Object, logRRatio=logRRatio, BAF=BAF, ...)
-		  ##.Object <- callNextMethod(.Object, BAF=BAF, ...)
-		  ##.Object <- callNextMethod(.Object)
-		  ##.Object <- assayDataElementReplace(.Object, "logRRatio", array(NA, dim=c(0,0,0)))
 		  .Object@mindist <- mindist
 		  .Object@mad <- mad
 		  return(.Object)
