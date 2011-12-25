@@ -70,9 +70,9 @@
       \code{TrioSet} object. }
     \item{\code{pedigree}:}{Object of class \code{"Pedigree"}.  Contains
       information on the trio-relationships. }
-    \item{\code{sampleSheet}:}{Object of class \code{"SampleSheet"}
-      Contains meta-data for the experiment, such as chemistry plate. In
-      future versions, this may be an \code{AnnotatedDataFrame} class.  }
+%    \item{\code{sampleSheet}:}{Object of class \code{"SampleSheet"}
+%      Contains meta-data for the experiment, such as chemistry plate. In
+%      future versions, this may be an \code{AnnotatedDataFrame} class.  }
   }
 }
 
@@ -166,8 +166,8 @@
    uniquely identifies a trio,\code{sampleNames} returns the same vector
    of ids as \code{offspringNames}}
 
- \item{}{\code{sampleSheet(object)}: Accessor for metadata of the
-   experiment. See \code{\linkS4class{SampleSheet}}.}
+% \item{}{\code{sampleSheet(object)}: Accessor for metadata of the
+%   experiment. See \code{\linkS4class{SampleSheet}}.}
 
  \item{}{\code{trios(object)}: Returns a
  \code{data.frame} of the trios. Each row in the {data.frame} contains

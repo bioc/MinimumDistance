@@ -31,19 +31,7 @@ An object of class \code{TrioSetList}
   \code{\linkS4class{TrioSetList}}
 }
 \examples{
-\dontrun{## this is checked in the vignette
-library(human610quadv1bCrlmm)
-data(pedigreeExample)
-path <- system.file("extdata", package="MinimumDistance")
-load(file.path(path, "logRratio.rda"))
-load(file.path(path, "baf.rda"))
-trioSetList <- TrioSetList(lrr=logRratio,
-			   baf=baf,
-			   pedigree=pedigreeExample,
-			   cdfname="human610quadv1bCrlmm")
+TrioSetList()
 }
-}
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{classes}
 

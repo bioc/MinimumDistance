@@ -3221,9 +3221,9 @@ read.bsfiles <- function(path="./", filenames, ext="", row.names=1,
 	return(dat)
 }
 
-callDenovoSegments <- function(path="", filenames,
-			       ext=".txt",
+callDenovoSegments <- function(path="",
 			       pedigreeData,
+			       ext="",
 			       cdfname,
 			       chromosome=1:22,
 			       segmentParents,
@@ -3232,34 +3232,30 @@ callDenovoSegments <- function(path="", filenames,
 	stopifnot(!missing(cdfname))
 	stopifnot(!missing(pedigreeData))
 	stopifnot(validObject(pedigreeData))
+	filenames <- file.path(path, paste(allNames(pedigreeData), ext, sep=""))
+	stopifnot(all(file.exists(filenames)))
 	stopifnot(!missing(filenames))
-	trionames <- allNames(pedigreeData)
-	if(!identical(trionames,filenames)){
-		ss <- SampleSheet(row.names=filenames, id=trionames)
-	} else{
-		ss <- SampleSheet(row.names=filenames)
-	}
-	obj <- read.bsfiles(path=path, filenames=filenames, ext=ext)
+	obj <- read.bsfiles(filenames=filenames, path="", ext="")
 	trioSetList <- TrioSetList(lrr=obj[, "lrr",],
 				   baf=obj[, "baf",],
 				   pedigree=pedigreeData,
 				   chromosome=chromosome,
 				   cdfname=cdfname)
-	md <- calculateMindist(trioSetList, verbose=verbose)
+	md <- calculateMindist(lrr(trioSetList), verbose=verbose)
 	mads.md <- mad2(md, byrow=FALSE)
-	mad.mindist(trioSetList) <- mads.md
+	##mad.mindist(trioSetList) <- mads.md
 	mads.lrr.sample <- mad2(lrr(trioSetList), byrow=FALSE)
 	##trace(mad2, browser, signature="list")
 	mads.lrr.marker <- mad2(lrr(trioSetList), byrow=TRUE)
-	mad.sample(trioSetList) <- mads.lrr.sample
+	##mad.sample(trioSetList) <- mads.lrr.sample
 	##mad(trioSetList)
-	mad.marker(trioSetList) <- mads.lrr.marker
+	##mad.marker(trioSetList) <- mads.lrr.marker
 	md.segs <- segment2(object=md,
 			    pos=position(trioSetList),
-			    chrom=chromosome(trioSetList),
+			    chrom=chromosomeList(trioSetList),
 			    verbose=verbose,
 			    ...)
-	lrrs <- lrr(trioSetList)
+	##lrrs <- lrr(trioSetList)
 	if(!segmentParents){
 		## when segmenting only the offspring,
 		## the trio names are the same as the sampleNames

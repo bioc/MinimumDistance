@@ -27,6 +27,7 @@ R. Scharpf
 }
 \examples{
 Pedigree()
+Pedigree(fatherIds=letters[1], motherIds=letters[2], offspringIds=letters[3])
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

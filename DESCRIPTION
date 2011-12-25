@@ -7,7 +7,7 @@ Author: Robert B Scharpf
 Maintainer: Moiz Bootwalla <mbootwa1@jhu.edu>, Robert B Scharpf <rscharpf@jhsph.edu>
 Description: Analysis of de novo copy number variants in trios from high-dimensional genotyping platforms
 License: Artistic-2.0
-Depends: R (>= 2.10), oligoClasses (>= 1.17.3), grid, DNAcopy, methods, IRanges
+Depends: R (>= 2.10), oligoClasses (>= 1.17.6), grid, DNAcopy, methods, IRanges, Biobase
 Imports: Biobase, crlmm, utils, SNPchip, msm, lattice, BiocGenerics, VanillaICE
 Suggests: human610quadv1bCrlmm,RUnit
 Enhances: ff
@@ -17,11 +17,11 @@ Collate: AllClasses.R
 	 methods-AssayData.R
 	 methods-DataFrameCNV.R
 	 methods-LikSet.R
-	 methods-LogRatioSet.R
 	 methods-Pedigree.R
-	 methods-SampleSheet.R
 	 methods-TrioSet.R
 	 methods-TrioSetList.R
+	 methods-matrix.R
+	 methods-list.R
 	 segment2-methods.R
 	 mad-methods.R
 	 functions.R

@@ -72,7 +72,7 @@ R. Scharpf
 }
 
 \seealso{
-  \code{\linkS4class{SampleSheet}}, \code{\link{pedigreeExample}}
+  \code{\link{pedigreeExample}}
 }
 \examples{
 showClass("Pedigree")
