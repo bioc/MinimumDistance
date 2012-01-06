@@ -47,9 +47,6 @@ TrioSetList <- function(chromosome=integer(),
 			pedigreeData=Pedigree(),
 			sample.sheet,
 			row.names=NULL,
-##			phenoData,
-##			fatherPhenoData,
-##			motherPhenoData,
 			lrr, baf,
 			featureData,
 			cdfname){
@@ -188,7 +185,6 @@ setMethod("isSnp", signature(object="TrioSetList"),
 setMethod("allNames", signature(object="TrioSetList"), function(object) allNames(pedigree(object)))
 setMethod("pedigree", signature(object="TrioSetList"), function(object) object@pedigree)
 setMethod("trios", signature(object="TrioSetList"), function(object) trios(pedigree(object)))
-##setMethod("sampleSheet", signature(object="TrioSetList"), function(object) object@sampleSheet)
 setMethod("sampleNames", signature(object="TrioSetList"),
 	  function(object) sampleNames(pedigree(object)))
 setMethod("nrow", signature(x="TrioSetList"),
@@ -214,71 +210,49 @@ setMethod("annotation", signature(object="TrioSetList"), function(object){
 setMethod("dims", signature(object="TrioSetList"), function(object){
 	nchr <- length(chromosome(object))
 	ntrios <- ncol(baf(object)[[1]])
-##	names(object) <- paste("chr ", names(object), sep="")
-##	res <- sapply(object, dim)
-##	rownames(res)[3] <- c("F, M, O")
 	dm <- c(nchr, ntrios)
 	names(dm) <- c("chromosomes", "trios")
 	return(dm)
 })
 
-
-##setMethod("names", signature(x="TrioSetList") names(x@.Data))
-
-##setMethod("mad", signature(x="TrioSetList"), function(x) mad(x[[1]]))
-
-
-setMethod("mindist", signature(object="TrioSetList"), function(object){
-	md <- vector("list", length(object))
-	for(i in seq_along(object)){
-		md[[i]] <- mindist(object[[i]])
+setMethod("calculateMindist", signature(object="TrioSet"),
+	  function(object, verbose=TRUE, ...){
+        sns <- sampleNames(object)
+	is.ff <- is(lrr(object), "ff")
+	if(is.ff){
+		invisible(open(lrr(object)))
+	}
+	md <- initializeBigMatrix("mindist", nr=nrow(object), nc=ncol(object),
+				  vmode="double")
+	if(verbose){
+		message("\t\tComputing the minimum distance for ", ncol(object), " files.")
+		pb <- txtProgressBar(min=0, max=ncol(object), style=3)
+	}
+	for(j in seq(length=ncol(object))){
+		if(verbose) setTxtProgressBar(pb, j)
+		LRR <- lrr(object)[, j, ]
+		md[, j] <- calculateMindist(LRR)
+	}
+	if(verbose) close(pb)
+	if(is.ff){
+		close(md)
+		close(lrr(object))
 	}
 	return(md)
 })
 
-setReplaceMethod("mindist", signature(object="TrioSetList", value="list"),
-		 function(object, value){
-			 for(i in seq_along(object)){
-				 mindist(object[[i]]) <- value[[i]]
-			 }
-			 return(object)
-		 })
-
-
-##setMethod("order", "TrioSetList",
-##	  function(object, ...){
-##		  orderTrioSetList(object, ...)
-##	  })
-##
-##orderTrioSetList <- function(object){
-##	for(i in seq_along(object)){
-##		object[[i]] <- order(object[[i]])
-##	}
-##	return(object)
-##}
-
-
-
-
-##setMethod("calculateMindist", signature(object="TrioSetList"),
-##	  function(object, ..., verbose=TRUE){
-##		  mdList <- lapply(object, calculateMindist, verbose=verbose)
-##		  names(mdList) <- paste("chr", names(object))
-##		  return(mdList)
-##	  })
-
 
 setMethod("sampleNames", signature(object="TrioSetList"),
 	  function(object) offspringNames(object))
-setReplaceMethod("sampleNames", signature(object="TrioSetList", value="character"),
-		 function(object, value){
-			 object <- lapply(object, function(x, value ){
-				 sampleNames(x) <- value
-				 return(x)
-				 }, value=value)
-			 object <- as(object, "TrioSetList")
-			 return(object)
-	 })
+##setReplaceMethod("sampleNames", signature(object="TrioSetList", value="character"),
+##		 function(object, value){
+##			 object <- lapply(object, function(x, value ){
+##				 sampleNames(x) <- value
+##				 return(x)
+##				 }, value=value)
+##			 object <- as(object, "TrioSetList")
+##			 return(object)
+##	 })
 
 setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 	  function(object, ranges, id, lambda, min.change, min.coverage,
@@ -352,15 +326,9 @@ setMethod("computeBayesFactor", signature(object="TrioSetList", ranges="RangedDa
 		  return(ranges)
  	  })
 
-##setMethod("storageMode", "AssayDataList", Biobase:::assayDataStorageMode)
-##setReplaceMethod("storageMode",
-##		 signature=c(object="AssayDataList", value="character"),
-##		 Biobase:::assayDataStorageModeReplace)
 setMethod("assayData", signature(object="TrioSetList"),
 	  function(object) assayDataList(object))
 setMethod("storageMode", "TrioSetList", function(object) storageMode(assayData(object)))
-
-
 
 setMethod("phenoData", signature(object="TrioSetList"),
 	  function(object) object@phenoData)
@@ -371,23 +339,6 @@ setMethod("fatherPhenoData", signature(object="TrioSetList"),
 setMethod("motherPhenoData", signature(object="TrioSetList"),
 	  function(object) object@motherPhenoData)
 
-##assayDataElementReplace <- function(obj, elt, value) {
-##	storage.mode <- storageMode(obj)
-##	switch(storageMode(obj),
-##	       "lockedEnvironment" = {
-##		       aData <- copyEnv(assayData(obj))
-##		       if (is.null(value)) rm(list=elt, envir=aData)
-##		       else aData[[elt]] <- value
-##		       assayDataEnvLock(aData)
-##		       assayData(obj) <- aData
-##	       },
-##	       "environment" = {
-##		       if (is.null(value)) rm(list=elt, envir=assayData(obj))
-##		       else assayData(obj)[[elt]] <- value
-##	       },
-##	       list = assayData(obj)[[elt]] <- value)
-##	obj
-##}
 setReplaceMethod("assayData", signature=signature(object="TrioSetList",
 			      value="AssayData"),
                  function(object, value) {
@@ -467,19 +418,19 @@ setMethod("show", signature(object="TrioSetList"),
 
 setMethod("length", signature(x="TrioSetList"), function(x) length(x@chromosome))
 
-setMethod("minimumDistance", signature(object="TrioSetList"),
-	  function(object, narrow.threshold=0.1, ...){
-		  mads.lrr.sample <- mad2(lrr(object), byrow=FALSE)
-		  mads.lrr.marker <- mad2(lrr(object), byrow=TRUE)
-		  mad.sample(object) <- mads.lrr.sample
-		  mad.marker(object) <- mads.lrr.marker
-		  md <- calculateMindist(object)
-		  mads.md <- mad2(md, byrow=FALSE)
-		  mad.mindist(object) <- mads.md
-		  ## add the minimumDistance to the container.
-		  mindist(object) <- md
-		  return(object)
-	  })
+##setMethod("minimumDistance", signature(object="TrioSetList"),
+##	  function(object, narrow.threshold=0.1, ...){
+##		  mads.lrr.sample <- mad2(lrr(object), byrow=FALSE)
+##		  mads.lrr.marker <- mad2(lrr(object), byrow=TRUE)
+##		  mad.sample(object) <- mads.lrr.sample
+##		  mad.marker(object) <- mads.lrr.marker
+##		  md <- calculateMindist(object)
+##		  mads.md <- mad2(md, byrow=FALSE)
+##		  mad.mindist(object) <- mads.md
+##		  ## add the minimumDistance to the container.
+##		  mindist(object) <- md
+##		  return(object)
+##	  })
 
 
 setMethod("stack", signature(x="TrioSetList"),
@@ -551,11 +502,6 @@ setMethod("chromosomeList", signature(object="TrioSetList"),
 		  chrom <- rep(object@chromosome, sapply(lrrs, nrow))
 		  split(chrom, chrom)
 	  })
-
-##setMethod("position", signature(object="TrioSetList"),
-##	  function(object){
-##		  lapply(object, position)
-##	  })
 
 setMethod("checkOrder", signature(object="TrioSetList"),
 	  function(object, verbose=FALSE){
