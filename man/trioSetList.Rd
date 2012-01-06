@@ -41,7 +41,7 @@ An object of class \code{TrioSetList}
 }
 
 \seealso{
-  \code{\linkS4class{TrioSetList}}
+  \code{\linkS4class{TrioSetList}}, \code{\link{phenoData}}
 }
 \examples{
 TrioSetList()
