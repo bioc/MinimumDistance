@@ -3,6 +3,7 @@
 \docType{class}
 \alias{Pedigree-class}
 \alias{allNames,Pedigree-method}
+\alias{dim,Pedigree-method}
 \alias{fatherNames,Pedigree-method}
 \alias{initialize,Pedigree-method}
 \alias{motherNames,Pedigree-method}
@@ -25,18 +26,9 @@
 
 \section{Slots}{
   \describe{
-    \item{\code{.Data}:}{Object of class \code{"list"} ~~ }
     \item{\code{trios}:}{Object of class \code{"data.frame"} ~~ }
     \item{\code{trioIndex}:}{Object of class \code{"data.frame"} ~~ }
   }
-}
-
-\section{Extends}{
-Class \code{"\linkS4class{list}"}, from data part.
-Class \code{"\linkS4class{vector}"}, by class "list", distance 2.
-Class \code{"\linkS4class{AssayData}"}, by class "list", distance 2.
-Class \code{"\linkS4class{list_or_ffdf}"}, by class "list", distance 2.
-Class \code{"vectorORfactor"}, by class "list", distance 3.
 }
 
 \section{Accessors}{
@@ -45,9 +37,21 @@ Class \code{"vectorORfactor"}, by class "list", distance 3.
     In the following code descriptions, \code{object} is an instance of
     the \code{Pedigree} class:
 
-    \item{}{\code{allNames(object)}: character vector of sample ids.
+    \item{}{\code{allNames(object)}: character vector of unique sample ids.
     Note that the length of this vector is not necessarily a multiple of
     3 if some parents have multiple offspring.}
+
+  \item{}{\code{annotatedDataFrameFrom(object, byrow=FALSE, sample.sheet,
+    which=c("offspring", "father", "mother"),
+    row.names=NULL, ...)}:  Create an AnnotatedDataFrame for the father,
+    mother or, offspring (depending on value of argument \code{which}).
+    Optionally, a \code{data.frame} of covariates for the samples can be
+    passed as an argument to \code{sample.sheet}.  If
+    \code{sample.sheet} is not missing, \code{row.names} can not be
+    \code{NULL}.}
+
+  \item{}{\code{dim(object)}: Returns an integer vector of length 2: the
+  first element is the number of trios; the second element is 3.}
 
   \item{}{\code{fatherNames(object)}: character vector of father ids (not necessarily unique).}
 
@@ -63,7 +67,7 @@ Class \code{"vectorORfactor"}, by class "list", distance 3.
 
    \item{}{\code{object[i, ]}: subset the Pedigree by trio index \code{i}.}
 
-  }
+ }
 
 }
 
@@ -72,45 +76,13 @@ R. Scharpf
 }
 
 \seealso{
-  \code{\linkS4class{SampleSheet}}, \code{\link{pedigreeExample}}
+  \code{\link{Pedigree}} \code{\link{annotatedDataFrameFrom}}
 }
+
 \examples{
 showClass("Pedigree")
-##--------------------------------------------------
-##
-## instantiating an object of class Pedigree
-##
-##--------------------------------------------------
-path <- system.file("extdata", package="MinimumDistance")
-load(file.path(path, "pedigreeInfo.rda"))
-trioFactor <- matrix(seq_len(nrow(pedigreeInfo)), nrow(pedigreeInfo), 3,byrow=FALSE)
-indId <- unlist(pedigreeInfo)
-memberId <- substr(names(indId), 1, 1)
-## which row in the pedigree file
-trio.index <- as.integer(trioFactor) ## note this gives the index in the pedigree
-pedigreeIndex <- data.frame(individualId=indId,
-			    memberId=memberId,
-			    index.in.pedigree=trio.index,
-			    stringsAsFactors=FALSE)
-rownames(pedigreeIndex) <- NULL
-pedigreeExample <- new("Pedigree", trios=pedigreeInfo,
-		       trioIndex=pedigreeIndex)
-
-
-##--------------------------------------------------
-##
-## accessors
-##
-##--------------------------------------------------
-## Note sampleNames or offspringNames return the same thing
-## as the offspring identifier uniquely identifies a trio
-identical(sampleNames(pedigreeExample), offspringNames(pedigreeExample))
-## To list all samples, use the accessor
-allNames(pedigreeExample)
-## see also
-fatherNames(pedigreeExample)
-motherNames(pedigreeExample)
-trios(pedigreeExample)
+## an empty container
+Pedigree()
 }
 
 \keyword{classes}

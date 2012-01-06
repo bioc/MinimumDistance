@@ -60,7 +60,8 @@ Rob Scharpf
 	data(trioSetListExample)
 	data(lrr.segs)
 	data(md.segs)
-	md.mads <- mad2(mindist(trioSetList), byrow=FALSE)
+        md <- calculateMindist(lrr(trioSetList))
+	md.mads <- mad2(md, byrow=FALSE)
 	md.segs.narrowed <- narrow(object=md.segs, lrr.segs=lrr.segs, thr=0.1, mad.minimumdistance=md.mads)
 }
 \keyword{manip}

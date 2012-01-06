@@ -98,11 +98,13 @@ R. Scharpf
 \examples{
 data(trioSetListExample)
 trioSet <- stack(trioSetList)
+mindist(trioSet) <- calculateMindist(lrr(trioSet))
 data(map.segs)
 data(lrr.segs)
 data(md.segs)
 ## select a range with a possible de novo copy number alteration in the offspring
 rd <- map.segs[which(isDenovo(state(map.segs)))[1], ]
+trace(coerce, browser, signature=c("TrioSet", "data.frame"))
 if(require("VanillaICE")){
 	lrrfig <- xyplot(lrr ~ x | id,
 			 data=trioSet,
@@ -134,7 +136,7 @@ if(require("VanillaICE")){
 			 par.strip.text=list(lines=0.8, cex=0.6),
 			 col.np="royalblue", fill.np="grey",
 			 index.cond=list(4:1))
-	VanillaICE:::arrangeSideBySide(lrrfig, baffig)
+	arrangeSideBySide(lrrfig, baffig)
 }
 
 }

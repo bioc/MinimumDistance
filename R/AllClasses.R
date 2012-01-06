@@ -1,12 +1,7 @@
 setOldClass("ff_array")
 setOldClass("ff_matrix")
-setClassUnion("matrixOrNULL", c("matrix", "NULL", "ff_matrix"))
-setClassUnion("matrixOrff", c("matrix", "ff_matrix"))
-setClassUnion("arrayOrNULL", c("array", "NULL"))
 setClass("LogRratioSet", contains="eSet")
-##setValidity("LogRratioSet", function(object){
-##	#assayDataValidMembers(assayData(object), c("logRRatio", "BAF"))
-##})
+setClassUnion("matrixOrNULL", c("matrix", "NULL"))
 setClass("LikSet",
 	 contains="LogRratioSet",
 	 representation(loglik="array",
@@ -14,68 +9,104 @@ setClass("LikSet",
 	 prototype = prototype(
 	 new("VersionedBiobase",
 	     versions=c(classVersion("LogRratioSet"), LikSet="1.0.0"))))
-setClass("TrioSet", contains="LogRratioSet",
-	 representation(phenoData2="arrayOrNULL",
-			mindist="matrixOrNULL",
-			mad="matrix"),
-	 prototype = prototype(
-	                       new("VersionedBiobase",
-				   versions=c(classVersion("LogRratioSet"), TrioSet="0.0.4"))))
+setClass("Pedigree", representation(trios="data.frame", trioIndex="data.frame"))
+setValidity("Pedigree", function(object){
+	msg <- validPedigree(object)
+	if(is.null(msg)) return(TRUE) else return(msg)
+})
 
-setClass("TrioSet", contains="LogRratioSet", ##contains="LogRratioSet",
-	 representation(phenoData2="array",
-			mindist="matrixOrNULL",
-			mad="matrix"),
-	 prototype = prototype(
-	                       new("VersionedBiobase",
-				   versions=c(classVersion("LogRratioSet"), TrioSet="0.0.5"))))
-## should we add a slot for trioNames
-##  -- would be a R x 3 matrix, where R is the number of trios
-##  -- R must be equal to the number of columns of the assayData arrays
-##  -- '[' method for the trioNames slot
-##  -- 'show' method for trioNames slot
-##  -- add trioNames accessor / replacement method
-##  -- modify offspringNames, fmoNames, ... to access trioNames slot
-## Other potential slots:
-##  -- dna source
-##  -- batch / plate
+setClass("TrioSet", contains="gSet",
+	 representation(fatherPhenoData="AnnotatedDataFrame",
+			motherPhenoData="AnnotatedDataFrame",
+			pedigree="Pedigree",
+			mindist="matrixOrNULL"))
 
-setMethod("updateObject", signature(object="TrioSet"),
-          function(object, ..., verbose=FALSE) {
-		  obj <- tryCatch(callNextMethod(), error=function(e) NULL)
-		  if(is.null(obj)){
-			  stop("updateObject failed")
-		  }
-		  return(object)
-	  })
-setClass("SampleSheet", contains="DataFrame")
+setValidity("TrioSet", function(object){
+	ped <- pedigree(object)
+	validObject(ped)
+	validObject(featureData(object))
+	nms <- ls(assayData(object))
+	if(!all(c("BAF", "logRRatio") %in% nms)){
+		msg <- "BAF and logRRatio are required elements of the assayData"
+		return(msg)
+	}
+	elt <- nms[[1]]
+	elt <- assayData(object)[[elt]]
+	if(ncol(elt) > 0){
+		sns.ped <- sampleNames(ped)
+		if(length(sns.ped) != ncol(elt)){
+			return("Number of samples in pedigree slot should be the same as the number of columns in the TrioSet object")
+		}
+	}
+	if(!identical(sampleNames(object), sampleNames(phenoData(object)))){
+		stop("sampleNames of TrioSetList object must be the same as the sampleNames of the phenoData")
+	}
+	if(!identical(fatherNames(object), sampleNames(fatherPhenoData(object)))){
+		stop("fatherNames of TrioSetList object must be the same as the sampleNames of the fatherPhenoData")
+	}
+	if(!identical(motherNames(object), sampleNames(motherPhenoData(object)))){
+		stop("motherNames of TrioSetList object must be the same as the sampleNames of the motherPhenoData")
+	}
+	if(!is.null(mindist(object))){
+		if(!identical(colnames(mindist(object)), sampleNames(object)))
+			stop("colnames of mindist matrix must be same as the sampleNames of the TrioSet object")
+	}
+})
 
-## might try extending AnnotatedDataFrame instead of data.frame
-setClass("Pedigree", contains="list",
-	 representation(trios="data.frame",
-			trioIndex="data.frame"))
+##setMethod("updateObject", signature(object="TrioSetList"),
+##          function(object, ..., verbose=FALSE) {
+##		  obj <- tryCatch(callNextMethod(), error=function(e) NULL)
+##		  if(is.null(obj)){
+##			  stop("updateObject failed")
+##		  }
+##		  return(object)
+##	  })
 
 
-
-
-
-setClass("TrioSetList", contains="list",
+setClass("TrioSetList",
 	 representation(pedigree="Pedigree",
-			sampleSheet="SampleSheet"))
+			assayDataList="AssayData",
+			phenoData="AnnotatedDataFrame",
+			fatherPhenoData="AnnotatedDataFrame",
+			motherPhenoData="AnnotatedDataFrame",
+			featureDataList="list",
+			chromosome="integer"))
 
 setValidity("TrioSetList", function(object){
-	if(!all(unlist(pedigree(object)) %in% sampleNames(sampleSheet(object))))
-		return("All names in the pedigree object must be present in the sample sheet")
-	if(length(object) > 0){
-		if(!identical(sampleNames(pedigree(object)), colnames(lrr(object[[1]]))))
-			return("The sampleNames of the pedigree slot must be the same as the column names of the assayData elements in the TrioSet")
+	nms <- ls(assayData(object))
+	if(!all(c("BAF", "logRRatio") %in% nms)){
+		msg <- "BAF and logRRatio are required elements of the assayData"
+		return(msg)
 	}
-	if(!identical(allNames(pedigree(object)), sampleNames(sampleSheet(object))))
-		return("allNames of Pedigree must be identical to sampleNames of SampleSheet")
-	if(!identical(as.character(unlist(trios(object))), as.character(phenoData2(object[[1]])[, "sampleNames", ])))
-		return("The phenoData2 slot for the elements in the TrioSetList must have a sampleNames column equal to trios(object)")
-	if(!checkOrder(object)) return("each element in the TrioSetList must be ordered by chromosome and physical position.")
-	TRUE
+	if(length(object) > 0){
+		msg <- validAssayDataDims(assayData(object))
+		if(!all(msg == TRUE)) return(msg)
+		elt <- (ls(assayDataList(object)))[[1]]
+		b <- assayDataList(object)[[elt]]
+		if(length(chromosome(object)) != length(b)){
+			return("chromosome slot must be the same length as the length of the list for each assayData element")
+		}
+	}
+	validObject(pedigree(object))
+	if(!identical(sampleNames(object), sampleNames(phenoData(object)))){
+		stop("sampleNames of TrioSetList object must be the same as the sampleNames of the phenoData")
+	}
+	if(!identical(fatherNames(object), sampleNames(fatherPhenoData(object)))){
+		stop("fatherNames of TrioSetList object must be the same as the sampleNames of the fatherPhenoData")
+	}
+	if(!identical(motherNames(object), sampleNames(motherPhenoData(object)))){
+		stop("motherNames of TrioSetList object must be the same as the sampleNames of the motherPhenoData")
+	}
+	if(length(featureDataList(object)) != length(chromosome(object))){
+		return("each chromosome should have an element in the featureDataList")
+	}
+	if(length(featureDataList(object)) > 0){
+		featureDataClasses <- sapply(featureDataList(object), class)
+		if(!unique(featureDataClasses) == "GenomeAnnotatedDataFrame"){
+			return("featureDataList must be comprised of GenomeAnnotatedDataFrame(s)")
+		}
+	}
 })
+
 
 

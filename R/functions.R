@@ -607,10 +607,10 @@ combineRangesByFactor <- function(range.object, f){
 		min.index <- min(index)
 		max.index <- max(index)
 		end(range.object)[index] <- max(end(range.object)[index])
-		range.object$lik.state[index] <- sum(range.object$lik.state[index])
+		range.object$lik.state[index] <- sum(range.object$lik.state[index], na.rm=TRUE)
 		range.object$end.index[index] <- max(range.object$end.index[index])
-		range.object$seg.mean[index] <- sum((range.object$num.mark[index] * range.object$seg.mean[index]))/sum(range.object$num.mark[index])
-		range.object$num.mark[index] <- sum(range.object$num.mark[index])
+		range.object$seg.mean[index] <- sum((range.object$num.mark[index] * range.object$seg.mean[index]), na.rm=TRUE)/sum(range.object$num.mark[index],na.rm=TRUE)
+		range.object$num.mark[index] <- sum(range.object$num.mark[index], na.rm=TRUE)
 		j <- seq(length=nrow(range.object))
 		index <- index[-1]
 		j <- j[-index]
@@ -1003,7 +1003,7 @@ LikSet <- function(trioSet, pedigreeData, id, CHR, ranges){
 
 
 ##dna <- function(object) harmonizeDnaLabels(phenoData2(object[[1]])[, "DNA.Source", ])
-plate <- function(object) phenoData2(object[[1]])[, "Sample.Plate", ]
+##plate <- function(object) phenoData2(object[[1]])[, "Sample.Plate", ]
 
 
 fillInMissing <- function(rangeIndex){
@@ -1247,6 +1247,7 @@ computeLoglik <- function(id,## trio id (or offspring id)
 			  trioSet, #L,
 			  ranges,
 			  pedigreeData,
+			  sds.marker,
 			  mu.logr=c(-2, -0.5, 0, 0.3, 0.75),
 			  states=0:4,
 			  baf.sds=c(0.02, 0.03, 0.02),
@@ -1284,7 +1285,7 @@ computeLoglik <- function(id,## trio id (or offspring id)
 		open(lrr(trioSet))
 	}
 	##sds.marker <- fData(trioSet)$marker.mad  ## these can be really big in CNV
-	sds.marker <- mad.marker(trioSet)
+	##sds.marker <- mad.marker(trioSet)
 	##1. shrink the marker to the marker sds
 	##   - at CNV the marker estimates will be much too high
 	##   - could be too small for markers that don't really work
@@ -1503,15 +1504,15 @@ trioStateNames <- function(trio.states){
 }
 
 
-transitionProbability <- function(states=0:4, epsilon=1-0.999){
-	off.diag <- epsilon/(length(states)-1)
-	tpm <- matrix(off.diag, length(states), length(states))
+transitionProbability <- function(nstates=5, epsilon=1-0.999){
+	off.diag <- epsilon/(nstates-1)
+	tpm <- matrix(off.diag, nstates, nstates)
 	diag(tpm) <- 1-epsilon
 	tpm
 }
 
-initialStateProbs <- function(states=0:4, normal.index=3, epsilon=0.01){
-	initial.state.probs <- rep(epsilon/(length(states)-1), length(states))
+initialStateProbs <- function(nstates, normal.index=3, epsilon=0.01){
+	initial.state.probs <- rep(epsilon/(nstates-1), nstates)
 	initial.state.probs[normal.index] <- 1-epsilon
 	initial.state.probs
 }
@@ -1555,12 +1556,12 @@ lookUpTable1 <- function(table1, state){
 	}
 }
 
-readTable3 <- function(a=0.009){
-	## initialize with small value to avoid -Inf
-	results <- .C("calculateCHIT", a=a, M=array(0, dim=c(rep(5,6))))$M
-	## Make sure to transpose!
-	aperm(results)
-}
+##readTable3 <- function(a=0.009){
+##	## initialize with small value to avoid -Inf
+##	results <- .C("calculateCHIT", a=a, M=array(0, dim=c(rep(5,6))))$M
+##	## Make sure to transpose!
+##	aperm(results)
+##}
 
 lookUpTable3 <- function(table3, state.prev, state.curr){
 	f1 <- state.prev[1]
@@ -1646,12 +1647,11 @@ joint1 <- function(LLT, ##object,
 		   denovo.prev=FALSE,
 		   state.prev) {
 	if(missing(tau))
-		tau <- transitionProbability(states=0:4, epsilon=0.5)
+		tau <- transitionProbability(ncol(LLT), epsilon=0.5)
 	if(missing(log.pi))
-		log.pi <- log(initialStateProbs(states=0:4, epsilon=0.5))
+		log.pi <- log(initialStateProbs(ncol(LLT), epsilon=0.5))
 	Prob.DN <- prob.nonMendelian
 	state <- trio.states[state.index, ]
-	if(missing(tau)) tau <- transitionProbability(states=0:4, epsilon=0.5)
 	fmo <- c(LLT[1, state[1]], LLT[2, state[2]], LLT[3, state[3]])
 	if(segment.index == 1 | is.null(state.prev)){
 		## assume Pr(z_1,f | lambda) = Pr(z_2,m | lambda) = pi
@@ -1665,12 +1665,12 @@ joint1 <- function(LLT, ##object,
 		pi.offspring <- c(lookUpTable1(table1, state),  1/5)
 		lpr.offspring <- log(pi.offspring[1] * (1-Prob.DN) + pi.offspring[2]+Prob.DN)
 		##pi.offspring <- pi.offspring[[is.denovo+1]]
-		log.pi <- c(log.pi[state[1]], ## father
-			    log.pi[state[2]], ## mother
-			    lpr.offspring)
+		log.pi2 <- c(log.pi[state[1]], ## father
+			     log.pi[state[2]], ## mother
+			     lpr.offspring)
 			    ##log(pi.offspring))## offspring
 		##fmo <- apply(fmo, 2, sum, na.rm=TRUE)
-		fmo <- fmo + log.pi
+		fmo <- fmo + log.pi2
 		log.emit <- fmo
 ##		for(j in 1:2) fmo[j] <- fmo[j]+log.pi[state.index]
 ##		f <- sum(fmo[[1]])+log.pi[state.index]
@@ -1684,13 +1684,13 @@ joint1 <- function(LLT, ##object,
 	} else{
 		log.emit <- jointProb(segment.index=segment.index,
 				      state=state,
-				  state.prev=state.prev,
-				  prob.nonMendelian=prob.nonMendelian,
-				  log.pi=log.pi,
-				  tau=tau,
-				  table1=table1,
-				  table3=table3,
-				  log.lik=fmo)
+				      state.prev=state.prev,
+				      prob.nonMendelian=prob.nonMendelian,
+				      log.pi=log.pi,
+				      tau=tau,
+				      table1=table1,
+				      table3=table3,
+				      log.lik=fmo)
 ##		##** Note that when state is the 'normal.state'**
 ##		##    (state.index == normal.index)
 ##		##    tau is the probability of staying in the same state
@@ -1774,53 +1774,77 @@ joint4 <- function(id,
 		   trioSet,
 		   pedigreeData,
 		   ranges,
+		   mad.marker,
 		   a=0.0009,
 		   prob.nonMendelian=1.5e-6,
 		   returnEmission=FALSE,
 		   ...){## all the ranges from one subject , one chromosome
 	if(missing(id)) id <- sampleNames(trioSet)[1]
 	ranges <- ranges[sampleNames(ranges) == id, ]
-	object <- computeLoglik(id,
-				trioSet=trioSet,
-				ranges=ranges,
-				pedigreeData=pedigreeData, ...)
-	if(returnEmission) return(object)
+##	object <- computeLoglik(id,
+##				trioSet=trioSet,
+##				ranges=ranges,
+##				pedigreeData=pedigreeData,
+##				sds.marker=mad.marker, ...)
+	is.snp <- isSnp(trioSet)
+	stopifnot(ncol(trioSet)==1)
+	if(is.null(mad.marker)){
+		lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
+						    cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
+						    is.log=TRUE,
+						    is.snp=is.snp,
+						    normalIndex=3)
+##		index <- matchMatrix(findOverlaps(rd.denovoDel, featureData(trioSet)))[, 2]
+##		tmp <- cbind(lrr(trioSet)[index, 1, 3], round(lrr.emit[index, 3,  ], 2))
+##		rownames(tmp) <- NULL
+	} else{
+		lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
+				       stdev=mad.marker,
+				       cnStates=1:6,
+				       is.log=TRUE,
+				       is.snp=is.snp,
+				       normalIndex=3)
+
+	}
+	baf.emit <- VanillaICE:::bafEmission(baf(trioSet)[, 1, ],
+					     is.snp=is.snp,
+					     prOutlier=1e-3,
+					     p.hom=0.95)
+##	tmp <- cbind(baf(trioSet)[index, 1, 3], round(lrr.emit[index, 3,  ], 2))
+##	rownames(tmp) <- NULL
+	lemit <- lrr.emit+baf.emit
+##	if(returnEmission) return(object)
 	trio.states <- trioStates(0:4)
 	tmp <- rep(NA, nrow(trio.states))
 	state.prev <- NULL
 	denovo.prev <- NULL
 	table1 <- readTable1(a=a)
-	table3 <- readTable3(a=a)
-	weightR <- 1/2
+	loader("pennCNV_MendelianProb.rda")
+	table3 <- getVarInEnv("pennCNV_MendelianProb")
+	##table3 <- readTable3(a=a)
+	##weightR <- 1/2
 	state.names <- trioStateNames()
 	norm.index <- which(state.names=="333")
 	ranges <- ranges[order(start(ranges)), ]
 	ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
-	states <- 0:4
-	for(i in seq_len(nrow(ranges))){
-		##if(i==7) break()
-		obj <- object[which(range.index(object) == i), ]
-		if(nrow(obj) < 2){
-			##state.prev <- trio.states[norm.index, ]
-			next()
-		}
-		LLR <- loglik(obj)["logR", , ,  ]
-		LLB <- loglik(obj)["baf", , , ]
-		LL <- weightR * LLR + (1-weightR)*LLB
-		LLT <- matrix(NA, 3, 5)
+	mm <- matchMatrix(findOverlaps(featureData(trioSet), ranges))
+	I <- which(table(mm[, 2]) >= 2)
+	range.index <- mm[mm[, 2] %in% I, 2]
+	## when the length of range.index is greater than the number of rows in the trioSet object,
+	## it suggests that some features
+	for(i in I){
+		index <- which(range.index==i)
+##		if(nrow(obj) < 2){
+##		if(length(index) < 2){
+##			next()
+##		}
+		LL <- lemit[index, , ]
+		LLT <- matrix(NA, 3, 6)
 		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
 		rownames(LLT) <- c("F", "M", "O")
-		colnames(LLT) <- paste("CN_", states, sep="")
-		if(FALSE){
-			ii <- which(range.index(object)==i)
-			apply(LLB[, 1, ], 2, sum, na.rm=TRUE)
-			apply(LLB[, 1, ], 2, sum, na.rm=TRUE)
-			apply(LLB[, 3, ], 2, sum, na.rm=TRUE)
-			apply(LLR[, 3, ], 2, sum, na.rm=TRUE)
-			r <- lrr(obj)[, 3]
-			tmp <- cbind(LLR[, 3, c(2,3)], r)
-		}
-		for(j in 1:nrow(trio.states)){
+		##colnames(LLT) <- paste("CN_", states, sep="")
+		colnames(LLT) <- paste("CN_", 1:6, sep="")
+		for(j in seq_len(nrow(trio.states))){
 			tmp[j] <- joint1(LLT=LLT,
 					 trio.states=trio.states,
 					 segment.index=i,
@@ -1828,8 +1852,7 @@ joint4 <- function(id,
 					 table1=table1,
 					 table3=table3,
 					 state.prev=state.prev,
-					 prob.nonMendelian=prob.nonMendelian,
-					 ...)
+					 prob.nonMendelian=prob.nonMendelian)
 
 		}##j loop
 		## RS 4/29/2011
@@ -1845,9 +1868,9 @@ joint4 <- function(id,
 	ranges
 }
 
-pennTable <- function(a=0.0009, M=array(as.double(0), dim=rep(5,6))){
-	res <- .C("calculateCHIT", a=as.double(a), M=M)
-}
+##pennTable <- function(a=0.0009, M=array(as.double(0), dim=rep(5,6))){
+##	res <- .C("calculateCHIT", a=as.double(a), M=M)
+##}
 
 
 
@@ -2076,52 +2099,52 @@ discordance <- function(rd1, rd2, I.STATE, ...){
 
 
 
-readParsedFiles <- function(path, member, container, chromosomes, file.ext, verbose){
-	ids <- switch(member,
-		      F=as.character(paste(fullId(container[[1]])[, "F"], file.ext, sep="")),
-		      M=as.character(paste(fullId(container[[1]])[, "M"], file.ext, sep="")),
-		      O=as.character(paste(fullId(container[[1]])[, "O"], file.ext, sep="")))
-	memberName <- switch(member,
-			     F="father",
-			     M="mother",
-			     O="offspring")
-	stopifnot(!is.null(ids))
-	col.index <- switch(member, F=1, M=2, O=3)
-	##stopifnot(all(ids %in% basename(filenames)))
-	##sample.index <- match(ids, basename(filenames))
-	filenames <- list.files(path, pattern=ids, full.names=TRUE)
-	stopifnot(length(filenames)>0)
-	## Read in the first file
-	dat <- read.delim(filenames[1], colClasses=c("character", "numeric", "numeric"))
-	nms <- dat[[1]]
-	dat <- dat[-1]
-	nr <- nrow(dat)
-	mads <- rep(NA, length(filenames))
-	message("Parsing files for family member ", memberName)
-	for(j in seq_along(filenames)){
-		if(verbose){
-			if(j %% 10 == 0) message("\tFile ", j, " of ", length(filenames))
-		}
-		if(j > 1) dat <- read.delim(filenames[j], colClasses=c("NULL", "numeric", "numeric"))
-		mads[j] <- mad(dat[[1]], na.rm=TRUE)
-		for(k in seq_along(chromosomes)){
-			CHR <- chromosomes[k]
-			is.ff <- is(lrr(container[[1]]), "ff")
-			if(is.ff){
-				open(lrr(container[[CHR]]))
-				open(baf(container[[CHR]]))
-			}
-			marker.index <- match(featureNames(container[[k]]), nms)
-			lrr(container[[k]])[, j, col.index] <- dat[[1]][marker.index]
-			baf(container[[k]])[, j, col.index] <- dat[[2]][marker.index]
-			if(is.ff){
-				close(lrr(container[[k]]))
-				close(baf(container[[k]]))
-			}
-		}
-	}
-	return(mads)
-}
+##readParsedFiles <- function(path, member, container, chromosomes, file.ext, verbose){
+##	ids <- switch(member,
+##		      F=as.character(paste(fullId(container[[1]])[, "F"], file.ext, sep="")),
+##		      M=as.character(paste(fullId(container[[1]])[, "M"], file.ext, sep="")),
+##		      O=as.character(paste(fullId(container[[1]])[, "O"], file.ext, sep="")))
+##	memberName <- switch(member,
+##			     F="father",
+##			     M="mother",
+##			     O="offspring")
+##	stopifnot(!is.null(ids))
+##	col.index <- switch(member, F=1, M=2, O=3)
+##	##stopifnot(all(ids %in% basename(filenames)))
+##	##sample.index <- match(ids, basename(filenames))
+##	filenames <- list.files(path, pattern=ids, full.names=TRUE)
+##	stopifnot(length(filenames)>0)
+##	## Read in the first file
+##	dat <- read.delim(filenames[1], colClasses=c("character", "numeric", "numeric"))
+##	nms <- dat[[1]]
+##	dat <- dat[-1]
+##	nr <- nrow(dat)
+##	mads <- rep(NA, length(filenames))
+##	message("Parsing files for family member ", memberName)
+##	for(j in seq_along(filenames)){
+##		if(verbose){
+##			if(j %% 10 == 0) message("\tFile ", j, " of ", length(filenames))
+##		}
+##		if(j > 1) dat <- read.delim(filenames[j], colClasses=c("NULL", "numeric", "numeric"))
+##		mads[j] <- mad(dat[[1]], na.rm=TRUE)
+##		for(k in seq_along(chromosomes)){
+##			CHR <- chromosomes[k]
+##			is.ff <- is(lrr(container[[1]]), "ff")
+##			if(is.ff){
+##				open(lrr(container[[CHR]]))
+##				open(baf(container[[CHR]]))
+##			}
+##			marker.index <- match(featureNames(container[[k]]), nms)
+##			lrr(container[[k]])[, j, col.index] <- dat[[1]][marker.index]
+##			baf(container[[k]])[, j, col.index] <- dat[[2]][marker.index]
+##			if(is.ff){
+##				close(lrr(container[[k]]))
+##				close(baf(container[[k]]))
+##			}
+##		}
+##	}
+##	return(mads)
+##
 
 
 
@@ -3219,48 +3242,60 @@ read.bsfiles <- function(path="./", filenames, ext="", row.names=1,
 	return(dat)
 }
 
-callDenovoSegments <- function(path="", filenames,
-			       ext=".txt",
+callDenovoSegments <- function(path="",
 			       pedigreeData,
+			       ext="",
+			       featureData,
 			       cdfname,
 			       chromosome=1:22,
 			       segmentParents,
 			       verbose=FALSE, ...){
 	##trionames <- allNames(pedigreeData)
-	stopifnot(!missing(cdfname))
+	if(missing(featureData)){
+		if(missing(cdfname))
+			stop("cdfname and featureData are both missing.")
+	}
 	stopifnot(!missing(pedigreeData))
 	stopifnot(validObject(pedigreeData))
+	filenames <- file.path(path, paste(allNames(pedigreeData), ext, sep=""))
+	stopifnot(all(file.exists(filenames)))
 	stopifnot(!missing(filenames))
-	trionames <- allNames(pedigreeData)
-	if(!identical(trionames,filenames)){
-		ss <- SampleSheet(row.names=filenames, id=trionames)
-	} else{
-		ss <- SampleSheet(row.names=filenames)
+	obj <- read.bsfiles(filenames=filenames, path="", ext="")
+	if(missing(featureData)){
+		trioSetList <- TrioSetList(lrr=obj[, "lrr",],
+					   baf=obj[, "baf",],
+					   pedigree=pedigreeData,
+					   chromosome=chromosome,
+					   cdfname=cdfname)
+	} else {
+		trioSetList <- TrioSetList(lrr=obj[, "lrr",],
+					   baf=obj[, "baf",],
+					   pedigree=pedigreeData,
+					   featureData=featureData,
+					   chromosome=chromosome)
 	}
-	obj <- read.bsfiles(path=path, filenames=filenames, ext=ext)
-	trioSetList <- TrioSetList(lrr=obj[, "lrr",],
-				   baf=obj[, "baf",],
-				   pedigree=pedigreeData,
-				   chromosome=chromosome,
-				   cdfname=cdfname)
-	md <- calculateMindist(trioSetList, verbose=verbose)
+	md <- calculateMindist(lrr(trioSetList), verbose=verbose)
 	mads.md <- mad2(md, byrow=FALSE)
-	mad.mindist(trioSetList) <- mads.md
+	##mad.mindist(trioSetList) <- mads.md
 	mads.lrr.sample <- mad2(lrr(trioSetList), byrow=FALSE)
 	##trace(mad2, browser, signature="list")
 	mads.lrr.marker <- mad2(lrr(trioSetList), byrow=TRUE)
-	mad.sample(trioSetList) <- mads.lrr.sample
+	##mad.sample(trioSetList) <- mads.lrr.sample
 	##mad(trioSetList)
-	mad.marker(trioSetList) <- mads.lrr.marker
+	##mad.marker(trioSetList) <- mads.lrr.marker
+	fns <- featureNames(trioSetList)
 	md.segs <- segment2(object=md,
 			    pos=position(trioSetList),
-			    chrom=chromosome(trioSetList),
+			    chrom=as.list(chromosome(trioSetList)),
 			    verbose=verbose,
+			    id=offspringNames(trioSetList),
+			    featureNames=fns,
 			    ...)
-	lrrs <- lrr(trioSetList)
+	##lrrs <- lrr(trioSetList)
 	if(!segmentParents){
 		## when segmenting only the offspring,
 		## the trio names are the same as the sampleNames
+		lrrs <- lrr(trioSetList)
 		lrrs <- lapply(lrrs, function(x){
 			dns <- dimnames(x)
 			x <- x[, , 3, drop=FALSE]
@@ -3268,17 +3303,21 @@ callDenovoSegments <- function(path="", filenames,
 			dimnames(x) <- list(dns[[1]], dns[[2]])
 			return(x)
 		})
-		id <- NULL
+		id <- offspringNames(trioSetList)
 	} else{
 		id=trios(trioSetList)
 	}
+	pos <- position(trioSetList)
 	lrr.segs <- segment2(object=lrrs,
 			     pos=position(trioSetList),
-			     chrom=chromosome(trioSetList),
+			     chrom=as.list(chromosome(trioSetList)),
 			     id=id, ## NULL if segmentParents is FALSE
-			     verbose=verbose, ...)
+			     verbose=verbose,
+			     featureNames=fns, ...)
 	md.segs2 <- narrow(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md)
 	map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2,
-				       verbose=verbose)
+				       verbose=verbose,
+				       mad.marker=mads.lrr.marker,
+				       mad.sample=mads.lrr.sample)
 	return(map.segs)
 }

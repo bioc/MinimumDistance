@@ -5,7 +5,9 @@ annotatedDataFrameFromArray <- function(object, byrow=FALSE, ...){
 	} else res <- Biobase:::annotatedDataFrameFromMatrix(matrix(), byrow=byrow, ...)
 	return(res)
 }
+
 setMethod("annotatedDataFrameFrom", signature(object="ff_array"),
 	  annotatedDataFrameFromArray)
+
 setMethod("annotatedDataFrameFrom", signature(object="array"),
 	  annotatedDataFrameFromArray)

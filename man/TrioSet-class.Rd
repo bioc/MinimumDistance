@@ -3,40 +3,36 @@
 \docType{class}
 \alias{TrioSet-class}
 \alias{[,TrioSet-method}
+\alias{allNames,TrioSet-method}
+\alias{baf,TrioSet-method}
 \alias{baf<-,TrioSet-method}
+\alias{baf<-,TrioSet,array-method}
+\alias{baf<-,TrioSet,ff_array-method}
 \alias{baf<-}
 \alias{calculateMindist,TrioSet-method}
+\alias{computeBayesFactor,TrioSet,RangedDataCNV-method}
 \alias{dim,TrioSet-method}
 \alias{fatherNames<-,TrioSet,character-method}
 \alias{fatherNames<-}
 \alias{fatherNames,TrioSet-method}
+\alias{fatherPhenoData,TrioSet-method}
+\alias{motherPhenoData,TrioSet-method}
+\alias{offspringPhenoData}
+\alias{offspringPhenoData,TrioSet-method}
 \alias{initialize,TrioSet-method}
 \alias{lrr<-}
-\alias{mad.marker<-,TrioSet,matrix-method}
-\alias{mad.marker<-,TrioSet,numeric-method}
-\alias{mad.marker<-,TrioSet,NULL-method}
-\alias{mad.marker}
-\alias{mad.marker<-}
-\alias{mad.mindist<-,TrioSet,numeric-method}
-\alias{mad.mindist<-}
-\alias{mad.sample<-,TrioSet,matrix-method}
-\alias{mad.sample<-}
+\alias{lrr,TrioSet-method}
+\alias{lrr<-,TrioSet-method}
 \alias{mindist<-,TrioSet,matrix-method}
-\alias{mindist<-,TrioSet,ff_matrix-method}
-\alias{mindist<-,TrioSet,NULL-method}
 \alias{mindist,TrioSet-method}
 \alias{mindist}
 \alias{mindist<-}
-\alias{motherNames<-,TrioSet,character-method}
 \alias{motherNames,TrioSet-method}
-\alias{motherNames<-}
-\alias{offspringNames<-,TrioSet,character-method}
+\alias{ncol,TrioSet-method}
 \alias{offspringNames,TrioSet-method}
-\alias{offspringNames<-}
 \alias{order,TrioSet-method}
-\alias{phenoData2,TrioSet-method}
-\alias{phenoData2}
-\alias{prune,TrioSet,RangedDataCNV-method}
+\alias{pedigree,TrioSet-method}
+\alias{trios,TrioSet-method}
 \alias{updateObject,TrioSet-method}
 \alias{xyplot,formula,TrioSet-method}
 
@@ -48,14 +44,17 @@
   trios. In our application, de novo copy number alterations in affected
   offspring were of the primary interest.  Examination of the joint
   distribution of the log R ratios and B allele frequencies across
-  members in the trios was a motivating factor in developing the TrioSet
-  class. In particular, the assay data elements for a \code{TrioSet}
-  object are 3-dimensional arrays: marker x trio x individual.
-  Typically, a TrioSet instance stores the data for a single chromosome
-  and an instance of TrioSetList is a list of TrioSets.  While having a
-  single TrioSet for the entire dataset would simplify the classes of
-  objects defined in this package, multiple arrays with thousands of
-  trios and roughly a million markers are impractical on most machines.
+  members in a trio motivates a container with assay data elements that
+  are 3-dimensional arrays rather than 2-dimensional matrices.  The
+  dimension of the arrays is marker x trio x individual.  Typically, a
+  TrioSet instance stores the data for a single chromosome and an
+  instance of TrioSetList is a list of TrioSets.  While having a single
+  TrioSet for the entire dataset would simplify the classes of objects
+  defined in this package, multiple arrays with thousands of trios and
+  roughly a million markers are impractical on most machines. In
+  addition, storage by chromosome will facilitate parallelization of
+  computation that can be carried out independently on different
+  chromosomes.
 
 }
 
@@ -109,10 +108,17 @@
 
 }
 
-\section{Acessors}{
+\section{Accessors}{
   \describe{
     The \code{object} in the accessor descriptions that follow is a
     \code{TrioSet}:
+
+    \item{}{\code{allNames(object)}: The individual ids for each
+    subject. See \code{\link{offspringNames}},
+    \code{\link{fatherNames}}, and \code{\link{motherNames}} to list ids
+    corresponding to membership in the trio.}
+
+    \item{}{\code{baf(object)}: Extract array of B allele frequencies.}
 
     \item{}{\code{baf(object) <- value}: assign B allele frequencies.
       \code{value} is a 3-dimensional array (feature x trio x sample).}
@@ -128,33 +134,31 @@
   \item{}{\code{fatherNames(object)}: Return character string of father
     identifiers.}
 
+  \item{}{\code{fatherPhenoData(object)}: Extract
+    \code{AnnotatedDataFrame} for father pheno data.}
+
+
+
   \item{}{\code{lrr(object) <- value}: assign log R ratios to assayData.
       \code{value} is a 3-dimensional array (feature x trio x sample).}
 
-  \item{}{\code{mad.marker(object) <- value}: Assign robust estimates of
-  the log R ratio standard deviation for each marker (estimated across
-  samples) to the \code{featureData}. \code{value} can be numeric or a
-  matrix.}
+ \item{}{\code{mindist(object)}: Accessor for the minimum distance
+   matrix.}
 
-\item{}{\code{mad.mindist(object) <- value}: Assign robust estimates of
-  the minimum distance standard deviation for each trio (estimated across
-  all markers) to the \code{phenoData}. \code{value} is a numeric vector.}
-
-
-\item{}{\code{mad.sample(object) <- value}: Assign robust estimates of
-  the log R ratio standard deviation for each sample (estimated across
-   markers). \code{value} is a numeric vector.}
-
- \item{}{\code{mindist(object) <- value}: \code{value} is the minimum
-   distance matrix. See \code{\link{calculateMindist}}}
-
- \item{}{\code{mindist(object)}: Accessor for the minimum distance matrix.}
+ \item{}{\code{mindist(object) <- value}: Replacement method for slot
+ \code{mindist}.  Value must be a \code{matrix}.  }
 
  \item{}{\code{motherNames(object) <- value}: Assign a character string
- for the mother identifiers }
+   for the mother identifiers }
+
+  \item{}{\code{motherPhenoData(object)}: Extract
+  \code{AnnotatedDataFrame} for mother pheno data.}
 
    \item{}{\code{motherNames(object)} Return a character vector of
      mother identifiers}
+
+   \item{}{\code{ncol(object)} Number of trios in the \code{TrioSet}
+   \code{object}}
 
    \item{}{\code{offspringNames(object) <- value}: Assign a character
      vector of offspring identifiers}
@@ -164,48 +168,64 @@
  \code{sampleNames(object)} as the offspring identifiers uniquely
  identify a trio}
 
+  \item{}{\code{offspringPhenoData(object)}: Extract a
+  \code{AnnotatedDataFrame} of the sample-level covariates for the
+  offspring. Alternatively, use \code{phenoData(object)}. }
+
    \item{}{\code{order(object)}: order \code{TrioSet} object by
    chromosome and physical position}
 
-    \item{}{\code{phenoData2(object)}: metadata for the samples stored
-      as an array.  'sampleNames' is a required column header.}
+  \item{}{\code{pedigree(object)}: accessor for pedigree slot.  Returns
+    an object of class \code{Pedigree}.}
+
+  \item{}{\code{trios(object)}: Returns the \code{data.frame} stored in
+  slot \code{trios}  of the \code{Pedigree} class object stored in slot
+  \code{pedigree} of the \code{TrioSet} object.
+}
+
+}
+}
+
+\section{Compute the minimum distance}{
+  \describe{
+
+  \item{}{\code{calculateMindist(object)}: calculate the minimum
+    distance for an object of class TrioSet.}
 
   }
 
 }
 
-\section{Computing the minimum distance}{
+\section{Posterior summaries}{
+
   \describe{
 
-    The \code{TrioSet} container stores the log R ratios for each member
-    in the trio.  The 'minimum distance' is the minimum signed absolute
-    difference of the parental log R ratios and the offspring log R
-    ratios. Specifically, let |O-F| denote the absolute difference in
-    the log R ratios comparing offspring to father and |O-M| the
-    absolute difference in the log R ratios comparing offspring to
-    mother.  The minimum distance at a marker is the signed minimum of
-    |O-M| and |O-F|.  Plotted for all markers, deflections from zero can
-    indicate a difference in the log R ratio of the offspring and either
-    parent (possibly de novo).  For example, a positive minimum distance
-    suggests that the log R ratio from the offspring is greater than the
-    log R ratio of either parent.  The minimum distance can be computed
-    from a \code{object} of class \code{TrioSet} by:
-%
-\item{}{\code{calculateMindist(object, ..., verbose=TRUE)}:
+    \item{}{\code{computeBayesFactor(object, ranges, mad.marker,
+    mad.sample, returnEmission=FALSE, verbose=TRUE, ...)}: Compute
+    posterior probabilities for the trio copy number states. The called
+    trio copy number state is the argmax of the posterior
+    probabilities. See examples below for computing the standard
+    deviation of the markers for argument \code{mad.marker} and the
+    standard deviation of the samples for argument \code{mad.sample}.}
 
-  The returned value is a \code{list}. Each element in the list contains
-  a matrix of the minimum distances from one chromosome (dimension:
-  number features x number trios).  Note that the \code{list} can be assigned
-  back to the \code{TrioSetList} object using the replacement method
-  \code{mindist<-}.  See the example.}
+  }
 
 }
 
-}
 
 \section{Visualization}{
   \describe{
     \item{}{\code{xyplot(x, data, ...)}       }
+  }
+}
+
+\section{Miscellaneous}{
+  \describe{
+
+    \item{}{\code{updateObject(object)}: Currently, this method only
+    checks the class of the \code{featureData} slot. If the class is
+    \code{AnnotatedDataFrame}, the \code{featureData} is updated to the
+    \code{GenomeAnnotatedDataFrame} class.}
 
   }
 }
@@ -214,42 +234,16 @@
 
 
 \seealso{
-	\code{\linkS4class{TrioSetList}}
-      }
+  \code{\link{TrioSet}}, \code{\linkS4class{TrioSetList}}, \code{\link{calculateMindist}}
+}
 
 \examples{
 	showClass("TrioSet")
 	## instantiate a TrioSet with an array of log R ratios (logRR) and B
 	## allele frequencies
-	logRR <- array(rnorm(10*2*3), dim=c(10, 2, 3))
-	dimnames(logRR) <- list(paste("marker", 1:10, sep=""), paste("trio", 1:2, sep=""), c("F", "M", "O"))
-	BAFs <- array(runif(10*2*3, 0, 1), dim=dim(logRR), dimnames=dimnames(logRR))
-	trioSet <- new("TrioSet", logRRatio=logRR, BAF=BAFs)
-	## log R ratios for first five markers for all trios
-	lrr(trioSet)[1:5, , ]
-	## log R ratios for first five markers and the first trio
-	lrr(trioSet)[1:5, 1, ]
-	## log R ratios for only the offspring in the first trio
-	lrr(trioSet)[1:5, 1, "O"]
-	## similarly for B allele frequencies
-	baf(trioSet)[1:5, 1, "O"]
-	if(require("ff")){
-		## for large datasets, one can generate ff arrays for the assay data
-		## rather than store these in memory
-		##
-		## First, indicate the directory to store the ff objects
-		\dontrun{
-			ldPath(".")
-		}
-		logRR.ff <- oligoClasses:::initializeBigArray(name="lrr", dim=c(10,2,3), vmode="double")
-		## after initializion, one can read subsets of the data and write
-		## to disk by the "[<-" assignment method
-		## For example, here we write the data for 10 markers to disk
-		logRR.ff[1:10, , ] <- logRR[1:10, , ]
-		## Similarly for BAFs
-		BAF.ff <- oligoClasses:::initializeBigArray(name="baf", dim=c(10,2,3), vmode="double")
-		BAF.ff[1:10, , ] <- BAFs[1:10, , ]
-		trioSet.ff <- new("TrioSet", logRRatio=logRR.ff, BAF=BAF.ff)
-	}
+	TrioSet()
+
+        data(trioSetListExample)
+        trioSet <- stack(trioSetList)
 }
 \keyword{classes}
