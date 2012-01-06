@@ -1,16 +1,24 @@
-##useDynLib("MinimumDistance", .registration=TRUE)
-importFrom(utils, setTxtProgressBar, txtProgressBar)#, stack)
+## generics
+importFrom(BiocGenerics, order)
+
+## Biobase imports
+importClassesFrom(Biobase, eSet)
+importMethodsFrom(Biobase, annotatedDataFrameFrom, "[", "$", annotatedDataFrameFrom)
+importFrom(Biobase, assayDataElementReplace, sampleNames, varLabels, rowMedians, "sampleNames<-")
+
+## utils
+importFrom(utils, setTxtProgressBar, txtProgressBar)
+
+## plotting
 importFrom(graphics, abline, axis, layout, legend, mtext, par, plot,
 	   polygon, rect, segments, text)
 importFrom(lattice, xyplot, simpleKey, panel.grid, panel.xyplot, lrect, ltext,
 	   lpoints, panel.number, current.panel.limits, panel.segments)
-importClassesFrom(Biobase, eSet)
-importMethodsFrom(Biobase, annotatedDataFrameFrom, "[", "$", annotatedDataFrameFrom)
-importFrom(Biobase, assayDataElementReplace, sampleNames, varLabels, rowMedians, "sampleNames<-")
-import(SNPchip)
-##importFrom(SNPchip, integer2chromosome)
+
+##import(SNPchip) -- why do we need this?
 importFrom(stats, mad)
-##importFrom(ff, open.ff, close.ff)
+
+## IRanges
 importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 		  DataTable, Vector, Annotated,
 		  List, SimpleList, CompressedList,
@@ -18,24 +26,32 @@ importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 		  RangedDataList,
 		  DataFrame,
 		  DataTableORNULL)
-importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 importMethodsFrom(IRanges, start, end, width,"[", "[[","[<-", "[[<-", "$",
 		  nrow, "start<-", "end<-", stack)
-importMethodsFrom(oligoClasses, state, coverage2, chromosome, openff, closeff, mean,
-		  GenomeAnnotatedDataFrameFrom)
-importFrom(oligoClasses, baf, lrr, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   findOverlaps, countOverlaps,
 	   ranges, values,
 	   matchMatrix, queryHits, subjectHits)
+
+## oligoClasses
+importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
+importMethodsFrom(oligoClasses, state, coverage2, chromosome, openff, closeff, mean,
+		  GenomeAnnotatedDataFrameFrom)
+importFrom(oligoClasses, baf, lrr, RangedDataCNV, RangedDataCBS, RangedDataHMM)
+
+## msm
 importFrom(msm, qtnorm, dtnorm)
-##importFrom(ff, filename)
+
+## DNAcopy
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
-importMethodsFrom(VanillaICE, xyplot, xyplot2)##, cnEmission, bafEmission)
-importFrom(BiocGenerics, order)
-exportClasses(##LogRratioSet,
-	      TrioSet, TrioSetList,
-	      Pedigree)
+
+## VanillaICE
+importMethodsFrom(VanillaICE, xyplot, xyplot2)
+
+## -----------------------------------------------------------------
+## Export
+## -----------------------------------------------------------------
+exportClasses(Pedigree, TrioSet, TrioSetList)
 exportMethods("[", allNames,
 	      annotatedDataFrameFrom,
 	      baf,
@@ -44,54 +60,37 @@ exportMethods("[", allNames,
 	      computeBayesFactor,
 	      dims,
 	      fatherNames,
-##	      "fatherNames<-",
 	      fatherPhenoData,
 	      motherPhenoData,
 	      phenoData,
-	      ##logR, "logR<-",
 	      lrr, "lrr<-",
-##	      "mad.sample<-",
-##	      "mad.marker<-",
 	      mindist,
 	      "mindist<-",
-##	      "mad.mindist<-",
 	      mad2,
-##	      minimumDistance,
 	      motherNames,
-##	      "motherNames<-",
 	      ncol,
 	      nrow,
 	      offspringNames,
-##	      "offspringNames<-",
 	      offspringPhenoData,
 	      order,
 	      pedigree,
-##	      prune,
-##	      rbind,
 	      segment2,
 	      stack,
-	      ##trioNames,
 	      trios,
 	      updateObject,
 	      width,
-	      ##xsegment,
 	      xyplot,
-	      ##trioplot,
 	      initialize)
-export(concAtTop,
-       ##calculateMADlrr,
+export(callDenovoSegments,
+       concAtTop,
        TrioSet,
        TrioSetList,
-       callDenovoSegments,
        correspondingCall,
        discAtTop,
-       ##fmoNames,
        isDenovo,
        narrow,
        Pedigree,
        read.bsfiles,
-       ##SampleSheet,
-       ##trioplot,
        xyplot,
        xypanelMD)
 

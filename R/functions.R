@@ -1,26 +1,5 @@
-##catFun <- function(rd.query, rd.subject, same.id=TRUE){
-##	##browser()
-##	##stopifnot(nrow(rd.query) == 1)
-##	##rd.s <- rd.subject[seq(length=size), ]
-####	if(!any(chromosome(rd.query) %in% chromosome(rd.subject))) {
-####		return(0)
-####	} else{
-##	CHR <- chromosome(rd.query)
-##	index <- which(chromosome(rd.query) == chromosome(rd.subject) & sampleNames(rd.query)==sampleNames(rd.subject)
-##	rd.s <- rd.subject[chromosome(rd.subject) == CHR, ]
-##
-##
-####	if(same.id){
-##	index <- which(rd.subject$id == rd.query$id)
-##	if(length(index) > 0){
-##		rd.s <- rd.subject[index, ]
-##	} ##else return(0)
-####}
-##	ir.q <- IRanges(start(rd.query),end(rd.query))
-##	ir.s <- IRanges(start(rd.s),end(rd.s))
-##	count <- countOverlaps(ir.q, ir.s)
-##	return(count)
-##}
+assayDataStorageMode <- Biobase:::assayDataStorageMode
+
 catFun2 <- function(rd.query, rd.subject, ...){
 	##stopifnot(nrow(rd.query) == nrow(rd.subject)) ## must compare same list size
 	ir.q <- IRanges(start(rd.query), end(rd.query))
@@ -339,29 +318,29 @@ constructFeatureData <- function(file, cdfName){
 ##	bsSet$MAD <- mads
 ##}
 
-getChromosomeArm <- function(chrom, pos){
-	if(!is.integer(chrom)) {
-		chrom <- chromosome2integer(chrom)
-	}
-	if(!all(chrom %in% 1:24)){
-			warning("Chromosome annotation is currently available for chromosomes 1-22, X and Y")
-			##message("Please add/modify data(chromosomeAnnotation, package='SNPchip') to accomodate special chromosomes")
-			pos <- pos[chrom%in%1:24]
-			chrom <- chrom[chrom%in%1:24]
-	}
-	data(chromosomeAnnotation, package="SNPchip", envir=environment())
-	chromosomeAnnotation <- as.matrix(chromosomeAnnotation)
-	chrAnn <- chromosomeAnnotation
-	uchrom <- unique(integer2chromosome(chrom))
-	chromosomeArm <- vector("list", length(uchrom))
-	positionList <- split(pos, chrom)
-	positionList <- positionList[match(unique(chrom), names(positionList))]
-	for(i in seq_along(unique(chrom))){
-		chromosomeArm[[i]] <- ifelse(positionList[[i]] <= chrAnn[uchrom[i], "centromereEnd"], "p", "q")
-	}
-	chromosomeArm <- unlist(chromosomeArm)
-	chrom <- paste(chrom, chromosomeArm,sep="")
-}
+##getChromosomeArm <- function(chrom, pos){
+##	if(!is.integer(chrom)) {
+##		chrom <- chromosome2integer(chrom)
+##	}
+##	if(!all(chrom %in% 1:24)){
+##			warning("Chromosome annotation is currently available for chromosomes 1-22, X and Y")
+##			##message("Please add/modify data(chromosomeAnnotation, package='SNPchip') to accomodate special chromosomes")
+##			pos <- pos[chrom%in%1:24]
+##			chrom <- chrom[chrom%in%1:24]
+##	}
+##	data(chromosomeAnnotation, package="SNPchip", envir=environment())
+##	chromosomeAnnotation <- as.matrix(chromosomeAnnotation)
+##	chrAnn <- chromosomeAnnotation
+##	uchrom <- unique(integer2chromosome(chrom))
+##	chromosomeArm <- vector("list", length(uchrom))
+##	positionList <- split(pos, chrom)
+##	positionList <- positionList[match(unique(chrom), names(positionList))]
+##	for(i in seq_along(unique(chrom))){
+##		chromosomeArm[[i]] <- ifelse(positionList[[i]] <= chrAnn[uchrom[i], "centromereEnd"], "p", "q")
+##	}
+##	chromosomeArm <- unlist(chromosomeArm)
+##	chrom <- paste(chrom, chromosomeArm,sep="")
+##}
 
 
 scaleSnr <- function(snr, min.scale, max.scale){
@@ -1243,244 +1222,244 @@ emissionLR <- function(mu.logr, CN.MIN, CN.MAX, prMosaic,
 	return(object)
 }
 
-computeLoglik <- function(id,## trio id (or offspring id)
-			  trioSet, #L,
-			  ranges,
-			  pedigreeData,
-			  sds.marker,
-			  mu.logr=c(-2, -0.5, 0, 0.3, 0.75),
-			  states=0:4,
-			  baf.sds=c(0.02, 0.03, 0.02),
-			  prOutlier.logR=0.01,
-			  prOutlier.baf=1e-6,
-			  prMosaic=0.01,
-			  returnEmission=FALSE,
-			  ...){
-	CHR <- chromosome(trioSet)[1]
-	if(missing(id)) id <- sampleNames(trioSet)[1]
-	##p1 <- prGtCorrect; rm(prGtCorrect)
-	p1 <- 1-prOutlier.logR
-	## one obvious thing that p1 could depend on is the
-	## minor allele frequency.  If rare, p1 is smaller
-	## Need a subset method for pedigreeData
-	trs <- trios(pedigreeData)
-	trs <- trs[match(sampleNames(trioSet), sampleNames(pedigreeData)), ]
-	pedigreeData@trios <- trs
-	pedigreeData@trioIndex <- trioIndex(pedigreeData)[trioIndex(pedigreeData)$individualId %in% unlist(trs) , ]
-	object <- LikSet(trioSet,
-			 pedigreeData=pedigreeData,
-			 CHR=CHR,
-			 id=id,
-			 ranges=ranges)
-	if(nrow(object) < nrow(trioSet)){
-		index <- match(featureNames(object), featureNames(trioSet))
-		trioSet <- trioSet[index, ]
-	}
-	j <- match(id, sampleNames(trioSet))
-	sds.sample <- mad(trioSet)[j, ]
-	stopifnot(all(!is.na(sds.sample)))
-	sds.sample <- matrix(sds.sample, nrow(trioSet), 3, byrow=TRUE)
-	is.ff <- is(lrr(trioSet), "ff")
-	if(is.ff){
-		open(lrr(trioSet))
-	}
-	##sds.marker <- fData(trioSet)$marker.mad  ## these can be really big in CNV
-	##sds.marker <- mad.marker(trioSet)
-	##1. shrink the marker to the marker sds
-	##   - at CNV the marker estimates will be much too high
-	##   - could be too small for markers that don't really work
-	df1 <- nrow(phenoData(trioSet))/3
-	df2 <- min(length(sds.marker)-1, 10e3)
-	sds.marker <- (df1*sds.marker + df2*median(sds.marker,na.rm=TRUE))/(df1+df2)
-	sds.marker <- matrix(sds.marker, nrow(object), 3, byrow=FALSE)
-	##2. shrink to the sample-level variance
-	## -- how much do we want to shrink towards a sample-level estimate of noise?
-	sds <- (sds.marker * df1 + (df1*4)*sds.sample)/(df1 + df1*4)
-	lR <- lrr(object)
-	bf <- baf(object)
-	if(!is(baf.sds, "array")){
-		stopifnot(length(baf.sds)==3)
-		sd0 <- baf.sds[1]
-		sd.5 <- baf.sds[2]
-		sd1 <- baf.sds[3]
-	} else{
-		sample.index <- match(id[3], rownames(baf.sds))
-		stopifnot(length(sample.index)==1)
-		baf.sds2 <- baf.sds[sample.index, , ]
-		nr <- nrow(bf)
-		sd0 <- matrix(baf.sds2[, "AA"], nr, 3, byrow=TRUE)
-		sd.5 <- matrix(baf.sds2[, "AB"], nr, 3, byrow=TRUE)
-		sd1 <- matrix(baf.sds2[, "BB"], nr, 3, byrow=TRUE)
-	}
-	q.mosaic <- mosaicProb(bf=bf,
-			       sd.mosaic=0.05,
-			       sd0=sd0, sd.5=sd.5,
-			       sd1=sd1,
-			       rangeIndex=range.index(object),
-			       object=object)
-	q.mosaic[is.nan(q.mosaic)] <- 0.99 ## prob not mosaic
-	p.mosaic <- 1-q.mosaic
-	## the uniform needs to cover the support
-	CN.MIN <- -5; CN.MAX <- 1.5
-	object <- emissionLR(mu.logr=mu.logr, CN.MIN=CN.MIN, CN.MAX=CN.MAX,
-			     prMosaic=p.mosaic,
-			     prOutlier=prOutlier.logR,
-			     sds=sds,
-			     object=object,
-			     ranges=ranges)
-	##p1 <- 1-prOutlier.baf
-	object <- emissionB(p.roh=0.01,
-			    p.mos=p.mosaic,
-			    p.out=prOutlier.baf,
-			    sd0=sd0, sd1=sd1, sd.5=sd.5,
-			    object=object)
-	if(returnEmission){
-		return(object)
-	}
-	if(FALSE){
-		LLR <- loglik(object)["logR", range.index(object)==i, ,  ]
-		LLB <- loglik(object)["baf", range.index(object)==i , , ]
-		ii <- which(range.index(object)==i)
-		b=bf[ii, 3]
-		##colnames(tmp4) <- c("hemizygous", "normal", "log r")
-		##loglik(object)["logR", , , 3] <- p1 * dnorm(lR, mu.logr[3], sds) + (1-p1)*UNIF
-		r <- cbind(LLR[, 3, 2:3], lR[ii, 3])
-		##p1 <- prOutlier[1]
-		##tmp <- p1 * dnorm(lR[ii, 1], mu.logr[3], sds[ii, 1]) + (1-p1)*UNIF[ii,1]
-		apply(LLB[, 1, ], 2, sum, na.rm=TRUE)
-		apply(LLR[, 1, ], 2, sum, na.rm=TRUE)
-		apply(LLB[, 2, ], 2, sum, na.rm=TRUE)
-		apply(LLR[, 2, ], 2, sum, na.rm=TRUE)
-		apply(LLB[, 3, ], 2, sum, na.rm=TRUE)
-		apply(LLR[, 3, ], 2, sum, na.rm=TRUE)
-		LLT <- matrix(NA, 3, 5)
-		LL <- LLR + LLB
-		LLT <- matrix(NA, 3, 5)
-		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
-		rownames(LLT) <- c("F", "M", "O")
-		colnames(LLT) <- paste("CN_", states, sep="")
-	}
-	if(FALSE){
-		pdf("../../figures/mixture.pdf", width=8, height=6)
-		par(las=1, mfrow=c(1,1))
-		plot(CN.MIN:CN.MAX,
-		     type="n", xlab="", ylab="", ylim=c(0,3),
-		     yaxs="i", xlim=c(-2, 1.5))
-		##
-		##
-		colors <- c("grey0",
-			    "grey20",
-			    "grey40",
-			    "grey80",
-			    "white", "lightblue")
-		colors <- makeTransparent(colors, alpha=0.3)
-		## homozygous deletion
-		rect(xleft=-4, xright=-1,
-		     ybottom=0, ytop=1/(-1-CN.MIN),
-		     col=colors[1])
-		##
-		## hemizygous deletion
-		p <- seq(0, 1, by=0.001)
-		x <- qnorm(p, mean=mu.logr[2], sds[1,1])
-		##plot(function(x) dnorm(x, log=TRUE), -60, 50,
-		##     main = "log { Normal density }")
-		y <- dnorm(x, mean=mu.logr[2], sd=sds[1,1])
-		##y <- y/max(y[is.finite(y)])
-		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[2])
-		rect(xleft=-1, xright=0,
-		     ybottom=0, ytop=1,
-		     col=colors[2])
-		## normal
-		x <- qnorm(p, mean=mu.logr[3], sds[1,1])
-		y <- dnorm(x, mean=mu.logr[3], sd=sds[1,1])
-		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[3])
-		## amplification
-		x <- qnorm(p, mean=mu.logr[4], sds[1,1])
-		y <- dnorm(x, mean=mu.logr[4], sd=sds[1,1])
-		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[4])
-		## 2 copy dup
-		x <- qnorm(p, mean=mu.logr[5], sds[1,1])
-		y <- dnorm(x, mean=mu.logr[5], sd=sds[1,1])
-		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[5])
-		## outlier
-		rect(xleft=CN.MIN, xright=CN.MAX,
-		     ybottom=0, ytop=1/(CN.MAX-CN.MIN), col=colors[6])
-		legend("left", bty="n", fill=colors,
-		       legend=c("homozygous del",
-		       "hemizygous del",
-		       "normal",
-		       "1 copy dup",
-		       "2 copy dup", "outlier"))
-		dev.off()
-
-		par(las=1, mfrow=c(1,1))
-		plot(0:1,
-		     type="n", xlab="", ylab="", ylim=c(0,80),
-		     yaxs="i", xlim=c(0, 1))
-		##
-		##
-		colors <- c("grey0",
-			    "grey20",
-			    "grey40",
-			    "grey80",
-			    "white", "lightblue")
-		colors <- makeTransparent(colors, alpha=0.3)
-		## homozygous deletion
-		rect(xleft=0, xright=1,
-		     ybottom=0, ytop=1,
-		     col=colors[6])
-		## hemizygous deletion
-		p <- seq(0, 1, by=0.001)
-		x <- qtnorm(p, mean=0, 0.02, lower=0, upper=1)
-		##plot(function(x) dnorm(x, log=TRUE), -60, 50,
-		##     main = "log { Normal density }")
-		y <- dtnorm(x, mean=0, 0.02, lower=0, upper=1)
-		##y <- y/max(y[is.finite(y)])
-		x[1]=0
-		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[2])
-		x <- qtnorm(p, mean=1, 0.02, lower=0, upper=1)
-		y <- dtnorm(x, mean=1, 0.02, lower=0, upper=1)
-		##y <- y/max(y[is.finite(y)])
-		x[length(x)]=1
-		x[1]=0
-		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[2])
-		## allowing for mosaic cn
-		rect(0, 0, 0.5, 0.5, col=colors[2])
-		rect(0.5, 0, 1, 0.5, col=colors[2])
-		## normal
-		x <- qnorm(p, mean=0.5, 0.03)
-		y <- dnorm(x, mean=0.5, 0.03)
-		##y <- y/max(y[is.finite(y)])
-		x[length(x)]=1
-		x[1]=0
-		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[3])
-		## single dup
-		x <- qnorm(p, mean=1/3, 0.03)
-		y <- dnorm(x, mean=1/3, 0.03)
-		##y <- y/max(y[is.finite(y)])
-		x[length(x)]=1
-		x[1]=0
-		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[4])
-		x <- qnorm(p, mean=2/3, 0.03)
-		y <- dnorm(x, mean=2/3, 0.03)
-		##y <- y/max(y[is.finite(y)])
-		x[length(x)]=1
-		x[1]=0
-		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[4])
-		## 2 copy duplication
-		##...
-		legend("left", bty="n", fill=colors,
-		       legend=c("homozygous del",
-		       "hemizygous del",
-		       "normal",
-		       "1 copy dup",
-		       "2 copy dup", "outlier"))
-	}
-	if(is.ff){
-		tryCatch(close(trioSet), error=function(e) NULL)
-	}
-	return(object)
-}
+##computeLoglik <- function(id,## trio id (or offspring id)
+##			  trioSet, #L,
+##			  ranges,
+##			  pedigreeData,
+##			  sds.marker,
+##			  mu.logr=c(-2, -0.5, 0, 0.3, 0.75),
+##			  states=0:4,
+##			  baf.sds=c(0.02, 0.03, 0.02),
+##			  prOutlier.logR=0.01,
+##			  prOutlier.baf=1e-6,
+##			  prMosaic=0.01,
+##			  returnEmission=FALSE,
+##			  ...){
+##	CHR <- chromosome(trioSet)[1]
+##	if(missing(id)) id <- sampleNames(trioSet)[1]
+##	##p1 <- prGtCorrect; rm(prGtCorrect)
+##	p1 <- 1-prOutlier.logR
+##	## one obvious thing that p1 could depend on is the
+##	## minor allele frequency.  If rare, p1 is smaller
+##	## Need a subset method for pedigreeData
+##	trs <- trios(pedigreeData)
+##	trs <- trs[match(sampleNames(trioSet), sampleNames(pedigreeData)), ]
+##	pedigreeData@trios <- trs
+##	pedigreeData@trioIndex <- trioIndex(pedigreeData)[trioIndex(pedigreeData)$individualId %in% unlist(trs) , ]
+##	object <- LikSet(trioSet,
+##			 pedigreeData=pedigreeData,
+##			 CHR=CHR,
+##			 id=id,
+##			 ranges=ranges)
+##	if(nrow(object) < nrow(trioSet)){
+##		index <- match(featureNames(object), featureNames(trioSet))
+##		trioSet <- trioSet[index, ]
+##	}
+##	j <- match(id, sampleNames(trioSet))
+##	sds.sample <- mad(trioSet)[j, ]
+##	stopifnot(all(!is.na(sds.sample)))
+##	sds.sample <- matrix(sds.sample, nrow(trioSet), 3, byrow=TRUE)
+##	is.ff <- is(lrr(trioSet), "ff")
+##	if(is.ff){
+##		open(lrr(trioSet))
+##	}
+##	##sds.marker <- fData(trioSet)$marker.mad  ## these can be really big in CNV
+##	##sds.marker <- mad.marker(trioSet)
+##	##1. shrink the marker to the marker sds
+##	##   - at CNV the marker estimates will be much too high
+##	##   - could be too small for markers that don't really work
+##	df1 <- nrow(phenoData(trioSet))/3
+##	df2 <- min(length(sds.marker)-1, 10e3)
+##	sds.marker <- (df1*sds.marker + df2*median(sds.marker,na.rm=TRUE))/(df1+df2)
+##	sds.marker <- matrix(sds.marker, nrow(object), 3, byrow=FALSE)
+##	##2. shrink to the sample-level variance
+##	## -- how much do we want to shrink towards a sample-level estimate of noise?
+##	sds <- (sds.marker * df1 + (df1*4)*sds.sample)/(df1 + df1*4)
+##	lR <- lrr(object)
+##	bf <- baf(object)
+##	if(!is(baf.sds, "array")){
+##		stopifnot(length(baf.sds)==3)
+##		sd0 <- baf.sds[1]
+##		sd.5 <- baf.sds[2]
+##		sd1 <- baf.sds[3]
+##	} else{
+##		sample.index <- match(id[3], rownames(baf.sds))
+##		stopifnot(length(sample.index)==1)
+##		baf.sds2 <- baf.sds[sample.index, , ]
+##		nr <- nrow(bf)
+##		sd0 <- matrix(baf.sds2[, "AA"], nr, 3, byrow=TRUE)
+##		sd.5 <- matrix(baf.sds2[, "AB"], nr, 3, byrow=TRUE)
+##		sd1 <- matrix(baf.sds2[, "BB"], nr, 3, byrow=TRUE)
+##	}
+##	q.mosaic <- mosaicProb(bf=bf,
+##			       sd.mosaic=0.05,
+##			       sd0=sd0, sd.5=sd.5,
+##			       sd1=sd1,
+##			       rangeIndex=range.index(object),
+##			       object=object)
+##	q.mosaic[is.nan(q.mosaic)] <- 0.99 ## prob not mosaic
+##	p.mosaic <- 1-q.mosaic
+##	## the uniform needs to cover the support
+##	CN.MIN <- -5; CN.MAX <- 1.5
+##	object <- emissionLR(mu.logr=mu.logr, CN.MIN=CN.MIN, CN.MAX=CN.MAX,
+##			     prMosaic=p.mosaic,
+##			     prOutlier=prOutlier.logR,
+##			     sds=sds,
+##			     object=object,
+##			     ranges=ranges)
+##	##p1 <- 1-prOutlier.baf
+##	object <- emissionB(p.roh=0.01,
+##			    p.mos=p.mosaic,
+##			    p.out=prOutlier.baf,
+##			    sd0=sd0, sd1=sd1, sd.5=sd.5,
+##			    object=object)
+##	if(returnEmission){
+##		return(object)
+##	}
+##	if(FALSE){
+##		LLR <- loglik(object)["logR", range.index(object)==i, ,  ]
+##		LLB <- loglik(object)["baf", range.index(object)==i , , ]
+##		ii <- which(range.index(object)==i)
+##		b=bf[ii, 3]
+##		##colnames(tmp4) <- c("hemizygous", "normal", "log r")
+##		##loglik(object)["logR", , , 3] <- p1 * dnorm(lR, mu.logr[3], sds) + (1-p1)*UNIF
+##		r <- cbind(LLR[, 3, 2:3], lR[ii, 3])
+##		##p1 <- prOutlier[1]
+##		##tmp <- p1 * dnorm(lR[ii, 1], mu.logr[3], sds[ii, 1]) + (1-p1)*UNIF[ii,1]
+##		apply(LLB[, 1, ], 2, sum, na.rm=TRUE)
+##		apply(LLR[, 1, ], 2, sum, na.rm=TRUE)
+##		apply(LLB[, 2, ], 2, sum, na.rm=TRUE)
+##		apply(LLR[, 2, ], 2, sum, na.rm=TRUE)
+##		apply(LLB[, 3, ], 2, sum, na.rm=TRUE)
+##		apply(LLR[, 3, ], 2, sum, na.rm=TRUE)
+##		LLT <- matrix(NA, 3, 5)
+##		LL <- LLR + LLB
+##		LLT <- matrix(NA, 3, 5)
+##		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
+##		rownames(LLT) <- c("F", "M", "O")
+##		colnames(LLT) <- paste("CN_", states, sep="")
+##	}
+##	if(FALSE){
+##		pdf("../../figures/mixture.pdf", width=8, height=6)
+##		par(las=1, mfrow=c(1,1))
+##		plot(CN.MIN:CN.MAX,
+##		     type="n", xlab="", ylab="", ylim=c(0,3),
+##		     yaxs="i", xlim=c(-2, 1.5))
+##		##
+##		##
+##		colors <- c("grey0",
+##			    "grey20",
+##			    "grey40",
+##			    "grey80",
+##			    "white", "lightblue")
+##		colors <- makeTransparent(colors, alpha=0.3)
+##		## homozygous deletion
+##		rect(xleft=-4, xright=-1,
+##		     ybottom=0, ytop=1/(-1-CN.MIN),
+##		     col=colors[1])
+##		##
+##		## hemizygous deletion
+##		p <- seq(0, 1, by=0.001)
+##		x <- qnorm(p, mean=mu.logr[2], sds[1,1])
+##		##plot(function(x) dnorm(x, log=TRUE), -60, 50,
+##		##     main = "log { Normal density }")
+##		y <- dnorm(x, mean=mu.logr[2], sd=sds[1,1])
+##		##y <- y/max(y[is.finite(y)])
+##		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[2])
+##		rect(xleft=-1, xright=0,
+##		     ybottom=0, ytop=1,
+##		     col=colors[2])
+##		## normal
+##		x <- qnorm(p, mean=mu.logr[3], sds[1,1])
+##		y <- dnorm(x, mean=mu.logr[3], sd=sds[1,1])
+##		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[3])
+##		## amplification
+##		x <- qnorm(p, mean=mu.logr[4], sds[1,1])
+##		y <- dnorm(x, mean=mu.logr[4], sd=sds[1,1])
+##		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[4])
+##		## 2 copy dup
+##		x <- qnorm(p, mean=mu.logr[5], sds[1,1])
+##		y <- dnorm(x, mean=mu.logr[5], sd=sds[1,1])
+##		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[5])
+##		## outlier
+##		rect(xleft=CN.MIN, xright=CN.MAX,
+##		     ybottom=0, ytop=1/(CN.MAX-CN.MIN), col=colors[6])
+##		legend("left", bty="n", fill=colors,
+##		       legend=c("homozygous del",
+##		       "hemizygous del",
+##		       "normal",
+##		       "1 copy dup",
+##		       "2 copy dup", "outlier"))
+##		dev.off()
+##
+##		par(las=1, mfrow=c(1,1))
+##		plot(0:1,
+##		     type="n", xlab="", ylab="", ylim=c(0,80),
+##		     yaxs="i", xlim=c(0, 1))
+##		##
+##		##
+##		colors <- c("grey0",
+##			    "grey20",
+##			    "grey40",
+##			    "grey80",
+##			    "white", "lightblue")
+##		colors <- makeTransparent(colors, alpha=0.3)
+##		## homozygous deletion
+##		rect(xleft=0, xright=1,
+##		     ybottom=0, ytop=1,
+##		     col=colors[6])
+##		## hemizygous deletion
+##		p <- seq(0, 1, by=0.001)
+##		x <- qtnorm(p, mean=0, 0.02, lower=0, upper=1)
+##		##plot(function(x) dnorm(x, log=TRUE), -60, 50,
+##		##     main = "log { Normal density }")
+##		y <- dtnorm(x, mean=0, 0.02, lower=0, upper=1)
+##		##y <- y/max(y[is.finite(y)])
+##		x[1]=0
+##		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[2])
+##		x <- qtnorm(p, mean=1, 0.02, lower=0, upper=1)
+##		y <- dtnorm(x, mean=1, 0.02, lower=0, upper=1)
+##		##y <- y/max(y[is.finite(y)])
+##		x[length(x)]=1
+##		x[1]=0
+##		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[2])
+##		## allowing for mosaic cn
+##		rect(0, 0, 0.5, 0.5, col=colors[2])
+##		rect(0.5, 0, 1, 0.5, col=colors[2])
+##		## normal
+##		x <- qnorm(p, mean=0.5, 0.03)
+##		y <- dnorm(x, mean=0.5, 0.03)
+##		##y <- y/max(y[is.finite(y)])
+##		x[length(x)]=1
+##		x[1]=0
+##		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[3])
+##		## single dup
+##		x <- qnorm(p, mean=1/3, 0.03)
+##		y <- dnorm(x, mean=1/3, 0.03)
+##		##y <- y/max(y[is.finite(y)])
+##		x[length(x)]=1
+##		x[1]=0
+##		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[4])
+##		x <- qnorm(p, mean=2/3, 0.03)
+##		y <- dnorm(x, mean=2/3, 0.03)
+##		##y <- y/max(y[is.finite(y)])
+##		x[length(x)]=1
+##		x[1]=0
+##		polygon(c(x, rev(x)), c(rep(0, length(x)), rev(y)), col=colors[4])
+##		## 2 copy duplication
+##		##...
+##		legend("left", bty="n", fill=colors,
+##		       legend=c("homozygous del",
+##		       "hemizygous del",
+##		       "normal",
+##		       "1 copy dup",
+##		       "2 copy dup", "outlier"))
+##	}
+##	if(is.ff){
+##		tryCatch(close(trioSet), error=function(e) NULL)
+##	}
+##	return(object)
+##}
 
 rowMAD <- function(x, y, ...){
 	##notna <- !is.na(x)

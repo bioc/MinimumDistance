@@ -2,13 +2,6 @@ setOldClass("ff_array")
 setOldClass("ff_matrix")
 setClass("LogRratioSet", contains="eSet")
 setClassUnion("matrixOrNULL", c("matrix", "NULL"))
-setClass("LikSet",
-	 contains="LogRratioSet",
-	 representation(loglik="array",
-			range.index="integer"),
-	 prototype = prototype(
-	 new("VersionedBiobase",
-	     versions=c(classVersion("LogRratioSet"), LikSet="1.0.0"))))
 setClass("Pedigree", representation(trios="data.frame", trioIndex="data.frame"))
 setValidity("Pedigree", function(object){
 	msg <- validPedigree(object)
