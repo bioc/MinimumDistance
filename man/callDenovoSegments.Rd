@@ -8,35 +8,43 @@
   posterior calling steps.
 }
 \usage{
-callDenovoSegments(path = "", filenames, ext = ".txt", pedigreeData, cdfname, chromosome = 1:22, segmentParents, verbose = FALSE, ...)
+callDenovoSegments(path = "", pedigreeData, ext = "", featureData, cdfname, chromosome = 1:22, segmentParents, verbose = FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{path}{
     \code{character} string indicating path to BeadStudio files.
-}
-  \item{filenames}{
-    \code{character}: BeadStudio filenames
-}
-  \item{ext}{
-    \code{character}: filename extension
-}
+  }
+
   \item{pedigreeData}{
     Object of class \code{Pedigree}.
-}
+  }
+
+  \item{ext}{
+    \code{character}: filename extension
+  }
+
+  \item{featureData}{ An object of class \code{AnnotatedDataFrame}.
+  Variable labels 'chromosome', 'position', and 'isSnp' are required.}
+
   \item{cdfname}{
-    \code{character} indicating the annotation package.
-}
+    Name of the package for annotating the chromosome and physical
+    position.  Ignored if \code{featureData} is specified.
+  }
+
   \item{chromosome}{
     \code{integer} indicating which autosomal chromosomes to process
-}
+  }
+
 \item{segmentParents}{
   \code{Logical}: whether to segment the parental log R ratios using
   circular binary segmentation
 }
+
   \item{verbose}{
     \code{Logical}: whether to display verbose output indicating progress.
-}
+  }
+
   \item{\dots}{
     Additional arguments can be specified for the \code{segment}
     function in the package \code{DNAcopy}
@@ -90,25 +98,16 @@ callDenovoSegments(path = "", filenames, ext = ".txt", pedigreeData, cdfname, ch
 R. Scharpf
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \seealso{
 
   \code{\link{state}} for accessing the state symbols (posterior calls)
   for the genomic ranges.
-%% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
 path <- system.file("extdata", package="MinimumDistance")
 fnames <- list.files(path, pattern=".txt")
-ped <- new("Pedigree",
-	   trios=data.frame(F=fnames[1], M=fnames[2], O=fnames[3], stringsAsFactors=FALSE),
-	   trioIndex=data.frame(individualId=fnames,
-	                        memberId=c("F","M","O"),
-                                index.in.pedigree=rep(1,3),
-	                        stringsAsFactors=FALSE))
+ped <- Pedigree(fatherIds=fnames[1], motherIds=fnames[2], offspringIds=fnames[3])
 map.segs <- callDenovoSegments(path=path,
-			       filenames=fnames,
 			       ext="",
 			       pedigreeData=ped,
 			       cdfname="human610quadv1b",

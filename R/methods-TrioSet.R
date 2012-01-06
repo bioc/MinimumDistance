@@ -4,14 +4,14 @@ setMethod("initialize", "TrioSet",
 		   phenoData=annotatedDataFrameFrom(assayData, byrow=FALSE),
 		   fatherPhenoData=annotatedDataFrameFrom(assayData, byrow=FALSE),
 		   motherPhenoData=annotatedDataFrameFrom(assayData, byrow=FALSE),
-		   featureData=annotatedDataFrameFrom(assayData, byrow=TRUE),
-		   experimentData=new("MIAME"),
 		   annotation=character(),
+		   featureData=GenomeAnnotatedDataFrameFrom(assayData, annotation),
+		   experimentData=new("MIAME"),
 		   protocolData=phenoData[, integer(0)],
 		   logRRatio=array(NA, dim=c(0, 0, 3)),
 		   BAF=array(NA, dim=c(0,0,3)),
-		   pedigree=Pedigree(), ...){
-##		   sampleSheet=SampleSheet(pedigree=pedigree), ...){
+		   pedigree=Pedigree(),
+		   mindist=NULL, ...){
 		  callNextMethod(.Object,
 				 assayData=assayData,
 				 phenoData=phenoData,
@@ -21,9 +21,34 @@ setMethod("initialize", "TrioSet",
 				 experimentData=experimentData,
 				 annotation=annotation,
 				 protocolData=protocolData,
-				 ##sampleSheet=sampleSheet,
-				 pedigree=pedigree, ...)
+				 pedigree=pedigree,
+				 mindist=mindist, ...)
 	  })
+
+setMethod("updateObject", signature(object="TrioSet"),
+	  function(object, ..., verbose=FALSE){
+		  if (verbose) message("updateObject(object = 'TrioSetList')")
+		  if(!is(featureData(object), "GenomeAnnotatedDataFrame")){
+			  featureData(object) <- updateObject(featureData(object))
+		  }
+		  return(object)
+	  })
+
+setMethod("GenomeAnnotatedDataFrameFrom", signature(object="array"),
+	  function(object, annotationPkg){
+		  GenomeAnnotatedDataFrameFromArray(object, annotationPkg)
+	  })
+
+GenomeAnnotatedDataFrameFromArray <- function(object, annotationPkg){
+	## coerce to matrix
+	if(nrow(object) > 1 & ncol(object) > 1){
+		oligoClasses:::GenomeAnnotatedDataFrameFromMatrix(object[, , 1], annotationPkg)
+	} else {
+		dim(object) <- dim(object)[c(1,2)]
+		oligoClasses:::GenomeAnnotatedDataFrameFromMatrix(object, annotationPkg)
+	}
+}
+
 setMethod("pedigree", signature(object="TrioSet"), function(object) object@pedigree)
 ##setMethod("sampleSheet", signature(object="TrioSet"), function(object) object@sampleSheet)
 ##setReplaceMethod("sampleSheet", signature(object="TrioSet"), function(object) {object@sampleSheet)
@@ -36,7 +61,11 @@ setMethod("baf", "TrioSet",
 	  function(object) {
 		  assayDataElement(object, "BAF")
 	 })
-setReplaceMethod("baf", c("TrioSet", "ANY"),
+setReplaceMethod("baf", c("TrioSet", "array"),
+		 function(object, value) {
+			 assayDataElementReplace(object, "BAF", value)
+	 })
+setReplaceMethod("baf", c("TrioSet", "ff_array"),
 		 function(object, value) {
 			 assayDataElementReplace(object, "BAF", value)
 	 })
@@ -45,46 +74,56 @@ setMethod("fatherPhenoData", signature(object="TrioSet"),
 	  function(object) object@fatherPhenoData)
 setMethod("motherPhenoData", signature(object="TrioSet"),
 	  function(object) object@motherPhenoData)
+setMethod("offspringPhenoData", signature(object="TrioSet"),
+	  function(object) phenoData(object))
 
 TrioSet <- function(pedigreeData=Pedigree(),
-		    ##sampleSheet=SampleSheet(),
 		    sample.sheet,
 		    row.names=NULL,
-##		    phenoData,
-##		    fatherPhenoData,
-##		    motherPhenoData,
 		    lrr,
 		    baf,
-		    featureAnnotation,
+		    featureData,
 		    cdfname,
-		    drop=TRUE){
+		    drop=TRUE,
+		    mindist=NULL){
 	if(missing(lrr) | missing(baf)){
 		object <- new("TrioSet",
 			      pedigree=pedigreeData)
 		return(object)
+	} else{
+		if(ncol(lrr) > 0 & nrow(pedigreeData)==0)
+			stop("pedigreeData has zero rows")
 	}
 	if(!missing(lrr) & !missing(baf)){
-		stopifnot(!is.null(rownames(lrr)))
-		stopifnot(!is.null(colnames(lrr)))
+		##stopifnot(!is.null(rownames(lrr)))
+		##stopifnot(!is.null(colnames(lrr)))
+		stopifnot(identical(rownames(lrr), rownames(baf)))
 		stopifnot(identical(dim(lrr), dim(baf)))
-		stopifnot(all(mapply(identical, dimnames(lrr), dimnames(baf))))
 	}
-	if(missing(featureAnnotation)){
+	if(missing(featureData)){
 		stopifnot(!missing(cdfname))
-		featureAnnotation <- oligoClasses:::featureDataFrom(cdfname)
-		fD <- featureAnnotation[order(featureAnnotation$chromosome, featureAnnotation$position), ]
-		rm(featureAnnotation); gc()
+		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname)
+		##featureData <- oligoClasses:::featureDataFrom(cdfname)
+		fD <- featureData[order(chromosome(featureData), position(featureData)), ]
+		rm(featureData); gc()
 	} else {
-		stopifnot(is(featureAnnotation, "AnnotatedDataFrame"))
-		fD <- featureAnnotation
+		stopifnot(is(featureData, "AnnotatedDataFrame"))
+		fD <- featureData
 	}
-	fD <- fD[order(fD$chromosome, fD$position), ]
 	is.present <- sampleNames(fD) %in% rownames(lrr)
 	if(!all(is.present)) fD <- fD[is.present, ]
-	index <- match(sampleNames(fD), rownames(lrr))
-	lrr <- lrr[index, ]
-	baf <- baf[index, ]
-	stopifnot(all(identical(rownames(lrr), sampleNames(fD))))
+	if(!is.null(rownames(lrr))){
+		index <- match(sampleNames(fD), rownames(lrr))
+		if(length(index) == 0) {
+			if(!missing(cdfname)){
+				msg <- paste("rownames for log R ratios do not match feature ids with annotation package ", cdfname)
+				stop(msg)
+			}
+		}
+		lrr <- lrr[index, ]
+		baf <- baf[index, ]
+		stopifnot(all(identical(rownames(lrr), sampleNames(fD))))
+	}
 	np <- nrow(trios(pedigreeData))
 	trio.names <- array(NA, dim=c(length(offspringNames(pedigreeData)), 1, 3))
 	dimnames(trio.names) <- list(offspringNames(pedigreeData), "sampleNames", c("F", "M", "O"))
@@ -94,10 +133,13 @@ TrioSet <- function(pedigreeData=Pedigree(),
 	offspring.names <- offspringNames(pedigreeData)
 	father.index <- match(father.names,
 			      colnames(lrr))
+	if(length(father.index) == 0) stop("father ids in pedigree do not match any of the column names of the lrr matrix")
 	mother.index <- match(mother.names,
 			      colnames(lrr))
+	if(length(mother.index) == 0) stop("mother ids in pedigree do not match any of the column names of the lrr matrix")
 	offspring.index <- match(offspring.names,
 				 colnames(lrr))
+	if(length(offspring.index) == 0) stop("offspring ids in pedigree do not match any of the column names of the lrr matrix")
 	nr <- nrow(lrr)
 	np <- length(offspring.names)
 	bafArray <- initializeBigArray("baf", dim=c(nr, np, 3), vmode="double")
@@ -110,10 +152,8 @@ TrioSet <- function(pedigreeData=Pedigree(),
 	bafArray[,,"M"] <- baf[, mother.index]
 	bafArray[,,"O"] <- baf[, offspring.index]
 	if(!drop){
-		dimnames(bafArray)[c(1,2)] <- dimnames(logRArray)[c(1,2)] <- list(rownames(lrr),
-										  sampleNames(pedigreeData))
+		dimnames(bafArray)[c(1,2)] <- dimnames(logRArray)[c(1,2)] <- list(sampleNames(fD), colnames(lrr)[offspring.index])
 	}
-	##ad <- assayDataNew(BAF=bafArray, logRRatio=logRArray)
 	if(nrow(pedigreeData) > 0){
 		if(!missing(sample.sheet)){
 			if(is.null(row.names)){
@@ -147,7 +187,8 @@ TrioSet <- function(pedigreeData=Pedigree(),
 		      fatherPhenoData=fatherPhenoData,
 		      motherPhenoData=motherPhenoData,
 		      pedigree=pedigreeData,
-		      featureData=fD)
+		      featureData=fD,
+		      mindist=mindist)
 }
 
 
@@ -199,12 +240,13 @@ setReplaceMethod("sampleNames", signature(object="TrioSet"), function(object, va
 	callNextMethod(object, value)
 })
 
-##setMethod("mindist", "TrioSet", function(object) object@mindist)
-##setReplaceMethod("mindist", signature(object="TrioSet", value="matrix"),
-##		 function(object, value){
-##			 object@mindist <- value
-##			 return(object)
-##		 })
+setMethod("mindist", "TrioSet", function(object) object@mindist)
+setReplaceMethod("mindist", signature(object="TrioSet", value="matrix"),
+		 function(object, value){
+			 object@mindist <- value
+			 return(object)
+		 })
+
 ##setReplaceMethod("mindist", signature(object="TrioSet", value="ff_matrix"),
 ##		 function(object, value){
 ##			 object@mindist <- value
@@ -273,11 +315,11 @@ setMethod("[", signature(x="ff_array"), function(x, i, j, ..., drop=FALSE){
 
 setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 	if (missing(drop))
-		  drop <- FALSE
-##	if(length(list(...)) > 0){
-##		k <- list(...)[[1]]
-##	} else k <- NULL
-##	if (missing(i) && missing(j) && is.null(k)) {
+		drop <- FALSE
+	##	if(length(list(...)) > 0){
+	##		k <- list(...)[[1]]
+	##	} else k <- NULL
+	##	if (missing(i) && missing(j) && is.null(k)) {
 	if(missing(i) && missing(j)){
 		return(x)
 		##if (length(list(...))!=0)
@@ -297,25 +339,34 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 		x <- assayDataElementReplace(x, "BAF", b)
 		x@fatherPhenoData <- fatherPhenoData(x)[j, ]
 		x@motherPhenoData <- motherPhenoData(x)[j, ]
+		if(!is.null(mindist(x))){
+			mindist(x) <- mindist(x)[, j, drop=FALSE]
+		}
 		##mad.sample(x) <- mad.sample(x)[j,,...,drop=drop]
 	}
 	if (!missing(i) & !missing(j)){
 		featureData(x) <- featureData(x)[i, ,..., drop=drop]
 		b <- baf(x)[i, j, , drop=drop]
-		r <- baf(x)[i, j, , drop=drop]
+		r <- lrr(x)[i, j, , drop=drop]
 		##x@sampleSheet <- x@sampleSheet[j, , , drop=drop]
 		x@pedigree <- x@pedigree[j, , drop=drop]
 		x <- assayDataElementReplace(x, "logRRatio", r)
 		x <- assayDataElementReplace(x, "BAF", b)
 		x@fatherPhenoData <- fatherPhenoData(x)[j, ]
 		x@motherPhenoData <- motherPhenoData(x)[j, ]
+		if(!is.null(mindist(x))){
+			mindist(x) <- mindist(x)[i, j, drop=FALSE]
+		}
 	}
 	if(!missing(i) & missing(j)){
 		featureData(x) <- featureData(x)[i, ,..., drop=drop]
 		b <- baf(x)[i, , , drop=drop]
-		r <- baf(x)[i, , , drop=drop]
+		r <- lrr(x)[i, , , drop=drop]
 		x <- assayDataElementReplace(x, "logRRatio", r)
 		x <- assayDataElementReplace(x, "BAF", b)
+		if(!is.null(mindist(x))){
+			mindist(x) <- mindist(x)[i, , drop=FALSE]
+		}
 	}
 	return(x)
 })
@@ -325,46 +376,6 @@ setMethod("checkOrder", signature(object="TrioSet"),
 		  oligoClasses:::.checkOrder(object, verbose)
 	  })
 ##fullId <- function(object) object@phenoData2[, "id", ]
-
-setMethod("calculateMindist", signature(object="TrioSet"),
-	  function(object, ..., verbose=TRUE){
-        sns <- sampleNames(object)
-	is.ff <- is(lrr(object), "ff")
-	if(is.ff){
-		invisible(open(lrr(object)))
-##		if(!is.null(mindist(object)))
-##			invisible(open(mindist(object)))
-	}
-	## only instantiate a new object if slot is NULL
-##	if(is.null(mindist(object))){
-		md <- initializeBigMatrix("mindist", nr=nrow(object), nc=ncol(object),
-					  vmode="double")
-##	} else md <- mindist(object)
-	if(verbose){
-		message("\t\tComputing the minimum distance for ", ncol(object), " files.")
-		pb <- txtProgressBar(min=0, max=ncol(object), style=3)
-	}
-	for(j in seq(length=ncol(object))){
-		##if(j %% 100 == 0) cat(".")
-		if(verbose) setTxtProgressBar(pb, j)
-		LRR <- lrr(object)[, j, ]
-		md[, j] <- calculateMindist(LRR)
-		##d1 <- lr[, "F"] - lr[, "O"]
-		##mindist(object)[, j] <- md
-		##object$MAD[j] <- mad(md, na.rm=TRUE)
-	}
-	if(verbose) close(pb)
-	if(is.ff){
-##		if(!is.null(mindist(object)))
-##			close(mindist(object))
-		close(md)
-		close(lrr(object))
-	}
-	##return(object)
-##	dimnames(md) <- list(featureNames(object), sampleNames(object))
-	return(md)
-})
-
 
 ##setMethod("phenoData2", signature(object="TrioSet"), function(object) object@phenoData2)
 ##setReplaceMethod("phenoData2", signature(object="TrioSet", value="ANY"), function(object, value){
@@ -384,6 +395,8 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 setMethod("computeBayesFactor", signature(object="TrioSet", ranges="RangedDataCNV"),
 	  function(object,
 		   ranges,
+		   mad.marker,
+		   mad.sample,
 		   returnEmission=FALSE,
 		   collapseRanges=TRUE,
 		   verbose=TRUE, ...){
@@ -416,6 +429,8 @@ setMethod("computeBayesFactor", signature(object="TrioSet", ranges="RangedDataCN
 			  j <- which(ranges$id == this.id)
 			  rd <- joint4(trioSet=object[, k],
 				       ranges=ranges[j, ],
+				       mad.marker=mad.marker,
+				       mad.sample=mad.sample[k],
 				       ...)
 			  if(returnEmission) return(rd)
 			  ranges$lik.state[j] <- rd$lik.state
@@ -583,6 +598,7 @@ setMethod("trioplot", signature(formula="formula", object="TrioSet", range="Rang
 
 ##setMethod("phenoData2", signature(object="TrioSet"),
 ##	  function(object) object@phenoData2)
+setMethod("allNames", signature(object="TrioSet"), function(object) allNames(pedigree(object)))
 
 setAs("TrioSet", "data.frame",
       function(from, to){
@@ -590,13 +606,16 @@ setAs("TrioSet", "data.frame",
 	      stopifnot(ncol(from) == 1)
 	      cn <- lrr(from)[, 1, ]
 	      md <- as.numeric(mindist(from))
+	      if(length(md) == 0) stop("minimum distance is not available")
 	      ##sns <- paste(sampleNames(from), c("F", "M", "O"), sep="_")
-	      sns <- phenoData2(from)[, "sampleNames", ]
+	      ##sns <- phenoData2(from)[, "sampleNames", ]
+	      sns <- allNames(from)
 	      sns <- matrix(sns, nrow(cn), length(sns), byrow=TRUE)
 	      sns <- as.character(sns)
 	      ##gt <- calls(from)
 	      cn <- as.numeric(cn)
 	      is.lrr <- c(rep(1L, length(cn)), rep(0L, length(md)))
+
 	      cn <- c(cn, md)
 	      sns <- c(sns, rep("min dist", length(md)))
 	      ##gt <- as.integer(gt)
@@ -608,11 +627,11 @@ setAs("TrioSet", "data.frame",
 		      gt <- as.numeric(assayDataElement(from, "call"))
 		      gt <- c(gt, rep(NA, length(md)))
 	      }
-	      x <- rep(position(from)/1e6, ncol(from))
-	      x <- c(x, position(from)/1e6)
+	      x <- rep(position(from)/1e6, 4)
+	      ##x <- c(x, position(from)/1e6)
 	      ##x <- rep(position(object)[marker.index], 4)/1e6
-	      is.snp <- rep(isSnp(from), ncol(from))
-	      is.snp <- c(is.snp, isSnp(from))
+	      is.snp <- rep(isSnp(from), 4)
+	      ##is.snp <- c(is.snp, isSnp(from))
 	      ##id <- rep(sampleNames(from), each=nrow(from))
 	      if(!gt.present){
 		      df <- data.frame(x=x,

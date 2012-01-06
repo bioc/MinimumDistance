@@ -32,12 +32,9 @@ mad2(object, byrow=FALSE, ...)
 \examples{
 data(trioSetListExample)
 ## computing the MAD of the log R ratios for each individual (across markers)
-mads.lrr.sample <- mad2(lrr(trioSetList), byrow=FALSE)
-##
-mad.sample(trioSetList) <- mads.lrr.sample
+mads.sample <- mad2(lrr(trioSetList), byrow=FALSE)
 ## compute the MAD of the log R ratio for each marker (across individuals)
-mads.lrr.marker <- mad2(lrr(trioSetList), byrow=TRUE)
-mad.marker(trioSetList) <- mads.lrr.marker
+mads.marker <- mad2(lrr(trioSetList), byrow=TRUE)
 }
 \keyword{univar}
 \keyword{robust}

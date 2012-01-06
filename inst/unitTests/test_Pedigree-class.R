@@ -37,4 +37,6 @@ test_Pedigree_construction <- function(){
 	trio$F[[1]] <- "badname"
 	ped@trios <- trio
 	checkException(validObject(ped), silent=TRUE)
+
+	checkTrue(identical(sampleNames(ped), offspringNames(ped)))
 }

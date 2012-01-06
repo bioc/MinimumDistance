@@ -21,7 +21,7 @@
   }
 
 \usage{
-segment2(object, pos, chrom, id=NULL, ...)
+segment2(object, pos, chrom, id=NULL, featureNames, ...)
 }
 
 \arguments{
@@ -41,6 +41,8 @@ segment2(object, pos, chrom, id=NULL, ...)
   \item{id}{data.frame containing trio ids. The \code{id} argument is
     ignored, unless \code{object} is of class \code{array}.  See
     details.}
+
+  \item{featureNames}{\code{list} or \code{vector} of feature names}
 
   \item{\dots}{Additional arguments passed to \code{segment} function in
     the \code{DNAcopy} package.}
@@ -70,16 +72,18 @@ rd <- segment2(lrr(trioSetList),
 	       pos=position(trioSetList),
 	       chrom=chromosome(trioSetList),
 	       id=trios(trioSetList),
+               featureNames=featureNames(trioSetList),
                verbose=0)
 
 ## segment the minimum distance
-if(is.null(mindist(trioSetList))){
-	mindist(trioSetList) <- calculateMindist(trioSetList)
-}
-md.segs <- segment2(mindist(trioSetList),
-	             pos=position(trioSetList),
-	             chrom=chromosome(trioSetList),
-                     verbose=0)
+md <- calculateMindist(trioSetList)
+
+md.segs <- segment2(md,
+		    pos=position(trioSetList),
+		    chrom=chromosome(trioSetList),
+		    id=sampleNames(trioSetList),
+		    featureNames=featureNames(trioSetList),
+		    verbose=0)
 }
 
 }

@@ -23,6 +23,10 @@ validPedigree <- function(object){
 			msg <- "all 'individualId' in slot pedigreeIndex must correspond to an id in the trio slot"
 			return(msg)
 		}
+		if(any(fatherNames(object) == motherNames(object))){
+			msg <- "fatherNames can not be the same as the motherNames"
+			return(msg)
+		}
 	}
 	return(msg)
 }
@@ -86,7 +90,7 @@ setMethod("trioIndex", signature(object="Pedigree"),
 	  function(object) object@trioIndex)
 setMethod("offspringNames", signature(object="Pedigree"), function(object) trios(object)$O)
 setMethod("sampleNames", signature(object="Pedigree"), function(object) offspringNames(object))
-setMethod("allNames", signature(object="Pedigree"), function(object) trioIndex(object)$individualId)
+setMethod("allNames", signature(object="Pedigree"), function(object) unique(trioIndex(object)$individualId))
 setMethod("fatherNames", signature(object="Pedigree"), function(object) trios(object)$F)
 setMethod("motherNames", signature(object="Pedigree"), function(object) trios(object)$M)
 setMethod("show", signature(object="Pedigree"),
@@ -117,11 +121,6 @@ setMethod("[", signature(x="Pedigree"),
 setMethod("dim", signature(x="Pedigree"), function(x){
 	dim(trios(x))
 })
-
-setMethod("annotatedDataFrameFrom", signature(object="character", byrow="logical"),
-	  function(object, byrow, x=3, y=4, ...){
-		  print(x)
-	  })
 
 setMethod("annotatedDataFrameFrom", signature(object="Pedigree", byrow="logical"),
 	  function (object, byrow, sample.sheet, which=c("offspring", "father", "mother"),

@@ -4,7 +4,7 @@ setMethod("initialize", signature(.Object="TrioSetList"),
 		   assayDataList=AssayDataList(BAF=BAF, logRRatio=logRRatio),
 		   logRRatio=array(NA, dim=c(0,0,3)),
 		   BAF=array(NA, dim=dim(logRRatio)),
-		   featureDataList=vector("list", length(chromosome)),
+		   featureDataList=GenomeAnnotatedDataFrameFromList(assayDataList),
 		   chromosome=integer(),
 		   phenoData=annotatedDataFrameFrom(assayDataList, byrow=FALSE),
 		   fatherPhenoData=annotatedDataFrameFrom(assayDataList, byrow=FALSE),
@@ -21,6 +21,28 @@ setMethod("initialize", signature(.Object="TrioSetList"),
 				 ...)
 	  })
 
+setMethod("updateObject", signature(object="TrioSetList"),
+	  function(object, ..., verbose=FALSE){
+		  if (verbose) message("updateObject(object = 'TrioSetList')")
+		  if(!is(object@featureDataList[[1]], "GenomeAnnotatedDataFrame")){
+			  fdlist <- lapply(object@featureDataList, updateObject)
+			  object@featureDataList <- fdlist
+		  }
+		  return(object)
+	  })
+
+GenomeAnnotatedDataFrameFromList <- function(object, annotationPkg){
+	nms <- ls(object)
+	elt <- object[[nms[1]]]
+	fdlist <- vector("list", length(elt))
+	for(i in seq_along(elt)){
+		fdlist[[i]] <- GenomeAnnotatedDataFrameFromArray(elt[[i]], annotationPkg)
+	}
+	return(fdlist)
+}
+
+
+
 TrioSetList <- function(chromosome=integer(),
 			pedigreeData=Pedigree(),
 			sample.sheet,
@@ -29,7 +51,7 @@ TrioSetList <- function(chromosome=integer(),
 ##			fatherPhenoData,
 ##			motherPhenoData,
 			lrr, baf,
-			featureAnnotation,
+			featureData,
 			cdfname){
 	if(nrow(pedigreeData) > 0 & !(missing(lrr) | missing(baf))){
 		if(!missing(sample.sheet)){
@@ -76,25 +98,30 @@ TrioSetList <- function(chromosome=integer(),
 		return(object)
 	}
 	stopifnot(identical(rownames(lrr), rownames(baf)))
-	if(missing(featureAnnotation)){
+	if(missing(featureData)){
 		stopifnot(!missing(cdfname))
-		featureAnnotation <- oligoClasses:::featureDataFrom(cdfname)
-		fD <- featureAnnotation[order(featureAnnotation$chromosome, featureAnnotation$position), ]
-		rm(featureAnnotation); gc()
+		##featureData <- oligoClasses:::featureDataFrom(cdfname)
+		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname)
+		fD <- featureData[order(chromosome(featureData), position(featureData)), ]
+		rm(featureData); gc()
 	} else {
-		stopifnot(is(featureAnnotation, "AnnotatedDataFrame"))
-		fD <- featureAnnotation
+		stopifnot(is(featureData, "GenomeAnnotatedDataFrame"))
+		fD <- featureData
+		##fD <- fD[order(fD$chromosome, fD$position), ]
 	}
 	if(length(chromosome) > 0){
 		fD <- fD[fD$chromosome%in%chromosome, ]
 	}
-	fD <- fD[order(fD$chromosome, fD$position), ]
-	is.present <- sampleNames(fD) %in% rownames(lrr)
-	if(!all(is.present)) fD <- fD[is.present, ]
-	index <- match(sampleNames(fD), rownames(lrr))
-	lrr <- lrr[index, ]
-	baf <- baf[index, ]
-	stopifnot(all(identical(rownames(lrr), sampleNames(fD))))
+	if(!is.null(rownames(lrr))){
+		is.present <- sampleNames(fD) %in% rownames(lrr)
+		if(!all(is.present)) fD <- fD[is.present, ]
+		index <- match(sampleNames(fD), rownames(lrr))
+		lrr <- lrr[index, ]
+		baf <- baf[index, ]
+		stopifnot(all(identical(rownames(lrr), sampleNames(fD))))
+	} else {
+		stopifnot(nrow(lrr) == nrow(fD))
+	}
 	marker.list <- split(seq_along(sampleNames(fD)), fD$chromosome)
 	np <- nrow(trios(pedigreeData))
 	trio.names <- array(NA, dim=c(length(offspringNames(pedigreeData)), 1, 3))
@@ -130,7 +157,6 @@ TrioSetList <- function(chromosome=integer(),
 		baflist[[i]] <- bafArray
 		fdlist[[i]] <- fD[j, ]
 	}
-
 	ad <- AssayDataList(logRRatio=lrrlist,
 			    BAF=baflist)
 	object <- new("TrioSetList", assayDataList=ad,
@@ -156,7 +182,7 @@ setMethod("position", signature(object="TrioSetList"),
 
 setMethod("isSnp", signature(object="TrioSetList"),
 	  function(object){
-		  lapply(featureDataList(object), function(x) x$isSnp)
+		  lapply(featureDataList(object), function(x) isSnp)
 	  })
 
 setMethod("allNames", signature(object="TrioSetList"), function(object) allNames(pedigree(object)))
@@ -270,16 +296,15 @@ setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 
 setMethod("computeBayesFactor", signature(object="TrioSetList", ranges="RangedDataCNV"),
 	  function(object, ranges,
-		   returnEmission=FALSE, collapseRanges=TRUE, verbose=TRUE, ...){
-		  ##if(missing(id)) id <- unique(ranges$id) else stopifnot(id %in% unique(ranges$id))
-		  chromosomes <- sapply(object, function(x) unique(chromosome(x)))
+		   mad.marker,
+		   mad.sample,
+		   returnEmission=FALSE,
+		   collapseRanges=TRUE,
+		   verbose=TRUE, ...){
+		  chromosomes <- chromosome(object)
 		  ranges <- ranges[chromosome(ranges) %in% chromosomes, ]
-		  stopifnot(!is.null(mad.marker(object[[1]])))
-		  stopifnot(!is.null(mad.sample(object[[1]])))
-##		  ranges <- ranges[ranges$id %in% id, ]
-##		  if(!"bayes.factor" %in% colnames(ranges)){
-##			  ranges$bayes.factor <- NA
-##		  }
+		  stopifnot(!missing(mad.marker))
+		  stopifnot(!missing(mad.sample))
 		  if(!"lik.state" %in% colnames(ranges)){
 			  ranges$lik.state <- NA
 		  }
@@ -292,12 +317,6 @@ setMethod("computeBayesFactor", signature(object="TrioSetList", ranges="RangedDa
 		  if("id" %in% names(list(...))){
 			  nsamples <- length(id)
 		  } else nsamples <- ncol(object)
-		  if("verbose" %in% names(list(...))){
-			  verbose <- list(...)[["verbose"]]
-		  } else verbose <- FALSE
-		  if("returnEmission" %in% names(list(...))){
-			  returnEmission <- list(...)[["returnEmission"]]
-		  }  else returnEmission <- FALSE
 		  if(verbose){
 			  message("\t\tComputing Bayes factors for ", length(object), " chromosomes and ", nsamples, " trios.")
 			  pb <- txtProgressBar(min=0, max=length(object), style=3)
@@ -306,19 +325,20 @@ setMethod("computeBayesFactor", signature(object="TrioSetList", ranges="RangedDa
 			  if (verbose) setTxtProgressBar(pb, i)
 ##			  if(verbose)
 ##				  message("\tProcessing chromosome ", i, " of ", length(object))
-			  CHR <- unique(chromosome(object[[i]]))
+			  CHR <- chromosome(object)[i]
 			  j <- which(chromosome(ranges) == CHR)
 			  if(length(j) < 1) next()
 			  rd <- computeBayesFactor(object[[i]],
 						   ranges[j, ],
 						   pedigreeData=pedigree(object),
+						   mad.marker=mad.marker,
+						   mad.sample=mad.sample,
 						   collapseRanges=FALSE,
 						   verbose=FALSE, ...)
 			  if(returnEmission) return(rd)
 			  ranges$lik.state[j] <- rd$lik.state
 			  ranges$argmax[j] <- rd$argmax
 			  ranges$lik.norm[j] <- rd$lik.norm
-			  ##ranges$DN[j] <- rd$DN
 		  }
 		  if(verbose) close(pb)
 		  ranges$state <- trioStateNames()[ranges$argmax]
@@ -340,8 +360,12 @@ setMethod("assayData", signature(object="TrioSetList"),
 	  function(object) assayDataList(object))
 setMethod("storageMode", "TrioSetList", function(object) storageMode(assayData(object)))
 
+
+
 setMethod("phenoData", signature(object="TrioSetList"),
 	  function(object) object@phenoData)
+setMethod("offspringPhenoData", signature(object="TrioSetList"),
+	  function(object) phenoData(object))
 setMethod("fatherPhenoData", signature(object="TrioSetList"),
 	  function(object) object@fatherPhenoData)
 setMethod("motherPhenoData", signature(object="TrioSetList"),
@@ -428,7 +452,8 @@ setMethod("[[", signature(x="TrioSetList"),
 				   phenoData=phenoData(x),
 				   fatherPhenoData=fatherPhenoData(x),
 				   motherPhenoData=motherPhenoData(x),
-				   pedigree=pedigree(x))
+				   pedigree=pedigree(x),
+				   featureData=featureDataList(x)[[i]])
 		  } else {
 			  stop("subscript out of bounds")
 		  }
@@ -459,45 +484,39 @@ setMethod("minimumDistance", signature(object="TrioSetList"),
 
 setMethod("stack", signature(x="TrioSetList"),
 	  function(x, ...){
-		  ##bafList=lapply(x, baf)
 		  b <- baf(x)
-		  Rs <- sapply(bafList, nrow)
-		  Cs <- ncol(bafList[[1]])
+		  Rs <- sapply(b, nrow)
+		  Cs <- ncol(b[[1]])
 		  logRR <- bf <- array(NA, dim=c(sum(Rs), Cs, 3))
-		  ##md <- matrix(NA, sum(Rs), C)
-		  ##chrList <- lapply(x, chromosome)
 		  chrom <- rep(chromosome(x), Rs)
-		  ##chrom <- unlist(chrList)
-		  ##pos <- unlist(lapply(x, position))
-		  pos <- unlist(position(x))
+		  ##pos <- unlist(position(x))
 		  ##is.snp <- unlist(lapply(x, isSnp))
-		  is.snp <- unlist(isSnp(x))
+		  ##is.snp <- unlist(isSnp(x))
 		  index <- split(seq_len(sum(Rs)), chrom)
 		  for(i in seq_along(x)){
 			  j <- index[[i]]
 			  bf[j, , ] <- baf(x[[i]])[,,]
 			  logRR[j, , ] <- lrr(x[[i]])[,,]
-			  ##md[j, ] <- mindist(x[[i]])[,]
-			  ##md.mad[j, ] <- mad(x[[i]])[,]
 		  }
-		  fns <- as.character(unlist(lapply(x, featureNames)))
-		  ##lrr.mad <- apply(md, 2, mad, na.rm=TRUE)
+		  fns <- unlist(featureNames(x))
 		  dimnames(bf) <- dimnames(logRR) <- list(fns,
 							  sampleNames(x[[1]]),
 							  c("F","M","O"))
-		  featureData <- annotatedDataFrameFrom(as.matrix(bf[,,1]),
-							byrow=TRUE)
-		  dimnames(md) <- list(fns, sampleNames(x[[1]]))
+		  pos <- unlist(position(x))
+		  issnp <- unlist(lapply(x@featureDataList, isSnp))
+		  featureData <- new("GenomeAnnotatedDataFrame",
+				     position=pos,
+				     chromosome=chrom,
+				     isSnp=issnp,
+				     row.names=fns)
 		  obj <- new("TrioSet",
 			     BAF=bf,
 			     logRRatio=logRR,
 			     featureData=featureData,
-			     pedigree=Pedigree(x))
-			     ##sampleSheet=sampleSheet(x))
-		  fData(obj)$chromosome <- chrom
-		  fData(obj)$position <- pos
-		  fData(obj)$isSnp <- is.snp
-		  annotation(obj) <- annotation(x[[1]])
+			     pedigree=pedigree(x),
+			     motherPhenoData=motherPhenoData(x),
+			     fatherPhenoData=fatherPhenoData(x),
+			     phenoData=phenoData(x))
 		  return(obj)
 	  })
 

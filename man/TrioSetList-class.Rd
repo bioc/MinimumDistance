@@ -5,23 +5,21 @@
 \alias{allNames,TrioSetList-method}
 \alias{allNames}
 \alias{[,TrioSetList-method}
+\alias{$,TrioSetList-method}
+\alias{[[,TrioSetList-method}
 \alias{annotation,TrioSetList-method}
 \alias{baf,TrioSetList-method}
 \alias{baf}
-\alias{calculateMindist,TrioSetList-method}
-\alias{calculateMindist,matrix-method}
-\alias{calculateMindist}
+\alias{computeBayesFactor,TrioSetList,RangedDataCNV-method}
 \alias{dims,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}
+\alias{fatherPhenoData,TrioSetList-method}
+\alias{motherPhenoData,TrioSetList-method}
+\alias{offspringPhenoData,TrioSetList-method}
 \alias{fatherNames}
 \alias{initialize,TrioSetList-method}
+\alias{length,TrioSetList-method}
 \alias{lrr,TrioSetList-method}
-\alias{mad.marker<-,TrioSetList,list-method}
-\alias{mad.marker<-,TrioSetList,NULL-method}
-%\alias{mad.marker<-,TrioSetList,matrix-method}
-\alias{mad.mindist<-,TrioSetList,list-method}
-\alias{mad.mindist<-,TrioSetList,numeric-method}
-\alias{mad.sample<-,TrioSetList,matrix-method}
 \alias{mindist<-,TrioSetList,list-method}
 \alias{mindist,TrioSetList-method}
 \alias{motherNames,TrioSetList-method}
@@ -33,12 +31,12 @@
 \alias{order,TrioSetList-method}
 \alias{pedigree,TrioSetList-method}
 \alias{pedigree}
+\alias{phenoData,TrioSetList-method}
 \alias{sampleNames,TrioSetList-method}
-\alias{sampleSheet,TrioSetList-method}
-\alias{sampleSheet}
 \alias{stack,TrioSetList-method}
 \alias{trios,TrioSetList-method}
 \alias{trios}
+\alias{updateObject,TrioSetList-method}
 
 \title{Class \code{"TrioSetList"}}
 \description{
@@ -55,33 +53,30 @@
 
     Objects from the class can be initialized by:
 
-    \item{initialize}{\code{new("TrioSetList")}:  Instantiate an empty
+    \item{}{\code{new("TrioSetList")}:  Instantiate an empty
       container.}
 
-    \item{TrioSetList}{ See \code{\link{TrioSetList}} .}
-
+    \item{}{\code{TrioSetList()}: See \code{\link{TrioSetList}} .}
   }
-
 }
 
 \section{Slots}{
   \describe{
-    \item{\code{.Data}:}{Object of class \code{"list"} Each element is a
-      \code{TrioSet} object. }
-    \item{\code{pedigree}:}{Object of class \code{"Pedigree"}.  Contains
-      information on the trio-relationships. }
-%    \item{\code{sampleSheet}:}{Object of class \code{"SampleSheet"}
-%      Contains meta-data for the experiment, such as chemistry plate. In
-%      future versions, this may be an \code{AnnotatedDataFrame} class.  }
+    \item{\code{assayDataList}:}{list of arrays containing log R ratios and B
+      allele frequencies. }
+    \item{\code{featureDataList}:}{list of containing feature
+  annotation. Each element of the list is a \code{AnnotatedDataFrame}.}
+    \item{\code{pedigree}:}{ Object of class \code{"Pedigree"}.  Contains
+      information on the trio-relationships.}
+    \item{\code{motherPhenoData}:}{ Object of class \code{"AnnotatedDataFrame"}.  Contains
+      sample-level covariates for the mother.}
+    \item{\code{fatherPhenoData}:}{ Object of class \code{"AnnotatedDataFrame"}.  Contains
+      sample-level covariates for the father.}
+    \item{\code{phenoData}:}{ Object of class \code{"AnnotatedDataFrame"}.  Contains
+      sample-level covariates for the offspring.}
+    \item{\code{chromosome}:}{ Integer vector indicating which autosomes
+      are contained in the \code{TrioSetList} object.}
   }
-}
-
-\section{Extends}{
-  Class \code{"\linkS4class{list}"}, from data part.
-  Class \code{"\linkS4class{vector}"}, by class "list", distance 2.
-  Class \code{"\linkS4class{AssayData}"}, by class "list", distance 2.
-  Class \code{"\linkS4class{list_or_ffdf}"}, by class "list", distance 2.
-  Class \code{"vectorORfactor"}, by class "list", distance 3.
 }
 
 \section{Accessors}{
@@ -91,7 +86,11 @@
   In the following accessor descriptions, object is a
   \code{TrioSetList}:
 
-    \item{}{\code{allnames(object)}: Returns character vector of
+  \item{}{\code{object$NAME}: Extract phenotype 'NAME' for offspring.}
+
+  \item{}{\code{"[["}: Extract a \code{TrioSet} object.}
+
+  \item{}{\code{allnames(object)}: Returns character vector of
  all the sample names.  Note that \code{sampleNames} of a
  \code{TrioSetList} object is not the same.  In particular,
  \code{sampleNames(object)} returns only the character vector of
@@ -105,7 +104,9 @@
 \item{}{\code{annotation(object)}: character string indicating the
   array platform }
 
-  \item{}{\code{baf(object)} Returns list of B allele frequencies for each chromosome.}
+  \item{}{\code{baf(object)}: Returns a list of B allele frequencies for
+    each chromosome. Each element in the list is a 3-dimensional array
+    (features x trios x samples).}
 
   \item{}{\code{dims(object)}: Return dimensions of the low-level
   statistical summaries (log R ratios and B allele frequencies) for each
@@ -114,26 +115,15 @@
   \item{}{\code{fatherNames(object)}: character vector of
     father ids.}
 
+  \item{}{\code{fatherPhenoData(object)}: Extract a
+  \code{AnnotatedDataFrame} of the sample-level covariates for the
+  father.}
+
+  \item{}{\code{length(object)}: The number of chromosomes.}
+
   \item{}{\code{lrr(object)} Returns list of log R ratios for each
-    chromosome.}
-
-  \item{}{\code{mad.marker(object) <- value}: The median absolute
-  deviation (mad) estimates are assigned to the \code{featureData} of
-  each \code{TrioSet} element.  \code{value} must be a \code{list}.
-  Elements of the list can be \code{matrix} or \code{numeric} objects.  }
-
-  \item{}{\code{mad.mindist(object) <- value}: Standard deviation
-  estimates for the minimum distance (across markers for each sample) is
-  assigned to each \code{TrioSet} element. If \code{value} is a list,
-  each element in the list is a numeric vector of the MADs for one
-  chromosome.  IF \code{value} is numeric, the mad is assumed to have
-  been estimated across all chromosomes and assigned to each
-  \code{TrioSet} element.  }
-
-  \item{}{\code{mad.sample(object) <- value}: Summary measures of the
-  standard deviation of the log R ratios for each trio. \code{value} is
-  a matrix: rows correspond to trio index, columns correspond to father,
-  mother, and offspring.}
+    chromosome.  Each element in the list is a 3-dimensional array
+    (features x trios x samples).}
 
   \item{}{\code{mindist(object) <- value}: Assigns the minimum distance
   to each \code{TrioSet} element.  \code{value} is a \code{list}.}
@@ -143,6 +133,10 @@
 
   \item{}{\code{motherNames(object)}: Character vector of sample
     identifiers for the mothers.}
+
+  \item{}{\code{motherPhenoData(object)}: Extract a
+  \code{AnnotatedDataFrame} of the sample-level covariates for the
+  mother.}
 
   \item{}{\code{ncol(object)}: the number of trios, or equivalently the
     number of offspring.}
@@ -160,6 +154,13 @@
 
    \item{pedigree}{\code{signature(object = "TrioSetList")}: Accessor
      for pedigree information.  See also \code{\linkS4class{Pedigree}}}
+
+  \item{}{\code{offspringPhenoData(object)}: Extract a
+  \code{AnnotatedDataFrame} of the sample-level covariates for the
+  offspring. Alternatively, use \code{phenoData(object)}. }
+
+  \item{}{\code{phenoData(object)}: Extract a
+  \code{AnnotatedDataFrame} of the sample-level covariates for the offspring.}
 
    \item{}{\code{sampleNames(object)}: Character vector of unique
    identifiers for father-mother-offspring trio. As the offspring id
@@ -190,38 +191,29 @@
 
 }
 
-\section{Computing the minimum distance}{
-  \describe{
 
-    The \code{TrioSetList} container is stores the log R ratios for each
-    member in the trio.  The 'minimum distance' is the minimum signed
-    absolute difference of the parental log R ratios and the offspring
-    log R ratios. Specifically, let |O-F| denote the absolute difference
-    in the log R ratios comparing offspring to father and |O-M| the
-    absolute difference in the log R ratios comparing offspring to
-    mother.  The minimum distance at a marker is the signed minimum of
-    |O-M| and |O-F|.  Plotted for all markers, deflections from zero can
-    indicate a difference in the log R ratio of the offspring and either
-    parent (possibly de novo).  For example, a positive minimum distance
-    suggests that the log R ratio from the offspring is greater than the
-    log R ratio of either parent.  The minimum distance can be computed
-    from.
+
+%\section{Computing the minimum distance}{
+%  \describe{
 %
-\item{}{\code{calculateMindist(object, ..., verbose=TRUE)}:
+%    The \code{TrioSetList} container stores the log R ratios and B
+%    allele frequencies for each member in the trio.
+%%
+%\item{}{\code{calculateMindist(object, ..., verbose=TRUE)}:
+%
+%  The returned value is a \code{list}. Each element in the list contains
+%  a matrix of the minimum distances from one chromosome (dimension:
+%  number features x number trios).  Note that the \code{list} can be assigned
+%  back to the \code{TrioSetList} object using the replacement method
+%  \code{mindist<-}.  See the example.}
+%
+%}
+%
+%}
 
-  The returned value is a \code{list}. Each element in the list contains
-  a matrix of the minimum distances from one chromosome (dimension:
-  number features x number trios).  Note that the \code{list} can be assigned
-  back to the \code{TrioSetList} object using the replacement method
-  \code{mindist<-}.  See the example.}
-
-}
-
-}
 
 
-
-\section{Combining}{
+\section{Stacking a \code{TrioSetList} object}{
   \describe{
 
     A \code{TrioSetList} object contains a list of elements of class
@@ -229,11 +221,38 @@
     \code{TrioSet} object can be constructed from a \code{TrioSetList}
     by stacking the \code{TrioSet} elements:
 
-    \item{}{\code{stack(object)}: create a \code{TrioSet} object from a
+    \item{}{\code{stack(object)}: creates a \code{TrioSet} object from a
       \code{TrioSetList} object. }
+  }
+}
+
+\section{Posterior summaries}{
+
+  \describe{
+
+    \item{}{\code{computeBayesFactor(object, ranges, mad.marker,
+    mad.sample, returnEmission=FALSE, verbose=TRUE, ...)}: Compute
+    posterior probabilities for the trio copy number states. The called
+    trio copy number state is the argmax of the posterior
+    probabilities. See examples below for computing the standard
+    deviation of the markers for argument \code{mad.marker} and the
+    standard deviation of the samples for argument \code{mad.sample}.}
+
+}
+
+}
+
+\section{Miscellaneous}{
+  \describe{
+
+    \item{}{\code{updateObject(object)}: Currently, this method only
+    checks the class of the elements in the \code{featureDataList}
+    slot.  If the elements are \code{AnnotatedDataFrame} instead of
+    \code{GenomeAnnotatedDataFrame}, the \code{featureDataList} slot is updated.}
 
   }
 }
+
 
 \author{
 R. Scharpf
@@ -245,26 +264,60 @@ R. Scharpf
 
 \examples{
 showClass("TrioSetList")
-data(trioSetListExample)
+TrioSetList()
+data(trioSetExample)
+\dontshow{
+\dontrun{
+path <- system.file("extdata", package="MinimumDistance")
+fns <- list.files(path, pattern="chr7and22", full.names=TRUE)
+load(fns[1])
+load(fns[2])
+load(fns[3])
+nr <- sapply(baf_chr7and22, nrow)
+bafs <- lrrs <- array(NA, dim=c(nr[1]+nr[2],
+			  ncol(baf_chr7and22[[1]]), 3))
+lrrs[seq_len(nr[1]), , ] <- lrr_chr7and22[[1]]
+lrrs[seq(nr[1]+1, sum(nr)), , ] <- lrr_chr7and22[[2]]
+bafs[seq_len(nr[1]), , ] <- baf_chr7and22[[1]]
+bafs[seq(nr[1]+1, sum(nr)), , ] <- baf_chr7and22[[2]]
+lrrs <- cbind(lrrs[, 1, ], lrrs[, 2, ])
+bafs <- cbind(bafs[, 1, ], bafs[, 2, ])
+rns <- c(rownames(lrr_chr7and22[[1]]), rownames(lrr_chr7and22[[2]]))
+dimnames(lrrs) <- dimnames(bafs) <- list(rns,
+					 c("NA12891", "NA12892", "NA12878",
+					   "NA12872", "NA12873", "NA12864"))
+is.snp <- unlist(sapply(featureData_chr7and22, "[[", "isSnp"))
+chrom <- unlist(sapply(featureData_chr7and22, "[[", "chromosome"))
+pos <- unlist(sapply(featureData_chr7and22, "[[", "position"))
+##tmp <- read.delim("~/hapmap_metadata/relationships_w_pops_121708.txt")
+##index <- match(colnames(lrrs), tmp$IID)
+##tmp[index, ]
+fd <- as(data.frame(isSnp=as.integer(is.snp),
+		    chromosome=as.integer(chrom),
+		    position=as.integer(pos)), "AnnotatedDataFrame")
+sampleNames(fd) <- rns
+##rownames(lrrs) <- rownames(bafs) <- NULL
+##trace(TrioSet, browser)
+rownames(lrrs) <- rownames(bafs) <- rns
+##trace(TrioSet, browser)
+trioSetExample <- TrioSet(lrr=lrrs,
+			  baf=bafs,
+			  featureData=fd,
+			  pedigreeData=Pedigree(data.frame(F=c("NA12891", "NA12872"),
+			  M=c("NA12892", "NA12873"),
+			  O=c("NA12878", "NA12864"))), drop=FALSE)
+save(trioSetExample, file="~/Software/MinimumDistance/data/trioSetExample.rda")
 
-## accessors
-fatherNames(trioSetList)
-motherNames(trioSetList)
-identical(sampleNames(trioSetList), offspringNames(trioSetList))
-pedigree(trioSetList)
-sampleSheet(trioSetList)
-trios(trioSetList)
+rownames(lrrs) <- rownames(bafs) <- NULL
+trace(TrioSetList, browser)
+trioSetList <- TrioSetList(lrr=lrrs, baf=bafs,
+			   featureData=fd,
+			   pedigreeData=Pedigree(data.frame(F=c("NA12891", "NA12872"),
+			   M=c("NA12892", "NA12873"),
+			   O=c("NA12878", "NA12864"))))
+save(trioSetList, file="~/Software/MinimumDistance/data/trioSetListExample.rda")
 
-## Creating a single TrioSet from the TrioSet elements in the TrioSetList object:
-trioSet <- stack(trioSetList)
-
-##
-## computing the minimum distance
-##
-mdlist <- calculateMindist(trioSetList)
-mindist(trioSetList) <- mdlist
-
-
-
+}
+}
 }
 \keyword{classes}

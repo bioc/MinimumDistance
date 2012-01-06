@@ -1,7 +1,15 @@
+test_dataExamples <- function(){
+	data(trioSetListExample)
+	checkTrue(validObject(trioSetList))
+	trioSet <- stack(trioSetList)
+	checkTrue(validObject(trioSet))
+}
+
 test_TrioSetList_construction <- function(){
 	checkTrue(validObject(new("TrioSetList")))
 	checkTrue(validObject(TrioSetList()))
 	checkTrue(validObject(TrioSetList(chromosome=1:22)))
+	checkException(TrioSetList(chromosome=1:23), silent=TRUE)
 
 	path <- system.file("extdata", package="MinimumDistance")
 	load(file.path(path, "logRratio.rda"))
@@ -26,7 +34,6 @@ test_TrioSetList_construction <- function(){
 					  sample.sheet=sample.sheet,
 					  row.names=nms,
 					  cdfname="human610quadv1bCrlmm")
-
 	checkTrue(validObject(trioSetList))
 	trioSet <- TrioSet(lrr=logRratio,
 			   baf=baf,
