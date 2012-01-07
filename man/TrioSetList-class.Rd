@@ -266,58 +266,5 @@ R. Scharpf
 showClass("TrioSetList")
 TrioSetList()
 data(trioSetExample)
-\dontshow{
-\dontrun{
-path <- system.file("extdata", package="MinimumDistance")
-fns <- list.files(path, pattern="chr7and22", full.names=TRUE)
-load(fns[1])
-load(fns[2])
-load(fns[3])
-nr <- sapply(baf_chr7and22, nrow)
-bafs <- lrrs <- array(NA, dim=c(nr[1]+nr[2],
-			  ncol(baf_chr7and22[[1]]), 3))
-lrrs[seq_len(nr[1]), , ] <- lrr_chr7and22[[1]]
-lrrs[seq(nr[1]+1, sum(nr)), , ] <- lrr_chr7and22[[2]]
-bafs[seq_len(nr[1]), , ] <- baf_chr7and22[[1]]
-bafs[seq(nr[1]+1, sum(nr)), , ] <- baf_chr7and22[[2]]
-lrrs <- cbind(lrrs[, 1, ], lrrs[, 2, ])
-bafs <- cbind(bafs[, 1, ], bafs[, 2, ])
-rns <- c(rownames(lrr_chr7and22[[1]]), rownames(lrr_chr7and22[[2]]))
-dimnames(lrrs) <- dimnames(bafs) <- list(rns,
-					 c("NA12891", "NA12892", "NA12878",
-					   "NA12872", "NA12873", "NA12864"))
-is.snp <- unlist(sapply(featureData_chr7and22, "[[", "isSnp"))
-chrom <- unlist(sapply(featureData_chr7and22, "[[", "chromosome"))
-pos <- unlist(sapply(featureData_chr7and22, "[[", "position"))
-##tmp <- read.delim("~/hapmap_metadata/relationships_w_pops_121708.txt")
-##index <- match(colnames(lrrs), tmp$IID)
-##tmp[index, ]
-fd <- as(data.frame(isSnp=as.integer(is.snp),
-		    chromosome=as.integer(chrom),
-		    position=as.integer(pos)), "AnnotatedDataFrame")
-sampleNames(fd) <- rns
-##rownames(lrrs) <- rownames(bafs) <- NULL
-##trace(TrioSet, browser)
-rownames(lrrs) <- rownames(bafs) <- rns
-##trace(TrioSet, browser)
-trioSetExample <- TrioSet(lrr=lrrs,
-			  baf=bafs,
-			  featureData=fd,
-			  pedigreeData=Pedigree(data.frame(F=c("NA12891", "NA12872"),
-			  M=c("NA12892", "NA12873"),
-			  O=c("NA12878", "NA12864"))), drop=FALSE)
-save(trioSetExample, file="~/Software/MinimumDistance/data/trioSetExample.rda")
-
-rownames(lrrs) <- rownames(bafs) <- NULL
-trace(TrioSetList, browser)
-trioSetList <- TrioSetList(lrr=lrrs, baf=bafs,
-			   featureData=fd,
-			   pedigreeData=Pedigree(data.frame(F=c("NA12891", "NA12872"),
-			   M=c("NA12892", "NA12873"),
-			   O=c("NA12878", "NA12864"))))
-save(trioSetList, file="~/Software/MinimumDistance/data/trioSetListExample.rda")
-
-}
-}
 }
 \keyword{classes}

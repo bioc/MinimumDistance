@@ -3,6 +3,7 @@
 \docType{class}
 \alias{TrioSet-class}
 \alias{[,TrioSet-method}
+\alias{[,ff_array-method}
 \alias{allNames,TrioSet-method}
 \alias{baf,TrioSet-method}
 \alias{baf<-,TrioSet-method}
