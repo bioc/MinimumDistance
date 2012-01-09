@@ -47,6 +47,7 @@ importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 
 ## VanillaICE
 importMethodsFrom(VanillaICE, xyplot, xyplot2)
+importFrom(VanillaICE, read.bsfiles)
 
 ## -----------------------------------------------------------------
 ## Export
@@ -90,7 +91,6 @@ export(callDenovoSegments,
        isDenovo,
        narrow,
        Pedigree,
-       read.bsfiles,
        xyplot,
        xypanelMD)
 
