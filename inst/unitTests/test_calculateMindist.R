@@ -10,3 +10,5 @@ test_calculateMindist <- function(){
 	dimnames(md) <- NULL
 	checkTrue(identical(md, md1))
 }
+
+

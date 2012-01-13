@@ -1,7 +1,8 @@
 \name{calculateMindist}
 \alias{calculateMindist}
-\alias{calculateMindist,array-method}
+\alias{calculateMindist,arrayORff_array-method}
 \alias{calculateMindist,list-method}
+\alias{calculateMindist,TrioSetList-method}
 \title{  Compute the minimum distance. }
 \description{  Compute the minimum distance.}
 \usage{
@@ -9,8 +10,9 @@ calculateMindist(object, ...)
 }
 
 \arguments{
-  \item{object}{ A \code{list} of arrays or an \code{array} of the log R ratios. The
-    array(s) have 3 dimensions: features, trios, and family member.}
+
+  \item{object}{ A \code{list} of arrays, a \code{TrioSetList} object,
+    or an \code{array} of the log R ratios. }
 
   \item{\dots}{    Ignored.  }
 }
@@ -29,13 +31,11 @@ calculateMindist(object, ...)
     greater than the log R ratio of either parent.
 }
 
-\value{
-  If \code{object} is an array, a matrix of the minimum distance is
-  returned. For an object with M markers and T trios, the dimension of
-  the resulting matrix is M x T.  If \code{object} is a list of arrays,
-  a list of matrices are returned. The dimension of the ith matrix in
-  the list is M_i x T.
-}
+\value{ If \code{object} is an array, a matrix of the minimum distance
+  is returned. For an object with M markers and T trios, the dimension
+  of the resulting matrix is M x T.  If \code{object} is a list of
+  arrays or a \code{TrioSetList} object, a list of matrices are
+  returned. The dimension of the ith matrix in the list is M_i x T.  }
 
 \author{
 R. Scharpf

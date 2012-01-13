@@ -20,9 +20,17 @@ test_Pedigree_construction <- function(){
 			motherIds=pedigreeInfo$M,
 			offspringIds=pedigreeInfo$O)
 	checkTrue(validObject(ped))
+
+	ped2 <- ped[2, ]
+	checkTrue(validObject(ped2))
+
 	checkTrue(validObject(Pedigree(pedigreeInfo)))
+
+	##validObject(ped[1, ])
 	ped2 <- make_test_Pedigree()
 	checkIdentical(ped, ped2)
+
+
 
 	## can not have duplicate offspring identifiers
 	checkException(Pedigree(data.frame(F=c("F0.txt", "F0.txt"),

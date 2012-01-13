@@ -316,6 +316,7 @@ Computation of $\mindist$ by the function \Rfunction{calculateMindist}
 is vectorized in \R{}:
 
 <<computeMinimumDistance>>=
+data(trioSetListExample)
 md <- calculateMindist(lrr(trioSetList))
 @
 
@@ -329,12 +330,7 @@ function can be passed through the \texttt{...}  argument in
 the default values in \Rpackage{DNAcopy}.
 
 <<segmentMinimumDistance,results=hide>>=
-md.segs <- segment2(object=md,
-		    pos=position(trioSetList),
-		    chrom=as.list(chromosome(trioSetList)),
-		    id=sampleNames(trioSetList),
-		    featureNames=featureNames(trioSetList),
-		    verbose=1)
+md.segs <- segment2(object=trioSetList, md=md)
 @
 
 The object returned by the \Rfunction{segment2} method is an object of
@@ -380,12 +376,7 @@ For purposes of visualization, we also segment the parental log R
 ratios:
 
 <<segmentLRR,results=hide>>=
-lrr.segs <- segment2(object=lrr(trioSetList),
-		     pos=position(trioSetList),
-		     chrom=as.list(chromosome(trioSetList)),
-		     id=trios(trioSetList), ## id is required
-		     featureNames=featureNames(trioSetList),
-		     verbose=TRUE)
+lrr.segs <- segment2(trioSetList, segmentParents=FALSE)
 @
 
 Minimum distance segments with a mean absolute value greater than 1
@@ -402,11 +393,7 @@ posterior probability of the normal range are computed using the
 function \Rfunction{computeBayesFactor}.
 
 <<computeBayesFactor,results=hide>>=
-mads.lrr.sample <- mad2(lrr(trioSetList), byrow=FALSE)
-mads.lrr.marker <- mad2(lrr(trioSetList), byrow=TRUE)
-map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2,
-			       mad.marker=mads.lrr.marker,
-			       mad.sample=mads.lrr.sample)
+map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2)
 show(map.segs)
 @
 
