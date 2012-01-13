@@ -1,52 +1,74 @@
 \name{segment2}
 \alias{segment2}
-\alias{segment2,array,ANY,ANY,data.frame-method}
-\alias{segment2,ff_array,ANY,ANY,data.frame-method}
-\alias{segment2,ff_matrix,ANY,ANY,ANY-method}
-\alias{segment2,list,list,list,ANY-method}
-\alias{segment2,matrix,ANY,ANY,ANY-method}
+\alias{segment2,TrioSet-method}
+\alias{segment2,TrioSetList-method}
+\alias{segment2,ff_matrix-method}
+\alias{segment2,arrayORff_array-method}
+\alias{segment2,list-method}
+\alias{segment2,matrix-method}
 
 \title{Wrapper for segment function in package DNAcopy}
 
 \description{
 
   \code{segment2} is a wrapper for the \code{segment} function in
-  \code{DNAcopy}. The first argument can be a list, a matrix, or an
-  array.  If the first argument is a list, each element of the list can
-  be a matrix or an array.
+  \code{DNAcopy}. The first argument can be simple data structures: a
+  \code{list}, a \code{matrix}, or an \code{array}, or more complex:
+  \code{TrioSetList} and \code{TrioSet}.  If the first argument is a
+  list, each element of the list can be a matrix or an array.
 
   Segmentation of \code{ff_matrix} and \code{ff_array} objects is also
   supported.
 
   }
 
-\usage{
-segment2(object, pos, chrom, id=NULL, featureNames, ...)
+\section{Arguments}{
+
+    Arguments to \code{segment2} depend on the class of
+    \code{object}. In all forms, additional arguments to the
+    \code{segment} function in the \pkg{DNAcopy} package can be passed
+    through the \code{...} operator.
+
+    For \code{TrioSetList} objects, the arguments are:
+
+    \describe{
+      \item{}{\code{segment2(object, md=NULL, segmentParents=TRUE,
+      verbose=TRUE, ...)}:   \code{md} is a list of matrices containing
+    the minimum distance. See \code{\link{calculateMindist}}.
+    \code{segmentParents} must be logical. When TRUE, the parental log
+    R ratios are segmented via circular binary segmentation.  When
+    FALSE, only the offspring log R ratios are segmented.  }
+
+  For objects of class \code{TrioSet}:
+
+  \item{}{\code{segment2(object, md=NULL, segmentParents=TRUE,
+  verbose=TRUE, ...)}: \code{md} is a matrix of the minimum distance
+  where each column corresponds to a trio in the \code{TrioSetList}
+  object.}
+
+For objects of class \code{list}:
+
+\item{}{\code{segment2(object, pos, chrom, id=NULL, featureNames,
+    segmentParents=TRUE, verbose=TRUE, ...)}: \code{pos} is a list of
+    the genomic positions (integers) for each row of the elements of the
+    \code{object} list.  Similarly, \code{chrom} and \code{featureNames}
+    are lists specifying the chromosome (\code{integer}) and feature
+    identifiers (\code{character}) for each row in the \code{object}
+    list elements, respectively. Note: \code{pos}, \code{chrom}, and
+    \code{featureNames} must be lists of the same size.}
+
+  For objects of class \code{matrix} :
+
+  \item{}{\code{segment2(object, pos, chrom, id=NULL, featureNames,
+segmentParents=TRUE, verbose=TRUE, ...)}: \code{pos} is a vector of the
+genomic positions (integers) for each row in the \code{object} matrix.
+Similarly, \code{chrom} and \code{featureNames} are vectors specifying
+the chromosome (\code{integer}) and feature identifiers
+(\code{character}) for each row in the \code{object} matrix,
+respectively. Note: \code{pos}, \code{chrom}, and \code{featureNames}
+must be vectors of the same size.}
+
 }
-
-\arguments{
-  \item{object}{A \code{list}, \code{matrix}, \code{array},
-    \code{ff_matrix}, or \code{ff_array}.  If \code{object} is a
-    \code{list}, the elements of the list must be one of the above
-    classes. }
-
-  \item{pos}{If \code{object} is a \code{list}, \code{pos} must also be
-    a \code{list}.  Otherwise, \code{pos} must be an \code{integer}
-    vector.}
-
-  \item{chrom}{If \code{object} is a \code{list}, \code{chrom} must also be
-    a \code{list}.  Otherwise, \code{chrom} must be an \code{integer}
-    vector.}
-
-  \item{id}{data.frame containing trio ids. The \code{id} argument is
-    ignored, unless \code{object} is of class \code{array}.  See
-    details.}
-
-  \item{featureNames}{\code{list} or \code{vector} of feature names}
-
-  \item{\dots}{Additional arguments passed to \code{segment} function in
-    the \code{DNAcopy} package.}
-
 }
 
 \details{
@@ -67,23 +89,9 @@ segment2(object, pos, chrom, id=NULL, featureNames, ...)
 
 \dontrun{ ## examples are checked in the vignette
 data(trioSetListExample)
-## segment the log R ratios for father mother and offspring
-rd <- segment2(lrr(trioSetList),
-	       pos=position(trioSetList),
-	       chrom=chromosome(trioSetList),
-	       id=trios(trioSetList),
-               featureNames=featureNames(trioSetList),
-               verbose=0)
-
-## segment the minimum distance
-md <- calculateMindist(trioSetList)
-
-md.segs <- segment2(md,
-		    pos=position(trioSetList),
-		    chrom=chromosome(trioSetList),
-		    id=sampleNames(trioSetList),
-		    featureNames=featureNames(trioSetList),
-		    verbose=0)
+mdlist <- calculateMindist(lrr(trioSetList))
+md.segs <- segment2(trioSetList, md=mdlist)
+lrr.segs <- segment2(trioSetList, segmentParents=FALSE)
 }
 
 }

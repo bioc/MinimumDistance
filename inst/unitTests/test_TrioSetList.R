@@ -86,6 +86,35 @@ test_TrioSetList_construction <- function(){
 	checkIdentical(as.integer(dim(triosubset)), c(5L, 2L, 3L))
 	triosubset <- trioSet[, 1]
 	checkIdentical(as.integer(dim(triosubset)), c(25L, 1L, 3L))
+
+}
+
+
+
+test_TrioSetListLD <- function(){
+	## constructor for large data
+	path <- system.file("extdata", package="MinimumDistance")
+	fnames <- list.files(path, pattern=".txt")
+	##allow duplicated father and mother names
+	ped <- Pedigree(data.frame(F=c("F.txt", "F.txt"),
+				   M=c("M.txt", "M.txt"),
+				   O=c("O.txt", "O1.txt")))
+	trioSetList <- TrioSetListLD(path=path,
+				     fnames=fnames,
+				     pedigreeData=ped,
+				     annotationPkg="human610quadv1bCrlmm")
+	checkTrue(validObject(trioSetList))
+	checkTrue(is(lrr(trioSetList)[[1]], "array"))
+
+	library(ff)
+	ldPath(tempdir())
+	trioSetListff <- TrioSetListLD(path=path,
+				       fnames=fnames,
+				       pedigreeData=ped,
+				       annotationPkg="human610quadv1bCrlmm")
+	checkTrue(validObject(trioSetListff))
+	checkTrue(is(lrr(trioSetListff)[[1]], "ff_array"))
+	checkTrue(identical(lrr(trioSetListff)[[1]][,,], lrr(trioSetList)[[1]]))
 }
 
 

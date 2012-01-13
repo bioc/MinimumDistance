@@ -4,68 +4,91 @@
 ##
 ##---------------------------------------------------------------------------
 setMethod("mad2", signature(object="list"),
-	  function(object, byrow, ...){
-		  is.matrix <- is(object[[1]], "matrix") || is(object[[1]], "ff_matrix")
-		  is.array <- class(object[[1]])=="array" || is(object[[1]], "ff_array")
-		  ##is.matrix <- is(object[[1]], "matrix")
-		  ##is.array <- is(object[[1]], "array")
-		  stopifnot(is.matrix || is.array)
-		  if(!byrow){ ## by column
-			  if(is.matrix){
-				  mads <- rep(NA, ncol(object[[1]]))
-				  names(mads) <- colnames(object[[1]])
-				  ## to avoid memory problems
-				  ilist <- splitIndicesByLength(seq_len(ncol(object[[1]])), 100)
-				  for(i in seq_along(ilist)){
-					  index <- ilist[[i]]
-					  X <- stackListByColIndex(object, index)
-					  mads[index] <- apply(X, 2, mad, na.rm=TRUE)
-				  }
-			  } else {
-				  J <- dim(object[[1]])[[3]]
-				  mads <- matrix(NA, ncol(object[[1]]), 3)
-				  colnames(mads) <- c("F", "M", "O")
-				  rownames(mads) <- colnames(object[[1]])
-				  ## to avoid memory problems
-				  ilist <- splitIndicesByLength(seq_len(ncol(object[[1]])), 100)
-				  for(i in seq_along(ilist)){
-					  index <- ilist[[i]]
-					  for(j in seq_len(J)){
-						  X <- stackListByColIndex(object, index, j)
-							  mads[index, j] <- apply(X, 2, mad, na.rm=TRUE)
-					  }
-				  }
-			  }
-		  } else {
-			  mads <- vector("list", length(object))
-			  if(is.matrix){
-				  for(i in seq_along(object)){
-					  ##j <- indexlist[[i]]
-					  mads[[i]] <- rowMAD(object[[i]], na.rm=TRUE)
-					  rownames(mads[[i]]) <- rownames(object[[i]])
-				  }
-			  } else {
-				  J <- dim(object[[1]])[[3]]
-				  ##mads <- matrix(NA, nr, 3)
-				  ##dimnames(mads) <- list(fns, c("F", "M", "O"))
-				  if(ncol(object[[1]]) > 2){
-					  for(i in seq_along(object)){
-						  mads[[i]] <- matrix(NA, nrow(object[[i]]), 3)
-						  dimnames(mads[[i]]) <- list(rownames(object[[i]]),
-									      c("F","M", "O"))
-						  for(j in seq_len(J)){
-							  mads[[i]][, j] <- rowMAD(object[[i]][, ,j], na.rm=TRUE)
-						  }
-					  }
-				  } else {
-					  ##only 1 or two trios.
-					  ##message("Fewer than 2 trios. Can not estimate the standard deviation of the log R ratios across independent subjects")
-					  mads <- NULL
-				  }
-			  }
-		  }
-		  return(mads)
+	  function(object, byrow, pedigree, ...){
+		  madList(object, byrow, pedigree, ...)
 	  })
+
+madList <- function(object, byrow, pedigree, ...){
+	dims <- dim(object[[1]])
+	if(length(dims) != 2 && length(dims) != 3)
+		stop("Elements of list must be a matrix or an array")
+	isff <- is(object[[1]], "ff")
+	if(isff){
+		lapply(object, open)
+	}
+	is.matrix <- ifelse(length(dims) == 2, TRUE, FALSE)
+	if(!byrow){ ## by column
+		if(is.matrix){
+			mads <- madFromMatrixList(object, byrow=FALSE)
+		} else { ## array
+			## for parallelization, it would be better to
+			## pass the ff object to the worker nodes,
+			## calculate the mad, and return the mad.
+			F <- lapply(object, function(x) as.matrix(x[, , 1]))
+			M <- lapply(object, function(x) as.matrix(x[, , 2]))
+			O <- lapply(object, function(x) as.matrix(x[, , 3]))
+			mads.father <- madFromMatrixList(F, byrow=FALSE)
+			mads.mother <- madFromMatrixList(M, byrow=FALSE)
+			mads.offspr <- madFromMatrixList(O, byrow=FALSE)
+			mads <- cbind(mads.father, mads.mother, mads.offspr)
+			colnames(mads) <- c("F", "M", "O")
+		}
+	} else {## by row
+		if(is.matrix){
+			mads <- madFromMatrixList(object, byrow=FALSE)
+		} else {
+			if(ncol(object[[1]]) > 2){
+			## for parallelization, it would be better to
+			## pass the ff object to the worker nodes,
+			## calculate the mad, and return the mad.
+				stopifnot(!missing(pedigree))
+				colindex <- which(!duplicated(fatherNames(pedigree)) & !duplicated(motherNames(pedigree)))
+				##mindex <- which(!duplicated(motherNames(pedigree)))
+				##F <- lapply(object, function(x) x[, findex, 1])
+				##M <- lapply(object, function(x) x[, mindex, 2])
+				O <- lapply(object, function(x) as.matrix(x[, colindex, 3]))
+				##mads.f <- madFromMatrixList(F, byrow=TRUE)
+				##mads.m <- madFromMatrixList(M, byrow=TRUE)
+				mads <- madFromMatrixList(O, byrow=TRUE)
+				names(mads) <- names(object)
+				##mads <- cbind(mads.f, mads.m, mads.o)
+				##colnames(mads) <- c("F", "M", "O")
+			} else mads <- NULL
+		}
+	}
+	if(isff) lapply(object, close)
+	return(mads)
+}
+
+
+madFromMatrixList <- function(object, byrow=TRUE){
+	if(!byrow){
+		## this could be done more efficiently by following the
+		## apply example in the foreach documentation...
+		ilist <- splitIndicesByLength(seq_len(ncol(object[[1]])), 100)
+		ispar <- !is.null(getCluster())
+		if(ispar){
+			Xlist <- foreach(i=ilist, .packages="MinimumDistance") %dopar% MinimumDistance:::stackListByColIndex(object, i)
+			mads <- foreach(i = Xlist, .packages="MinimumDistance") %dopar% apply(i, 2, mad, na.rm=TRUE)
+		} else {
+			Xlist <- foreach(i=ilist, .packages="MinimumDistance") %do% MinimumDistance:::stackListByColIndex(object, i)
+			mads <- foreach(i = Xlist, .packages="MinimumDistance") %do% apply(i, 2, mad, na.rm=TRUE)
+		}
+		mads <- unlist(mads)
+		names(mads) <- colnames(object[[1]])
+		mads
+	} else {
+		mads <- foreach(x = object, .packages="MinimumDistance") %do% VanillaICE:::rowMAD(x, na.rm=TRUE)
+		if(!is.null(rownames(object[[1]]))){
+			labelrows <- function(x, fns) {
+				rownames(x) <- fns
+				return(x)
+			}
+			mads <- foreach(x=mads, fns=lapply(object, rownames)) %do% labelrows(x=x, fns=fns)
+		}
+	}
+	return(mads)
+}
 
 ##---------------------------------------------------------------------------
 ##

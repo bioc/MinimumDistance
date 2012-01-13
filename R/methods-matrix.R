@@ -1,12 +1,29 @@
-setMethod("calculateMindist", signature(object="array"),
+setMethod("calculateMindist", signature(object="arrayORff_array"),
 	  function(object, ...){
 		  ##stopifnot(ncol(object)==3)
-		  d1 <- object[, , "O"] - object[, , "F"]
-		  d2 <- object[, , "O"] - object[, , "M"]
-		  I <- as.numeric(abs(d1) <= abs(d2))
-		  md <- I*d1 + (1-I)*d2
-		  md <- as.matrix(md)
-		  colnames(md) <- colnames(object)
+		  isff <- is(object, "ff")
+		  if(isff){
+			  require("ff")
+			  ## so that the worker nodes put the ff objects in the same directory
+			  if("ldpath" %in% names(list(...))){
+				  ldPath(list(...)[["ldpath"]])
+			  }
+			  md <- initializeBigMatrix("mindist", nr=nrow(object), nc=ncol(object), vmode="double")
+			  for(j in seq_len(ncol(object))){
+				  d1 <- object[, j, 3] - object[, j, 1]
+				  d2 <- object[, j, 3] - object[, j, 1]
+				  I <- as.numeric(abs(d1) <= abs(d2))
+				  md[, j] <- I*d1 + (1-I)*d2
+			  }
+			  colnames(md) <- colnames(object)
+		  } else {
+			  d1 <- object[, , 3] - object[, , 1]
+			  d2 <- object[, , 3] - object[, , 1]
+			  I <- as.numeric(abs(d1) <= abs(d2))
+			  md <- I*d1 + (1-I)*d2
+			  md <- as.matrix(md)
+			  colnames(md) <- colnames(object)
+		  }
 		  return(md)
 	  })
 

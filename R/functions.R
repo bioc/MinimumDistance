@@ -20,9 +20,11 @@ catFun2 <- function(rd.query, rd.subject, ...){
 }
 
 splitByDistance <- function(x, thr=90e3){
+	if(all(diff(x) < thr)) return(rep(0, length(x)))
 	f <- c(0, cumsum(diff(x) > thr))
 	tab.f <- table(f)
-	while(any(tab.f < 1000)){
+	## combine regions if number of markers is very small
+	while(any(tab.f < 1000) & length(x) > 1000){
 		j <- which(tab.f < 1000)[[1]]
 		factor.val <- as.integer(names(tab.f)[j])
 		if(factor.val < max(f)){
@@ -799,48 +801,45 @@ joint1 <- function(LLT, ##object,
 
 joint4 <- function(id,
 		   trioSet,
-		   pedigreeData,
 		   ranges,
 		   mad.marker,
+		   mad.sample,
 		   a=0.0009,
 		   prob.nonMendelian=1.5e-6,
 		   returnEmission=FALSE,
+		   ntrios,
 		   ...){## all the ranges from one subject , one chromosome
 	if(missing(id)) id <- sampleNames(trioSet)[1]
 	ranges <- ranges[sampleNames(ranges) == id, ]
-##	object <- computeLoglik(id,
-##				trioSet=trioSet,
-##				ranges=ranges,
-##				pedigreeData=pedigreeData,
-##				sds.marker=mad.marker, ...)
 	is.snp <- isSnp(trioSet)
 	stopifnot(ncol(trioSet)==1)
 	if(is.null(mad.marker)){
+		sds <- matrix(mad.sample, nrow(trioSet), 3, byrow=TRUE)
 		lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
+						    cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
+						    stdev=sds,
+						    is.log=TRUE,
+						    is.snp=is.snp,
+						    normalIndex=3)
+	} else{
+		mad.sample <- matrix(mad.sample, length(mad.marker), 3)
+		gammas <- matrix(mad.marker/median(mad.marker, na.rm=TRUE), length(mad.marker), 3, byrow=FALSE)
+		df0 <- 20
+		gammas.n <- (df0 + (ntrios-1)*gammas)/(df0 + ntrios-1)
+		gammas.n[is.na(gammas.n)] <- 1
+		sds <- mad.sample*gammas
+		lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
+						    stdev=sds,
 						    cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
 						    is.log=TRUE,
 						    is.snp=is.snp,
 						    normalIndex=3)
-##		index <- matchMatrix(findOverlaps(rd.denovoDel, featureData(trioSet)))[, 2]
-##		tmp <- cbind(lrr(trioSet)[index, 1, 3], round(lrr.emit[index, 3,  ], 2))
-##		rownames(tmp) <- NULL
-	} else{
-		lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
-				       stdev=mad.marker,
-				       cnStates=1:6,
-				       is.log=TRUE,
-				       is.snp=is.snp,
-				       normalIndex=3)
-
 	}
 	baf.emit <- VanillaICE:::bafEmission(baf(trioSet)[, 1, ],
 					     is.snp=is.snp,
 					     prOutlier=1e-3,
 					     p.hom=0.95)
-##	tmp <- cbind(baf(trioSet)[index, 1, 3], round(lrr.emit[index, 3,  ], 2))
-##	rownames(tmp) <- NULL
 	lemit <- lrr.emit+baf.emit
-##	if(returnEmission) return(object)
 	trio.states <- trioStates(0:4)
 	tmp <- rep(NA, nrow(trio.states))
 	state.prev <- NULL
@@ -1235,22 +1234,16 @@ callDenovoSegments <- function(path="",
 	}
 	md <- calculateMindist(lrr(trioSetList), verbose=verbose)
 	mads.md <- mad2(md, byrow=FALSE)
-	##mad.mindist(trioSetList) <- mads.md
 	mads.lrr.sample <- mad2(lrr(trioSetList), byrow=FALSE)
-	##trace(mad2, browser, signature="list")
 	mads.lrr.marker <- mad2(lrr(trioSetList), byrow=TRUE)
-	##mad.sample(trioSetList) <- mads.lrr.sample
-	##mad(trioSetList)
-	##mad.marker(trioSetList) <- mads.lrr.marker
 	fns <- featureNames(trioSetList)
 	md.segs <- segment2(object=md,
 			    pos=position(trioSetList),
-			    chrom=as.list(chromosome(trioSetList)),
+			    chrom=chromosome(trioSetList, as.list=TRUE),
 			    verbose=verbose,
 			    id=offspringNames(trioSetList),
 			    featureNames=fns,
 			    ...)
-	##lrrs <- lrr(trioSetList)
 	if(!segmentParents){
 		## when segmenting only the offspring,
 		## the trio names are the same as the sampleNames
@@ -1269,14 +1262,100 @@ callDenovoSegments <- function(path="",
 	pos <- position(trioSetList)
 	lrr.segs <- segment2(object=lrrs,
 			     pos=position(trioSetList),
-			     chrom=as.list(chromosome(trioSetList)),
+			     chrom=chromosome(trioSetList, as.list=TRUE),
 			     id=id, ## NULL if segmentParents is FALSE
 			     verbose=verbose,
 			     featureNames=fns, ...)
 	md.segs2 <- narrow(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md)
-	map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2,
-				       verbose=verbose,
-				       mad.marker=mads.lrr.marker,
-				       mad.sample=mads.lrr.sample)
+	index <- split(seq_len(nrow(md.segs2)), chromosome(md.segs2))
+	index <- index[match(chromosome(trioSetList), names(index))]
+	stopifnot(identical(as.character(chromosome(trioSetList)), names(index)))
+	if(!is.null(getCluster())){
+		if(!is.null(mads.lrr.marker)){
+			map.segs <- foreach(object=trioSetList,
+					    i=index,
+					    mad.marker=mads.lrr.marker,
+					    .inorder=FALSE,
+					    .combine=stackRangedDataList,
+					    .packages="MinimumDistance") %dopar% {
+						    computeBayesFactor(object=object,
+								       ranges=md.segs2[i, ],
+								       pedigreeData=pedigree(trioSetList),
+								       mad.marker=mad.marker,
+								       mad.sample=mads.lrr.sample)
+					    }
+		} else {
+			map.segs <- foreach(object=trioSetList,
+					    i=index,
+					    .inorder=FALSE,
+					    .combine=stackRangedDataList,
+					    .packages="MinimumDistance") %dopar% {
+						    computeBayesFactor(object=object,
+								       ranges=md.segs2[i, ],
+								       pedigreeData=pedigree(trioSetList),
+								       mad.marker=NULL,
+								       mad.sample=mads.lrr.sample)
+					    }
+		}
+	} else {
+		if(!is.null(mads.lrr.marker)){
+			map.segs <- foreach(object=trioSetList,
+					    i=index,
+					    mad.marker=mads.lrr.marker,
+					    .inorder=FALSE,
+					    .combine=stackRangedDataList,
+					    .packages="MinimumDistance") %do% {
+						    computeBayesFactor(object=object,
+								       ranges=md.segs2[i, ],
+								       pedigreeData=pedigree(trioSetList),
+								       mad.marker=mad.marker,
+								       mad.sample=mads.lrr.sample)
+					    }
+		} else {
+			map.segs <- foreach(object=trioSetList,
+					    i=index,
+					    .inorder=FALSE,
+					    .combine=stackRangedDataList,
+					    .packages="MinimumDistance") %do% {
+						    computeBayesFactor(object=object,
+								       ranges=md.segs2[i, ],
+								       pedigreeData=pedigree(trioSetList),
+								       mad.marker=NULL,
+								       mad.sample=mads.lrr.sample)
+					    }
+		}
+	}
 	return(map.segs)
+}
+
+make.unique2 <- function(names, sep="___DUP") make.unique(names, sep)
+originalNames <- function(names){
+	sep <- formals(make.unique2)[["sep"]]
+	index <- grep(sep, names)
+	if(length(index) > 0){
+		names[index] <- sapply(names[index], function(x) strsplit(x, sep)[[1]][[1]])
+	}
+	names
+}
+
+read.bsfiles2 <- function(..., sampleNames, z, index, lrrlist, baflist){
+	dat <- read.bsfiles(...)
+	if(isPackageLoaded("ff")){
+		l <- match(sampleNames, colnames(baflist[[1]]))
+		for(j in seq_along(index)){
+			k <- index[[j]]
+			baflist[[j]][, l, z] <- dat[k, 2, ]
+			lrrlist[[j]][, l, z] <- dat[k, 1, ]
+		}
+		return(TRUE)
+	} else {
+		colnames(dat) <- sampleNames
+		return(dat)
+	}
+}
+
+stackRangedDataList <- function(...) {
+	object <- stack(RangedDataList(...))
+	j <- match("sample", colnames(object))
+	if(is.na(j))  object else object[, -j]
 }

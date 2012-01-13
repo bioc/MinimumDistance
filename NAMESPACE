@@ -35,7 +35,7 @@ importFrom(IRanges, IRanges, RangedData, RangedDataList,
 
 ## oligoClasses
 importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
-importMethodsFrom(oligoClasses, state, coverage2, chromosome, openff, closeff, mean,
+importMethodsFrom(oligoClasses, state, coverage2, chromosome, open, openff, closeff, mean,
 		  GenomeAnnotatedDataFrameFrom)
 importFrom(oligoClasses, baf, lrr, RangedDataCNV, RangedDataCBS, RangedDataHMM)
 
@@ -48,6 +48,10 @@ importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 ## VanillaICE
 importMethodsFrom(VanillaICE, xyplot, xyplot2)
 importFrom(VanillaICE, read.bsfiles)
+
+## ff
+import(ff)
+
 
 ## -----------------------------------------------------------------
 ## Export
@@ -75,6 +79,7 @@ exportMethods("[", allNames,
 	      offspringPhenoData,
 	      order,
 	      pedigree,
+	      ##sampleNames2,
 	      segment2,
 	      stack,
 	      trios,
@@ -86,11 +91,13 @@ export(callDenovoSegments,
        concAtTop,
        TrioSet,
        TrioSetList,
+       TrioSetListLD,
        correspondingCall,
        discAtTop,
        isDenovo,
        narrow,
        Pedigree,
+       stackRangedDataList,
        xyplot,
        xypanelMD)
 

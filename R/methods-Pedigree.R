@@ -78,7 +78,7 @@ Pedigree <- function(pedigreeInfo,
 	pedigreeIndex <- data.frame(individualId=allIds,
 				    memberId=memberId,
 				    index.in.pedigree=trio.index,
-				    stringsAsFactors=FALSE)
+			    stringsAsFactors=FALSE)
 	rownames(pedigreeIndex) <- NULL
 	new("Pedigree", trios=trios, trioIndex=pedigreeIndex)
 }
@@ -113,7 +113,8 @@ setMethod("[", signature(x="Pedigree"),
 		  } else {
 			  x@trios <- trios(x)[i, ]
 			  sns <- unlist(trios(x))
-			  x@trioIndex <- trioIndex(x)[match(sns, allNames(x)), ]
+			  x@trioIndex <- trioIndex(x)[match(sns, trioIndex(x)$individualId), ]
+			  ##x@trioIndex <- trioIndex(x)[match(sns, allNames(x)), ]
 		  }
 		  return(x)
 	  })
@@ -134,6 +135,7 @@ setMethod("annotatedDataFrameFrom", signature(object="Pedigree", byrow="logical"
 				offspring=offspringNames(object),
 				father=fatherNames(object),
 				mother=motherNames(object))
+		  nms <- make.unique2(nms)
 		  if(missing(sample.sheet)){
 			  n <- length(nms)
 			  data <- data.frame(numeric(n), row.names = nms)[, FALSE]
@@ -143,8 +145,8 @@ setMethod("annotatedDataFrameFrom", signature(object="Pedigree", byrow="logical"
 			  if(is.null(row.names)){
 				  stop("sample.sheet is not missing, but row.names not specified")
 			  } else{
-				  stopifnot(nms %in% row.names)
-				  index <- match(nms, row.names)
+				  stopifnot(originalNames(nms) %in% row.names)
+				  index <- match(originalNames(nms), row.names)
 				  data <- sample.sheet[index, ]
 				  rownames(data) <- nms
 				  dimLabels <-  c("sampleNames", "sampleColumns")
@@ -153,4 +155,7 @@ setMethod("annotatedDataFrameFrom", signature(object="Pedigree", byrow="logical"
 		  }
 		  return(phenoData)
 	  })
+
+
+
 

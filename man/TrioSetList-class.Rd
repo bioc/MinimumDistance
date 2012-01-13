@@ -10,6 +10,7 @@
 \alias{annotation,TrioSetList-method}
 \alias{baf,TrioSetList-method}
 \alias{baf}
+%\alias{calculateMindist,TrioSetList-method}
 \alias{computeBayesFactor,TrioSetList,RangedDataCNV-method}
 \alias{dims,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}
@@ -224,6 +225,16 @@
     \item{}{\code{stack(object)}: creates a \code{TrioSet} object from a
       \code{TrioSetList} object. }
   }
+}
+
+\section{Compute the minimum distance}{
+  \describe{
+    \item{}{\code{calculateMindist(object)}: Compute the minimum distance
+  from the list of log R ratio arrays.  Returns a list of matrices of
+  the minimum distance; each element in the list is the minimum distance
+  for one chromosome. }
+
+}
 }
 
 \section{Posterior summaries}{
