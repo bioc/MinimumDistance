@@ -2,6 +2,9 @@ setOldClass("ff_array")
 setOldClass("ff_matrix")
 setClass("LogRratioSet", contains="eSet")
 setClassUnion("matrixOrNULL", c("matrix", "NULL"))
+#~~ inserted by sgy 1/24/12 ~~~~~~~~~~~~~~~~~~~~~~
+setClassUnion("arrayORff_array", c("array", "ff_array"))
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 setClass("Pedigree", representation(trios="data.frame", trioIndex="data.frame"))
 setValidity("Pedigree", function(object){
 	msg <- validPedigree(object)
