@@ -19,12 +19,15 @@ setMethod("GenomeAnnotatedDataFrameFrom", signature(object="array"),
 
 GenomeAnnotatedDataFrameFromArray <- function(object, annotationPkg){
 	## coerce to matrix
-	if(nrow(object) > 1 & ncol(object) > 1){
-		oligoClasses:::GenomeAnnotatedDataFrameFromMatrix(object[, , 1], annotationPkg)
+	dims <- dim(object)
+	is.array <- length(dims) == 3
+	if(is.array){
+		res <- oligoClasses:::GenomeAnnotatedDataFrameFromMatrix(object[, , 1], annotationPkg)
 	} else {
-		dim(object) <- dim(object)[c(1,2)]
-		oligoClasses:::GenomeAnnotatedDataFrameFromMatrix(object, annotationPkg)
+		##dim(object) <- dim(object)[c(1,2)]
+		res <- oligoClasses:::GenomeAnnotatedDataFrameFromMatrix(object, annotationPkg)
 	}
+	res
 }
 
 setMethod("GenomeAnnotatedDataFrameFrom", signature(object="character"),

@@ -1359,3 +1359,16 @@ stackRangedDataList <- function(...) {
 	j <- match("sample", colnames(object))
 	if(is.na(j))  object else object[, -j]
 }
+
+##inferMissingRanges <- function(start, end){
+##}
+##
+##inferNormalRangesFromPenn <- function(penn.object, vi.object){
+##	chr <- chromosome(penn.object)
+##	starts <- split(start(penn.object), chr)
+##	ends <- split(end(penn.object), chr)
+##	foreach(start=starts, end=ends) %do% inferMissingRanges(start=start,
+##			      end=end)
+##}
+
+

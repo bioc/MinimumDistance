@@ -177,6 +177,10 @@ TrioSetList <- function(chromosome=integer(),
 	}
 	ad <- AssayDataList(logRRatio=lrrlist,
 			    BAF=baflist)
+	tmp=trios(pedigreeData)
+	tmp$F=make.unique2(tmp$F)
+	tmp$M=make.unique2(tmp$M)
+	pedigreeData@trios=tmp
 	object <- new("TrioSetList", assayDataList=ad,
 		      featureDataList=fdlist,
 		      chromosome=chromosome,

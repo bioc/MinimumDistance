@@ -167,6 +167,10 @@ TrioSet <- function(pedigreeData=Pedigree(),
 			motherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="mother")
 		}
 	}
+	tmp=trios(pedigreeData)
+	tmp$F=make.unique2(tmp$F)
+	tmp$M=make.unique2(tmp$M)
+	pedigreeData@trios=tmp
 	object <- new("TrioSet",
 		      BAF=bafArray,
 		      logRRatio=logRArray,
