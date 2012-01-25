@@ -495,21 +495,6 @@ LikSet <- function(trioSet, pedigreeData, id, CHR, ranges){
 	return(object)
 }
 
-##shrinkTo <- function(x, x.0, DF.PRIOR){
-##	DF <- ncol(x)-1
-##	DF <- Ns-1
-##	DF[DF < 1] <- 1
-##	x.0 <- apply(x, 2, median, na.rm=TRUE)
-##	x <- (x*DF + x.0*DF.PRIOR)/(DF.PRIOR + DF)
-##	for(j in 1:ncol(x)) x[is.na(x[, j]), j] <- x.0[j]
-##	return(x)
-##}
-
-
-##dna <- function(object) harmonizeDnaLabels(phenoData2(object[[1]])[, "DNA.Source", ])
-##plate <- function(object) phenoData2(object[[1]])[, "Sample.Plate", ]
-
-
 fillInMissing <- function(rangeIndex){
 	if(!any(is.na(rangeIndex))) return(rangeIndex)
 	if(sum(is.na(rangeIndex)) > 1000 & length(unique(rangeIndex[!is.na(rangeIndex)])) == 1){
@@ -610,13 +595,6 @@ lookUpTable1 <- function(table1, state){
 		return(table1[state[1], state[2], state[3]])
 	}
 }
-
-##readTable3 <- function(a=0.009){
-##	## initialize with small value to avoid -Inf
-##	results <- .C("calculateCHIT", a=a, M=array(0, dim=c(rep(5,6))))$M
-##	## Make sure to transpose!
-##	aperm(results)
-##}
 
 lookUpTable3 <- function(table3, state.prev, state.curr){
 	f1 <- state.prev[1]
@@ -1140,66 +1118,6 @@ stackListByColIndex <- function(object, i, j){
 	return(X)
 }
 
-
-##arrangeSideBySide2 <- function(object1, object2){
-##	grid.newpage()
-##	lvp <- viewport(x=0,
-##			y=0.05,
-##			width=unit(0.50, "npc"),
-##			height=unit(0.95, "npc"), just=c("left", "bottom"),
-##			name="lvp")
-##	pushViewport(lvp)
-##	nfigs1 <- length(object1$condlevels[[1]])
-##	nfigs2 <- length(object2$condlevels[[1]])
-##	stopifnot(length(nfigs1) == length(nfigs2))
-##	pushViewport(dataViewport(xscale=c(0,1), yscale=c(0.05,1), clip="on"))
-##	object1$layout <- c(1, nfigs1)
-##	print(object1, newpage=FALSE, prefix="plot1", more=TRUE)
-##	upViewport(0)
-##	lvp2 <- viewport(x=0.5,
-##			 y=0.25,
-##			 width=unit(0.50, "npc"),
-##			 height=unit(0.95, "npc"), just=c("left", "bottom"),
-##			 name="lvp2")
-##	pushViewport(lvp2)
-##	pushViewport(dataViewport(xscale=c(0,1), yscale=c(0.05,1), clip="on"))
-##	object2$layout <- c(1, nfigs1)
-##	print(object2, newpage=FALSE, prefix="plot2", more=TRUE)
-##}
-
-
-##read.bsfiles <- function(path="./", filenames, ext="", row.names=1,
-##			 sep="\t",
-##			 as.is=TRUE, header=TRUE,
-##			 drop=FALSE, ...){
-##	fnames <- file.path(path, paste(filenames, ext, sep=""))
-##	stopifnot(all(file.exists(fnames)))
-##	for(i in seq_along(filenames)){
-##		cat(".")
-##		tmp <- read.table(file.path(path, paste(filenames[i], ext, sep="")),
-##				  row.names=row.names,
-##				  sep=sep,
-##				  header=header,
-##				  as.is=as.is, ...)
-##		if(i==1){
-##			j <- grep("Log.R.Ratio", colnames(tmp))
-##			k <- grep("B.Allele", colnames(tmp))
-##			dat <- array(NA, dim=c(nrow(tmp), 2, length(filenames)))
-##			if(!drop){
-##				dimnames(dat) <- list(rownames(tmp),
-##						      c("lrr", "baf"),
-##						      basename(filenames))
-##			}
-##			##lrr.data <- matrix(NA, nrow(tmp), length(filenames))
-##			##baf.data <- matrix(NA, nrow(tmp), length(filenames))
-##		}
-##		dat[, 1, i] <- tmp[, j]
-##		dat[, 2, i] <- tmp[, k]
-##	}
-##	cat("\n")
-##	return(dat)
-##}
-
 callDenovoSegments <- function(path="",
 			       pedigreeData,
 			       ext="",
@@ -1359,7 +1277,9 @@ stackRangedDataList <- function(...) {
 	j <- match("sample", colnames(object))
 	if(is.na(j))  object else object[, -j]
 }
-
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~ The rest is old code that has been commented out.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##inferMissingRanges <- function(start, end){
 ##}
 ##
@@ -1372,3 +1292,82 @@ stackRangedDataList <- function(...) {
 ##}
 
 
+##shrinkTo <- function(x, x.0, DF.PRIOR){
+##	DF <- ncol(x)-1
+##	DF <- Ns-1
+##	DF[DF < 1] <- 1
+##	x.0 <- apply(x, 2, median, na.rm=TRUE)
+##	x <- (x*DF + x.0*DF.PRIOR)/(DF.PRIOR + DF)
+##	for(j in 1:ncol(x)) x[is.na(x[, j]), j] <- x.0[j]
+##	return(x)
+##}
+
+
+##dna <- function(object) harmonizeDnaLabels(phenoData2(object[[1]])[, "DNA.Source", ])
+##plate <- function(object) phenoData2(object[[1]])[, "Sample.Plate", ]
+
+##readTable3 <- function(a=0.009){
+##	## initialize with small value to avoid -Inf
+##	results <- .C("calculateCHIT", a=a, M=array(0, dim=c(rep(5,6))))$M
+##	## Make sure to transpose!
+##	aperm(results)
+##}
+
+##arrangeSideBySide2 <- function(object1, object2){
+##	grid.newpage()
+##	lvp <- viewport(x=0,
+##			y=0.05,
+##			width=unit(0.50, "npc"),
+##			height=unit(0.95, "npc"), just=c("left", "bottom"),
+##			name="lvp")
+##	pushViewport(lvp)
+##	nfigs1 <- length(object1$condlevels[[1]])
+##	nfigs2 <- length(object2$condlevels[[1]])
+##	stopifnot(length(nfigs1) == length(nfigs2))
+##	pushViewport(dataViewport(xscale=c(0,1), yscale=c(0.05,1), clip="on"))
+##	object1$layout <- c(1, nfigs1)
+##	print(object1, newpage=FALSE, prefix="plot1", more=TRUE)
+##	upViewport(0)
+##	lvp2 <- viewport(x=0.5,
+v##			 y=0.25,
+##			 width=unit(0.50, "npc"),
+##			 height=unit(0.95, "npc"), just=c("left", "bottom"),
+##			 name="lvp2")
+##	pushViewport(lvp2)
+##	pushViewport(dataViewport(xscale=c(0,1), yscale=c(0.05,1), clip="on"))
+##	object2$layout <- c(1, nfigs1)
+##	print(object2, newpage=FALSE, prefix="plot2", more=TRUE)
+##}
+
+
+##read.bsfiles <- function(path="./", filenames, ext="", row.names=1,
+##			 sep="\t",
+##			 as.is=TRUE, header=TRUE,
+##			 drop=FALSE, ...){
+##	fnames <- file.path(path, paste(filenames, ext, sep=""))
+##	stopifnot(all(file.exists(fnames)))
+##	for(i in seq_along(filenames)){
+##		cat(".")
+##		tmp <- read.table(file.path(path, paste(filenames[i], ext, sep="")),
+##				  row.names=row.names,
+##				  sep=sep,
+##				  header=header,
+##				  as.is=as.is, ...)
+##		if(i==1){
+##			j <- grep("Log.R.Ratio", colnames(tmp))
+##			k <- grep("B.Allele", colnames(tmp))
+##			dat <- array(NA, dim=c(nrow(tmp), 2, length(filenames)))
+##			if(!drop){
+##				dimnames(dat) <- list(rownames(tmp),
+##						      c("lrr", "baf"),
+##						      basename(filenames))
+##			}
+##			##lrr.data <- matrix(NA, nrow(tmp), length(filenames))
+##			##baf.data <- matrix(NA, nrow(tmp), length(filenames))
+##		}
+##		dat[, 1, i] <- tmp[, j]
+##		dat[, 2, i] <- tmp[, k]
+##	}
+##	cat("\n")
+##	return(dat)
+##}

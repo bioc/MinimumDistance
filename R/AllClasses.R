@@ -2,14 +2,22 @@ setOldClass("ff_array")
 setOldClass("ff_matrix")
 setClass("LogRratioSet", contains="eSet")
 setClassUnion("matrixOrNULL", c("matrix", "NULL"))
-#~~ inserted by sgy 1/24/12 ~~~~~~~~~~~~~~~~~~~~~~
 setClassUnion("arrayORff_array", c("array", "ff_array"))
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~ Pedigree Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 setClass("Pedigree", representation(trios="data.frame", trioIndex="data.frame"))
+
 setValidity("Pedigree", function(object){
 	msg <- validPedigree(object)
 	if(is.null(msg)) return(TRUE) else return(msg)
 })
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~ TrioSet Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 setClass("TrioSet", contains="gSet",
 	 representation(fatherPhenoData="AnnotatedDataFrame",
@@ -49,15 +57,9 @@ setValidity("TrioSet", function(object){
 	}
 })
 
-##setMethod("updateObject", signature(object="TrioSetList"),
-##          function(object, ..., verbose=FALSE) {
-##		  obj <- tryCatch(callNextMethod(), error=function(e) NULL)
-##		  if(is.null(obj)){
-##			  stop("updateObject failed")
-##		  }
-##		  return(object)
-##	  })
-
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~ TrioSetList Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 setClass("TrioSetList",
 	 representation(pedigree="Pedigree",
@@ -103,6 +105,3 @@ setValidity("TrioSetList", function(object){
 		}
 	}
 })
-
-
-
