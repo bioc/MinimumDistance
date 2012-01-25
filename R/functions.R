@@ -1329,7 +1329,7 @@ stackRangedDataList <- function(...) {
 ##	print(object1, newpage=FALSE, prefix="plot1", more=TRUE)
 ##	upViewport(0)
 ##	lvp2 <- viewport(x=0.5,
-v##			 y=0.25,
+##			 y=0.25,
 ##			 width=unit(0.50, "npc"),
 ##			 height=unit(0.95, "npc"), just=c("left", "bottom"),
 ##			 name="lvp2")
