@@ -14,6 +14,11 @@ setMethod("mad2", signature(object="matrix"),
 		  madList(list(object), byrow, pedigree, ...)
 	  })
 
+setMethod("mad2", signature(object="array"),
+	  function(object, byrow, pedigree, ...){
+		  madList(list(object), byrow, pedigree, ...)
+	  })
+
 madList <- function(object, byrow, pedigree, ...){
 	dims <- dim(object[[1]])
 	if(length(dims) != 2 && length(dims) != 3)
@@ -56,7 +61,7 @@ madList <- function(object, byrow, pedigree, ...){
 				##mads.f <- madFromMatrixList(F, byrow=TRUE)
 				##mads.m <- madFromMatrixList(M, byrow=TRUE)
 				mads <- madFromMatrixList(O, byrow=TRUE)
-				names(mads) <- names(object)
+				names(mads) <- names(object)                                
 				##mads <- cbind(mads.f, mads.m, mads.o)
 				##colnames(mads) <- c("F", "M", "O")
 			} else mads <- NULL
@@ -85,13 +90,13 @@ madFromMatrixList <- function(object, byrow=TRUE){
 		mads
 	} else {
 		mads <- foreach(x = object, .packages="MinimumDistance") %do% VanillaICE:::rowMAD(x, na.rm=TRUE)
-		if(!is.null(rownames(object[[1]]))){
+                if( !is.null(dim(mads[[1]])) & !is.null(rownames(object[[1]]))){
 			labelrows <- function(x, fns) {
 				rownames(x) <- fns
 				return(x)
 			}
 			mads <- foreach(x=mads, fns=lapply(object, rownames)) %do% labelrows(x=x, fns=fns)
-		}
+                }
 	}
 	return(mads)
 }
