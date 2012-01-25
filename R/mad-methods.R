@@ -3,9 +3,15 @@
 ## list
 ##
 ##---------------------------------------------------------------------------
+
 setMethod("mad2", signature(object="list"),
 	  function(object, byrow, pedigree, ...){
 		  madList(object, byrow, pedigree, ...)
+	  })
+
+setMethod("mad2", signature(object="matrix"),
+	  function(object, byrow, pedigree, ...){
+		  madList(list(object), byrow, pedigree, ...)
 	  })
 
 madList <- function(object, byrow, pedigree, ...){
