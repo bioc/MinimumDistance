@@ -217,7 +217,8 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
 	} else marker.index <- seq_len(nrow(object))
 	pos <- pos[marker.index]
 	chrom <- chrom[marker.index]
-	arm <- splitByDistance(pos, thr=75e3)
+	arm <- splitByDistance(pos, thr=25e6)
+#      	arm <- splitByDistance(pos, thr=75e3)
 	index.list <- split(seq_along(marker.index), arm)
 	iMax <- sapply(split(marker.index, arm), max)
 	pMax <- pos[iMax]
@@ -245,10 +246,10 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
 		j <- index.list[[i]]
 		CNA.object <- CNA(genomdat=object[j, , drop=FALSE],
 				  chrom=chrom[j],
-				  maploc=pos[j],
+				  maploc=as.numeric(pos[j]),
 				  data.type="logratio",
 				  sampleid=hash.matrix[, "key"])
-		smu.object <- smooth.CNA(CNA.object)
+                smu.object <- smooth.CNA(CNA.object)
 		tmp <- segment(smu.object, ...)
 		rm(smu.object); gc()
 		df <- tmp$output
