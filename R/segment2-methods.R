@@ -240,13 +240,13 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
 	rownames(object) <- featureNames
 	##
 	##
-	segs <- vector("list", length(index.list))
+	segs <- vector("list", length(index.list))        
 	for(i in seq_along(index.list)){
 		##if (verbose) setTxtProgressBar(pb, i)
 		j <- index.list[[i]]
 		CNA.object <- CNA(genomdat=object[j, , drop=FALSE],
 				  chrom=chrom[j],
-				  maploc=as.numeric(pos[j]),
+				  maploc=pos[j],
 				  data.type="logratio",
 				  sampleid=hash.matrix[, "key"])
                 smu.object <- smooth.CNA(CNA.object)
