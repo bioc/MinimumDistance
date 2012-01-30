@@ -800,8 +800,9 @@ joint4 <- function(id,
 						    is.snp=is.snp,
 						    normalIndex=3)
 	} else{
-		mad.sample <- matrix(mad.sample, length(mad.marker), 3)
-		gammas <- matrix(mad.marker/median(mad.marker, na.rm=TRUE), length(mad.marker), 3, byrow=FALSE)
+		mad.marker <- unlist(mad.marker)
+                mad.sample <- matrix(mad.sample, length(mad.marker), 3)
+                gammas <- matrix(mad.marker/median(mad.marker, na.rm=TRUE), length(mad.marker), 3, byrow=FALSE)
 		df0 <- 20
 		gammas.n <- (df0 + (ntrios-1)*gammas)/(df0 + ntrios-1)
 		gammas.n[is.na(gammas.n)] <- 1
