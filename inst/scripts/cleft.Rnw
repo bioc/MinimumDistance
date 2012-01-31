@@ -1,0 +1,176 @@
+%\VignetteIndexEntry{Workflow for a non-trivial collection of trios}
+%\VignetteDepends{VanillaICE, snow, doSNOW}
+%\VignetteKeywords{MinimumDistance, copy number, SNP, case-parent trios, de novo}
+%\VignettePackage{MinimumDistance}
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rcode}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textsf{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\R}{\textsf{R}}
+\newcommand{\md}{\Rpackage{MinimumDistance}}
+\newcommand{\F}{\mathrm{F}}
+\newcommand{\M}{\mathrm{M}}
+\newcommand{\Of}{\mathrm{O}}
+\newcommand{\RR}{\mathrm{LR}}
+\newcommand{\LR}{\mathrm{LR}}
+\newcommand{\Blrr}{\mbox{\boldmath $R$}}
+\newcommand{\Bbaf}{\mbox{\boldmath $B$}}
+\newcommand{\logRratio}{$\log_2$ R ratio}
+\newcommand{\lrrlong}{$\log_2$ R ratio}
+\newcommand{\blrr}{\mbox{\boldmath $r$}}
+%\newcommand{\bbaf}{\mbox{\boldmath $b$}}
+\newcommand{\baf}{B allele frequency}
+\newcommand{\bafs}{B allele frequencies}
+\newcommand{\tsl}{trioSetList}
+\newcommand{\ts}{trioSet object}
+\newcommand{\mindist}{\ensuremath{\mbox{\boldmath $d$}}}
+\DeclareMathOperator{\I}{\mathbb{I}}
+\usepackage[margin=1in]{geometry}
+
+\title{Workflow for a non-trivial collection of trios}
+\date{\today}
+
+% try first with 20 trios, 20 CPUs, and 50G.  Then scale up the number
+% of samples.  Keep an eye on where memory spikes occur.
+
+\author{Rob Scharpf}
+
+Load the package \Rpackage{snow}.  Enable 10 worker CPUs.
+
+<<enableParallel>>=
+library(cacheSweave)
+library(oligoClasses)
+if(FALSE){
+	library(snow)
+	options(cluster=makeCluster(10, "SOCK"))
+	library(doSNOW)
+	registerDoSNOW(getCluster())
+}
+@
+
+Enable a large data back-end using the \Rpackage{ff} package.  Specify
+a local file directory for storing the ff files to reduce I/O.
+
+<<enableLD>>=
+library(ff)
+outdir <- "/local_data/r00/beaty"
+suppressWarnings(dir.create(outdir))
+@
+
+Load the \Rpackage{MinimumDistance} package.
+
+<<textFiles>>=
+library(MinimumDistance)
+## files containing LRRs and BAFs
+path <- file.path(outdir, "txtfiles")
+fnames <- list.files(path)
+ldPath(outdir)
+@
+
+Load information on the pedigrees as well as phenotypic information on
+the samples for the cleft study.  An object of class
+\Robject{pedigree} is required, but a code \Robject{samplesheet}
+object is not. The latter is primarily useful for examining the
+effects of DNA source, chemistry plate, etc. on the resulting
+inference (quality control).
+
+<<samplesheet>>=
+library(CleftExperimentData)
+load("~/Projects/BeatyExperimentData/data/samplesheet.rda")
+samplesheet <- samplesheet[, -(30:31)]
+ped <- read.csv("/thumper/ctsa/beaty/family_info/may_peds.csv", sep=";",
+		stringsAsFactors=FALSE)
+## functions in CleftExperimentDAta needed for Cleft study
+samplesheet <- removeFlaggedSamplesAndMerge(fnames, samplesheet, ped)
+pedigree <- pedigreeFromSampleSheet(fnames, samplesheet)
+@
+
+Construct an object of class Rclass{TrioSetList} using a constructor
+for large data (LD). The assay data elements of the
+\Robject{TrioSetList} object will be \Rclass{ff}-derived classes. More
+precisely, the assay data elements have class \Rclass{ff_array} with
+dimensions \texttt{number markers x number trios x 3}.  The arrays are
+stored by chromosome to facilitate parallel processing of different
+chromosomes and to reduce the size of the individual \Rclass{ff} files
+on disk.
+
+<<ConstructTrioSetList, cache=TRUE>>=
+ped <- pedigree[1:5, ]
+trioSetListff <- TrioSetListLD(path=path, fnames=allNames(ped), ext=".txt",
+			       samplesheet=samplesheet, ##optional
+			       row.names=samplesheet$Sample.Name, ## must provide if samplesheeet is not missing
+			       pedigree=ped,
+			       annotationPkg="human610quadv1bCrlmm")
+dim(lrr(trioSetListff))[[1]]
+lrr(trioSetListff)[[1]][1, , ]
+baf(trioSetListff)[[1]][1, , ]
+##save(trioSetListff, file=file.path(outdir, "trioSetListff.rda"))
+@
+
+<<loadTrioSet, eval=FALSE>>=
+load("/local_data/r00/beaty/fffiles/trioSetListff.rda")
+@
+
+Calculate the minimum distance for the list of arrays containing the
+log R ratios:
+
+<<calculateMinimumDistance, cache=TRUE>>=
+mdlist <- calculateMindist(lrr(trioSetListff))
+mdlist[[1]][1:10,]
+@
+
+Segment the log R ratios using circular binary segmentation. The
+function \Rfunction{foreach} creates a separate process depending on
+the available number of CPUs for each chromosome.  A better
+understanding of the total RAM required for processing a given number
+of trios is needed \ldots
+
+<<segmentLRR, cache=TRUE>>=
+lrr.segs <- segment2(trioSetListff, segmentParents=FALSE)
+@
+
+Segment the minimum distance using circular binary
+segmentation. Again, the function \Rfunction{foreach} creates a
+separate process for each chromosome.  A better understanding of the
+total RAM required for processing a given number of trios is needed
+\ldots
+
+<<segmentMD,cache=TRUE>>=
+md.segs <- segment2(trioSetListff, md=mdlist)
+@
+
+Compute variance estimates needed for downstream processing.  The
+backend of these functions uses \Rfunction{foreach}, though the
+implementation is currently less efficient than it could be. See
+\texttt{R/mad-methods.R} for the source code.
+
+<<varianceEstimates,cache=TRUE>>=
+mads.md <- mad2(mdlist, byrow=FALSE) ## mad across all autosomes
+md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md)
+@
+
+Finally, posterior calls for the copy number state is obtained for
+each range using the function \Rfunction{computeBayesFactor}.
+
+<<posteriorCalls,cache=TRUE>>=
+map.segs <- computeBayesFactor(trioSetListff, ranges=md.segs2)
+@
+
+\section*{Session Information}
+
+<<sessionInfo, results=tex>>=
+toLatex(sessionInfo())
+@
+
+\end{document}
+

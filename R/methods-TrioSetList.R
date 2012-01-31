@@ -202,7 +202,7 @@ TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names, pedigree
 	if(!missing(samplesheet)){
 		if(missing(row.names)) stop("if samplesheet is provided, row.names can not be missing.")
 		index <- row.names %in% allNames(pedigreeData)
-		sample.sheet <- sample.sheet[index, ]
+		sample.sheet <- samplesheet[index, ]
 		row.names <- row.names[index]
 		offsprPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
 							  sample.sheet=samplesheet,
@@ -341,8 +341,8 @@ computeBayesFactorTrioSetList <- function(object, ranges,
 	index <- split(seq_len(nrow(ranges)), chromosome(ranges))
 	index <- index[match(chromosome(object), names(index))]
 	stopifnot(identical(as.character(chromosome(object)), names(index)))
-	if(missing(mad.marker)) mad.marker <- mad2(lrr(trioSetList), byrow=TRUE)
-	if(missing(mad.sample)) mad.sample <- mad2(lrr(trioSetList), byrow=FALSE)
+	if(missing(mad.marker)) mad.marker <- mad2(lrr(object), pedigree=pedigree(object), byrow=TRUE)
+	if(missing(mad.sample)) mad.sample <- mad2(lrr(object), byrow=FALSE)
 	if(!is.null(getCluster())){
 		if(!is.null(mad.marker)){
 			map.segs <- foreach(object=object,
@@ -497,11 +497,14 @@ setMethod("[", signature(x="TrioSetList"),
 			  nms <- ls(ad)
 			  for(k in seq_along(nms)){
 				  elt <- nms[k]
-				  x <- assayDataElementReplace(x, elt, ad[[elt]][i, j, , drop=FALSE])
+				  tmp <- lapply(ad[[elt]], function(x, i, j) {
+					  x[i, j, , drop=FALSE]
+				  }, i=i, j=j)
+				  x <- assayDataElementReplace(x, elt, tmp)
 			  }
 			  x@pedigree <- pedigree(x)[j, ]
 			  ##x@sampleSheet <- sampleSheet(x)[sampleNames(sampleSheet(x)) %in% allNames(pedigree(x)), ]
-			  x@featureDataList <- featureDataList(x)[i]
+			  x@featureDataList <- lapply(featureDataList(x), "[", i)
 			  x@chromosome <- chromosome(x)[i]
 			  x@phenoData <- phenoData(x)[j, ]
 			  x@fatherPhenoData <- fatherPhenoData(x)[j, ]
@@ -512,9 +515,13 @@ setMethod("[", signature(x="TrioSetList"),
 			  nms <- ls(ad)
 			  for(k in seq_along(nms)){
 				  elt <- nms[k]
-				  x <- assayDataElementReplace(x, elt, ad[[elt]][i])
+				  tmp <- lapply(ad[[elt]], function(x, i) {
+					  x[i, , , drop=FALSE]
+				  }, i=i)
+				  x <- assayDataElementReplace(x, elt, tmp)
 			  }
-			  x@featureDataList <- featureDataList(x)[i]
+			  ##x@featureDataList <- featureDataList(x)[i]
+			  x@featureDataList <- lapply(featureDataList(x), "[", i)
 			  x@chromosome <- chromosome(x)[i]
 		  }
 		  if(missing(i) & !missing(j)){
@@ -522,7 +529,10 @@ setMethod("[", signature(x="TrioSetList"),
 			  nms <- ls(ad)
 			  for(k in seq_along(nms)){
 				  elt <- nms[k]
-				  x <- assayDataElementReplace(x, elt, ad[[elt]][i, j, , drop=FALSE])
+				  tmp <- lapply(ad[[elt]], function(x, j) {
+					  x[, j, , drop=FALSE]
+				  }, j=j)
+				  x <- assayDataElementReplace(x, elt, tmp)
 			  }
 			  x@pedigree <- pedigree(x)[j, ]
 			  x@phenoData <- phenoData(x)[j, ]

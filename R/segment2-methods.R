@@ -37,20 +37,20 @@ segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ..
 	if(is.null(md)){
 		if(is.null(getCluster())){
 			segs <- foreach(trioset=object,
-					.packages="MinimumDistance",
-					.combine=stackRangedDataList) %do% {
+					.packages="MinimumDistance") %do% {
 						segment2(object=trioset,
 							 segmentParents=segmentParents,
 							 verbose=verbose)
 					}
+			segs <- stackRangedDataList(segs)
 		} else {
 			segs <- foreach(trioset=object,
-					.packages="MinimumDistance",
-					.combine=stackRangedDataList) %dopar% {
+					.packages="MinimumDistance") %dopar% {
 						segment2(object=trioset,
 							 segmentParents=segmentParents,
 							 verbose=verbose)
 					   }
+			segs <- stackRangedDataList(segs)
 		}
 	} else {
 		stopifnot(length(md) == length(chromosome(object)))
@@ -58,22 +58,22 @@ segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ..
 			segs <- foreach(trioset=object,
 					mdElement=md,
 					.packages="MinimumDistance",
-					.inorder=FALSE,
-					.combine=stackRangedDataList) %do% {
+					.inorder=FALSE) %do% {
 						segment2(object=trioset,
 							 md=mdElement,
 							 verbose=verbose)
 					}
+			segs <- stackRangedDataList(segs)
 		} else {
 			segs <- foreach(trioset=object,
 					mdElement=md,
 					.packages="MinimumDistance",
-					.inorder=FALSE,
-					.combine=stackRangedDataList) %dopar% {
+					.inorder=FALSE) %dopar% {
 						segment2(object=trioset,
 							 md=mdElement,
 							 verbose=verbose)
 					}
+			segs <- stackRangedDataList(segs)
 		}
 	}
 	return(segs)

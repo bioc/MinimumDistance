@@ -71,7 +71,6 @@ madList <- function(object, byrow, pedigree, ...){
 	return(mads)
 }
 
-
 madFromMatrixList <- function(object, byrow=TRUE){
 	if(!byrow){
 		## this could be done more efficiently by following the
