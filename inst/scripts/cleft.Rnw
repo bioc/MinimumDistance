@@ -45,6 +45,8 @@
 
 \author{Rob Scharpf}
 
+\begin{document}
+
 Load the package \Rpackage{snow}.  Enable 10 worker CPUs.
 
 <<enableParallel>>=
@@ -98,7 +100,7 @@ pedigree <- pedigreeFromSampleSheet(fnames, samplesheet)
 Construct an object of class Rclass{TrioSetList} using a constructor
 for large data (LD). The assay data elements of the
 \Robject{TrioSetList} object will be \Rclass{ff}-derived classes. More
-precisely, the assay data elements have class \Rclass{ff_array} with
+precisely, the assay data elements have class \Rclass{ff\_array} with
 dimensions \texttt{number markers x number trios x 3}.  The arrays are
 stored by chromosome to facilitate parallel processing of different
 chromosomes and to reduce the size of the individual \Rclass{ff} files
