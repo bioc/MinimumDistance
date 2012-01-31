@@ -803,7 +803,7 @@ joint4 <- function(id,
 		   trioSet,
 		   ranges,
 		   mad.marker,
-		   mad.sample,
+		   cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
 		   a=0.0009,
 		   prob.nonMendelian=1.5e-6,
 		   returnEmission=FALSE,
@@ -813,33 +813,55 @@ joint4 <- function(id,
 	ranges <- ranges[sampleNames(ranges) == id, ]
 	is.snp <- isSnp(trioSet)
 	stopifnot(ncol(trioSet)==1)
-	if(is.null(mad.marker)){
-		sds <- matrix(mad.sample, nrow(trioSet), 3, byrow=TRUE)
-		lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
-						    cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
-						    stdev=sds,
-						    is.log=TRUE,
-						    is.snp=is.snp,
-						    normalIndex=3)
-	} else{
-		mad.sample <- matrix(mad.sample, length(mad.marker), 3)
-		gammas <- matrix(mad.marker/median(mad.marker, na.rm=TRUE), length(mad.marker), 3, byrow=FALSE)
-		df0 <- 20
-		gammas.n <- (df0 + (ntrios-1)*gammas)/(df0 + ntrios-1)
-		gammas.n[is.na(gammas.n)] <- 1
-		sds <- mad.sample*gammas
-		lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
-						    stdev=sds,
-						    cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
-						    is.log=TRUE,
-						    is.snp=is.snp,
-						    normalIndex=3)
-	}
-	baf.emit <- VanillaICE:::bafEmission(baf(trioSet)[, 1, ],
-					     is.snp=is.snp,
-					     prOutlier=1e-3,
-					     p.hom=0.95)
-	lemit <- lrr.emit+baf.emit
+	##	if(is.null(mad.marker)){
+	##sds <- matrix(mad.sample, nrow(trioSet), 3, byrow=TRUE)
+	##sds <- mad.sample
+	##
+	## Pass initial estimates of mean and standard deviation
+	## - fit HMM to each sample in the trio
+	## - reestimate, means, sds, and mixture probability for the outlier distribution
+	##     for each state using the forward and backward variable from viterbi.
+	limits <- VanillaICE:::copyNumberLimits(is.log=TRUE)
+	r <- lrr(trioSet)[, 1, ]
+	b <- baf(trioSet)[, 1, ]
+	colnames(r) <- colnames(b) <- allNames(trioSet)
+	viterbiObj <- VanillaICE:::viterbi2Wrapper(r=r,
+						   b=b,
+						   pos=position(trioSet),
+						   is.snp=isSnp(trioSet),
+						   cnStates=cnStates,
+						   chrom=chromosome(trioSet)[1],
+						   is.log=TRUE,
+						   limits=limits,
+						   returnViterbiObject=TRUE,
+						   p.hom=0.05)
+	lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
+	for(i in 1:3) lemit[, i, ] <- log(VanillaICE:::emission(viterbiObj[[i]]))
+##	lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
+##					    cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
+##						    stdev=sds,
+##						    is.log=TRUE,
+##						    is.snp=is.snp,
+##						    normalIndex=3)
+##	} else{
+##		mad.sample <- matrix(mad.sample, length(mad.marker), 3)
+##		gammas <- matrix(mad.marker/median(mad.marker, na.rm=TRUE), length(mad.marker), 3, byrow=FALSE)
+##		df0 <- 20
+##		gammas.n <- (df0 + (ntrios-1)*gammas)/(df0 + ntrios-1)
+##		gammas.n[is.na(gammas.n)] <- 1
+##		sds <- mad.sample*gammas
+##		lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
+##						    stdev=sds,
+##						    cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
+##						    is.log=TRUE,
+##						    is.snp=is.snp,
+##						    normalIndex=3)
+##	}
+##	baf.emit <- VanillaICE:::bafEmission(baf(trioSet)[, 1, ],
+##					     is.snp=is.snp,
+##					     prOutlier=1e-3,
+##					     p.hom=0.95)
+##	lemit <- lrr.emit+baf.emit
 	trio.states <- trioStates(0:4)
 	tmp <- rep(NA, nrow(trio.states))
 	state.prev <- NULL
@@ -856,8 +878,6 @@ joint4 <- function(id,
 	mm <- matchMatrix(findOverlaps(featureData(trioSet), ranges))
 	I <- which(table(mm[, 2]) >= 2)
 	range.index <- mm[mm[, 2] %in% I, 2]
-	## when the length of range.index is greater than the number of rows in the trioSet object,
-	## it suggests that some features
 	for(i in I){
 		index <- which(range.index==i)
 ##		if(nrow(obj) < 2){
