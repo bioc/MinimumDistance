@@ -19,7 +19,7 @@ validPedigree <- function(object){
 			msg <- "sample identifiers must be character strings (e.g., not factors)"
 			return(msg)
 		}
-		if(!all(allNames(object) %in% unlist(trios(object)))){
+		if(!all(allNames(object) %in% originalNames(unlist(trios(object))))){
 			msg <- "all 'individualId' in slot pedigreeIndex must correspond to an id in the trio slot"
 			return(msg)
 		}
@@ -53,8 +53,8 @@ Pedigree <- function(pedigreeInfo,
 		if(any(duplicated(pedigreeInfo$O))){
 			stop("offspring identifiers must be unique")
 		}
-		trios <- data.frame(F=as.character(pedigreeInfo$F),
-				    M=as.character(pedigreeInfo$M),
+		trios <- data.frame(F=make.unique2(as.character(pedigreeInfo$F)),
+				    M=make.unique2(as.character(pedigreeInfo$M)),
 				    O=as.character(pedigreeInfo$O),
 				    stringsAsFactors=FALSE)
 		allIds <- as.character(unlist(trios))
@@ -65,7 +65,8 @@ Pedigree <- function(pedigreeInfo,
 		fatherIds <- as.character(fatherIds)
 		motherIds <- as.character(motherIds)
 		offspringIds <- as.character(offspringIds)
-		trios <- data.frame(F=fatherIds, M=motherIds,
+		trios <- data.frame(F=make.unique2(fatherIds),
+				    M=make.unique2(motherIds),
 				    O=offspringIds,
 				    stringsAsFactors=FALSE)
 		allIds <- c(fatherIds, motherIds, offspringIds)
@@ -112,9 +113,8 @@ setMethod("[", signature(x="Pedigree"),
 			  return(x)
 		  } else {
 			  x@trios <- trios(x)[i, ]
-			  sns <- unlist(trios(x))
+			  sns <- originalNames(unlist(trios(x)))
 			  x@trioIndex <- trioIndex(x)[match(sns, trioIndex(x)$individualId), ]
-			  ##x@trioIndex <- trioIndex(x)[match(sns, allNames(x)), ]
 		  }
 		  return(x)
 	  })

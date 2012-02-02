@@ -167,10 +167,11 @@ TrioSet <- function(pedigreeData=Pedigree(),
 			motherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="mother")
 		}
 	}
-	tmp=trios(pedigreeData)
-	tmp$F=make.unique2(tmp$F)
-	tmp$M=make.unique2(tmp$M)
-	pedigreeData@trios=tmp
+	## shouldn't be necessary -- make the names unique in the contruction of the Pedigree object
+##	tmp=trios(pedigreeData)
+##	tmp$F=make.unique2(tmp$F)
+##	tmp$M=make.unique2(tmp$M)
+##	pedigreeData@trios=tmp
 	object <- new("TrioSet",
 		      BAF=bafArray,
 		      logRRatio=logRArray,
@@ -289,7 +290,8 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 		phenoData(x) <- phenoData(x)[j,, ..., drop = drop]
 		protocolData(x) <- protocolData(x)[j,, ..., drop = drop]
 		##x@sampleSheet <- x@sampleSheet[j, , , drop=drop]
-		x@pedigree <- x@pedigree[j, , drop=drop]
+		##tmp <- pedigree(x)[j, , drop=drop]
+		x@pedigree <- pedigree(x)[j, , drop=drop]
 		b <- baf(x)[, j, , drop=drop]
 		r <- lrr(x)[, j, , drop=drop]
 		x <- assayDataElementReplace(x, "logRRatio", r)

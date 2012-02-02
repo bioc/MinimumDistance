@@ -118,3 +118,9 @@ test_TrioSetListLD <- function(){
 }
 
 
+test_subsetTrioSetList <- function(){
+	object <- Pedigree(fatherIds=rep(letters[1:3], each=2),
+			   motherIds=rep(letters[4:6], each=2),
+			   offspringIds=letters[11:16])
+	checkTrue(validObject(object[6, ]))
+}
