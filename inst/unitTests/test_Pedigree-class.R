@@ -48,3 +48,25 @@ test_Pedigree_construction <- function(){
 
 	checkTrue(identical(sampleNames(ped), offspringNames(ped)))
 }
+
+test_subsetPedigree <- function(){
+	object <- Pedigree(fatherIds=rep(letters[1:3], each=2),
+			   motherIds=rep(letters[4:6], each=2),
+			   offspringIds=letters[11:16])
+	checkTrue(validObject(object[6, ]))
+
+	## offspring is both parent and an offspring in the same trio (should throw an error)
+	ped <- Pedigree(fatherIds=rep(letters[1:2]),
+			   motherIds=rep(letters[3:4]),
+			   offspringIds=letters[c(1,5)])
+	checkException(validObject(ped))
+
+	## offspring is a parent in one trio and an offspring in a different trio (should be valid)
+	ped <- Pedigree(fatherIds=rep(letters[1:2]),
+			motherIds=rep(letters[3:4]),
+			offspringIds=letters[c(5,1)])
+	checkTrue(validObject(ped))
+
+
+
+}
