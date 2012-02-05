@@ -192,7 +192,7 @@ TrioSetList <- function(chromosome=integer(),
 }
 
 TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names, pedigreeData, annotationPkg){
-	stopifnot(is(pedigreeData, "Pedigree"))
+	if(!is(pedigreeData, "Pedigree")) stop()
 	fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg)
 	fD <- fD[chromosome(fD) < 23 & !is.na(chromosome(fD)), ]
 	ad <- assayDataListLD(path=path,
@@ -492,20 +492,25 @@ setReplaceMethod("assayData", signature=signature(object="TrioSetList",
 
 setMethod("[", signature(x="TrioSetList"),
 	  function(x, i, j, ..., drop=FALSE){
+		  ## using 'i' to subset markers does not really make
+		  ## sense
+		  ##
+		  ## Use i to subset the list. example, x[1] is still a TrioSetList, but is one chromosome
+		  ##
 		  if(!missing(i) & !missing(j)){
 			  ad <- assayDataList(x)
 			  nms <- ls(ad)
 			  for(k in seq_along(nms)){
 				  elt <- nms[k]
-				  tmp <- lapply(ad[[elt]], function(x, i, j) {
-					  x[i, j, , drop=FALSE]
-				  }, i=i, j=j)
+				  tmp <- ad[[elt]][i]
+				  tmp <- lapply(tmp, function(x, j) {
+					  x[, j, , drop=FALSE]
+				  }, j=j)
 				  x <- assayDataElementReplace(x, elt, tmp)
 			  }
-			  x@pedigree <- pedigree(x)[j, ]
-			  ##x@sampleSheet <- sampleSheet(x)[sampleNames(sampleSheet(x)) %in% allNames(pedigree(x)), ]
-			  x@featureDataList <- lapply(featureDataList(x), "[", i)
 			  x@chromosome <- chromosome(x)[i]
+			  x@featureDataList <- featureDataList(x)[i]
+			  x@pedigree <- pedigree(x)[j, ]
 			  x@phenoData <- phenoData(x)[j, ]
 			  x@fatherPhenoData <- fatherPhenoData(x)[j, ]
 			  x@motherPhenoData <- motherPhenoData(x)[j, ]
@@ -515,14 +520,11 @@ setMethod("[", signature(x="TrioSetList"),
 			  nms <- ls(ad)
 			  for(k in seq_along(nms)){
 				  elt <- nms[k]
-				  tmp <- lapply(ad[[elt]], function(x, i) {
-					  x[i, , , drop=FALSE]
-				  }, i=i)
+				  tmp <- ad[[elt]][i]
 				  x <- assayDataElementReplace(x, elt, tmp)
 			  }
-			  ##x@featureDataList <- featureDataList(x)[i]
-			  x@featureDataList <- lapply(featureDataList(x), "[", i)
 			  x@chromosome <- chromosome(x)[i]
+			  x@featureDataList <- featureDataList(x)[i]
 		  }
 		  if(missing(i) & !missing(j)){
 			  ad <- assayDataList(x)

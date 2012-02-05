@@ -41,7 +41,7 @@ validAssayDataDims <- function(object){
 }
 
 assayDataListLD <- function(path="", ext="", pedigree, featureData){
-	filenames <- paste(allNames(pedigree), ext, sep="")
+	filenames <- paste(originalNames(allNames(pedigree)), ext, sep="")
 	fnames <- file.path(path, filenames)
 	stopifnot(all(file.exists(fnames)))
 	if(missing(featureData)) stop("featureData can not be missing")
@@ -78,13 +78,13 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 		ilist <- ilist[sapply(ilist, function(x) length(x) > 0)]
 	}
 	if(isPackageLoaded("ff")){
-		res <- foreach(i=ilist, .packages="MinimumDistance") %do% MinimumDistance:::read.bsfiles2(path=path, filenames=fathers[i],
+		res <- foreach(i=ilist, .packages="MinimumDistance") %do% MinimumDistance:::read.bsfiles2(path=path, filenames=originalNames(fathers[i]),
 						   sampleNames=sampleNames(pedigree)[i],
 						   index=index,
 						   z=1,
 						   baflist=baflist,
 						   lrrlist=lrrlist)
-		res <- foreach(i=ilist, .packages="MinimumDistance") %do% MinimumDistance:::read.bsfiles2(path=path, filenames=mothers[i],
+		res <- foreach(i=ilist, .packages="MinimumDistance") %do% MinimumDistance:::read.bsfiles2(path=path, filenames=originalNames(mothers[i]),
 						   sampleNames=sampleNames(pedigree)[i],
 						   index=index,
 						   z=2,
@@ -97,9 +97,9 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 						   baflist=baflist,
 						   lrrlist=lrrlist)
 	} else {
-		F <- read.bsfiles2(path=path, filenames=fathers, sampleNames=sampleNames(pedigree))
-		M <- read.bsfiles2(path=path, filenames=mothers, sampleNames=sampleNames(pedigree))
-		O <- read.bsfiles2(path=path, filenames=offsprg, sampleNames=sampleNames(pedigree))
+		F <- read.bsfiles2(path=path, filenames=originalNames(fathers), sampleNames=sampleNames(pedigree), lrrlist=lrrlist, baflist=baflist)
+		M <- read.bsfiles2(path=path, filenames=originalNames(mothers), sampleNames=sampleNames(pedigree), lrrlist=lrrlist, baflist=baflist)
+		O <- read.bsfiles2(path=path, filenames=offsprg, sampleNames=sampleNames(pedigree), lrrlist=lrrlist, baflist=baflist)
 		for(j in seq_along(index)){
 			k <- index[[j]]
 			baflist[[j]][, , 1] <- F[k, 2, ]

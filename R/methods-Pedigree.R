@@ -19,12 +19,20 @@ validPedigree <- function(object){
 			msg <- "sample identifiers must be character strings (e.g., not factors)"
 			return(msg)
 		}
-		if(!all(allNames(object) %in% originalNames(unlist(trios(object))))){
+		if(!all(originalNames(allNames(object)) %in% originalNames(unlist(trios(object))))){
 			msg <- "all 'individualId' in slot pedigreeIndex must correspond to an id in the trio slot"
 			return(msg)
 		}
 		if(any(fatherNames(object) == motherNames(object))){
 			msg <- "fatherNames can not be the same as the motherNames"
+			return(msg)
+		}
+		if(any(fatherNames(object) == sampleNames(object))){
+			msg <- "fatherNames can not be the same as the offspringNames"
+			return(msg)
+		}
+		if(any(motherNames(object) == sampleNames(object))){
+			msg <- "motherNames can not be the same as the offspringNames"
 			return(msg)
 		}
 	}
@@ -46,22 +54,12 @@ Pedigree <- function(pedigreeInfo,
 		msg <- "pedigreeInfo must be a data.frame with column names 'F', 'M', and 'O'"
 		if(!is(pedigreeInfo, "data.frame"))
 			stop(msg)
-		nms <- colnames(pedigreeInfo)
-		if(!all(nms %in% c("F", "M", "O"))){
-			stop(msg)
-		}
-		if(any(duplicated(pedigreeInfo$O))){
-			stop("offspring identifiers must be unique")
-		}
-		trios <- data.frame(F=make.unique2(as.character(pedigreeInfo$F)),
-				    M=make.unique2(as.character(pedigreeInfo$M)),
-				    O=as.character(pedigreeInfo$O),
+		trios <- data.frame(F=make.unique2(as.character(pedigreeInfo[[1]])),
+				    M=make.unique2(as.character(pedigreeInfo[[2]])),
+				    O=as.character(pedigreeInfo[[3]]),
 				    stringsAsFactors=FALSE)
 		allIds <- as.character(unlist(trios))
 	} else {
-		if(!(length(fatherIds)==length(motherIds) & length(fatherIds)==length(offspringIds))){
-			stop("father, mother, and offspring identifiers must be the same length")
-		}
 		fatherIds <- as.character(fatherIds)
 		motherIds <- as.character(motherIds)
 		offspringIds <- as.character(offspringIds)
@@ -70,9 +68,6 @@ Pedigree <- function(pedigreeInfo,
 				    O=offspringIds,
 				    stringsAsFactors=FALSE)
 		allIds <- c(fatherIds, motherIds, offspringIds)
-		if(any(duplicated(offspringIds))){
-			stop("Can not have duplicated offspring identifiers. An offspring can only belong to one trio.")
-		}
 	}
 	trio.index <- as.integer(matrix(seq_len(nrow(trios)), nrow(trios), 3, byrow=FALSE))
 	memberId <- rep(c("F", "M", "O"), each=nrow(trios))

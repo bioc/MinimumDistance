@@ -1,11 +1,14 @@
 \name{mad2}
 \alias{mad2}
 \alias{mad2,list-method}
+\alias{mad2,array-method}
+\alias{mad2,matrix-method}
 
-\title{Compute the median absolute deviation for elements in a list.}
+\title{Methods for computing the minimum absolute distance.}
 
-\description{Compute the median absolute deviation for elements in a list.
-	     Elements of the list can be matrices or arrays or ff-versions of these.}
+\description{Compute the median absolute deviation for elements in a
+	     list, array, or matrix.  For lists, elements of the list
+	     can be matrices or arrays or ff-versions of these.}
 
 \usage{
 mad2(object, byrow=FALSE, ...)

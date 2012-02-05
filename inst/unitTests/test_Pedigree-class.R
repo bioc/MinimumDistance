@@ -23,14 +23,11 @@ test_Pedigree_construction <- function(){
 
 	ped2 <- ped[2, ]
 	checkTrue(validObject(ped2))
-
 	checkTrue(validObject(Pedigree(pedigreeInfo)))
 
 	##validObject(ped[1, ])
 	ped2 <- make_test_Pedigree()
 	checkIdentical(ped, ped2)
-
-
 
 	## can not have duplicate offspring identifiers
 	checkException(Pedigree(data.frame(F=c("F0.txt", "F0.txt"),
@@ -54,19 +51,19 @@ test_subsetPedigree <- function(){
 			   motherIds=rep(letters[4:6], each=2),
 			   offspringIds=letters[11:16])
 	checkTrue(validObject(object[6, ]))
-
-	## offspring is both parent and an offspring in the same trio (should throw an error)
-	ped <- Pedigree(fatherIds=rep(letters[1:2]),
-			   motherIds=rep(letters[3:4]),
-			   offspringIds=letters[c(1,5)])
-	checkException(validObject(ped))
-
-	## offspring is a parent in one trio and an offspring in a different trio (should be valid)
+	## offspring is both parent and an offspring in the same trio
+	## (should throw an error)
+	checkException(Pedigree(fatherIds=rep(letters[1:2]),
+				motherIds=rep(letters[3:4]),
+				offspringIds=letters[c(1,5)]))
+	## offspring is a parent in one trio and an offspring in a
+	## different trio (should be valid)
 	ped <- Pedigree(fatherIds=rep(letters[1:2]),
 			motherIds=rep(letters[3:4]),
 			offspringIds=letters[c(5,1)])
 	checkTrue(validObject(ped))
 
-
-
+	validObject(Pedigree(data.frame(F=letters[1],
+					M=letters[2],
+					O=letters[3])))
 }
