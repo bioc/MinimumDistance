@@ -55,6 +55,7 @@ test_TrioSetList_construction <- function(){
 	checkIdentical(chromosome(obj), c(1L, 1L))
 	obj <- trioSetList[FALSE]
 	checkTrue(validObject(obj))
+	checkIdentical(length(obj), 0L)
 
 	b <- baf(trioSetList)
 	b <- b[-1]
@@ -99,6 +100,7 @@ test_TrioSetListLD <- function(){
 	ped <- Pedigree(data.frame(F=c("F.txt", "F.txt"),
 				   M=c("M.txt", "M.txt"),
 				   O=c("O.txt", "O1.txt")))
+	##trace(TrioSetListLD, browser)
 	trioSetList <- TrioSetListLD(path=path,
 				     fnames=fnames,
 				     pedigreeData=ped,
@@ -108,6 +110,9 @@ test_TrioSetListLD <- function(){
 
 	library(ff)
 	ldPath(tempdir())
+##	trace(MinimumDistance:::assayDataListLD, browser)
+##	trace(VanillaICE:::read.bsfiles, browser)
+##	trace(MinimumDistance:::read.bsfiles2, browser)
 	trioSetListff <- TrioSetListLD(path=path,
 				       fnames=fnames,
 				       pedigreeData=ped,
@@ -118,9 +123,4 @@ test_TrioSetListLD <- function(){
 }
 
 
-test_subsetTrioSetList <- function(){
-	object <- Pedigree(fatherIds=rep(letters[1:3], each=2),
-			   motherIds=rep(letters[4:6], each=2),
-			   offspringIds=letters[11:16])
-	checkTrue(validObject(object[6, ]))
-}
+
