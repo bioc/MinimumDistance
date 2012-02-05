@@ -194,8 +194,6 @@ setMethod("show", signature(object="TrioSet"),
 		  paste(assayDataElementNames(object), collapse=", "), "\n")
 	      cat("  dimension:\n")
 	      print(adim)
-##	      cat("SampleSheet:\n")
-##	      show(sampleSheet(object))
 	  })
 
 setMethod("open", "TrioSet", function(con, ...){
