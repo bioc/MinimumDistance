@@ -22,6 +22,7 @@ Collate: AllClasses.R
 	 methods-ff_array.R
 	 segment2-methods.R
 	 mad-methods.R
+	 lattice-methods.R
 	 functions.R
 	 utils.R
 	 zzz.R
