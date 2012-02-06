@@ -35,51 +35,27 @@ setMethod("segment2", signature(object="arrayORff_array"),
 
 segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ...){
 	if(is.null(md)){
-		if(is.null(getCluster())){
-			segs <- foreach(trioset=object,
-					.packages="MinimumDistance") %do% {
-						segment2(object=trioset,
-							 segmentParents=segmentParents,
-							 verbose=verbose)
-					}
-			segs <- stackRangedDataList(segs)
-		} else {
-			segs <- foreach(trioset=object,
-					.packages="MinimumDistance") %dopar% {
-						segment2(object=trioset,
-							 segmentParents=segmentParents,
-							 verbose=verbose)
-					   }
-			segs <- stackRangedDataList(segs)
-		}
+		segs <- foreach(trioset=object,
+				.packages="MinimumDistance") %dopar% {
+					segment2(object=trioset,
+						 segmentParents=segmentParents,
+						 verbose=verbose)
+				}
+		segs <- stackRangedDataList(segs)
 	} else {
 		stopifnot(length(md) == length(chromosome(object)))
-		if(is.null(getCluster())){
-			segs <- foreach(trioset=object,
-					mdElement=md,
-					.packages="MinimumDistance",
-					.inorder=FALSE) %do% {
-						segment2(object=trioset,
-							 md=mdElement,
-							 verbose=verbose)
-					}
-			segs <- stackRangedDataList(segs)
-		} else {
-			segs <- foreach(trioset=object,
-					mdElement=md,
-					.packages="MinimumDistance",
-					.inorder=FALSE) %dopar% {
-						segment2(object=trioset,
-							 md=mdElement,
-							 verbose=verbose)
-					}
-			segs <- stackRangedDataList(segs)
-		}
+		segs <- foreach(trioset=object,
+				mdElement=md,
+				.packages="MinimumDistance",
+				.inorder=FALSE) %dopar% {
+					segment2(object=trioset,
+						 md=mdElement,
+						 verbose=verbose)
+				}
+		segs <- stackRangedDataList(segs)
 	}
 	return(segs)
 }
-
-
 
 segmentTrioSet <- function(object, md, segmentParents, verbose, ...){
 	if(is.null(md)){
@@ -240,7 +216,7 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
 	rownames(object) <- featureNames
 	##
 	##
-	segs <- vector("list", length(index.list))        
+	segs <- vector("list", length(index.list))
 	for(i in seq_along(index.list)){
 		##if (verbose) setTxtProgressBar(pb, i)
 		j <- index.list[[i]]

@@ -11,14 +11,14 @@ setMethod("calculateMindist", signature(object="arrayORff_array"),
 			  md <- initializeBigMatrix("mindist", nr=nrow(object), nc=ncol(object), vmode="double")
 			  for(j in seq_len(ncol(object))){
 				  d1 <- object[, j, 3] - object[, j, 1]
-				  d2 <- object[, j, 3] - object[, j, 1]
+				  d2 <- object[, j, 3] - object[, j, 2]
 				  I <- as.numeric(abs(d1) <= abs(d2))
 				  md[, j] <- I*d1 + (1-I)*d2
 			  }
 			  colnames(md) <- colnames(object)
 		  } else {
 			  d1 <- object[, , 3] - object[, , 1]
-			  d2 <- object[, , 3] - object[, , 1]
+			  d2 <- object[, , 3] - object[, , 2]
 			  I <- as.numeric(abs(d1) <= abs(d2))
 			  md <- I*d1 + (1-I)*d2
 			  md <- as.matrix(md)
