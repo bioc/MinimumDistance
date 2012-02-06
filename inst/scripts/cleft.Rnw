@@ -52,12 +52,6 @@ Load the package \Rpackage{snow}.  Enable 10 worker CPUs.
 <<enableParallel>>=
 library(cacheSweave)
 library(oligoClasses)
-if(FALSE){
-	library(snow)
-	options(cluster=makeCluster(10, "SOCK"))
-	library(doSNOW)
-	registerDoSNOW(getCluster())
-}
 @
 
 Enable a large data back-end using the \Rpackage{ff} package.  Specify
@@ -76,7 +70,11 @@ library(MinimumDistance)
 ## files containing LRRs and BAFs
 path <- file.path(outdir, "txtfiles")
 fnames <- list.files(path)
-ldPath(outdir)
+ffoutdir <- file.path(outdir, "fffiles")
+suppressWarnings(dir.create(ffoutdir, recursive=TRUE))
+rangesdir <- file.path(outdir, "ranges")
+suppressWarnings(dir.create(ffoutdir, recursive=TRUE))
+ldPath(ffoutdir)
 @
 
 Load information on the pedigrees as well as phenotypic information on
@@ -90,7 +88,7 @@ inference (quality control).
 library(CleftExperimentData)
 load("~/Projects/BeatyExperimentData/data/samplesheet.rda")
 samplesheet <- samplesheet[, -(30:31)]
-ped <- read.csv("/thumper/ctsa/beaty/family_info/may_peds.csv", sep=";",
+ped <- read.csv("~/Projects/BeatyExperimentData/inst/extdata/may_peds.csv", sep=";",
 		stringsAsFactors=FALSE)
 ## functions in CleftExperimentDAta needed for Cleft study
 samplesheet <- removeFlaggedSamplesAndMerge(fnames, samplesheet, ped)
@@ -107,27 +105,22 @@ chromosomes and to reduce the size of the individual \Rclass{ff} files
 on disk.
 
 <<ConstructTrioSetList, cache=TRUE>>=
-ped <- pedigree[1:5, ]
-trioSetListff <- TrioSetListLD(path=path, fnames=allNames(ped), ext=".txt",
+if(exists("pedigreeIndex")) pedigree <- pedigree[pedigreeIndex, ]
+trioSetListff <- TrioSetListLD(path=path, fnames=allNames(pedigree), ext=".txt",
 			       samplesheet=samplesheet, ##optional
 			       row.names=samplesheet$Sample.Name, ## must provide if samplesheeet is not missing
-			       pedigree=ped,
+			       pedigree=pedigree,
 			       annotationPkg="human610quadv1bCrlmm")
 dim(lrr(trioSetListff))[[1]]
 lrr(trioSetListff)[[1]][1, , ]
 baf(trioSetListff)[[1]][1, , ]
-##save(trioSetListff, file=file.path(outdir, "trioSetListff.rda"))
-@
-
-<<loadTrioSet, eval=FALSE>>=
-load("/local_data/r00/beaty/fffiles/trioSetListff.rda")
 @
 
 Calculate the minimum distance for the list of arrays containing the
 log R ratios:
 
 <<calculateMinimumDistance, cache=TRUE>>=
-mdlist <- calculateMindist(lrr(trioSetListff))
+mdlist <- calculateMindist(lrr(trioSetListff), outdir=ldPath())
 mdlist[[1]][1:10,]
 @
 
@@ -138,7 +131,11 @@ understanding of the total RAM required for processing a given number
 of trios is needed \ldots
 
 <<segmentLRR, cache=TRUE>>=
-lrr.segs <- segment2(trioSetListff, segmentParents=FALSE)
+lrr.segs <- segment2(trioSetListff, segmentParents=TRUE)
+@
+
+<<save.lrr.segs>>=
+save(lrr.segs, file=file.path(rangesdir, "lrr.segs.rda"))
 @
 
 Segment the minimum distance using circular binary
@@ -149,6 +146,10 @@ total RAM required for processing a given number of trios is needed
 
 <<segmentMD,cache=TRUE>>=
 md.segs <- segment2(trioSetListff, md=mdlist)
+@
+
+<<save.md.segs>>=
+save(md.segs, file=file.path(rangesdir, "md.segs.rda"))
 @
 
 Compute variance estimates needed for downstream processing.  The
@@ -166,6 +167,10 @@ each range using the function \Rfunction{computeBayesFactor}.
 
 <<posteriorCalls,cache=TRUE>>=
 map.segs <- computeBayesFactor(trioSetListff, ranges=md.segs2)
+@
+
+<<save.map.segs>>=
+save(map.segs, file="/local_data/r00/beaty/ranges/map.segs.rda")
 @
 
 \section*{Session Information}
