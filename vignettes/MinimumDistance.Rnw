@@ -376,7 +376,7 @@ For purposes of visualization, we also segment the parental log R
 ratios:
 
 <<segmentLRR,results=hide>>=
-lrr.segs <- segment2(trioSetList, segmentParents=FALSE)
+lrr.segs <- segment2(trioSetList, segmentParents=TRUE)
 @
 
 Minimum distance segments with a mean absolute value greater than 1
@@ -415,45 +415,28 @@ distance, and B allele frequencies.
 <<visualizations>>=
 trioSet <- stack(trioSetList)
 rd.denovoDel <- map.segs[state(map.segs) == 332, ]
+##stop()
 library("VanillaICE")
 mindist(trioSet) <- do.call("rbind", md)
-frame <- 500e3
-lrrfig <- xyplot(lrr ~ x | id,
-		 data=trioSet,
-		 range=rd.denovoDel[3, ],
-		 lrr.segs=lrr.segs,
-		 md.segs=map.segs,
-		 frame=frame,
-		 panel=xypanelMD,
-                 xlab="physical position (Mb)",
-		 cex=0.2,
-		 pch=21,
-		 border="orange",
-                 scales=list(cex=0.5),
-		 par.strip.text=list(lines=0.8, cex=0.6),
-		 col.np="royalblue", fill.np="grey",
-		 index.cond=list(4:1),
-		 return.data.frame=FALSE,
-                 cex.state=0.5)
-baffig <- xyplot(baf ~ x | id,
-		 data=trioSet,
-		 range=rd.denovoDel[3, ],
-		 xlab="",
-		 frame=frame,
-		 panel=VanillaICE::xypanel,
-		 cex=0.2,
-		 pch=21,
-		 border="orange",
-                 scales=list(cex=0.6),
-		 par.strip.text=list(lines=0.8, cex=0.6),
-		 col.np="royalblue", fill.np="grey",
-		 index.cond=list(3:1), cex.state=0.5)
+frame <- 100e3
+##trace(MinimumDistance:::xypanelTrioBaf, browser)
+figs <- MinimumDistance:::xyplotTrioLrrBaf(rd=rd.denovoDel,
+					   object=trioSet,
+					   frame=frame,
+					   ylab="log R ratio and BAFs",
+					   xlab="physical position",
+					   panel=MinimumDistance:::xypanelTrioBaf,
+					   scales=list(x="free", y=list(alternating=1)),
+					   lrr.segments=lrr.segs,
+					   md.segments=md.segs,
+					   layout=c(1, 4),
+					   ylim=c(-3, 1.5))
 @
 
 The final graphic is displayed in Figure \ref{fig:trioplot}.
 
 <<displayFigure,fig=TRUE,include=FALSE>>=
-print(VanillaICE:::arrangeSideBySide(lrrfig, baffig))
+print(figs[[2]])
 @
 
 \begin{figure}[t]
