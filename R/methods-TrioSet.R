@@ -302,6 +302,8 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 		##mad.sample(x) <- mad.sample(x)[j,,...,drop=drop]
 	}
 	if (!missing(i) & !missing(j)){
+		phenoData(x) <- phenoData(x)[j, ..., drop=drop]
+		protocolData(x) <- protocolData(x)[j, ..., drop=drop]
 		featureData(x) <- featureData(x)[i, ,..., drop=drop]
 		b <- baf(x)[i, j, , drop=drop]
 		r <- lrr(x)[i, j, , drop=drop]
@@ -591,6 +593,56 @@ setAs("TrioSet", "data.frame",
 	      }
 	      return(df)
       })
+
+trioSet2data.frame <- function(from){
+	stopifnot(ncol(from) == 1)
+	cn <- lrr(from)[, 1, ]
+	md <- as.numeric(mindist(from))
+##	ids <- c(allNames(from), sampleNames(from))
+##	ids <- as.character(matrix(ids, nrow(cn), 4, byrow=TRUE))
+	sns <- matrix(c("father", "mother", "offspring", "min dist"), nrow(cn), 4, byrow=TRUE)
+	sns <- as.character(sns)
+	cn <- as.numeric(cn)
+	##is.lrr <- c(rep(1L, length(cn)), rep(0L, length(md)))
+	y <- c(cn, md)
+	##member <- c(sns, rep("min dist", length(md)))
+	##gt <- as.integer(gt)
+	bf <- as.numeric(baf(from)[, 1, ])
+	bf <- c(bf, rep(NA, length(md)))
+	x <- rep(position(from)/1e6, 4)
+	is.snp <- rep(isSnp(from), 4)
+	df <- data.frame(x=x,
+			 y=y,
+			 baf=bf,
+			 memberId=sns,
+			 ##sampleNames=ids,
+			 trioId=rep(sampleNames(from), length(y)),
+			 is.snp=is.snp,
+			 stringsAsFactors=FALSE)
+	df$memberId <- factor(df$memberId, ordered=TRUE, levels=rev(c("father", "mother", "offspring", "min dist")))
+	return(df)
+}
+
+dataFrameFromRange2 <- function(object, range, range.index, frame){
+	rm <- findOverlaps(range, featureData(object), maxgap=frame) ## RangesMatching
+	mm <- matchMatrix(rm)
+	mm.df <- data.frame(mm)
+	mm.df$featureNames <- featureNames(object)[mm.df$subject]
+	marker.index <- mm.df$subject
+	sample.index <- match(sampleNames(range), sampleNames(object))
+	if(any(is.na(sample.index))) stop("sampleNames in RangedData do not match sampleNames in ", class(data), " object")
+	sample.index <- unique(sample.index)
+	obj <- object[marker.index, sample.index]
+	mm.df$subject <- match(mm.df$featureNames, featureNames(obj))
+	##
+	## coersion to data.frame
+	##
+	df <- trioSet2data.frame(obj)
+	##df$range <- rep(i, nrow(df))##mm.df$query
+	##dfList[[i]] <- df
+	df$range <- range.index
+	df
+}
 
 setMethod("order", signature(...="TrioSet"),
 	  function(..., na.last=TRUE,decreasing=FALSE){
