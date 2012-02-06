@@ -91,6 +91,7 @@ setMethod("fatherNames", signature(object="Pedigree"), function(object) trios(ob
 setMethod("motherNames", signature(object="Pedigree"), function(object) trios(object)$M)
 setMethod("show", signature(object="Pedigree"),
 	  function(object){
+		  cat("Pedigree\n")
 		  cat("trios:\n")
 		  print(head(trios(object)))
 		  if(nrow(trios(object)) > 6)

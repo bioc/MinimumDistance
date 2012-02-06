@@ -194,8 +194,6 @@ setMethod("show", signature(object="TrioSet"),
 		  paste(assayDataElementNames(object), collapse=", "), "\n")
 	      cat("  dimension:\n")
 	      print(adim)
-##	      cat("SampleSheet:\n")
-##	      show(sampleSheet(object))
 	  })
 
 setMethod("open", "TrioSet", function(con, ...){
@@ -334,83 +332,53 @@ setMethod("checkOrder", signature(object="TrioSet"),
 	  function(object, verbose=FALSE){
 		  oligoClasses:::.checkOrder(object, verbose)
 	  })
-##fullId <- function(object) object@phenoData2[, "id", ]
-
-##setMethod("phenoData2", signature(object="TrioSet"), function(object) object@phenoData2)
-##setReplaceMethod("phenoData2", signature(object="TrioSet", value="ANY"), function(object, value){
-##	object@phenoData2 <- value
-##	object
-##})
-##setMethod("varLabels2", signature(object="TrioSet"), function(object) colnames(phenoData2(object)))
-
-##offspringForId <- function(id, pedigree){
-##	## we have a vector of ids.
-##	index <- match(id, pedigree.char)
-##}
-
-##setMethod("varLabels", signature(object="TrioSet"),
-##	  function(object) varLabels(sampleSheet(object)))
 
 computeBayesFactorTrioSet <- function(object,
 				      ranges,
-				      mad.marker,
-				      mad.sample,
 				      returnEmission=FALSE,
-				      collapseRanges=TRUE,
-				      verbose=TRUE, ...){
+				      collapseRanges=TRUE, ...){
 	## a TrioSet has only one chromosome
-	CHR <- unique(chromosome(object))
+ 	CHR <- unique(chromosome(object))
 	ranges <- ranges[chromosome(ranges) == CHR, ]
 	id <- unique(sampleNames(ranges))
 	ranges$lik.state <- NA
 	ranges$argmax <- NA
 	ranges$lik.norm <- NA
-	if(verbose){
-		message("\t\tComputing Bayes factors for ", length(id), " files.")
-		pb <- txtProgressBar(min=0, max=length(id), style=3)
-	}
+	message("\t\tComputing Bayes factors for ", length(id), " files.")
+	pb <- txtProgressBar(min=0, max=length(id), style=3)
 	ntrios <- nrow(pedigree(object))
 	for(i in seq_along(id)){
-		if (verbose) setTxtProgressBar(pb, i)
+		setTxtProgressBar(pb, i)
 		this.id <- id[i]
 		k <- match(this.id, sampleNames(object))
-		if(verbose){
-			if(i %% 100 == 0)
-				message("   sample ", this.id, " (", i, "/", length(id), ")")
-		}
+		if(i %% 100 == 0)
+			message("   sample ", this.id, " (", i, "/", length(id), ")")
 		j <- which(ranges$id == this.id)
-		rd <- joint4(trioSet=object[, k],
+		rd <- joint4(id=this.id,
+			     trioSet=object[, k],
 			     ranges=ranges[j, ],
-			     mad.marker=mad.marker,
-			     mad.sample=mad.sample[k],
-			     ntrios=ntrios,
-			     ...)
+			     ntrios=ntrios)
+##			     ...)
 		if(returnEmission) return(rd)
 		ranges$lik.state[j] <- rd$lik.state
 		ranges$argmax[j] <- rd$argmax
 		ranges$lik.norm[j] <- rd$lik.norm
 	}
-	if(verbose) close(pb)
+	close(pb)
 	if(collapseRanges)
-		ranges <- pruneByFactor(ranges, f=ranges$argmax, verbose=verbose)
+		ranges <- pruneByFactor(ranges, f=ranges$argmax, verbose=FALSE)
 	ranges
 }
 
-setMethod("computeBayesFactor", signature(object="TrioSet", ranges="RangedDataCNV"),
+setMethod("computeBayesFactor", signature(object="TrioSet"),
 	  function(object,
 		   ranges,
-		   mad.marker,
-		   mad.sample,
 		   returnEmission=FALSE,
-		   collapseRanges=TRUE,
-		   verbose=TRUE, ...){
+		   collapseRanges=TRUE, ...){
 		  computeBayesFactorTrioSet(object=object,
 					    ranges=ranges,
-					    mad.marker=mad.marker,
-					    mad.sample=mad.sample,
 					    returnEmission=returnEmission,
-					    collapseRanges=collapseRanges,
-					    verbose=verbose, ...)
+					    collapseRanges=collapseRanges, ...)
 	  })
 
 setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
