@@ -165,7 +165,7 @@ combineRanges <- function(deletion.ranges, amp.ranges){
 }
 
 
-pruneByFactor <- function(range.object, f, verbose){
+pruneByFactor <- function(range.object, f, verbose=FALSE){
 	rd <- list()
 	id.chr <- paste(range.object$id, chromosome(range.object), sep="_")
 	ff <- unique(id.chr)
@@ -630,14 +630,8 @@ jointProb <- function(segment.index, ## so that we can insert a browser for a sp
 	## setting prob.nonMendelian smaller would not have an effect
 	tauI.11 <- tauI.00 <- 1-.01
 	tauI.10 <- tauI.01 <- 1-tauI.11
-	##beta <- exp(log.lik)
-	##pr.off <- p.00*tauI.00*piI0 + p.10*tauI.10*piI1 + p.01*tauI.01*piI0 +p.11*tauI.11*piI1
 	pr.off <- p.NM*(p.11*tauI.11 + p.10*tauI.10) + (1-p.NM)*(p.00*tauI.00+p.01*tauI.01)
 	log.lik <- sum(log.lik) + log(pr.off*tau.m*pi.m*tau.f*pi.f)
-	## lik.f*lik.m*lik.o*pr.off*tau.m*pi.m*tau.f*pi.f
-	##log.lik[3] <- log.lik[3]+log(pr.off)
-	##log.lik[2] <- log.lik[2]+log(tau.m*pi.m)
-	##log.lik[1] <- log.lik[1]+log(tau.f*pi.f)
 }
 
 joint1 <- function(LLT, ##object,
@@ -679,15 +673,6 @@ joint1 <- function(LLT, ##object,
 		##fmo <- apply(fmo, 2, sum, na.rm=TRUE)
 		fmo <- fmo + log.pi2
 		log.emit <- fmo
-##		for(j in 1:2) fmo[j] <- fmo[j]+log.pi[state.index]
-##		f <- sum(fmo[[1]])+log.pi[state.index]
-##		m <- sum(fmo[[2]])+log.pi[state.index]
-##		o <- sum(fmo[[3]])+log(pi.offspring)
-		## p.E138 top left: Pr(DN_1 = 1 | model)
-		##  -- the probability the first marker is in a denovo region
-		##log.Prob.DN <- ifelse(is.denovo, log(Prob.DN), log(1-Prob.DN))
-		##pr.offspring <-
-		##fmo[3] <- fmo[3]+log.Prob.DN
 	} else{
 		log.emit <- jointProb(segment.index=segment.index,
 				      state=state,
@@ -698,107 +683,24 @@ joint1 <- function(LLT, ##object,
 				      table1=table1,
 				      table3=table3,
 				      log.lik=fmo)
-##		##** Note that when state is the 'normal.state'**
-##		##    (state.index == normal.index)
-##		##    tau is the probability of staying in the same state
-##		##
-##		##for k = normal.index, it would do the right thing
-##		## prob. leaving normal state to state k
-##		##fmo <- apply(fmo, 2, sum, na.rm=TRUE)
-##		for(j in 1:2) fmo[j] <- fmo[j]+log(tau[state.prev[j], state[j]])
-##		##f <- log(tau[state.prev[1], state[1]]) + sum(fmo[[1]])
-##		##m <- log(tau[state.prev[2], state[1]]) + sum(fmo[[2]])
-##		##if(denovo.prev){
-##		##
-##		## Previous non-mendelian
-##		##
-##		## current Mendelian
-##		tabled.value <- lookUpTable1(table1, state)
-##		p1 <- 1/5*tabled.value
-##		## current non-Mendelian
-##		p2 <- 1/5*tau[state.prev[3], state[3]]  ## eq. 9
-##		##fmo[3] <- log(p1 + p2)
-##		##fmo[3] <- (1/5*tau[state.prev[3], state[3]]*
-##		##fmo[3] <- log(1/5) + log(tau[state.prev[3], state[3]]) + fmo[3]
-##		##
-##		## Previous Mendelian
-##		##
-##		## current mendelian
-##		tabled.value <- lookUpTable3(table3, state.prev, state.curr=state)
-##		p3 <- tabled.value
-##		## current non-mendelian
-##		p4 <- 1/5*lookUpTable1(table1, state) ## eq. 10
-##		##
-##		fmo[3] <- fmo[3]+log(p1+p2+p3+p4)
-		##fmo[3] <- log(p1+p2)
-		##fmo[3] <- log(tabled.value) + fmo[3]
-		##if(denovo.prev & is.denovo){
-			## Equation 9: Wang et al.
-			## if previous marker was in a range that was called denovo
-			## Pr(z_j,o, z_j-1,o | DN_j=1, DN_j-1=1)
-			##  = Pr(z_j,o | z_j-1,o, DN_j=1, DN_j-1=1) * Pr(z_j-1,o|DN_j-1=1)
-			##    2nd term is 1/5
-			##    1st term is
-			## Pr(CN state of offspring in previous segment | previous segment was denovo) = 1/5
-##			fmo[3] <- log(1/5) + log(tau[state.prev[3], state[3]]) + fmo[3]
-##		}
-##		if(denovo.prev & !is.denovo){
-##			## Equation 10: Wang et al.
-##			## previous marker was in a range that was not called denovo
-##			tabled.value <- lookUpTable1(table1, state)
-##			fmo[3] <- log(1/5) + log(tabled.value) + fmo[3]
-##		}
-##		if(!denovo.prev & is.denovo){
-##			## Equation 10
-##			tabled.value <- lookUpTable1(table1, state.prev)
-##			fmo[3] <- log(1/5) + log(tabled.value) + fmo[3]
-##		}
-##		if(!denovo.prev & !is.denovo){
-##			## 25 x 25 x 25 table available in source code of software
-##			tabled.value <- lookUpTable3(table3, state.prev, state.curr=state)
-##			fmo[3] <- log(tabled.value) + fmo[3]
-##		}
 	}
-	## RS: comment 4/29/2011
-	## add the probability of transitioning back to the normal state
-	##for(j in 1:3) fmo[j] <- fmo[j] + log(tau[state[j], 3])
-	##f <- f+log(tau[state[1], 3])
-	##m <- m+log(tau[state[2], 3])
-	##o <- o+log(tau[state[3], 3])
-	##res <- sum(fmo)
 	res <- sum(log.emit)
 	stopifnot(!is.na(res))
-	##
-	## we all need a transition proability for not denovo -> denovo -> not denovo
-	## (Equation 11)
-	##f.m.o <- sum(fmo, na.rm=TRUE)
-	## prob. back to  normal state
-	##f.m.o <- f.m.o+tau[state.index, normal.index]
 	return(res)
 }
 
 joint4 <- function(id,
 		   trioSet,
 		   ranges,
-		   mad.marker,
 		   cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
 		   a=0.0009,
 		   prob.nonMendelian=1.5e-6,
 		   returnEmission=FALSE,
-		   ntrios,
-		   ...){## all the ranges from one subject , one chromosome
+		   ntrios){## all the ranges from one subject , one chromosome
 	if(missing(id)) id <- sampleNames(trioSet)[1]
 	ranges <- ranges[sampleNames(ranges) == id, ]
 	is.snp <- isSnp(trioSet)
 	stopifnot(ncol(trioSet)==1)
-	##	if(is.null(mad.marker)){
-	##sds <- matrix(mad.sample, nrow(trioSet), 3, byrow=TRUE)
-	##sds <- mad.sample
-	##
-	## Pass initial estimates of mean and standard deviation
-	## - fit HMM to each sample in the trio
-	## - reestimate, means, sds, and mixture probability for the outlier distribution
-	##     for each state using the forward and backward variable from viterbi.
 	limits <- VanillaICE:::copyNumberLimits(is.log=TRUE)
 	r <- lrr(trioSet)[, 1, ]
 	b <- baf(trioSet)[, 1, ]
@@ -815,31 +717,6 @@ joint4 <- function(id,
 						   p.hom=0.05)
 	lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
 	for(i in 1:3) lemit[, i, ] <- log(VanillaICE:::emission(viterbiObj[[i]]))
-##	lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
-##					    cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
-##						    stdev=sds,
-##						    is.log=TRUE,
-##						    is.snp=is.snp,
-##						    normalIndex=3)
-##	} else{
-##		mad.sample <- matrix(mad.sample, length(mad.marker), 3)
-##		gammas <- matrix(mad.marker/median(mad.marker, na.rm=TRUE), length(mad.marker), 3, byrow=FALSE)
-##		df0 <- 20
-##		gammas.n <- (df0 + (ntrios-1)*gammas)/(df0 + ntrios-1)
-##		gammas.n[is.na(gammas.n)] <- 1
-##		sds <- mad.sample*gammas
-##		lrr.emit <- VanillaICE:::cnEmission(lrr(trioSet)[, 1, ],
-##						    stdev=sds,
-##						    cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
-##						    is.log=TRUE,
-##						    is.snp=is.snp,
-##						    normalIndex=3)
-##	}
-##	baf.emit <- VanillaICE:::bafEmission(baf(trioSet)[, 1, ],
-##					     is.snp=is.snp,
-##					     prOutlier=1e-3,
-##					     p.hom=0.95)
-##	lemit <- lrr.emit+baf.emit
 	trio.states <- trioStates(0:4)
 	tmp <- rep(NA, nrow(trio.states))
 	state.prev <- NULL
@@ -866,7 +743,6 @@ joint4 <- function(id,
 		LLT <- matrix(NA, 3, 6)
 		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
 		rownames(LLT) <- c("F", "M", "O")
-		##colnames(LLT) <- paste("CN_", states, sep="")
 		colnames(LLT) <- paste("CN_", 1:6, sep="")
 		for(j in seq_len(nrow(trio.states))){
 			tmp[j] <- joint1(LLT=LLT,
@@ -1146,16 +1022,12 @@ callDenovoSegments <- function(path="",
 			       chromosome=1:22,
 			       segmentParents,
 			       verbose=FALSE, ...){
-	##trionames <- allNames(pedigreeData)
-	if(missing(featureData)){
-		if(missing(cdfname))
-			stop("cdfname and featureData are both missing.")
+	if(!is(pedigreeData, "Pedigree")) stop("pedigreeData must be an object of class Pedigree")
+	filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
+	if(!all(file.exists(filenames))) {
+		fnames <- filenames[!file.exists(filenames)]
+		stop(paste("Files not avalable:", head(fnames)))
 	}
-	stopifnot(!missing(pedigreeData))
-	stopifnot(validObject(pedigreeData))
-	filenames <- file.path(path, paste(allNames(pedigreeData), ext, sep=""))
-	stopifnot(all(file.exists(filenames)))
-	stopifnot(!missing(filenames))
 	obj <- read.bsfiles(filenames=filenames, path="", ext="")
 	if(missing(featureData)){
 		trioSetList <- TrioSetList(lrr=obj[, "lrr",],
@@ -1172,8 +1044,6 @@ callDenovoSegments <- function(path="",
 	}
 	md <- calculateMindist(lrr(trioSetList), verbose=verbose)
 	mads.md <- mad2(md, byrow=FALSE)
-	mads.lrr.sample <- mad2(lrr(trioSetList), byrow=FALSE)
-	mads.lrr.marker <- mad2(lrr(trioSetList), byrow=TRUE)
 	fns <- featureNames(trioSetList)
 	md.segs <- segment2(object=md,
 			    pos=position(trioSetList),
@@ -1208,61 +1078,15 @@ callDenovoSegments <- function(path="",
 	index <- split(seq_len(nrow(md.segs2)), chromosome(md.segs2))
 	index <- index[match(chromosome(trioSetList), names(index))]
 	stopifnot(identical(as.character(chromosome(trioSetList)), names(index)))
-	if(!is.null(getCluster())){
-		if(!is.null(mads.lrr.marker)){
-			map.segs <- foreach(object=trioSetList,
-					    i=index,
-					    mad.marker=mads.lrr.marker,
-					    .inorder=FALSE,
-					    .combine=stackRangedDataList,
-					    .packages="MinimumDistance") %dopar% {
-						    computeBayesFactor(object=object,
-								       ranges=md.segs2[i, ],
-								       pedigreeData=pedigree(trioSetList),
-								       mad.marker=mad.marker,
-								       mad.sample=mads.lrr.sample)
-					    }
-		} else {
-			map.segs <- foreach(object=trioSetList,
-					    i=index,
-					    .inorder=FALSE,
-					    .combine=stackRangedDataList,
-					    .packages="MinimumDistance") %dopar% {
-						    computeBayesFactor(object=object,
-								       ranges=md.segs2[i, ],
-								       pedigreeData=pedigree(trioSetList),
-								       mad.marker=NULL,
-								       mad.sample=mads.lrr.sample)
-					    }
-		}
-	} else {
-		if(!is.null(mads.lrr.marker)){
-			map.segs <- foreach(object=trioSetList,
-					    i=index,
-					    mad.marker=mads.lrr.marker,
-					    .inorder=FALSE,
-					    .combine=stackRangedDataList,
-					    .packages="MinimumDistance") %do% {
-						    computeBayesFactor(object=object,
-								       ranges=md.segs2[i, ],
-								       pedigreeData=pedigree(trioSetList),
-								       mad.marker=mad.marker,
-								       mad.sample=mads.lrr.sample)
-					    }
-		} else {
-			map.segs <- foreach(object=trioSetList,
-					    i=index,
-					    .inorder=FALSE,
-					    .combine=stackRangedDataList,
-					    .packages="MinimumDistance") %do% {
-						    computeBayesFactor(object=object,
-								       ranges=md.segs2[i, ],
-								       pedigreeData=pedigree(trioSetList),
-								       mad.marker=NULL,
-								       mad.sample=mads.lrr.sample)
-					    }
-		}
-	}
+	map.segs <- foreach(object=trioSetList,
+			    i=index,
+			    .inorder=FALSE,
+			    .combine=stackRangedDataList,
+			    .packages="MinimumDistance") %dopar% {
+				    computeBayesFactor(object=object,
+						       ranges=md.segs2[i, ])
+						       ##pedigreeData=pedigree(trioSetList))
+			    }
 	return(map.segs)
 }
 

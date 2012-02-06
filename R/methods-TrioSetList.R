@@ -316,158 +316,37 @@ setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 		  return(rdList)
 	  })
 
-setMethod("computeBayesFactor", signature(object="TrioSetList", ranges="RangedDataCNV"),
+setMethod("computeBayesFactor", signature(object="TrioSetList"),
 	  function(object, ranges,
-		   mad.marker,
-		   mad.sample,
 		   returnEmission=FALSE,
-		   collapseRanges=TRUE,
-		   verbose=TRUE, ...){
+		   collapseRanges=TRUE, ...){
 		  computeBayesFactorTrioSetList(object=object,
 						ranges=ranges,
-						mad.marker=mad.marker,
-						mad.sample=mad.sample,
 						returnEmission=returnEmission,
 						collapseRanges=collapseRanges,
-						verbose=verbose, ...)
+						...)
 	  })
 
-computeBayesFactorTrioSetList <- function(object, ranges,
-					  mad.marker,
-					  mad.sample,
+computeBayesFactorTrioSetList <- function(object,
+					  ranges,
 					  returnEmission=FALSE,
 					  collapseRanges=TRUE,
-					  verbose=TRUE, ...){
+					  ...){
 	index <- split(seq_len(nrow(ranges)), chromosome(ranges))
 	index <- index[match(chromosome(object), names(index))]
 	stopifnot(identical(as.character(chromosome(object)), names(index)))
-	if(missing(mad.marker)) mad.marker <- mad2(lrr(object), pedigree=pedigree(object), byrow=TRUE)
-	if(missing(mad.sample)) mad.sample <- mad2(lrr(object), byrow=FALSE)
-	if(!is.null(getCluster())){
-		if(!is.null(mad.marker)){
-			map.segs <- foreach(object=object,
-					    i=index,
-					    mad.marker=mad.marker,
-					    .inorder=FALSE,
-					    .combine=stackRangedDataList,
-					    .packages="MinimumDistance") %dopar% {
-						    computeBayesFactor(object=object,
-								       ranges=ranges[i, ],
-								       pedigreeData=pedigree(object),
-								       mad.marker=mad.marker,
-								       mad.sample=mad.sample)
-					    }
-		} else {
-			map.segs <- foreach(object=object,
-					    i=index,
-					    .inorder=FALSE,
-					    .combine=stackRangedDataList,
-					    .packages="MinimumDistance") %dopar% {
-						    computeBayesFactor(object=object,
-								       ranges=ranges[i, ],
-								       pedigreeData=pedigree(object),
-								       mad.marker=NULL,
-								       mad.sample=mad.sample)
-					    }
-		}
-	} else {
-		if(!is.null(mad.marker)){
-			map.segs <- foreach(object=object,
-					    i=index,
-					    mad.marker=mad.marker,
-					    .inorder=FALSE,
-					    .combine=stackRangedDataList,
-					    .packages="MinimumDistance") %do% {
-						    computeBayesFactor(object=object,
-								       ranges=ranges[i, ],
-								       pedigreeData=pedigree(object),
-								       mad.marker=mad.marker,
-								       mad.sample=mad.sample)
-					    }
-		} else {
-			map.segs <- foreach(object=object,
-					    i=index,
-					    .inorder=FALSE,
-					    .combine=stackRangedDataList,
-					    .packages="MinimumDistance") %do% {
-						    computeBayesFactor(object=object,
-								       ranges=ranges[i, ],
-								       pedigreeData=pedigree(object),
-								       mad.marker=NULL,
-								       mad.sample=mad.sample)
-					    }
-		}
-	}
+	map.segs <- foreach(object=object,
+			    i=index,
+			    .inorder=FALSE,
+			    .combine=stackRangedDataList,
+			    .packages="MinimumDistance") %dopar% {
+				    computeBayesFactor(object=object,
+						       ranges=ranges[i, ],
+						       pedigreeData=pedigree(object))
+			    }
 	map.segs$state <- trioStateNames()[map.segs$argmax]
 	return(map.segs)
 }
-
-##setMethod("computeBayesFactor", signature(object="TrioSetList", ranges="RangedDataCNV"),
-##	  function(object, ranges,
-##		   mad.marker,
-##		   mad.sample,
-##		   returnEmission=FALSE,
-##		   collapseRanges=TRUE,
-##		   verbose=TRUE, ...){
-##		  chromosomes <- chromosome(object)
-##		  ranges <- ranges[chromosome(ranges) %in% chromosomes, ]
-##		  stopifnot(!missing(mad.marker))
-##		  stopifnot(!missing(mad.sample))
-##		  if(!"lik.state" %in% colnames(ranges)){
-##			  ranges$lik.state <- NA
-##		  }
-##		  if(!"lik.norm" %in% colnames(ranges)){
-##		  	  ranges$lik.norm <- NA
-##		  }
-##		  if(!"argmax" %in% colnames(ranges)){
-##			  ranges$argmax <- NA
-##		  }
-##		  if("id" %in% names(list(...))){
-##			  nsamples <- length(id)
-##		  } else nsamples <- ncol(object)
-##		  if(verbose){
-##			  message("\t\tComputing Bayes factors for ", length(object), " chromosomes and ", nsamples, " trios.")
-##			  pb <- txtProgressBar(min=0, max=length(object), style=3)
-##		  }
-##		  index <- split(seq_len(nrow(ranges)), chromosome(ranges))
-##		  rd <- foreach(obj=object, i=index, .packages="MinimumDistance") %dopar% {
-##			  computeBayesFactor(object=obj,
-##					     ranges=ranges[i, ],
-##					     pedigreeData=pedigree(object),
-##					     mad.marker=mad.marker,
-##					     mad.sample=mad.sample,
-##					     collapseRanges=FALSE,
-##					     verbose=FALSE, ...)
-##		  }
-####		  for(i in seq_along(object)){
-####			  if (verbose) setTxtProgressBar(pb, i)
-####			  CHR <- chromosome(object)[i]
-####			  j <- which(chromosome(ranges) == CHR)
-####			  if(length(j) < 1) next()
-####			  rd <- computeBayesFactor(object[[i]],
-####						   ranges[j, ],
-####						   pedigreeData=pedigree(object),
-####						   mad.marker=mad.marker,
-####						   mad.sample=mad.sample,
-####						   collapseRanges=FALSE,
-####						   verbose=FALSE, ...)
-##		  if(returnEmission) return(rd)
-##		  ranges$lik.state[j] <- rd$lik.state
-##		  ranges$argmax[j] <- rd$argmax
-##		  ranges$lik.norm[j] <- rd$lik.norm
-####		  }
-##		  if(verbose) close(pb)
-##		  ranges$state <- trioStateNames()[ranges$argmax]
-##		  if("collapseRanges" %in% names(list(...))){
-##			  collapseRanges <- list(...)[["collapseRanges"]]
-##		  } else collapseRanges <- TRUE
-##		  if(collapseRanges)
-##			  ranges <- pruneByFactor(ranges, f=ranges$argmax, verbose=verbose)
-####		  ranges <- RangedDataMinimumDistance(ranges=ranges(ranges),
-####						      values=values(ranges))
-##		  return(ranges)
-## 	  })
-
 
 
 setMethod("assayData", signature(object="TrioSetList"),
