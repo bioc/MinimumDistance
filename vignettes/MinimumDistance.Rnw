@@ -419,7 +419,6 @@ rd.denovoDel <- map.segs[state(map.segs) == 332, ]
 library("VanillaICE")
 mindist(trioSet) <- do.call("rbind", md)
 frame <- 100e3
-##trace(MinimumDistance:::xypanelTrioBaf, browser)
 figs <- MinimumDistance:::xyplotTrioLrrBaf(rd=rd.denovoDel,
 					   object=trioSet,
 					   frame=frame,
