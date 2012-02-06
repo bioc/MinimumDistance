@@ -45,10 +45,10 @@ setValidity("TrioSet", function(object){
 	if(!identical(sampleNames(object), sampleNames(phenoData(object)))){
 		stop("sampleNames of TrioSetList object must be the same as the sampleNames of the phenoData")
 	}
-	if(!identical(fatherNames(object), sampleNames(fatherPhenoData(object)))){
+	if(!identical(fatherNames(object), originalNames(sampleNames(fatherPhenoData(object))))){
 		stop("fatherNames of TrioSetList object must be the same as the sampleNames of the fatherPhenoData")
 	}
-	if(!identical(motherNames(object), sampleNames(motherPhenoData(object)))){
+	if(!identical(motherNames(object), originalNames(sampleNames(motherPhenoData(object))))){
 		stop("motherNames of TrioSetList object must be the same as the sampleNames of the motherPhenoData")
 	}
 	if(!is.null(mindist(object))){
@@ -89,10 +89,10 @@ setValidity("TrioSetList", function(object){
 	if(!identical(sampleNames(object), sampleNames(phenoData(object)))){
 		stop("sampleNames of TrioSetList object must be the same as the sampleNames of the phenoData")
 	}
-	if(!identical(fatherNames(object), sampleNames(fatherPhenoData(object)))){
+	if(!identical(fatherNames(object), originalNames(sampleNames(fatherPhenoData(object))))){
 		stop("fatherNames of TrioSetList object must be the same as the sampleNames of the fatherPhenoData")
 	}
-	if(!identical(motherNames(object), sampleNames(motherPhenoData(object)))){
+	if(!identical(motherNames(object), originalNames(sampleNames(motherPhenoData(object))))){
 		stop("motherNames of TrioSetList object must be the same as the sampleNames of the motherPhenoData")
 	}
 	if(length(featureDataList(object)) != length(chromosome(object))){

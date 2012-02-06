@@ -54,8 +54,12 @@ Pedigree <- function(pedigreeInfo,
 		msg <- "pedigreeInfo must be a data.frame with column names 'F', 'M', and 'O'"
 		if(!is(pedigreeInfo, "data.frame"))
 			stop(msg)
-		trios <- data.frame(F=make.unique2(as.character(pedigreeInfo[[1]])),
-				    M=make.unique2(as.character(pedigreeInfo[[2]])),
+##		trios <- data.frame(F=make.unique2(as.character(pedigreeInfo[[1]])),
+##				    M=make.unique2(as.character(pedigreeInfo[[2]])),
+##				    O=as.character(pedigreeInfo[[3]]),
+##				    stringsAsFactors=FALSE)
+		trios <- data.frame(F=as.character(pedigreeInfo[[1]]),
+				    M=as.character(pedigreeInfo[[2]]),
 				    O=as.character(pedigreeInfo[[3]]),
 				    stringsAsFactors=FALSE)
 		allIds <- as.character(unlist(trios))
@@ -63,8 +67,12 @@ Pedigree <- function(pedigreeInfo,
 		fatherIds <- as.character(fatherIds)
 		motherIds <- as.character(motherIds)
 		offspringIds <- as.character(offspringIds)
-		trios <- data.frame(F=make.unique2(fatherIds),
-				    M=make.unique2(motherIds),
+##		trios <- data.frame(F=make.unique2(fatherIds),
+##				    M=make.unique2(motherIds),
+##				    O=offspringIds,
+##				    stringsAsFactors=FALSE)
+		trios <- data.frame(F=fatherIds,
+				    M=motherIds,
 				    O=offspringIds,
 				    stringsAsFactors=FALSE)
 		allIds <- c(fatherIds, motherIds, offspringIds)
