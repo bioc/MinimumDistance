@@ -1,11 +1,6 @@
 setMethod("calculateMindist", signature(object="list"),
-	  function(object, ...){
-		  ##lapply(object, calculateMindist, ...)
-		  if(!is.null(getCluster())){
-			  foreach(elt=object, .packages="MinimumDistance") %dopar% calculateMindist(elt, ldpath=ldPath())
-		  } else{
-			  foreach(elt=object, .packages="MinimumDistance") %do% calculateMindist(elt)
-		  }
+	  function(object, outdir, ...){
+		  foreach(elt=object, .packages=c("ff", "MinimumDistance")) %dopar% calculateMindist(elt, outdir=outdir)
 	  })
 
 
