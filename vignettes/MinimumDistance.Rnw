@@ -397,6 +397,13 @@ map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2)
 show(map.segs)
 @
 
+Note that the above method could be applied to a single genomic
+interal.  For example,
+
+<<computeBayesFactorOneRange>>=
+computeBayesFactor(trioSetList, md.segs2[1, ])
+@
+
 The ratio of posterior probabilities can be used to rank genomic
 ranges by the evidence for a de novo copy number alteration.  Note
 that physically adjacent genomic ranges in a sample that are assigned
