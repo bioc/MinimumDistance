@@ -1100,20 +1100,27 @@ originalNames <- function(names){
 	names
 }
 
-read.bsfiles2 <- function(..., sampleNames, z, index, lrrlist, baflist){
-	dat <- read.bsfiles(...)
-	if(isPackageLoaded("ff")){
-		l <- match(sampleNames, colnames(baflist[[1]]))
-		for(j in seq_along(index)){
-			k <- index[[j]]
-			baflist[[j]][, l, z] <- dat[k, 2, ]
-			lrrlist[[j]][, l, z] <- dat[k, 1, ]
-		}
-		return(TRUE)
-	} else {
-		colnames(dat) <- sampleNames
-		return(dat)
+read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
+			  lrrlist, baflist){
+	i <- seq_along(sampleNames)
+	## this is simply to avoid having a large 'dat' object below.
+	if(length(i) > 10){
+		ilist <- splitIndicesByLength(i, 10)
+	} else{
+		ilist <- list(i)
 	}
+	for(k in seq_along(ilist)){
+		j <- ilist[[k]]
+		sns <- sampleNames[j]
+		dat <- read.bsfiles(path=path, filenames=filenames[j])
+		l <- match(sns, colnames(baflist[[1]]))
+		for(m in seq_along(marker.index)){
+			M <- marker.index[[m]]
+			baflist[[m]][, l, z] <- dat[M, 2, ]
+			lrrlist[[m]][, l, z] <- dat[M, 1, ]
+		}
+	}
+	return(TRUE)
 }
 
 stackRangedDataList <- function(...) {
@@ -1215,3 +1222,12 @@ stackRangedDataList <- function(...) {
 ##	cat("\n")
 ##	return(dat)
 ##}
+
+initializeLrrAndBafArrays <- function(dims, col.names, outdir){
+	ldPath(outdir)
+	bafs <- initializeBigArray("baf", dim=dims, vmode="double")
+	lrrs <- initializeBigArray("lrr", dim=dims, vmode="double")
+	colnames(bafs) <- colnames(lrrs) <- col.names
+	res <- list(baf=bafs, lrr=lrrs)
+	return(res)
+}

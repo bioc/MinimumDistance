@@ -52,50 +52,78 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 	} else {
 		message("ff package not loaded -- initializing arrays for BAFs and LRRs ...")
 	}
-	baflist <- lapply(index, function(x) initializeBigArray("baf", dim=c(length(x), nrow(pedigree), 3), vmode="double"))
-	lrrlist <- lapply(index, function(x) initializeBigArray("lrr", dim=c(length(x), nrow(pedigree), 3), vmode="double"))
+	## may make sense to do this in parallel if processing a large number of trios
+	if(nrow(pedigree) > 100 & isPackageLoaded("ff")){
+		bafAndLrrList <- foreach(i=index, .packages="MinimumDistance") %dopar% {
+			initializeLrrAndBafArrays(dims=c(length(i), nrow(pedigree), 3), outdir=ldPath(), col.names=sampleNames(pedigree))
+		}
+		baflist <- lapply(bafAndLrrList, "[[", 1)
+		lrrlist <- lapply(bafAndLrrList, "[[", 2)
+	} else {
+		baflist <- lapply(index, function(x) initializeBigArray("baf", dim=c(length(x), nrow(pedigree), 3), vmode="double"))
+		lrrlist <- lapply(index, function(x) initializeBigArray("lrr", dim=c(length(x), nrow(pedigree), 3), vmode="double"))
+		baflist <- lapply(baflist, function(x, sampleNames) {
+			colnames(x) <- sampleNames
+			return(x)
+		}, sampleNames=sampleNames(pedigree))
+		lrrlist <- lapply(lrrlist, function(x, sampleNames){
+			colnames(x) <- sampleNames
+			return(x)
+		}, sampleNames=sampleNames(pedigree))
+	}
 	if(isPackageLoaded("ff"))
 		message("Reading ", length(fnames),
 			" files and writing ff files to directory ", ldPath())
-	baflist <- lapply(baflist, function(x, sampleNames) {
-		colnames(x) <- sampleNames
-		return(x)
-	}, sampleNames=sampleNames(pedigree))
-	lrrlist <- lapply(lrrlist, function(x, sampleNames){
-		colnames(x) <- sampleNames
-		return(x)
-	}, sampleNames=sampleNames(pedigree))
 	fathers <- paste(fatherNames(pedigree), ext, sep="")
 	mothers <- paste(motherNames(pedigree), ext, sep="")
 	offsprg <- paste(offspringNames(pedigree), ext, sep="")
 	trioindex <- seq_len(nrow(pedigree))
 	## want to avoid reading in more than 10 files per node -- would
 	## require a lot of total ram, depending on how many nodes are avail.
-	if(length(trioindex) > 10){
-		ilist <- splitIndicesByLength(trioindex, 10)
-	} else{
-		ilist <- splitIndicesByNode(trioindex)
-		ilist <- ilist[sapply(ilist, function(x) length(x) > 0)]
+##	if(length(trioindex) > 10){
+##		ilist <- splitIndicesByLength(trioindex, 10)
+##	} else{
+##		ilist <- splitIndicesByNode(trioindex)
+##		ilist <- ilist[sapply(ilist, function(x) length(x) > 0)]
+##	}
+	##
+	## for reading in data, we can't split by chromosome (all
+	## markers are read in at once) So, we split by samples.
+	if(!is.null(getCluster)){
+		ilist <- splitIndicesByLength(trioindex, getCluster())
+	} else {
+		## execution is sequential.
+		ilist <- list(trioindex)
 	}
 	if(isPackageLoaded("ff")){
-		res <- foreach(i=ilist, .packages="MinimumDistance") %do% MinimumDistance:::read.bsfiles2(path=path, filenames=originalNames(fathers[i]),
-						   sampleNames=sampleNames(pedigree)[i],
-						   index=index,
-						   z=1,
-						   baflist=baflist,
-						   lrrlist=lrrlist)
-		res <- foreach(i=ilist, .packages="MinimumDistance") %do% MinimumDistance:::read.bsfiles2(path=path, filenames=originalNames(mothers[i]),
-						   sampleNames=sampleNames(pedigree)[i],
-						   index=index,
-						   z=2,
-						   baflist=baflist,
-						   lrrlist=lrrlist)
-		res <- foreach(i=ilist, .packages="MinimumDistance") %do% MinimumDistance:::read.bsfiles2(path=path, filenames=offsprg[i],
-						   sampleNames=sampleNames(pedigree)[i],
-						   index=index,
-						   z=3,
-						   baflist=baflist,
-						   lrrlist=lrrlist)
+		## pass the ff object / array to each worker
+		## read in the files and assign the results to column z
+		## workers read in different sets of files and assign to the baflist and lrrlist ff objects
+		res <- foreach(i=ilist, .packages="MinimumDistance") %dopar% {
+			read.bsfiles2(path=path,
+				      filenames=originalNames(fathers[i]),
+				      sampleNames=sampleNames(pedigree)[i],
+				      marker.index=index,
+				      z=1,
+				      baflist=baflist,
+				      lrrlist=lrrlist)
+		}
+		res <- foreach(i=ilist, .packages="MinimumDistance") %dopar% {
+			read.bsfiles2(path=path, filenames=originalNames(mothers[i]),
+				      sampleNames=sampleNames(pedigree)[i],
+				      marker.index=index,
+				      z=2,
+				      baflist=baflist,
+				      lrrlist=lrrlist)
+		}
+		res <- foreach(i=ilist, .packages="MinimumDistance") %dopar% {
+			read.bsfiles2(path=path, filenames=offsprg[i],
+				      sampleNames=sampleNames(pedigree)[i],
+				      marker.index=index,
+				      z=3,
+				      baflist=baflist,
+				      lrrlist=lrrlist)
+		}
 	} else {
 		F <- read.bsfiles2(path=path, filenames=originalNames(fathers), sampleNames=sampleNames(pedigree), lrrlist=lrrlist, baflist=baflist)
 		M <- read.bsfiles2(path=path, filenames=originalNames(mothers), sampleNames=sampleNames(pedigree), lrrlist=lrrlist, baflist=baflist)
