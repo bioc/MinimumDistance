@@ -101,11 +101,11 @@ chromosomes and to reduce the size of the individual \Rclass{ff} files
 on disk.
 
 <<ConstructTrioSetList, cache=TRUE>>=
-if(exists("pedigreeIndex")) pedigree <- pedigree[pedigreeIndex, ]
-trioSetListff <- TrioSetListLD(path=path, fnames=allNames(pedigree), ext=".txt",
+if(exists("pedigreeIndex")) ped <- ped[pedigreeIndex, ]
+trioSetListff <- TrioSetListLD(path=path, fnames=allNames(ped), ext=".txt",
 			       samplesheet=samplesheet, ##optional
 			       row.names=samplesheet$Sample.Name, ## must provide if samplesheeet is not missing
-			       pedigree=pedigree,
+			       pedigree=ped,
 			       annotationPkg="human610quadv1bCrlmm")
 dim(lrr(trioSetListff))[[1]]
 lrr(trioSetListff)[[1]][1, , ]
