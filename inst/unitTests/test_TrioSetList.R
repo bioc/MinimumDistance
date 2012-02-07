@@ -110,9 +110,6 @@ test_TrioSetListLD <- function(){
 
 	library(ff)
 	ldPath(tempdir())
-##	trace(MinimumDistance:::assayDataListLD, browser)
-##	trace(VanillaICE:::read.bsfiles, browser)
-##	trace(MinimumDistance:::read.bsfiles2, browser)
 	trioSetListff <- TrioSetListLD(path=path,
 				       fnames=fnames,
 				       pedigreeData=ped,
