@@ -22,6 +22,20 @@ xyplotTrioLrrBaf <- function(rd, object, frame, lrr.segments, md.segments, ...){
 	return(figs)
 }
 
+
+xyplotTrioListLrrBaf <- function(rd, md, object, frame,
+				 lrr.segments, md.segments, ...){
+	## assume rd is one range
+	object <- object[[chromosome(rd)]]
+	marker.index <- subjectHits(findOverlaps(rd, featureData(object), maxgap=frame))
+	trio.index <- match(sampleNames(rd), sampleNames(object))
+	object <- object[marker.index, trio.index]
+	md <- md[[chromosome(rd)]]
+	md <- md[marker.index, trio.index, drop=FALSE]
+	mindist(object) <- md
+ 	xyplotTrioLrrBaf(rd=rd, object=object, frame=frame, lrr.segments=lrr.segments, md.segments=md.segments, ...)
+}
+
 xypanelTrioBaf <- function(x, y,
 			   memberId,
 			   baf,

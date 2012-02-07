@@ -8,7 +8,7 @@ calculateMindistFromArray <- function(object, outdir=ldPath(), ...){
 	isff <- is(object, "ff")
 	if(is.null(getCluster())) registerDoSEQ()
 	if(isff){
-		require("ff")
+		if(!isPackageLoaded("ff")) stop(paste("array has class ", class(object)[[1]], " but the ff package is not loaded"))
 		## so that the worker nodes put the ff objects in the same directory
 		ldPath(outdir)
 		md <- initializeBigMatrix("mindist", nr=nrow(object), nc=ncol(object), vmode="double")

@@ -714,7 +714,7 @@ joint4 <- function(id,
 						   is.log=TRUE,
 						   limits=limits,
 						   returnViterbiObject=TRUE,
-						   p.hom=0.05)
+						   p.hom=0)
 	lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
 	for(i in 1:3) lemit[, i, ] <- log(VanillaICE:::emission(viterbiObj[[i]]))
 	trio.states <- trioStates(0:4)

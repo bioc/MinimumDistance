@@ -10,8 +10,7 @@
 \alias{annotation,TrioSetList-method}
 \alias{baf,TrioSetList-method}
 \alias{baf}
-%\alias{calculateMindist,TrioSetList-method}
-\alias{computeBayesFactor,TrioSetList,RangedDataCNV-method}
+\alias{computeBayesFactor,TrioSetList-method}
 \alias{dims,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}
 \alias{fatherPhenoData,TrioSetList-method}
