@@ -463,7 +463,7 @@ LikSet <- function(trioSet, pedigreeData, id, CHR, ranges){
 	fData(object)$range.index <- NA
 	##tmp=findOverlaps(featureData(object), ranges)
 	fo=findOverlaps(ranges, featureData(object))
-	mm <- matchMatrix(fo)
+	mm <- IRanges:::as.matrix(fo)
 	i1 <- mm[, "subject"]
 	i2 <- mm[, "query"]
 	fData(object)$range.index[i1] <- i2
@@ -730,7 +730,7 @@ joint4 <- function(id,
 	norm.index <- which(state.names=="333")
 	ranges <- ranges[order(start(ranges)), ]
 	ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
-	mm <- matchMatrix(findOverlaps(featureData(trioSet), ranges))
+	mm <- IRanges:::as.matrix(findOverlaps(featureData(trioSet), ranges))        
 	I <- which(table(mm[, 2]) >= 2)
 	range.index <- mm[mm[, 2] %in% I, 2]
 	for(i in I){

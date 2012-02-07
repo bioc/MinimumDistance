@@ -395,7 +395,7 @@ setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
 		  }
 		  ##overlaps <- findOverlaps(object, rangeData, max.gap=frame)
 		  overlaps <- findOverlaps(rangeData, featureData(object), maxgap=frame)
-		  marker.index <- matchMatrix(overlaps)[, 2]
+		  marker.index <- IRanges:::as.matrix(overlaps)[, 2]
 		  ##marker.index <- featuresInRangeData(object, rangeData, FRAME=frame)
 		  id <- rangeData$id
 		  sample.index <- match(id, sampleNames(object))
@@ -626,7 +626,7 @@ trioSet2data.frame <- function(from){
 
 dataFrameFromRange2 <- function(object, range, range.index, frame){
 	rm <- findOverlaps(range, featureData(object), maxgap=frame) ## RangesMatching
-	mm <- matchMatrix(rm)
+	mm <- IRanges:::as.matrix(rm)
 	mm.df <- data.frame(mm)
 	mm.df$featureNames <- featureNames(object)[mm.df$subject]
 	marker.index <- mm.df$subject
