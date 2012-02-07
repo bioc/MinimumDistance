@@ -6,6 +6,7 @@ setMethod("calculateMindist", signature(object="arrayORff_array"),
 
 calculateMindistFromArray <- function(object, outdir=ldPath(), ...){
 	isff <- is(object, "ff")
+	if(is.null(getCluster())) registerDoSEQ()
 	if(isff){
 		require("ff")
 		## so that the worker nodes put the ff objects in the same directory

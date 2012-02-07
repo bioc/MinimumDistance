@@ -1,6 +1,6 @@
 setMethod("calculateMindist", signature(object="list"),
 	  function(object, outdir, ...){
-		  foreach(elt=object, .packages=c("ff", "MinimumDistance")) %dopar% calculateMindist(elt, outdir=outdir)
+		  foreach(elt=object, .packages="MinimumDistance") %dopar% calculateMindist(elt, outdir=outdir)
 	  })
 
 

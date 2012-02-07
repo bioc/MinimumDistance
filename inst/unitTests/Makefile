@@ -13,3 +13,4 @@ test: # Run unit tests
 	export RUNITFILEPATTERN="$(file)";\
 	cd ${TOP}/tests;\
 	R --vanilla --slave < ${SUITE}
+
