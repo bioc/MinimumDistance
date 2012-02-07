@@ -11,7 +11,7 @@
 \alias{baf<-,TrioSet,ff_array-method}
 \alias{baf<-}
 \alias{calculateMindist,TrioSet-method}
-\alias{computeBayesFactor,TrioSet,RangedDataCNV-method}
+\alias{computeBayesFactor,TrioSet-method}
 \alias{dim,TrioSet-method}
 \alias{fatherNames<-,TrioSet,character-method}
 \alias{fatherNames<-}

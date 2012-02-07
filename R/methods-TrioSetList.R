@@ -191,7 +191,8 @@ TrioSetList <- function(chromosome=integer(),
 	return(object)
 }
 
-TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names, pedigreeData, annotationPkg, outdir=ldPath()){
+TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names, pedigreeData,
+			  annotationPkg, outdir=ldPath()){
 	if(!is(pedigreeData, "Pedigree")) stop()
 	fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg)
 	fD <- fD[chromosome(fD) < 23 & !is.na(chromosome(fD)), ]
@@ -334,8 +335,13 @@ computeBayesFactorTrioSetList <- function(object,
 					  outdir=ldPath(),
 					  ...){
 	index <- split(seq_len(nrow(ranges)), chromosome(ranges))
+	index <- index[names(index) %in% chromosome(object)]
+	object <- object[chromosome(object) %in% names(index)]
 	index <- index[match(chromosome(object), names(index))]
-	stopifnot(identical(as.character(chromosome(object)), names(index)))
+	##stopifnot(identical(as.character(chromosome(object)), names(index)))
+	##if(!identical(as.character(chromosome(object)), names(index))){
+	##	stop("The supplied ranges are split into a list by chromosome and that the names
+	##}
 	map.segs <- foreach(object=object,
 			    i=index,
 			    .inorder=FALSE,
