@@ -7,7 +7,7 @@
   Constructor for TrioSetList class for large data
 }
 \usage{
-TrioSetListLD(path, fnames, ext="", samplesheet, row.names, pedigreeData, annotationPkg)
+TrioSetListLD(path, fnames, ext="", samplesheet, row.names, pedigreeData, annotationPkg, outdir=ldPath())
 }
 \arguments{
   \item{path}{
@@ -48,6 +48,8 @@ TrioSetListLD(path, fnames, ext="", samplesheet, row.names, pedigreeData, annota
     whether the feature is polymorphic ('isSnp')).
   }
 
+  \item{outdir}{Character string indicating the path for storing \code{ff}
+  objects.  Ignored if the \pkg{ff} package is not loaded.}
 
 }
 \details{
@@ -78,7 +80,8 @@ if(require("ff")){
 				       fnames=fnames,
 				       pedigreeData=Pedigree(data.frame(F="F.txt",
 				       M="M.txt", O="O.txt")),
-				       annotationPkg="human610quadv1bCrlmm")
+				       annotationPkg="human610quadv1bCrlmm",
+				       outdir=ldPath())
 }
 }
 \keyword{manip}
