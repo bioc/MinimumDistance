@@ -191,7 +191,7 @@ TrioSetList <- function(chromosome=integer(),
 	return(object)
 }
 
-TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names, pedigreeData, annotationPkg){
+TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names, pedigreeData, annotationPkg, outdir=ldPath()){
 	if(!is(pedigreeData, "Pedigree")) stop()
 	fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg)
 	fD <- fD[chromosome(fD) < 23 & !is.na(chromosome(fD)), ]
@@ -331,6 +331,7 @@ computeBayesFactorTrioSetList <- function(object,
 					  ranges,
 					  returnEmission=FALSE,
 					  collapseRanges=TRUE,
+					  outdir=ldPath(),
 					  ...){
 	index <- split(seq_len(nrow(ranges)), chromosome(ranges))
 	index <- index[match(chromosome(object), names(index))]
@@ -342,7 +343,8 @@ computeBayesFactorTrioSetList <- function(object,
 			    .packages="MinimumDistance") %dopar% {
 				    computeBayesFactor(object=object,
 						       ranges=ranges[i, ],
-						       pedigreeData=pedigree(object))
+						       pedigreeData=pedigree(object),
+						       outdir=outdir)
 			    }
 	map.segs$state <- trioStateNames()[map.segs$argmax]
 	return(map.segs)

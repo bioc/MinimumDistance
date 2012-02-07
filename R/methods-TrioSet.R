@@ -338,8 +338,9 @@ setMethod("checkOrder", signature(object="TrioSet"),
 computeBayesFactorTrioSet <- function(object,
 				      ranges,
 				      returnEmission=FALSE,
-				      collapseRanges=TRUE, ...){
+				      collapseRanges=TRUE, outdir=ldPath(), ...){
 	## a TrioSet has only one chromosome
+	ldPath(outdir)
  	CHR <- unique(chromosome(object))
 	ranges <- ranges[chromosome(ranges) == CHR, ]
 	id <- unique(sampleNames(ranges))
@@ -376,11 +377,11 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 	  function(object,
 		   ranges,
 		   returnEmission=FALSE,
-		   collapseRanges=TRUE, ...){
+		   collapseRanges=TRUE, outdir=ldPath(), ...){
 		  computeBayesFactorTrioSet(object=object,
 					    ranges=ranges,
 					    returnEmission=returnEmission,
-					    collapseRanges=collapseRanges, ...)
+					    collapseRanges=collapseRanges, outdir=outdir,  ...)
 	  })
 
 setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
