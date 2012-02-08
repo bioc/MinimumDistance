@@ -701,22 +701,22 @@ joint4 <- function(id,
 	ranges <- ranges[sampleNames(ranges) == id, ]
 	is.snp <- isSnp(trioSet)
 	stopifnot(ncol(trioSet)==1)
-	limits <- VanillaICE:::copyNumberLimits(is.log=TRUE)
+	limits <- copyNumberLimits(is.log=TRUE)
 	r <- lrr(trioSet)[, 1, ]
 	b <- baf(trioSet)[, 1, ]
 	colnames(r) <- colnames(b) <- allNames(trioSet)
-	viterbiObj <- VanillaICE:::viterbi2Wrapper(r=r,
-						   b=b,
-						   pos=position(trioSet),
-						   is.snp=isSnp(trioSet),
-						   cnStates=cnStates,
-						   chrom=chromosome(trioSet)[1],
-						   is.log=TRUE,
-						   limits=limits,
-						   returnViterbiObject=TRUE,
-						   p.hom=0)
+	viterbiObj <- viterbi2Wrapper(r=r,
+                                      b=b,
+                                      pos=position(trioSet),
+                                      is.snp=isSnp(trioSet),
+                                      cnStates=cnStates,
+                                      chrom=chromosome(trioSet)[1],
+                                      is.log=TRUE,
+                                      limits=limits,
+                                      returnViterbiObject=TRUE,
+                                      p.hom=0)
 	lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
-	for(i in 1:3) lemit[, i, ] <- log(VanillaICE:::emission(viterbiObj[[i]]))
+	for(i in 1:3) lemit[, i, ] <- log(emission(viterbiObj[[i]]))
 	trio.states <- trioStates(0:4)
 	tmp <- rep(NA, nrow(trio.states))
 	state.prev <- NULL
@@ -790,17 +790,17 @@ xypanelMD <- function(x, y,
 		      lrr.segs,
 		      md.segs,
 		      ..., subscripts){
-	VanillaICE:::xypanel(x, y,
-			    gt,
-			    is.snp,
-			    range,
-			    col.hom=col.hom,
-			    fill.hom=fill.hom,
-			    col.het=col.het,
-			    fill.het=fill.het,
-			    col.np=col.np,
-			    fill.np=fill.np,
-			    show.state, cex=cex, ..., subscripts=subscripts)
+	xypanel(x, y,
+                gt,
+                is.snp,
+                range,
+                col.hom=col.hom,
+                fill.hom=fill.hom,
+                col.het=col.het,
+                fill.het=fill.het,
+                col.np=col.np,
+                fill.np=fill.np,
+                show.state, cex=cex, ..., subscripts=subscripts)
 	id <- unique(id[subscripts])
 	range <- range[1, ]
 	CHR <- chromosome(range)

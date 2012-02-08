@@ -79,7 +79,7 @@ xypanelTrioBaf <- function(x, y,
 	b <- baf[subscripts]
 	b[b==2] <- NA
 	blim <- c(ylim[1]+0.1, ylim[1]+1.5)
-	bnew <- VanillaICE:::rescale(b, blim[1], blim[2])
+	bnew <- rescale(b, blim[1], blim[2])
 	lpoints(x[is.snp], bnew[is.snp], cex=cex.pch, col="blue", ...)
 	memberId <- unique(memberId[subscripts])
 	##sns <- unique(sampleNames[subscripts])
