@@ -92,7 +92,7 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 	##
 	## for reading in data, we can't split by chromosome (all
 	## markers are read in at once) So, we split by samples.
-	if(!is.null(getCluster)){
+	if(!is.null(getCluster())){
 		## e.g., for 900 trios and 3 workers,
 		## each worker reads in 300 trios
 		##  --- below we read 100 fathers, 100 mothers, 100 offspring...
@@ -135,9 +135,9 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 		message("Finished reading/writing processed data.")
 		gc()
 	} else {
-		F <- read.bsfiles2(path=path, filenames=originalNames(fathers), sampleNames=sampleNames(pedigree), lrrlist=lrrlist, baflist=baflist)
-		M <- read.bsfiles2(path=path, filenames=originalNames(mothers), sampleNames=sampleNames(pedigree), lrrlist=lrrlist, baflist=baflist)
-		O <- read.bsfiles2(path=path, filenames=offsprg, sampleNames=sampleNames(pedigree), lrrlist=lrrlist, baflist=baflist)
+		F <- read.bsfiles2(path=path, filenames=originalNames(fathers), sampleNames=sampleNames(pedigree))
+		M <- read.bsfiles2(path=path, filenames=originalNames(mothers), sampleNames=sampleNames(pedigree))
+		O <- read.bsfiles2(path=path, filenames=offsprg, sampleNames=sampleNames(pedigree))
 		for(j in seq_along(index)){
 			k <- index[[j]]
 			baflist[[j]][, , 1] <- F[k, 2, ]

@@ -100,7 +100,8 @@ test_TrioSetListLD <- function(){
 	ped <- Pedigree(data.frame(F=c("F.txt", "F.txt"),
 				   M=c("M.txt", "M.txt"),
 				   O=c("O.txt", "O1.txt")))
-	##trace(TrioSetListLD, browser)
+	trace(TrioSetListLD, browser)
+	trace(MinimumDistance:::assayDataListLD, browser)
 	trioSetList <- TrioSetListLD(path=path,
 				     fnames=fnames,
 				     pedigreeData=ped,
@@ -110,6 +111,7 @@ test_TrioSetListLD <- function(){
 
 	library(ff)
 	ldPath(tempdir())
+	registerDoSEQ()
 	trioSetListff <- TrioSetListLD(path=path,
 				       fnames=fnames,
 				       pedigreeData=ped,

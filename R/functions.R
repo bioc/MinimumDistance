@@ -1104,23 +1104,24 @@ read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
 			  lrrlist, baflist){
 	i <- seq_along(sampleNames)
 	## this is simply to avoid having a large 'dat' object below.
-	if(length(i) > 2){
+	if(isPackageLoaded("ff")){
 		ilist <- splitIndicesByLength(i, 2)
-	} else{
-		ilist <- list(i)
-	}
-	for(k in seq_along(ilist)){
-		j <- ilist[[k]]
-		sns <- sampleNames[j]
-		dat <- read.bsfiles(path=path, filenames=filenames[j])
-		l <- match(sns, colnames(baflist[[1]]))
-		for(m in seq_along(marker.index)){
-			M <- marker.index[[m]]
-			baflist[[m]][, l, z] <- dat[M, 2, ]
-			lrrlist[[m]][, l, z] <- dat[M, 1, ]
+		for(k in seq_along(ilist)){
+			j <- ilist[[k]]
+			sns <- sampleNames[j]
+			dat <- read.bsfiles(path=path, filenames=filenames[j])
+			l <- match(sns, colnames(baflist[[1]]))
+			for(m in seq_along(marker.index)){
+				M <- marker.index[[m]]
+				baflist[[m]][, l, z] <- dat[M, 2, ]
+				lrrlist[[m]][, l, z] <- dat[M, 1, ]
+			}
 		}
+		return(TRUE)
+	} else {
+		dat <- read.bsfiles(path=path, filenames=filenames)
 	}
-	return(TRUE)
+	return(dat)
 }
 
 stackRangedDataList <- function(...) {

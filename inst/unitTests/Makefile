@@ -2,7 +2,7 @@ TOP=../..
 PKG=${shell cd ${TOP};pwd}
 SUITE=doRUnit.R
 
-all: inst test clean
+all: inst test
 
 inst: # Install package
 	cd ${TOP}/..;\
