@@ -206,15 +206,15 @@ TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names, pedigree
 		sample.sheet <- samplesheet[index, ]
 		row.names <- row.names[index]
 		offsprPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-							  sample.sheet=samplesheet,
+							  sample.sheet=sample.sheet,
 							  which="offspring",
 							  row.names=row.names)
 		fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-							  sample.sheet=samplesheet,
+							  sample.sheet=sample.sheet,
 							  which="father",
 							  row.names=row.names)
 		motherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-							  sample.sheet=samplesheet,
+							  sample.sheet=sample.sheet,
 							  which="mother",
 							  row.names=row.names)
 	} else {

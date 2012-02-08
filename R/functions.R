@@ -1104,8 +1104,8 @@ read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
 			  lrrlist, baflist){
 	i <- seq_along(sampleNames)
 	## this is simply to avoid having a large 'dat' object below.
-	if(length(i) > 10){
-		ilist <- splitIndicesByLength(i, 10)
+	if(length(i) > 2){
+		ilist <- splitIndicesByLength(i, 2)
 	} else{
 		ilist <- list(i)
 	}

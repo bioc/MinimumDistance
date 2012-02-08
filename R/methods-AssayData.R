@@ -54,8 +54,11 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 	}
 	## may make sense to do this in parallel if processing a large number of trios
 	if(nrow(pedigree) > 100 & isPackageLoaded("ff")){
-		bafAndLrrList <- foreach(i=index, .packages="MinimumDistance") %dopar% {
-			initializeLrrAndBafArrays(dims=c(length(i), nrow(pedigree), 3), outdir=ldPath(), col.names=sampleNames(pedigree))
+		## if ff is not passed, arrays will be instantiated
+		## passing ldPath() didn't seem to work
+		outdir <- ldPath()
+		bafAndLrrList <- foreach(i=index, .packages=c("ff", "MinimumDistance")) %dopar% {
+			MinimumDistance:::initializeLrrAndBafArrays(dims=c(length(i), nrow(pedigree), 3), outdir=outdir, col.names=sampleNames(pedigree))
 		}
 		baflist <- lapply(bafAndLrrList, "[[", 1)
 		lrrlist <- lapply(bafAndLrrList, "[[", 2)
@@ -90,6 +93,9 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 	## for reading in data, we can't split by chromosome (all
 	## markers are read in at once) So, we split by samples.
 	if(!is.null(getCluster)){
+		## e.g., for 900 trios and 3 workers,
+		## each worker reads in 300 trios
+		##  --- below we read 100 fathers, 100 mothers, 100 offspring...
 		ilist <- splitIndicesByLength(trioindex, getCluster())
 	} else {
 		## execution is sequential.
@@ -99,31 +105,35 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 		## pass the ff object / array to each worker
 		## read in the files and assign the results to column z
 		## workers read in different sets of files and assign to the baflist and lrrlist ff objects
-		res <- foreach(i=ilist, .packages="MinimumDistance") %dopar% {
-			read.bsfiles2(path=path,
-				      filenames=originalNames(fathers[i]),
-				      sampleNames=sampleNames(pedigree)[i],
-				      marker.index=index,
-				      z=1,
-				      baflist=baflist,
-				      lrrlist=lrrlist)
+		res <- foreach(i=ilist, .packages=c("ff", "MinimumDistance")) %dopar% {
+			MinimumDistance:::read.bsfiles2(path=path,
+							filenames=MinimumDistance:::originalNames(fathers[i]),
+							sampleNames=sampleNames(pedigree)[i],
+							marker.index=index,
+							z=1,
+							baflist=baflist,
+							lrrlist=lrrlist)
 		}
-		res <- foreach(i=ilist, .packages="MinimumDistance") %dopar% {
-			read.bsfiles2(path=path, filenames=originalNames(mothers[i]),
-				      sampleNames=sampleNames(pedigree)[i],
-				      marker.index=index,
-				      z=2,
-				      baflist=baflist,
-				      lrrlist=lrrlist)
+		res <- foreach(i=ilist, .packages=c("ff","MinimumDistance")) %dopar% {
+			MinimumDistance:::read.bsfiles2(path=path,
+							filenames=MinimumDistance:::originalNames(mothers[i]),
+							sampleNames=sampleNames(pedigree)[i],
+							marker.index=index,
+							z=2,
+							baflist=baflist,
+							lrrlist=lrrlist)
 		}
-		res <- foreach(i=ilist, .packages="MinimumDistance") %dopar% {
-			read.bsfiles2(path=path, filenames=offsprg[i],
-				      sampleNames=sampleNames(pedigree)[i],
-				      marker.index=index,
-				      z=3,
-				      baflist=baflist,
-				      lrrlist=lrrlist)
+		res <- foreach(i=ilist, .packages=c("ff", "MinimumDistance")) %dopar% {
+			MinimumDistance:::read.bsfiles2(path=path,
+							filenames=offsprg[i],
+							sampleNames=sampleNames(pedigree)[i],
+							marker.index=index,
+							z=3,
+							baflist=baflist,
+							lrrlist=lrrlist)
 		}
+		message("Finished reading/writing processed data.")
+		gc()
 	} else {
 		F <- read.bsfiles2(path=path, filenames=originalNames(fathers), sampleNames=sampleNames(pedigree), lrrlist=lrrlist, baflist=baflist)
 		M <- read.bsfiles2(path=path, filenames=originalNames(mothers), sampleNames=sampleNames(pedigree), lrrlist=lrrlist, baflist=baflist)
