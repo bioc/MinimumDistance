@@ -99,15 +99,19 @@ setMethod("fatherNames", signature(object="Pedigree"), function(object) trios(ob
 setMethod("motherNames", signature(object="Pedigree"), function(object) trios(object)$M)
 setMethod("show", signature(object="Pedigree"),
 	  function(object){
-		  cat("Pedigree\n")
-		  cat("trios:\n")
-		  print(head(trios(object)))
-		  if(nrow(trios(object)) > 6)
+		  cat("An object of class Pedigree:\n")
+		  cat("\t trios:\n")
+		  print(head(trios(object), n=2))
+		  if(nrow(trios(object)) > 2){
 			  cat(".\n.\n.\n")
-		  cat("\npedigreeIndex:\n")
-		  print(head(trioIndex(object)))
-		  if(nrow(trioIndex(object)) > 6)
+			  print(tail(trios(object), n=2))
+		  }
+		  cat("\n \tpedigreeIndex:\n")
+		  print(head(trioIndex(object), n=2))
+		  if(nrow(trioIndex(object)) > 6){
 			  cat(".\n.\n.")
+			  print(tail(trioIndex(object), n=2))
+		  }
 		  cat("\n")
 	  })
 
