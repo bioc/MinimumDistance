@@ -137,10 +137,6 @@ of trios is needed \ldots
 lrr.segs <- segment2(trioSetListff, segmentParents=TRUE)
 @
 
-<<save.lrr.segs>>=
-save(lrr.segs, file=file.path(rangesdir, "lrr.segs.rda"))
-@
-
 Segment the minimum distance using circular binary
 segmentation. Again, the function \Rfunction{foreach} creates a
 separate process for each chromosome.  A better understanding of the
@@ -149,10 +145,6 @@ total RAM required for processing a given number of trios is needed
 
 <<segmentMD,cache=TRUE>>=
 md.segs <- segment2(trioSetListff, md=mdlist)
-@
-
-<<save.md.segs>>=
-save(md.segs, file=file.path(rangesdir, "md.segs.rda"))
 @
 
 Compute variance estimates needed for downstream processing.  The
@@ -170,10 +162,6 @@ each range using the function \Rfunction{computeBayesFactor}.
 
 <<posteriorCalls,cache=TRUE>>=
 map.segs <- computeBayesFactor(trioSetListff, ranges=md.segs2)
-@
-
-<<save.map.segs>>=
-save(map.segs, file="/local_data/r00/beaty/ranges/map.segs.rda")
 @
 
 
