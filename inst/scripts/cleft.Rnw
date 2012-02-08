@@ -87,8 +87,15 @@ effects of DNA source, chemistry plate, etc. on the resulting
 inference (quality control).
 
 <<samplesheet, cache=TRUE>>=
-ped <- pedigreeCleft(filename.samplesheet="~/Projects/BeatyExperimentData/data/samplesheet.rda",
-		     filename.ped="~/Projects/BeatyExperimentData/inst/extdata/may_peds.csv")
+ss.ped <- harmonizePedigreeAndSampleSheet(filename.samplesheet="~/Projects/BeatyExperimentData/data/samplesheet.rda",
+					  filename.ped="~/Projects/BeatyExperimentData/inst/extdata/may_peds.csv",
+					  fnames=fnames)
+@
+
+<<cleanWork>>=
+ped <- ss.ped[[2]]
+ss <- ss.ped[[1]]
+rm(ss.ped);gc()
 @
 
 Construct an object of class Rclass{TrioSetList} using a constructor
@@ -101,11 +108,11 @@ chromosomes and to reduce the size of the individual \Rclass{ff} files
 on disk.
 
 <<ConstructTrioSetList, cache=TRUE>>=
-if(exists("pedigreeIndex")) pedigree <- pedigree[pedigreeIndex, ]
-trioSetListff <- TrioSetListLD(path=path, fnames=allNames(pedigree), ext=".txt",
-			       samplesheet=samplesheet, ##optional
-			       row.names=samplesheet$Sample.Name, ## must provide if samplesheeet is not missing
-			       pedigree=pedigree,
+if(exists("pedigreeIndex")) ped <- ped[pedigreeIndex, ]
+trioSetListff <- TrioSetListLD(path=path, fnames=allNames(ped), ext=".txt",
+			       samplesheet=ss, ##optional
+			       row.names=ss$Sample.Name, ## must provide if samplesheeet is not missing
+			       pedigree=ped,
 			       annotationPkg="human610quadv1bCrlmm")
 dim(lrr(trioSetListff))[[1]]
 lrr(trioSetListff)[[1]][1, , ]
