@@ -48,8 +48,9 @@ importFrom(msm, qtnorm, dtnorm)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 
 ## VanillaICE
-importMethodsFrom(VanillaICE, xyplot, xyplot2)
-importFrom(VanillaICE, read.bsfiles)
+importMethodsFrom(VanillaICE, xyplot, xyplot2, emission)
+importFrom(VanillaICE, read.bsfiles, copyNumberLimits, viterbi2Wrapper,
+           xypanel, rowMAD, rescale)
 
 ## ff
 import(ff)
