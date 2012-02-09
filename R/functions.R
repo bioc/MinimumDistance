@@ -462,10 +462,9 @@ LikSet <- function(trioSet, pedigreeData, id, CHR, ranges){
 	object$MAD <- mads
 	fData(object)$range.index <- NA
 	##tmp=findOverlaps(featureData(object), ranges)
-	fo=findOverlaps(ranges, featureData(object))
-	mm <- IRanges:::as.matrix(fo)
-	i1 <- mm[, "subject"]
-	i2 <- mm[, "query"]
+	fo <- findOverlaps(ranges, featureData(object))
+	i1 <- subjectHits(fo)
+	i2 <- queryHits(fo)
 	fData(object)$range.index[i1] <- i2
 	if(any(is.na(range.index(object)))){
 		msg <- paste("Segmentation was run on chunks of the data for which the markers are less than 75kb apart.\n",
@@ -730,9 +729,10 @@ joint4 <- function(id,
 	norm.index <- which(state.names=="333")
 	ranges <- ranges[order(start(ranges)), ]
 	ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
-	mm <- IRanges:::as.matrix(findOverlaps(featureData(trioSet), ranges))        
-	I <- which(table(mm[, 2]) >= 2)
-	range.index <- mm[mm[, 2] %in% I, 2]
+	mm <- findOverlaps(featureData(trioSet), ranges)
+	##mm <- as.matrix()
+	I <- which(table(subjectHits(mm)) >= 2)
+	range.index <- subjectHits(mm)[subjectHits(mm) %in% I]
 	for(i in I){
 		index <- which(range.index==i)
 ##		if(nrow(obj) < 2){
@@ -1024,10 +1024,6 @@ callDenovoSegments <- function(path="",
 			       verbose=FALSE, ...){
 	if(!is(pedigreeData, "Pedigree")) stop("pedigreeData must be an object of class Pedigree")
 	filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
-	if(!all(file.exists(filenames))) {
-		fnames <- filenames[!file.exists(filenames)]
-		stop(paste("Files not avalable:", head(fnames)))
-	}
 	obj <- read.bsfiles(filenames=filenames, path="", ext="")
 	if(missing(featureData)){
 		trioSetList <- TrioSetList(lrr=obj[, "lrr",],
@@ -1078,6 +1074,7 @@ callDenovoSegments <- function(path="",
 	index <- split(seq_len(nrow(md.segs2)), chromosome(md.segs2))
 	index <- index[match(chromosome(trioSetList), names(index))]
 	stopifnot(identical(as.character(chromosome(trioSetList)), names(index)))
+	if(is.null(getCluster())) registerDoSEQ()
 	map.segs <- foreach(object=trioSetList,
 			    i=index,
 			    .inorder=FALSE,
@@ -1085,7 +1082,6 @@ callDenovoSegments <- function(path="",
 			    .packages="MinimumDistance") %dopar% {
 				    computeBayesFactor(object=object,
 						       ranges=md.segs2[i, ])
-						       ##pedigreeData=pedigree(trioSetList))
 			    }
 	return(map.segs)
 }
