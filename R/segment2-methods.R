@@ -36,7 +36,7 @@ setMethod("segment2", signature(object="arrayORff_array"),
 segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ...){
 	if(is.null(md)){
 		segs <- foreach(trioset=object,
-				.packages="MinimumDistance") %dopar% {
+				.packages="MinimumDistance", .inorder=FALSE) %dopar% {
 					segment2(object=trioset,
 						 segmentParents=segmentParents,
 						 verbose=verbose)

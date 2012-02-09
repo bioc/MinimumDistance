@@ -131,7 +131,7 @@ structures are created to facilitate visualization of the low-level
 copy number summaries along with inference from the
 \Rpackage{MinimumDistance} algorithm. Details regarding the
 intermediate data structures and visualization are described in
-Sections \ref{option2} and \ref{visualization}, respectively.  Where
+Sections \ref{option2} and \ref{viz}, respectively.  Where
 possible, we have adopted standard data structures for encapsulating
 the low-level data (\Robject{eSet} extensions) and the segmented data
 (\Robject{RangedData} extensions).
@@ -279,14 +279,6 @@ trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 show(trioSetList)
 @
 
-Accessors for sample-level covariates:
-
-<<phenodata>>=
-motherPhenoData(trioSetList)
-fatherPhenoData(trioSetList)
-offspringPhenoData(trioSetList)
-@
-
 \paragraph{Segmentation and posterior calls.}  To keep the size of the
 \Rpackage{MinimumDistance} package small, the \Robject{trioSetList}
 object created in the previous section contained only 25 markers for
@@ -316,7 +308,6 @@ Computation of $\mindist$ by the function \Rfunction{calculateMindist}
 is vectorized in \R{}:
 
 <<computeMinimumDistance>>=
-data(trioSetListExample)
 md <- calculateMindist(lrr(trioSetList))
 @
 
@@ -340,21 +331,12 @@ class \Robject{RangedDataCBS}.
 head(md.segs)
 @
 
-Useful accessors for \Rclass{RangedDataCBS} objects include
-<<RangedDataCBSaccessors>>=
-sampleNames(md.segs)[1:4]
-coverage2(md.segs)[1:4]
-chromosome(md.segs)[1:4]
-mean(md.segs)[1:4]
-@
-
-An \textit{ad-hoc} approach to increase the chance that a given
-segment obtained from the segmentation of the minimum distance is
-homogeneous with respect to the offspring copy number is to edit the
-start and stop position of segments with a nonzero mean minimum
-distance.  The approach currently implemented is to define a new start
-and stop position if a breakpoint of the segmented log R ratios for
-the offspring occurs in the interval. To illustrate, the following
+If the offspring copy number changes within a minimum distance segment
+(as determined by the segmentation of the offspring copy number), the
+start and stop position of the minimum distance segments may be
+edited.  The approach currently implemented is to define a new start
+and stop position if a breakpoint for the offspring segmentation
+occurs in the minimum distance interval. To illustrate, the following
 diagram uses vertical dashes (\texttt{|}) to denote breakpoints:
 
 \begin{verbatim}
@@ -397,8 +379,8 @@ map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2)
 show(map.segs)
 @
 
-Note that the above method could be applied to a single genomic
-interal.  For example,
+We remark that the \Rfunction{computeBayesFactor} method can be
+applied to a single interval.  For example,
 
 <<computeBayesFactorOneRange>>=
 computeBayesFactor(trioSetList, md.segs2[1, ])
@@ -415,15 +397,14 @@ the \Rfunction{computeBayesFactor} function.
 
 The \R{} package \Rpackage{VanillaICE} contains methods for
 visualizing \Rclass{RangedData} objects that build on the
-infrastructure in the \Rpackage{lattice} package.  In the following
-codechunk, we construct a trellis object for the log R ratios, minimum
-distance, and B allele frequencies.
+infrastructure in the \Rpackage{lattice} package.  Visualizations for
+trios will extend these methods and are currently under
+development. Here, we provide a quick example using a function and a
+lattice-style panel function that are not currently exported.
 
-<<visualizations>>=
+<<triofig>>=
 trioSet <- stack(trioSetList)
 rd.denovoDel <- map.segs[state(map.segs) == 332, ]
-##stop()
-library("VanillaICE")
 mindist(trioSet) <- do.call("rbind", md)
 frame <- 100e3
 figs <- MinimumDistance:::xyplotTrioLrrBaf(rd=rd.denovoDel,
@@ -432,11 +413,11 @@ figs <- MinimumDistance:::xyplotTrioLrrBaf(rd=rd.denovoDel,
 					   ylab="log R ratio and BAFs",
 					   xlab="physical position",
 					   panel=MinimumDistance:::xypanelTrioBaf,
-					   scales=list(x="free", y=list(alternating=1)),
+					   scales=list(x="free",
+					   y=list(alternating=1)),
 					   lrr.segments=lrr.segs,
 					   md.segments=md.segs,
-					   layout=c(1, 4),
-					   ylim=c(-3, 1.5))
+					   layout=c(1, 4), ylim=c(-3, 1.5))
 @
 
 The final graphic is displayed in Figure \ref{fig:trioplot}.
@@ -458,6 +439,62 @@ print(figs[[2]])
     '332').  }
 
 \end{figure}
+
+\subsection{Outline for Large Data / Parallelization}
+
+For large data sets, we have developed a pipeline that uses the
+\Rpackage{ff} package for large data support and the package
+\Rpackage{snow} for parallelization.  Currently, the central
+requirement for this approach is to parse the log R ratios and B
+allele frequencies for each sample to a separate file with the format
+roughly as in 'F.txt' (a small included with this package that we read
+in the previous section). The following (unevaluated) code chunks
+provide a general sense of the set-up and workflow. First, we enable
+large data support and register a backend for parallelization.
+
+<<lds, eval=FALSE>>=
+library(ff)
+ffdir <- "<PATH_FOR_FF_FILES>"
+ldPath(ff)
+library(snow)
+options(cluster=makeCluster(22, "SOCK"))
+library(doSNOW)
+registerDoSNOW(getCluster())
+@
+
+Next, we initialize a \Rclass{TrioSetList} object with the function
+\Rfunction{TrioSetListLD}.  The structure of this object is the same
+as in the previous sections, but the assay data (log R ratios and B
+allele frequencies) are stored in objects with the class
+\Rclass{ff_array}.  In particular, this means that the assay data
+elements contain pointers to data stored on disk.  In the following
+code chunk, we call the \Rfunction{TrioSetListLD} function by
+specifying the path to the plain text files containing the log R
+ratios and B allele frequencies for each sample and the
+\Robject{pedigreeData} object.
+
+<<trioSetListLD, eval=FALSE>>=
+trioSetListff <- TrioSetListLD(path=path,
+			       fnames=allNames(pedigreeData),
+			       ext=".txt",
+			       pedigree=pedigreeData,
+			       annotationPkg="human610quadv1bCrlmm")
+@
+
+The remaining steps are the same as in the previous section:
+
+<<segmentationPosteriorCalling,eval=FALSE>>=
+mdlist <- calculateMindist(lrr(trioSetListff), outdir=ldPath())
+lrr.segs <- segment2(trioSetListff)
+md.segs <- segment2(trioSetListff, md=mdlist)
+map.segs <- computeBayesFactor(trioSetListff, ranges=md.segs2)
+@
+
+We remark that the steps in the previous code chunk benefit from
+parallelization and do not require enabling large data support with
+the \Rpackage{ff} package. However, with large data support enabled we
+have processed 1000 trios (3000 samples) on 22 worker nodes using a
+total of 100 Gb RAM (4-5 Gb per worker) in less than 24 hours.
 
 \section{Session information}
 <<sessionInfo, results=tex>>=
