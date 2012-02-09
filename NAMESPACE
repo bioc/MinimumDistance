@@ -102,7 +102,7 @@ export(callDenovoSegments,
        Pedigree,
        stackRangedDataList,
        xyplot,
-       xypanelMD,
-       rowMAD)
+       xypanelMD)
+
 
 
