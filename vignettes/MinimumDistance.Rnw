@@ -466,7 +466,7 @@ Next, we initialize a \Rclass{TrioSetList} object with the function
 \Rfunction{TrioSetListLD}.  The structure of this object is the same
 as in the previous sections, but the assay data (log R ratios and B
 allele frequencies) are stored in objects with the class
-\Rclass{ff_array}.  In particular, this means that the assay data
+\Rclass{ff\_array}.  In particular, this means that the assay data
 elements contain pointers to data stored on disk.  In the following
 code chunk, we call the \Rfunction{TrioSetListLD} function by
 specifying the path to the plain text files containing the log R
