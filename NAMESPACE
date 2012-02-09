@@ -29,7 +29,7 @@ importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
 		  DataFrame,
 		  DataTableORNULL)
 importMethodsFrom(IRanges, start, end, width,"[", "[[","[<-", "[[<-", "$",
-		  nrow, "start<-", "end<-", stack)
+		  nrow, "start<-", "end<-", stack, as.matrix)
 importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   findOverlaps, countOverlaps,
 	   ranges, values,
