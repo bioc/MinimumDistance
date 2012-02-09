@@ -1,5 +1,5 @@
 setMethod("calculateMindist", signature(object="list"),
-	  function(object, outdir, ...){
+	  function(object, outdir=ldPath(), ...){
 		  if(!isPackageLoaded("ff")){
 			  foreach(elt=object, .packages="MinimumDistance") %dopar% calculateMindist(elt, outdir=outdir)
 		  } else {
