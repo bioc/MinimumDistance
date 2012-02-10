@@ -61,7 +61,7 @@ madList <- function(object, byrow, pedigree, ...){
 				##mads.f <- madFromMatrixList(F, byrow=TRUE)
 				##mads.m <- madFromMatrixList(M, byrow=TRUE)
 				mads <- madFromMatrixList(O, byrow=TRUE)
-				names(mads) <- names(object)                                
+				names(mads) <- names(object)
 				##mads <- cbind(mads.f, mads.m, mads.o)
 				##colnames(mads) <- c("F", "M", "O")
 			} else mads <- NULL
@@ -72,23 +72,18 @@ madList <- function(object, byrow, pedigree, ...){
 }
 
 madFromMatrixList <- function(object, byrow=TRUE){
+	if(isPackageLoaded("ff")) pkgs <- c("ff", "MinimumDistance") else pkgs <- "MinimumDistance"
 	if(!byrow){
 		## this could be done more efficiently by following the
 		## apply example in the foreach documentation...
 		ilist <- splitIndicesByLength(seq_len(ncol(object[[1]])), 100)
-		ispar <- !is.null(getCluster())
-		if(ispar){
-			Xlist <- foreach(i=ilist, .packages="MinimumDistance") %dopar% MinimumDistance:::stackListByColIndex(object, i)
-			mads <- foreach(i = Xlist, .packages="MinimumDistance") %dopar% apply(i, 2, mad, na.rm=TRUE)
-		} else {
-			Xlist <- foreach(i=ilist, .packages="MinimumDistance") %do% MinimumDistance:::stackListByColIndex(object, i)
-			mads <- foreach(i = Xlist, .packages="MinimumDistance") %do% apply(i, 2, mad, na.rm=TRUE)
-		}
+		Xlist <- foreach(i=ilist, .packages=pkgs) %dopar% MinimumDistance:::stackListByColIndex(object, i)
+		mads <- foreach(i = Xlist, .packages=pkgs) %dopar% apply(i, 2, mad, na.rm=TRUE)
 		mads <- unlist(mads)
 		names(mads) <- colnames(object[[1]])
 		mads
 	} else {
-		mads <- foreach(x = object, .packages="MinimumDistance") %do% VanillaICE:::rowMAD(x, na.rm=TRUE)
+		mads <- foreach(x = object, .packages=pkgs) %do% rowMAD(x, na.rm=TRUE)
                 if( !is.null(dim(mads[[1]])) & !is.null(rownames(object[[1]]))){
 			labelrows <- function(x, fns) {
 				rownames(x) <- fns
