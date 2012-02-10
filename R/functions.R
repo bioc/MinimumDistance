@@ -888,7 +888,8 @@ xypanelMD2 <- function(x, y,
 
 
 narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE){
-	stopifnot(!is.null(names(mad.minimumdistance)))
+	if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
+	##stopifnot(!is.null(names(mad.minimumdistance)))
 	ix <- match(sampleNames(object), names(mad.minimumdistance))
 	object$mindist.mad <- mad.minimumdistance[ix]
 	stopifnot("mindist.mad" %in% colnames(object))
