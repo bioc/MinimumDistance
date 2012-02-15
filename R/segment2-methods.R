@@ -193,8 +193,7 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
 	} else marker.index <- seq_len(nrow(object))
 	pos <- pos[marker.index]
 	chrom <- chrom[marker.index]
-	arm <- splitByDistance(pos, thr=25e6)
-#      	arm <- splitByDistance(pos, thr=75e3)
+	arm <- splitByDistance(pos, thr=100e3)
 	index.list <- split(seq_along(marker.index), arm)
 	iMax <- sapply(split(marker.index, arm), max)
 	pMax <- pos[iMax]
