@@ -19,9 +19,10 @@ catFun2 <- function(rd.query, rd.subject, ...){
 	return(p)
 }
 
-splitByDistance <- function(x, thr=90e3){
-	if(all(diff(x) < thr)) return(rep(0, length(x)))
-	f <- c(0, cumsum(diff(x) > thr))
+splitByDistance <- function(x, thr=100e3){
+	d <- diff(x)
+	if(all(d < thr)) return(rep(0, length(x)))
+	f <- c(0, cumsum(d > thr))
 	tab.f <- table(f)
 	## combine regions if number of markers is very small
 	while(any(tab.f < 1000) & length(x) > 1000){
