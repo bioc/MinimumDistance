@@ -113,48 +113,89 @@ segmentff_matrix <- function(object, pos, chrom, id, featureNames, ...){
 	segs <- stack(RangedDataList(segs))
 	return(segs)
 }
-## Read about nesting foreach
-##setMethod("segment2", signature(object="arrayORff_array"),
 
+segmentff_matrix2 <- function(object, pos, chrom, fid, mid, oid,
+			      featureNames, sample.index, ...){
+	segs.f <- vector("list", length(sample.index))
+	segs.m <- vector("list", length(sample.index))
+	segs.o <- vector("list", length(sample.index))
+	for(i in seq_along(sample.index)){
+		j <- sample.index[i]
+		obj <- as.matrix(object[, j, 1])
+		segs.f[[i]] <- segmentMatrix(obj, pos=pos,
+					   chrom=chrom,
+					   id=fid[i],
+					   featureNames, ...)
+		obj <- as.matrix(object[, j, 2])
+		segs.m[[i]] <- segmentMatrix(obj, pos=pos,
+					     chrom=chrom,
+					     id=mid[i],
+					     featureNames, ...)
+		obj <- as.matrix(object[, j, 3])
+		segs.o[[i]] <- segmentMatrix(obj, pos=pos,
+					     chrom=chrom,
+					     id=oid[i],
+					     featureNames, ...)
 
+	}
+	segs.f <- stack(RangedDataList(segs.f))
+	segs.m <- stack(RangedDataList(segs.m))
+	segs.o <- stack(RangedDataList(segs.o))
+	segs <- stack(RangedDataList(segs.f, segs.m, segs.o))
+	return(segs)
+}
 
 segmentArray <- function(object, pos, chrom, id, featureNames, segmentParents, verbose, ...){
 	##open(object)
 	## for ff_arrays need to be careful not to pull in too large of a matrix
 	##  -- for now, do sample by sample and parallize different chromosomes
-	stopifnot(is(id, "data.frame"))
+	if(!is(id, "data.frame")) stop("'id' should be a data.frame")
 	nc <- ncol(object)
-	segs.o <- segs.f <- segs.m <- vector("list", nc)
-	if(segmentParents){
-		if(verbose) message("segmenting log R ratios for fathers")
+	segs <- segs.o <- segs.f <- segs.m <- vector("list", nc)
+	if(is(segmentParents, "logical")){
+		if(segmentParents){
+			if(verbose) message("segmenting log R ratios for fathers")
+			for(i in seq_len(nc)){
+				segs.f[[i]] <- segmentMatrix(as.matrix(object[, i, 1]),
+							     pos=pos, chrom=chrom, id=id[i, 1], featureNames=featureNames,
+							     verbose=verbose, ...)
+			}
+			if(verbose) message("segmenting log R ratios for mothers")
+			for(i in seq_len(nc)){
+				segs.m[[i]] <- segmentMatrix(as.matrix(object[, i, 2]),
+							     pos=pos, chrom=chrom, id=id[i, 2], featureNames=featureNames,
+							     verbose=verbose, ...)
+			}
+		}
+		if(verbose) message("segmenting log R ratios for offspring")
 		for(i in seq_len(nc)){
-			segs.f[[i]] <- segmentMatrix(as.matrix(object[, i, 1]),
-						     pos=pos, chrom=chrom, id=id[i, 1], featureNames=featureNames,
+			segs.o[[i]] <- segmentMatrix(as.matrix(object[, i, 3]),
+						     pos=pos,
+						     chrom=chrom,
+						     id=id[i, 3],
+						     featureNames=featureNames,
 						     verbose=verbose, ...)
 		}
-		if(verbose) message("segmenting log R ratios for mothers")
-		for(i in seq_len(nc)){
-			segs.m[[i]] <- segmentMatrix(as.matrix(object[, i, 2]),
-						     pos=pos, chrom=chrom, id=id[i, 2], featureNames=featureNames,
-						     verbose=verbose, ...)
+		if(!segmentParents){
+			segs <- stack(RangedDataList(segs.o))
+		} else {
+			segs.f <- stack(RangedDataList(segs.f))
+			segs.m <- stack(RangedDataList(segs.m))
+			segs.o <- stack(RangedDataList(segs.o))
+			segs <- stack(RangedDataList(list(segs.f, segs.m, segs.o)))
 		}
-	}
-	if(verbose) message("segmenting log R ratios for offspring")
-	for(i in seq_len(nc)){
-		segs.o[[i]] <- segmentMatrix(as.matrix(object[, i, 3]),
-					     pos=pos,
-					     chrom=chrom,
-					     id=id[i, 3],
-					     featureNames=featureNames,
-					     verbose=verbose, ...)
-	}
-	if(!segmentParents){
-		segs <- stack(RangedDataList(segs.o))
 	} else {
-		segs.f <- stack(RangedDataList(segs.f))
-		segs.m <- stack(RangedDataList(segs.m))
-		segs.o <- stack(RangedDataList(segs.o))
-		segs <- stack(RangedDataList(list(segs.f, segs.m, segs.o)))
+		if(!segmentParents %in% 1:3) stop("segmentParents must be logical, or an integer (1, 2, or 3)")
+		for(i in seq_len(nc)){
+			k <- segmentParents
+			segs[[i]] <- segmentMatrix(as.matrix(object[, i, k]),
+						     pos=pos,
+						     chrom=chrom,
+						     id=id[i, k],
+						     featureNames=featureNames,
+						     verbose=verbose, ...)
+		}
+		segs <- stack(RangedDataList(segs))
 	}
 	return(segs)
 }
@@ -186,7 +227,7 @@ segmentArray <- function(object, pos, chrom, id, featureNames, segmentParents, v
 
 
 segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
-	stopifnot(class(object) == "matrix")
+	if(!is(object, "matrix")) stop("object must be a matrix")
 	##featureNames <- rownames(object)
 	if(any(duplicated(pos))){
 		marker.index <- seq_len(nrow(object))[!duplicated(pos)]
