@@ -99,9 +99,7 @@ setValidity("TrioSetList", function(object){
 		return("each chromosome should have an element in the featureDataList")
 	}
 	if(length(featureDataList(object)) > 0){
-		featureDataClasses <- sapply(featureDataList(object), class)
-		if(!unique(featureDataClasses) == "GenomeAnnotatedDataFrame"){
-			return("featureDataList must be comprised of GenomeAnnotatedDataFrame(s)")
-		}
+		isGAD <- sapply(featureDataList(object), function(x) is(x, "GenomeAnnotatedDataFrame"))
+		if(!all(isGAD)) return("featureDataList must be comprised of GenomeAnnotatedDataFrame(s)")
 	}
 })
