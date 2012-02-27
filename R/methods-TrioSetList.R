@@ -191,11 +191,18 @@ TrioSetList <- function(chromosome=integer(),
 	return(object)
 }
 
-TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names, pedigreeData,
+TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names,
+			  pedigreeData,
+			  featureData,
 			  annotationPkg, outdir=ldPath()){
 	if(!is(pedigreeData, "Pedigree")) stop()
-	fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg)
-	fD <- fD[chromosome(fD) < 23 & !is.na(chromosome(fD)), ]
+	if(missing(featureData)){
+		fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg)
+		fD <- fD[chromosome(fD) < 23 & !is.na(chromosome(fD)), ]
+	} else {
+		fD <- featureData
+		rm(featureData); gc()
+	}
 	ad <- assayDataListLD(path=path,
 			      pedigree=pedigreeData,
 			      ext=ext,
