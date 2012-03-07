@@ -63,6 +63,14 @@ TrioSetList <- function(chromosome=integer(),
 			lrr, baf,
 			featureData,
 			cdfname){
+	if(!missing(lrr)){
+		if(!is(lrr[1,1], "integer")){
+			stop("lrr should be a matrix of integers. Use integerMatrix(x, scale=100) for the transformation")
+		}
+		if(!is(baf[1,1], "integer")){
+			stop("baf should be a matrix of integers.  Use integerMatrix(x, scale=1000) for the transformation")
+		}
+	}
 	if(nrow(pedigreeData) > 0 & !(missing(lrr) | missing(baf))){
 		if(!missing(sample.sheet)){
 			if(is.null(row.names)){
@@ -110,9 +118,9 @@ TrioSetList <- function(chromosome=integer(),
 			      chromosome=chromosome)
 		return(object)
 	}
-	stopifnot(identical(rownames(lrr), rownames(baf)))
+	if(!identical(rownames(lrr), rownames(baf))) stop("rownames of lrr and baf must be identical")
 	if(missing(featureData)){
-		stopifnot(!missing(cdfname))
+		if(missing(cdfname)) stop("if featureData is not supplied, a valid cdfname must be provided for annotating the markers")
 		if(any(is.na(rownames(lrr)))){
 			message("Removing rows with NA identifiers from lrr & baf matrices")
 			lrr <- lrr[!is.na(rownames(lrr)), ]
@@ -123,37 +131,32 @@ TrioSetList <- function(chromosome=integer(),
 		fD <- featureData[order(chromosome(featureData), position(featureData)), ]
 		rm(featureData); gc()
 	} else {
-		stopifnot(is(featureData, "GenomeAnnotatedDataFrame"))
+		if(!is(featureData, "GenomeAnnotatedDataFrame")) stop("featureData must be a GenomeAnnotatedDataFrame")
 		fD <- featureData
-		##fD <- fD[order(fD$chromosome, fD$position), ]
 	}
 	if(length(chromosome) > 0){
 		fD <- fD[fD$chromosome%in%chromosome, ]
 	}
 	if(!is.null(rownames(lrr))){
-		is.present <- sampleNames(fD) %in% rownames(lrr)
+		is.present <- featureNames(fD) %in% rownames(lrr)
 		if(!all(is.present)) fD <- fD[is.present, ]
-		index <- match(sampleNames(fD), rownames(lrr))
+		index <- match(featureNames(fD), rownames(lrr))
 		lrr <- lrr[index, ]
 		baf <- baf[index, ]
-		stopifnot(all(identical(rownames(lrr), sampleNames(fD))))
-	} else {
-		stopifnot(nrow(lrr) == nrow(fD))
+		if(!all(identical(rownames(lrr), sampleNames(fD))))
+			stop("rownames of lrr must be the same as the featureNames for the featureData")
 	}
 	marker.list <- split(seq_along(sampleNames(fD)), fD$chromosome)
 	np <- nrow(trios(pedigreeData))
 	trio.names <- array(NA, dim=c(length(offspringNames(pedigreeData)), 1, 3))
 	dimnames(trio.names) <- list(offspringNames(pedigreeData), "sampleNames", c("F", "M", "O"))
 	trio.names[, "sampleNames", ] <- as.matrix(trios(pedigreeData))
-	father.names <- fatherNames(pedigreeData)
-	mother.names <- motherNames(pedigreeData)
+	father.names <- originalNames(fatherNames(pedigreeData))
+	mother.names <- originalNames(motherNames(pedigreeData))
 	offspring.names <- offspringNames(pedigreeData)
-	father.index <- match(father.names,
-			      colnames(lrr))
-	mother.index <- match(mother.names,
-			      colnames(lrr))
-	offspring.index <- match(offspring.names,
-				 colnames(lrr))
+	father.index <- match(father.names, colnames(lrr))
+	mother.index <- match(mother.names, colnames(lrr))
+	offspring.index <- match(offspring.names, colnames(lrr))
 	chromosome <- unique(chromosome(fD))
 	fdlist <- baflist <- lrrlist <- vector("list", length(chromosome))
 	dns <- list(sampleNames(pedigreeData), c("F", "M", "O"))
@@ -161,8 +164,8 @@ TrioSetList <- function(chromosome=integer(),
 		## Use the name of the offspring as the name for the trio:
 		j <- marker.list[[i]]
 		nr <- length(j)
-		bafArray <- initializeBigArray("baf", dim=c(nr, np, 3), vmode="double")
-		logRArray <- initializeBigArray("lrr", dim=c(nr, np, 3), vmode="double")
+		bafArray <- initializeBigArray("baf", dim=c(nr, np, 3), vmode="integer")
+		logRArray <- initializeBigArray("lrr", dim=c(nr, np, 3), vmode="integer")
 		dimnames(logRArray)[c(2,3)] <- dimnames(bafArray)[c(2,3)] <- dns
 		logRArray[,,"F"] <- lrr[j, father.index]
 		logRArray[,,"M"] <- lrr[j, mother.index]
@@ -177,10 +180,6 @@ TrioSetList <- function(chromosome=integer(),
 	}
 	ad <- AssayDataList(logRRatio=lrrlist,
 			    BAF=baflist)
-	tmp=trios(pedigreeData)
-	tmp$F=make.unique2(tmp$F)
-	tmp$M=make.unique2(tmp$M)
-	pedigreeData@trios=tmp
 	object <- new("TrioSetList", assayDataList=ad,
 		      featureDataList=fdlist,
 		      chromosome=chromosome,

@@ -702,8 +702,11 @@ joint4 <- function(id,
 	is.snp <- isSnp(trioSet)
 	stopifnot(ncol(trioSet)==1)
 	limits <- copyNumberLimits(is.log=TRUE)
-	r <- lrr(trioSet)[, 1, ]
-	b <- baf(trioSet)[, 1, ]
+	##
+	## transform back to original scale
+	##
+	r <- lrr(trioSet)[, 1, ]/100
+	b <- baf(trioSet)[, 1, ]/1000
 	colnames(r) <- colnames(b) <- allNames(trioSet)
 	viterbiObj <- viterbi2Wrapper(r=r,
                                       b=b,
@@ -1028,14 +1031,14 @@ callDenovoSegments <- function(path="",
 	filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
 	obj <- read.bsfiles(filenames=filenames, path="", ext="")
 	if(missing(featureData)){
-		trioSetList <- TrioSetList(lrr=obj[, "lrr",],
-					   baf=obj[, "baf",],
+		trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
+					   baf=integerMatrix(obj[, "baf",], 1000),
 					   pedigree=pedigreeData,
 					   chromosome=chromosome,
 					   cdfname=cdfname)
 	} else {
-		trioSetList <- TrioSetList(lrr=obj[, "lrr",],
-					   baf=obj[, "baf",],
+		trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
+					   baf=integerMatrix(obj[, "baf",], 1000),
 					   pedigree=pedigreeData,
 					   featureData=featureData,
 					   chromosome=chromosome)
@@ -1050,10 +1053,10 @@ callDenovoSegments <- function(path="",
 			    id=offspringNames(trioSetList),
 			    featureNames=fns,
 			    ...)
+	lrrs <- lrr(trioSetList)
 	if(!segmentParents){
 		## when segmenting only the offspring,
 		## the trio names are the same as the sampleNames
-		lrrs <- lrr(trioSetList)
 		lrrs <- lapply(lrrs, function(x){
 			dns <- dimnames(x)
 			x <- x[, , 3, drop=FALSE]
@@ -1103,7 +1106,8 @@ read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
 	i <- seq_along(sampleNames)
 	## this is simply to avoid having a large 'dat' object below.
 	if(isPackageLoaded("ff")){
-		ilist <- splitIndicesByLength(i, 2)
+		NN <- min(length(sampleNames), 2)
+		ilist <- splitIndicesByLength(i, NN)
 		for(k in seq_along(ilist)){
 			j <- ilist[[k]]
 			sns <- sampleNames[j]
@@ -1111,8 +1115,8 @@ read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
 			l <- match(sns, colnames(baflist[[1]]))
 			for(m in seq_along(marker.index)){
 				M <- marker.index[[m]]
-				baflist[[m]][, l, z] <- dat[M, 2, ]
-				lrrlist[[m]][, l, z] <- dat[M, 1, ]
+				baflist[[m]][, l, z] <- integerMatrix(as.matrix(dat[M, 2, ]), scale=1000)
+				lrrlist[[m]][, l, z] <- integerMatrix(as.matrix(dat[M, 1, ]), scale=100)
 			}
 		}
 		return(TRUE)
@@ -1224,9 +1228,19 @@ stackRangedDataList <- function(...) {
 
 initializeLrrAndBafArrays <- function(dims, col.names, outdir){
 	ldPath(outdir)
-	bafs <- initializeBigArray("baf", dim=dims, vmode="double")
-	lrrs <- initializeBigArray("lrr", dim=dims, vmode="double")
+	bafs <- initializeBigArray("baf", dim=dims, vmode="integer")
+	lrrs <- initializeBigArray("lrr", dim=dims, vmode="integer")
 	colnames(bafs) <- colnames(lrrs) <- col.names
 	res <- list(baf=bafs, lrr=lrrs)
 	return(res)
+}
+
+trioSetListExample <- function(){
+	data(trioSetListExample)
+	ad <- assayData(trioSetList)
+	b <- lapply(ad[["BAF"]], integerArray, scale=1000)
+	r <- lapply(ad[["logRRatio"]], integerArray, scale=100)
+	ad2 <- AssayDataList(BAF=b, logRRatio=r)
+	trioSetList@assayDataList <- ad2
+	return(trioSetList)
 }

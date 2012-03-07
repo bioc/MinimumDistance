@@ -82,19 +82,21 @@ TrioSet <- function(pedigreeData=Pedigree(),
 			stop("pedigreeData has zero rows")
 	}
 	if(!missing(lrr) & !missing(baf)){
-		##stopifnot(!is.null(rownames(lrr)))
-		##stopifnot(!is.null(colnames(lrr)))
-		stopifnot(identical(rownames(lrr), rownames(baf)))
-		stopifnot(identical(dim(lrr), dim(baf)))
+		if(!identical(rownames(lrr), rownames(baf)))
+			stop("rownames of lrr and baf are not identical")
+		if(!identical(dim(lrr), dim(baf)))
+			stop("lrr and baf must have the same dimension")
+		if(!(is(lrr[1,1], "integer") & is(baf[1,1], "integer"))){
+			stop("rr and baf must be integers. Use integerMatrix(x, scale=100) to transform log R ratios and integerMatrix(x, scale=1000) for B allele frequencies")
+		}
 	}
 	if(missing(featureData)){
-		stopifnot(!missing(cdfname))
+		if(missing(cdfname)) stop("If featureData is not supplied, a valid cdfname must be provided for feature annotation")
 		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname)
-		##featureData <- oligoClasses:::featureDataFrom(cdfname)
 		fD <- featureData[order(chromosome(featureData), position(featureData)), ]
 		rm(featureData); gc()
 	} else {
-		stopifnot(is(featureData, "AnnotatedDataFrame"))
+		if(!is(featureData, "AnnotatedDataFrame")) stop("featureData must be an AnnotatedDataFrame or a GenomeAnnotatedDataFrame")
 		fD <- featureData
 	}
 	is.present <- sampleNames(fD) %in% rownames(lrr)
@@ -129,8 +131,8 @@ TrioSet <- function(pedigreeData=Pedigree(),
 	if(length(offspring.index) == 0) stop("offspring ids in pedigree do not match any of the column names of the lrr matrix")
 	nr <- nrow(lrr)
 	np <- length(offspring.names)
-	bafArray <- initializeBigArray("baf", dim=c(nr, np, 3), vmode="double")
-	logRArray <- initializeBigArray("lrr", dim=c(nr, np, 3), vmode="double")
+	bafArray <- initializeBigArray("baf", dim=c(nr, np, 3), vmode="integer")
+	logRArray <- initializeBigArray("lrr", dim=c(nr, np, 3), vmode="integer")
 	dimnames(bafArray)[[3]] <- dimnames(logRArray)[[3]] <- c("F", "M", "O")
 	logRArray[,,"F"] <- lrr[, father.index]
 	logRArray[,,"M"] <- lrr[, mother.index]
@@ -167,11 +169,6 @@ TrioSet <- function(pedigreeData=Pedigree(),
 			motherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="mother")
 		}
 	}
-	## shouldn't be necessary -- make the names unique in the contruction of the Pedigree object
-##	tmp=trios(pedigreeData)
-##	tmp$F=make.unique2(tmp$F)
-##	tmp$M=make.unique2(tmp$M)
-##	pedigreeData@trios=tmp
 	object <- new("TrioSet",
 		      BAF=bafArray,
 		      logRRatio=logRArray,

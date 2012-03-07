@@ -4,8 +4,8 @@
 %\VignettePackage{MinimumDistance}
 \documentclass{article}
 \usepackage{graphicx}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+%\usepackage[utf8]{inputenc}
+%\usepackage[T1]{fontenc}
 \usepackage{natbib}
 \usepackage{url}
 \usepackage{amsmath}

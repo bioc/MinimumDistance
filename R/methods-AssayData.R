@@ -47,34 +47,32 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 	if(missing(featureData)) stop("featureData can not be missing")
 	if(missing(pedigree)) stop("pedigree can not be missing")
 	index <- split(seq_len(nrow(featureData)), chromosome(featureData))
-	if(isPackageLoaded("ff")){
-		message("Initializing ff arrays for BAFs and LRRs (this may take some time) ...")
+	useff <- isPackageLoaded("ff")
+	if(useff){
+		message("Initializing ff arrays for BAFs and LRRs  ...")
 	} else {
 		message("ff package not loaded -- initializing arrays for BAFs and LRRs ...")
 	}
-	## may make sense to do this in parallel if processing a large number of trios
-	if(nrow(pedigree) > 100 & isPackageLoaded("ff")){
-		## if ff is not passed, arrays will be instantiated
-		## passing ldPath() didn't seem to work
-		outdir <- ldPath()
-		bafAndLrrList <- foreach(i=index, .packages=c("ff", "MinimumDistance")) %dopar% {
-			MinimumDistance:::initializeLrrAndBafArrays(dims=c(length(i), nrow(pedigree), 3), outdir=outdir, col.names=sampleNames(pedigree))
-		}
-		baflist <- lapply(bafAndLrrList, "[[", 1)
-		lrrlist <- lapply(bafAndLrrList, "[[", 2)
-	} else {
-		baflist <- lapply(index, function(x) initializeBigArray("baf", dim=c(length(x), nrow(pedigree), 3), vmode="double"))
-		lrrlist <- lapply(index, function(x) initializeBigArray("lrr", dim=c(length(x), nrow(pedigree), 3), vmode="double"))
-		baflist <- lapply(baflist, function(x, sampleNames) {
-			colnames(x) <- sampleNames
-			return(x)
-		}, sampleNames=sampleNames(pedigree))
-		lrrlist <- lapply(lrrlist, function(x, sampleNames){
-			colnames(x) <- sampleNames
-			return(x)
-		}, sampleNames=sampleNames(pedigree))
+	pkgs <- if(useff) c("ff", "MinimumDistance") else "MinimumDistance"
+	outdir <- ldPath()
+	bafAndLrrList <- foreach(i=index, .packages=pkgs) %dopar% {
+		MinimumDistance:::initializeLrrAndBafArrays(dims=c(length(i), nrow(pedigree), 3), outdir=outdir, col.names=sampleNames(pedigree))
 	}
-	if(isPackageLoaded("ff"))
+	baflist <- lapply(bafAndLrrList, "[[", 1)
+	lrrlist <- lapply(bafAndLrrList, "[[", 2)
+##	} else {
+##		baflist <- lapply(index, function(x) initializeBigArray("baf", dim=c(length(x), nrow(pedigree), 3), vmode="integer"))
+##		lrrlist <- lapply(index, function(x) initializeBigArray("lrr", dim=c(length(x), nrow(pedigree), 3), vmode="integer"))
+##		baflist <- lapply(baflist, function(x, sampleNames) {
+##			colnames(x) <- sampleNames
+##			return(x)
+##		}, sampleNames=sampleNames(pedigree))
+##		lrrlist <- lapply(lrrlist, function(x, sampleNames){
+##			colnames(x) <- sampleNames
+##			return(x)
+##		}, sampleNames=sampleNames(pedigree))
+##	}
+	if(useff)
 		message("Reading ", length(fnames),
 			" files and writing ff files to directory ", ldPath())
 	fathers <- paste(fatherNames(pedigree), ext, sep="")
@@ -83,12 +81,6 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 	trioindex <- seq_len(nrow(pedigree))
 	## want to avoid reading in more than 10 files per node -- would
 	## require a lot of total ram, depending on how many nodes are avail.
-##	if(length(trioindex) > 10){
-##		ilist <- splitIndicesByLength(trioindex, 10)
-##	} else{
-##		ilist <- splitIndicesByNode(trioindex)
-##		ilist <- ilist[sapply(ilist, function(x) length(x) > 0)]
-##	}
 	##
 	## for reading in data, we can't split by chromosome (all
 	## markers are read in at once) So, we split by samples.
@@ -96,16 +88,18 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 		## e.g., for 900 trios and 3 workers,
 		## each worker reads in 300 trios
 		##  --- below we read 100 fathers, 100 mothers, 100 offspring...
-		ilist <- splitIndicesByLength(trioindex, getCluster())
+		##ilist <- splitIndicesByLength(trioindex, getCluster())
+		ilist <- splitIndicesByNode(trioindex)
+		ilist <- ilist[sapply(ilist, function(x) length(x) > 0)]
 	} else {
 		## execution is sequential.
 		ilist <- list(trioindex)
 	}
-	if(isPackageLoaded("ff")){
+	if(useff){
 		## pass the ff object / array to each worker
 		## read in the files and assign the results to column z
 		## workers read in different sets of files and assign to the baflist and lrrlist ff objects
-		res <- foreach(i=ilist, .packages=c("ff", "MinimumDistance")) %dopar% {
+		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
 			MinimumDistance:::read.bsfiles2(path=path,
 							filenames=MinimumDistance:::originalNames(fathers[i]),
 							sampleNames=sampleNames(pedigree)[i],
@@ -114,7 +108,7 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 							baflist=baflist,
 							lrrlist=lrrlist)
 		}
-		res <- foreach(i=ilist, .packages=c("ff","MinimumDistance")) %dopar% {
+		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
 			MinimumDistance:::read.bsfiles2(path=path,
 							filenames=MinimumDistance:::originalNames(mothers[i]),
 							sampleNames=sampleNames(pedigree)[i],
@@ -123,7 +117,7 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 							baflist=baflist,
 							lrrlist=lrrlist)
 		}
-		res <- foreach(i=ilist, .packages=c("ff", "MinimumDistance")) %dopar% {
+		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
 			MinimumDistance:::read.bsfiles2(path=path,
 							filenames=offsprg[i],
 							sampleNames=sampleNames(pedigree)[i],
@@ -140,12 +134,12 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 		O <- read.bsfiles2(path=path, filenames=offsprg, sampleNames=sampleNames(pedigree))
 		for(j in seq_along(index)){
 			k <- index[[j]]
-			baflist[[j]][, , 1] <- F[k, 2, ]
-			baflist[[j]][, , 2] <- M[k, 2, ]
-			baflist[[j]][, , 3] <- O[k, 2, ]
-			lrrlist[[j]][, , 1] <- F[k, 1, ]
-			lrrlist[[j]][, , 2] <- M[k, 1, ]
-			lrrlist[[j]][, , 3] <- O[k, 1, ]
+			baflist[[j]][, , 1] <- integerMatrix(F[k, 2, ], scale=1000)
+			baflist[[j]][, , 2] <- integerMatrix(M[k, 2, ], scale=1000)
+			baflist[[j]][, , 3] <- integerMatrix(O[k, 2, ], scale=1000)
+			lrrlist[[j]][, , 1] <- integerMatrix(F[k, 1, ], scale=100)
+			lrrlist[[j]][, , 2] <- integerMatrix(M[k, 1, ], scale=100)
+			lrrlist[[j]][, , 3] <- integerMatrix(O[k, 1, ], scale=100)
 		}
 	}
 	ad <- AssayDataList(logRRatio=lrrlist,
