@@ -9,6 +9,11 @@ setMethod("mad2", signature(object="list"),
 		  madList(object, byrow, pedigree, ...)
 	  })
 
+setMethod("mad2", signature(object="TrioSetList"),
+	  function(object, byrow, pedigree, ...){
+		  madList(lrr(object), byrow, pedigree, ...)
+	  })
+
 setMethod("mad2", signature(object="matrix"),
 	  function(object, byrow, pedigree, ...){
 		  madList(list(object), byrow, pedigree, ...)

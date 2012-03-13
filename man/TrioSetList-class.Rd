@@ -20,6 +20,7 @@
 \alias{initialize,TrioSetList-method}
 \alias{length,TrioSetList-method}
 \alias{lrr,TrioSetList-method}
+\alias{mad2,TrioSetList-method}
 \alias{mindist<-,TrioSetList,list-method}
 \alias{mindist,TrioSetList-method}
 \alias{motherNames,TrioSetList-method}
@@ -124,6 +125,15 @@
   \item{}{\code{lrr(object)} Returns list of log R ratios for each
     chromosome.  Each element in the list is a 3-dimensional array
     (features x trios x samples).}
+
+  \item{}{\code{mad2(object, byrow=TRUE)} Calculates the median absolute
+  deviation (MAD) of the log R ratios in object. When \code{byrow} is
+  \code{TRUE}, the MAD is calculated for each marker across all
+  offspring. When \code{byrow} is \code{FALSE}, the MAD is computed
+  across all autosomal markers for the fathers, mothers, and
+  offspring. The former provides a robust estimate of the marker-level
+  variance across samples, whereas the latter provides an estimate of
+  variance for the samples.}
 
   \item{}{\code{mindist(object) <- value}: Assigns the minimum distance
   to each \code{TrioSet} element.  \code{value} is a \code{list}.}

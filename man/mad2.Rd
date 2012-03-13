@@ -16,13 +16,16 @@ mad2(object, byrow=FALSE, ...)
 
 \arguments{
   \item{object}{
-    Object of class \code{TrioSetList} or \code{TrioSet}
+    \code{object} can be any of the following: class \code{TrioSetList},
+  \code{TrioSet}, or a list of matrices.
   }
 
-  \item{byrow}{Logical. If TRUE, the median absolute deviation is
-  calculated for each row in the list elements (rows are markers).  If
-  FALSE, the median absolute deviation of the log R ratios is
-  calculated for each column (sample) across markers.  }
+  \item{byrow}{When \code{byrow} is \code{TRUE}, the MAD is calculated
+  for each marker across all offspring. When \code{byrow} is
+  \code{FALSE}, the MAD is computed across all autosomal markers for the
+  fathers, mothers, and offspring. The former provides a robust estimate
+  of the marker-level variance across samples, whereas the latter
+  provides an estimate of variance for the samples.}
 
   \item{\dots}{Not currently implemented.}
 
@@ -38,6 +41,7 @@ data(trioSetListExample)
 mads.sample <- mad2(lrr(trioSetList), byrow=FALSE)
 ## compute the MAD of the log R ratio for each marker (across individuals)
 mads.marker <- mad2(lrr(trioSetList), byrow=TRUE)
+mads.marker <- mad2(trioSetList, byrow=TRUE)
 }
 \keyword{univar}
 \keyword{robust}
