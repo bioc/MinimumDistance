@@ -104,41 +104,17 @@ data(lrr.segs)
 data(md.segs)
 ## select a range with a possible de novo copy number alteration in the offspring
 rd <- map.segs[which(isDenovo(state(map.segs)))[1], ]
-trace(coerce, browser, signature=c("TrioSet", "data.frame"))
-if(require("VanillaICE")){
-	lrrfig <- xyplot(lrr ~ x | id,
-			 data=trioSet,
-			 range=rd,
-			 lrr.segs=lrr.segs,
-			 md.segs=md.segs,
-			 frame=500e3,
-			 panel=xypanelMD,
-			 cex=0.2,
-			 pch=21,
-			 border="orange",
-			 scales=list(x="free"),
-			 par.strip.text=list(lines=0.8, cex=0.6),
-			 col.np="royalblue", fill.np="grey",
-			 index.cond=list(4:1),
-			 return.data.frame=FALSE)
-	## the xypanel functionn is defined in VanillaICE
-	baffig <- xyplot(baf ~ x | id,
-			 data=trioSet,
-			 range=rd,
-			 lrr.segs=lrr.segs,
-			 md.segs=md.segs,
-			 frame=500e3,
-			 panel=xypanel,
-			 cex=0.2,
-			 pch=21,
-			 border="orange",
-			 scales=list(x="free"),
-			 par.strip.text=list(lines=0.8, cex=0.6),
-			 col.np="royalblue", fill.np="grey",
-			 index.cond=list(4:1))
-	arrangeSideBySide(lrrfig, baffig)
-}
-
+figs <- MinimumDistance:::xyplotTrioLrrBaf(rd=rd,
+					   object=trioSet,
+					   frame=200e3,
+					   ylab="log R ratio and BAFs",
+					   xlab="physical position",
+					   panel=MinimumDistance:::xypanelTrioBaf,
+					   scales=list(y=list(alternating=1)),
+					   lrr.segments=lrr.segs,
+					   md.segments=md.segs,
+					   layout=c(1, 4), ylim=c(-3,1.5),
+					   par.strip.text=list(lines=0.8, cex=0.6))
 }
 \keyword{dplot}
 \keyword{color}

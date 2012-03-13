@@ -5,7 +5,7 @@ test_cbsSplits <- function(){
 	load(file.path(path, "cnProbes.rda"))
 	x <- matrix(NA, nrow=nrow(snpProbes)+nrow(cnProbes), 1)
 	rownames(x) <- c(rownames(snpProbes), rownames(cnProbes))
-	fd <- oligoClasses:::GenomeAnnotatedDataFrameFrom(x, byrow=FALSE, annotationPkg="human610quadv1bCrlmm")
+	fd <- GenomeAnnotatedDataFrameFrom(x, annotationPkg="human610quadv1bCrlmm")
 	fd <- fd[order(chromosome(fd), position(fd)), ]
 	fd <- fd[chromosome(fd) < 23, ]
 	pos <- position(fd)

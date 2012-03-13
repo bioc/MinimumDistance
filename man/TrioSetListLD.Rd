@@ -7,7 +7,7 @@
   Constructor for TrioSetList class for large data
 }
 \usage{
-TrioSetListLD(path, fnames, ext="", samplesheet, row.names, pedigreeData, annotationPkg, outdir=ldPath())
+TrioSetListLD(path, fnames, ext="", samplesheet, row.names, pedigreeData, featureData, annotationPkg, outdir=ldPath())
 }
 \arguments{
   \item{path}{
@@ -41,6 +41,8 @@ TrioSetListLD(path, fnames, ext="", samplesheet, row.names, pedigreeData, annota
     An object of class \code{Pedigree}.
 
   }
+
+  \item{featureData}{ A \code{GenomeAnnotatedDataFrame} }
 
   \item{annotationPkg}{
     Character string indicating the annotation package used to extract
