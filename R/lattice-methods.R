@@ -1,4 +1,4 @@
-xyplotTrioLrrBaf <- function(rd, object, frame, lrr.segments, md.segments, ...){
+xyplotTrioLrrBaf <- function(rd, object, frame=200e3, lrr.segments, md.segments, ...){
 	index <- seq_len(nrow(rd))
 	df <- foreach(i=index, .combine="rbind") %do% {
 		dataFrameFromRange2(range=rd[i, ],
@@ -23,7 +23,7 @@ xyplotTrioLrrBaf <- function(rd, object, frame, lrr.segments, md.segments, ...){
 }
 
 
-xyplotTrioListLrrBaf <- function(rd, md, object, frame,
+xyplotTrioListLrrBaf <- function(rd, md, object, frame=200e3,
 				 lrr.segments, md.segments, ...){
 	## assume rd is one range
 	object <- object[[chromosome(rd)]]

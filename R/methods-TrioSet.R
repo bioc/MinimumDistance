@@ -594,8 +594,8 @@ setAs("TrioSet", "data.frame",
 
 trioSet2data.frame <- function(from){
 	stopifnot(ncol(from) == 1)
-	cn <- lrr(from)[, 1, ]
-	md <- as.numeric(mindist(from))
+	cn <- lrr(from)[, 1, ]/100
+	md <- as.numeric(mindist(from))/100
 ##	ids <- c(allNames(from), sampleNames(from))
 ##	ids <- as.character(matrix(ids, nrow(cn), 4, byrow=TRUE))
 	sns <- matrix(c("father", "mother", "offspring", "min dist"), nrow(cn), 4, byrow=TRUE)
@@ -605,7 +605,7 @@ trioSet2data.frame <- function(from){
 	y <- c(cn, md)
 	##member <- c(sns, rep("min dist", length(md)))
 	##gt <- as.integer(gt)
-	bf <- as.numeric(baf(from)[, 1, ])
+	bf <- as.numeric(baf(from)[, 1, ])/1000
 	bf <- c(bf, rep(NA, length(md)))
 	x <- rep(position(from)/1e6, 4)
 	is.snp <- rep(isSnp(from), 4)
@@ -621,7 +621,7 @@ trioSet2data.frame <- function(from){
 	return(df)
 }
 
-dataFrameFromRange2 <- function(object, range, range.index, frame){
+dataFrameFromRange2 <- function(object, range, range.index, frame=0){
 	rm <- findOverlaps(range, featureData(object), maxgap=frame) ## RangesMatching
 	mm <- as.matrix(rm)
 	mm.df <- data.frame(mm)
