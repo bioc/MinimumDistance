@@ -36,14 +36,13 @@ mad2(object, byrow=FALSE, ...)
 }
 
 \examples{
-data(trioSetListExample)
-## computing the MAD of the log R ratios for each individual (across markers)
-mads.sample <- mad2(trioSetList, byrow=FALSE)
-## compute the MAD of the log R ratio for each marker (across individuals)
-\dontrun{
-## too few samples
-mads.marker <- mad2(trioSetList, byrow=TRUE)
-}
+	data(trioSetListExample)
+	registerDoSEQ()
+	## computing the MAD of the log R ratios for each individual (across markers)
+	mads.sample <- mad2(trioSetList, byrow=FALSE)
+	## compute the MAD of the log R ratio for each marker (across individuals)
+	## too few samples
+	##mads.marker <- mad2(trioSetList, byrow=TRUE)
 }
 \keyword{univar}
 \keyword{robust}
