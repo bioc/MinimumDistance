@@ -10,9 +10,13 @@ setMethod("mad2", signature(object="list"),
 	  })
 
 setMethod("mad2", signature(object="TrioSetList"),
-	  function(object, byrow, pedigree, ...){
-		  madList(lrr(object), byrow, pedigree, ...)
+	  function(object, byrow, ...){
+		  madTrioSetList(object, byrow)
 	  })
+
+madTrioSetList <- function(object, byrow){
+	madList(lrr(object), byrow=byrow, pedigree=pedigree(object))
+}
 
 setMethod("mad2", signature(object="matrix"),
 	  function(object, byrow, pedigree, ...){
@@ -46,8 +50,17 @@ madList <- function(object, byrow, pedigree, ...){
 			mads.father <- madFromMatrixList(F, byrow=FALSE)
 			mads.mother <- madFromMatrixList(M, byrow=FALSE)
 			mads.offspr <- madFromMatrixList(O, byrow=FALSE)
-			mads <- cbind(mads.father, mads.mother, mads.offspr)
-			colnames(mads) <- c("F", "M", "O")
+			if(!missing(pedigree)){
+				names(mads.father) <- fatherNames(pedigree)
+				names(mads.mother) <- motherNames(pedigree)
+				names(mads.offspr) <- offspringNames(pedigree)
+				mads <- data.frame(F=I(mads.father),
+						   M=I(mads.mother),
+						   O=I(mads.offspr))
+			} else {
+				mads <- cbind(mads.father, mads.mother, mads.offspr)
+				colnames(mads) <- c("F", "M", "O")
+			}
 		}
 	} else {## by row
 		if(is.matrix){
@@ -69,7 +82,10 @@ madList <- function(object, byrow, pedigree, ...){
 				names(mads) <- names(object)
 				##mads <- cbind(mads.f, mads.m, mads.o)
 				##colnames(mads) <- c("F", "M", "O")
-			} else mads <- NULL
+			} else {
+				warning("Too few samples to calculate across sample variance. Returning NULL.")
+				mads <- NULL
+			}
 		}
 	}
 	if(isff) lapply(object, close)
