@@ -1079,7 +1079,7 @@ callDenovoSegments <- function(path="",
 	index <- split(seq_len(nrow(md.segs2)), chromosome(md.segs2))
 	index <- index[match(chromosome(trioSetList), names(index))]
 	stopifnot(identical(as.character(chromosome(trioSetList)), names(index)))
-	if(is.null(getCluster())) registerDoSEQ()
+	if(!parStatus()) registerDoSEQ()
 	map.segs <- foreach(object=trioSetList,
 			    i=index,
 			    .inorder=FALSE,

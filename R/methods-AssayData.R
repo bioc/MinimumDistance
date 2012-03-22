@@ -84,7 +84,7 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 	##
 	## for reading in data, we can't split by chromosome (all
 	## markers are read in at once) So, we split by samples.
-	if(!is.null(getCluster())){
+	if(parStatus()){
 		## e.g., for 900 trios and 3 workers,
 		## each worker reads in 300 trios
 		##  --- below we read 100 fathers, 100 mothers, 100 offspring...

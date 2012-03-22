@@ -6,7 +6,7 @@ setMethod("calculateMindist", signature(object="arrayORff_array"),
 
 calculateMindistFromArray <- function(object, outdir=ldPath(), ...){
 	isff <- is(object, "ff")
-	if(is.null(getCluster())) registerDoSEQ()
+	if(!parStatus()) registerDoSEQ()
 	if(isff){
 		if(!isPackageLoaded("ff")) stop(paste("array has class ", class(object)[[1]], " but the ff package is not loaded"))
 		## so that the worker nodes put the ff objects in the same directory
