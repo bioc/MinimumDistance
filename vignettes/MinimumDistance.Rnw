@@ -1,0 +1,488 @@
+%\VignetteIndexEntry{Detection of de novo copy number alterations in case-parent trios}
+%\VignetteDepends{VanillaICE}
+%\VignetteKeywords{MinimumDistance, copy number, SNP, case-parent trios, de novo}
+%\VignettePackage{MinimumDistance}
+\documentclass{article}
+\usepackage{graphicx}
+%\usepackage[utf8]{inputenc}
+%\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rcode}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textsf{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\R}{\textsf{R}}
+\newcommand{\md}{\Rpackage{MinimumDistance}}
+\newcommand{\F}{\mathrm{F}}
+\newcommand{\M}{\mathrm{M}}
+\newcommand{\Of}{\mathrm{O}}
+\newcommand{\RR}{\mathrm{LR}}
+\newcommand{\LR}{\mathrm{LR}}
+\newcommand{\Blrr}{\mbox{\boldmath $R$}}
+\newcommand{\Bbaf}{\mbox{\boldmath $B$}}
+\newcommand{\logRratio}{$\log_2$ R ratio}
+\newcommand{\lrrlong}{$\log_2$ R ratio}
+\newcommand{\blrr}{\mbox{\boldmath $r$}}
+%\newcommand{\bbaf}{\mbox{\boldmath $b$}}
+\newcommand{\baf}{B allele frequency}
+\newcommand{\bafs}{B allele frequencies}
+\newcommand{\tsl}{trioSetList}
+\newcommand{\ts}{trioSet object}
+\newcommand{\mindist}{\ensuremath{\mbox{\boldmath $d$}}}
+\DeclareMathOperator{\I}{\mathbb{I}}
+\usepackage[margin=1in]{geometry}
+
+
+\title{Detection of de novo copy number alterations in case-parent
+  trios using the \R{} package \md{}}
+\date{\today}
+
+\author{Moiz Bootwalla and Rob Scharpf}
+
+\begin{document}
+\maketitle
+
+<<setup, echo=FALSE, results=hide>>=
+options(prompt="R> ", continue=" ", device=pdf, width=65)
+@
+
+\begin{abstract}
+
+  For the analysis of case-parent trio genotyping arrays, copy number
+  variants (CNV) appearing in the offspring that differ from the
+  parental copy numbers are often of interest (de novo CNV). This
+  package defines a statistic, referred to as the minimum distance,
+  that can be useful for identifying de novo copy number alterations
+  in the offspring. We smooth the minimum distance using the circular
+  binary segmentation algorithm implemented in the Bioconductor
+  package \Rpackage{DNAcopy}.  Trio copy number states are inferred
+  from the maximum a posteriori probability of the segmented data,
+  incorporating information from the log R ratios and B allele
+  frequencies.  As both log R ratios and B allele frequencies can be
+  estimated from Illumina and Affymetrix arrays, this package supports
+  de novo copy number inference in both platforms.
+
+\end{abstract}
+
+
+\section{Introduction}
+
+There are numerous \R{} packages available from Bioconductor for
+smoothing copy number alterations.  For example, the biocview
+\texttt{CopyNumberVariants} in the 2.9 release of Bioconductor lists
+27 packages.  For the analysis of germline diseases, hidden Markov
+models have emerged as a popular tool as inference regarding the
+latent copy number state incorporates information from both the
+estimates of copy number (or relative copy number) and the allelic
+frequencies, such as the B allele frequency \citep{Peiffer2006} or
+genotype calls \citep{Colella2007, Wang2008, Scharpf2008}. For the
+analysis of somatic cell diseases such as cancer, algorithms that
+segment the genome into regions of constant copy number (referred to
+here as segmentation algorithms) may be more preferable for the
+detection of copy number aberrations (CNA) as a mixture of cells with
+different copy numbers give rise to mosaic (non-integer) copy numbers.
+Examples include circular binary segmentation implemented in the \R{}
+package \Rpackage{DNAcopy} and the \Rpackage{GLAD}, both of which were
+orginally developed for array CGH platforms
+\cite{Olshen2004,Hupe2004,Venkat2007}.  One disadvantage of
+segmentation algorithms is that inference regarding duplication and
+deletions is not directly available.
+
+More recently, HMMs and segmentation algorithms have been developed
+for inferring common regions of copy number alterations in multiple
+samples.  However, relatively few algorithms are available for
+inferring copy number alterations, especially de novo copy number
+alterations, in family-based study designs involving case-parent
+trios. Instead, a common strategy has been a two-step approach of
+identifying copy number alterations in the individual samples and then
+comparing the results across samples to infer whether an alteration
+observed in the offspring is de novo.  A disadvantage of the two-step
+approach is that unadjusted sources of technical variation, such as
+waves, can contribute to false positives.  To our knowledge, the joint
+HMM implemented in the PennCNV software is the only software to date
+that provides direct inference regarding de novo alterations in case
+parent study designs.
+
+This package develops an alternative framework for inferring regions
+of de novo copy number alterations in case-parent trios.  Like
+PennCNV, inference regarding de novo alterations integrates
+information from both the log R ratios and B allele
+frequencies. Differences in the two approaches are most apparent in
+non-HapMap experimental datasets in which technical and experimental
+sources of variation appear to contribute to a large number of false
+positives.
+
+This vignette describes the analysis pipeline from preprocessed and
+normalized estimates of copy number and allele frequencies to
+inference regarding de novo copy number alterations.  The workflow is
+illustrated using publicly available HapMap trios assayed on the
+Illumina 610quad array.  Section \ref{smoothing} outlines two
+approaches for processing the data: Section \ref{option1} describes a
+pipeline in which a list of files are provided as input and the output
+is a \Robject{RangedDataCBS} object of genomic intervals and the
+inference for the trio copy number state; Section \ref{option2}
+provides a more detailed workflow in which intermediate data
+structures are created to facilitate visualization of the low-level
+copy number summaries along with inference from the
+\Rpackage{MinimumDistance} algorithm. Details regarding the
+intermediate data structures and visualization are described in
+Sections \ref{option2} and \ref{viz}, respectively.  Where
+possible, we have adopted standard data structures for encapsulating
+the low-level data (\Robject{eSet} extensions) and the segmented data
+(\Robject{RangedData} extensions).
+
+\section{Large data applications and parallel processing}
+
+A separate vignette for using \Rpackage{MinimumDistance} with large
+datasets is forthcoming.  For now, we remark that the discussion
+regarding the infrastructure for large data support and
+parallelization in the \R{} package \Rpackage{oligoClasses} is
+similar.  In particular, to use a cluster we check for three
+requirements: 1) 'ff' is loaded; 2) 'snow' is loaded; and 3) the
+'cluster' option is set. For example, in the following unevaluated
+code chunk would enable large data support and parallelization with 22
+worker nodes. Finally, a check that the three requirements are
+satisfied is obtained with the function \Rfunction{parStatus} in the
+\Rpackage{oligoClasses} package.
+
+<<enableLD, eval=FALSE>>=
+library(snow)
+library(doSNOW)
+library(oligoClasses)
+cl <- makeCluster(22, type="SOCK")
+registerDoSNOW(cl)
+parStatus()
+@
+
+Had we executed the preceding code chunk, the output from this
+vignette would be more or less the same.  However, the containers for
+storing the low level copy number summaries and allele frequencies
+would contain \Rpackage{ff}-objects and many of the
+chromosome-specific tasks that can easily be parallelized such as
+segmentation and the posterior calling steps would be split to
+multiple workers.
+
+When parallelization is not enabled, one may want to 'register' the
+backend so that annoying warning messages do not appear during
+processing.  This is accomplished using the function
+\Rfunction{registerDoSEQ} in the \Rpackage{foreach} package.
+
+<<registerBackend>>=
+library(oligoClasses)
+library(MinimumDistance)
+foreach::registerDoSEQ()
+@
+
+
+\section{Detection of de novo copy number}
+\label{smoothing}
+
+There are two options for processing.  Section \label{option1}
+provides a simple pipeline for reading a list of files containing log
+R ratios and B allele frequencies and returning the segmented data
+with the trio copy number calls.  The second option in
+Section \label{option2} provides a more detailed workflow of de novo
+copy number analysis with intermediate data structures useful for
+storing the log R ratios and B allele frequencies in a manner than can
+be easily accessed for subsequent plotting.  The latter can be
+particularly useful for visual inspection of the trio copy number
+calls.
+
+\subsection{Simple Usage: generating ranged data with posterior calls}
+\label{option1}
+
+Here, we illustrate a simple pipeline for reading in BeadStudio files
+and returning a list of genomic ranges.  There are 3 BeadStudio files
+provided with the \Rpackage{MinimumDistance} package -- one for the
+father (``F.txt''), mother (``M.txt''), and offspring (``O.txt''). In
+order to keep the size of the \Rpackage{MinimumDistance} package
+small, these files contain data for only 1000 markers.
+
+<<filenames>>=
+path <- system.file("extdata", package="MinimumDistance")
+fnames <- list.files(path, pattern=".txt")
+fnames
+@
+
+Before reading the data, we create a \Robject{data.frame} indicating
+the filenames for the father, mother, and offspring. In the following
+codechunk, we have a single file for the father, mother, and offspring
+(one trio). For processing multiple trios, the arguments to
+\Rfunction{data.frame} can be vectors where the ith element in each
+vector are the files for one trio.
+
+<<pedigreeInfo>>=
+pedigreeInfo <- data.frame(F="F.txt", M="M.txt", O="O.txt")
+@
+
+\noindent Note that the sample identifiers for father and mother can
+be duplicated, but the offspring sample identifiers must be unique. We
+encapsulate this information more formally in an S4 class called
+\Rclass{Pedigree} and use the \Rfunction{Pedigree} constructor to
+generate an instance of the class:
+
+<<pedigreeConstructor>>=
+ped <- Pedigree(pedigreeInfo)
+ped
+@
+
+The function \Rfunction{callDenovoSegments} reads the BeadStudio files
+using information contained in the \Robject{ped} object, computes the
+minimum distance (see Section \ref{option2}), segments the minimum
+distance using circular binary segmentation, and calls the trio copy
+number state using the maximum posterior probability.
+
+<<callDenovoSegments>>=
+map.segs <- callDenovoSegments(path=path, pedigreeData=ped,
+			       cdfname="human610quadv1b",
+			       chromosome=1, segmentParents=FALSE)
+head(map.segs)
+@
+
+The object returned by \Rfunction{callDenovoSegments} is an object of
+class \Robject{RangedDataHMM}. The state symbols are the integer copy
+number inferred for the father, mother and offspring with an offset of
+1. For example, the symbol for state '321' would indicate two DNA
+copies in father, 1 copy in the mother, and 0 copies in the offspring.
+In the above example, de novo copy number alterations were not
+detected and the state '333' indicates that the father, mother, and
+offspring appear to be diploid for the interval beginning at
+\Sexpr{start(map.segs)} bp and ending at \Sexpr{end(map.segs)}.
+
+
+\subsection{Pipeline using intermediate data strutures for storing log
+R ratios and B allele frequencies}
+\label{option2}
+
+This section describes a pipeline that permits the user to manipulate
+and plot intermediate data structures.
+
+\paragraph{Instantiating a \Robject{TrioSetList} object}.
+
+A key design consideration for data structures that capture
+information on the low-level copy number and allele frequencies is
+that the `unit' of our analysis is a trio.  A common query is to
+access the low level statistical summaries for a set of markers for
+all members in a trio. By organizing statistical summaries in arrays
+with dimension \texttt{feature x trios x family member} such queries
+are straightforward.  As the number of trios in a typical genome-wide
+association study may exceed 1000, it may be impractical to store the
+low-level summaries in a single array. To make the size of the arrays
+more manageable and to facilitate parallelization, we organize the
+low-level summaries by chromosome using the \Rclass{TrioSetList}
+class. The \Rclass{TrioSetList} class has a slot for storing an object
+of class \Robject{Pedigree} (discussed previously), as well as slots
+for storing sample-level covariates on the offspring
+(\Robject{phenoData}), mother (\Robject{motherPhenoData}), and the
+father (\Robject{fatherPhenoData}).  Often technical, experimental,
+and phenotypic covariates for the samples in an experiment are stored
+in a single tab-delimited file in which columns are covariates and
+rows are samples.  Such a spreadsheed can be read into \R{} as a
+\Robject{data.frame}. Supplying such a \Robject{data.frame} to the
+argument \Robject{sample.sheet} in the \Rfunction{TrioSetList}
+constructor function will build \Robject{AnnotatedDataFrame} objects
+for father, mother, and offspring, extracting the appropriate rows
+(samples) from the \Robject{data.frame}.  For example, in the
+following codechunk we load a \Robject{data.frame} called
+`sample.sheet' and pass the \Robject{sample.sheet} object to the
+\Rfunction{TrioSetList} constructor.  In addition, we load a matrix of
+log R ratios and a matrix of B allele frequencies.  (The matrices for
+the log R ratios and B allele frequences contain only 25 markers for
+each chromosome as the intent is to illustrate the steps required for
+initializing a data structure of the \Robject{TrioSetList} class.)
+Using the information stored in the \Robject{Pedigree} class, the
+matrices are transformed to 3-dimensional arrays and stored in the
+\Robject{assayDataList} slot of the \Rclass{TrioSetList}
+class. Accessors \Rfunction{lrr} and \Rfunction{baf} are available for
+extracting the list of arrays for the log R ratios and B allele
+frequencies.
+
+<<constructSampleSheet>>=
+library(human610quadv1bCrlmm)
+path <- system.file("extdata", package="MinimumDistance")
+load(file.path(path, "pedigreeInfo.rda"))
+load(file.path(path, "sample.sheet.rda"))
+load(file.path(path, "logRratio.rda"))
+load(file.path(path, "baf.rda"))
+nms <- paste("NA",substr(sample.sheet$Sample.Name, 6, 10),sep="")
+trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
+			   baf=baf,
+			   pedigree=Pedigree(pedigreeInfo),
+			   sample.sheet=sample.sheet,
+			   row.names=nms,
+			   cdfname="human610quadv1bCrlmm")
+show(trioSetList)
+@
+
+\paragraph{Segmentation and posterior calls.}  To keep the size of the
+\Rpackage{MinimumDistance} package small, the \Robject{trioSetList}
+object created in the previous section contained only 25 markers for
+each of the 22 autosomes.  While useful for illustrating construction
+of the \Rclass{TrioSetList} class, there are too few markers included
+in the example to illustrate the smoothing and posterior calling
+algorithm for detecting de novo copy number events. To demonstrate
+these steps, we load a \Robject{TrioSetList} object containing several
+thousand markers for chromosomes 7 and 22 for 2 HapMap trios:
+
+<<loadTrioSetListExample>>=
+data(trioSetListExample)
+@
+
+For a given trio, the signed minimum absolute difference of the
+offspring and parental \lrrlong{}s (\blrr{}) is defined as
+
+\begin{eqnarray}
+  \label{eq:distance} \mindist &\equiv& \left(\blrr_\Of - \blrr_\M\right)
+\times \I_{[\left|\blrr_\Of - \blrr_\F\right| > \left|\blrr_\Of -
+      \blrr_\M\right|]} + \left(\blrr_\Of - \blrr_\F\right) \times
+  \I_{[\left|\blrr_\Of - \blrr_\F\right| \leq \left|\blrr_\Of - \blrr_\M\right|
+    ]}.
+\end{eqnarray}
+
+Computation of $\mindist$ by the function \Rfunction{calculateMindist}
+is vectorized in \R{}:
+
+<<computeMinimumDistance>>=
+md <- calculateMindist(lrr(trioSetList))
+@
+
+The circular binary segmentation algorithm implemented in the \R{}
+package \Rpackage{DNAcopy} can be used to smooth the minimum distance
+estimates.  The method \Rfunction{segment2} is a wrapper to the
+\Rfunction{CNA.smooth} and \Rfunction{segment} functions defined in
+\Rpackage{DNAcopy}.  Additional arguments to the \Rfunction{segment}
+function can be passed through the \texttt{...}  argument in
+\Rfunction{segment2}, allowing users to modify the segmentation from
+the default values in \Rpackage{DNAcopy}.
+
+<<segmentMinimumDistance,results=hide>>=
+md.segs <- segment2(object=trioSetList, md=md)
+@
+
+The object returned by the \Rfunction{segment2} method is an object of
+class \Robject{RangedDataCBS}.
+
+<<showMd.Segs>>=
+head(md.segs)
+@
+
+If the offspring copy number changes within a minimum distance segment
+(as determined by the segmentation of the offspring copy number), the
+start and stop position of the minimum distance segments may be
+edited.  The approach currently implemented is to define a new start
+and stop position if a breakpoint for the offspring segmentation
+occurs in the minimum distance interval. To illustrate, the following
+diagram uses vertical dashes (\texttt{|}) to denote breakpoints:
+
+\begin{verbatim}
+1 ...--|--------------|--...     ## minimum distance segment (before editing)
+2 ...----|--------|------...     ## segmenation of log R ratios for offspring
+
+->
+
+3 ...--|-|--------|---|--...     ## after editing
+\end{verbatim}
+
+\noindent In the above illustration, posterior calls are provided for
+the 3 segments indicated in line 3 instead of the single segment in
+line 1.  Two additional steps are therefore required: (1) segmentation
+of the offspring log R ratios and (2) editing of the minimum distance
+breakpoints when appropriate. The following codechunk, segments the
+log R ratios for all chromosomes in the \Robject{trioSetList} object.
+For purposes of visualization, we also segment the parental log R
+ratios:
+
+<<segmentLRR,results=hide>>=
+lrr.segs <- segment2(trioSetList, segmentParents=TRUE)
+@
+
+Minimum distance segments with a mean absolute value greater than 1
+median absolute deviation from zero are edited using the
+\Rfunction{narrow}:
+
+<<narrow,results=hide>>=
+mads.md <- mad2(md, byrow=FALSE)
+md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md)
+@
+
+To each range (segment) the maximum posterior probability and the
+posterior probability of the normal range are computed using the
+function \Rfunction{computeBayesFactor}.
+
+<<computeBayesFactor,results=hide>>=
+map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2)
+show(map.segs)
+@
+
+We remark that the \Rfunction{computeBayesFactor} method can be
+applied to a single interval.  For example,
+
+<<computeBayesFactorOneRange>>=
+computeBayesFactor(trioSetList, md.segs2[1, ])
+@
+
+The ratio of posterior probabilities can be used to rank genomic
+ranges by the evidence for a de novo copy number alteration.  Note
+that physically adjacent genomic ranges in a sample that are assigned
+the same copy number state will be collapsed into a single range by
+the \Rfunction{computeBayesFactor} function.
+
+\subsection{Visualizations}
+\label{viz}
+
+The \R{} package \Rpackage{VanillaICE} contains methods for
+visualizing \Rclass{RangedData} objects that build on the
+infrastructure in the \Rpackage{lattice} package.  Visualizations for
+trios will extend these methods and are currently under
+development. Here, we provide a quick example using a function and a
+lattice-style panel function that are not currently exported.
+
+<<triofig>>=
+trioSet <- stack(trioSetList)
+rd.denovoDel <- map.segs[state(map.segs) == 332 & coverage2(map.segs) > 5, ]
+mindist(trioSet) <- do.call("rbind", md)
+frame <- 100e3
+figlist <- MinimumDistance:::xyplotTrioLrrBaf(rd=rd.denovoDel,
+					   object=trioSet,
+					   frame=frame,
+					   ylab="log R ratio and BAFs",
+					   xlab="physical position",
+					   panel=MinimumDistance:::xypanelTrioBaf,
+					   scales=list(x="free", y=list(alternating=1)),
+					   lrr.segments=lrr.segs,
+					   md.segments=md.segs,
+					   layout=c(1, 4), ylim=c(-3, 1.5))
+@
+
+The final graphic is displayed in Figure \ref{fig:trioplot}.
+
+<<displayFigure,fig=TRUE,include=FALSE>>=
+print(figlist[[1]])
+@
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{MinimumDistance-displayFigure}
+  \caption{\label{fig:trioplot} The log R ratios (black) and B allele
+    frequencies (blue) for the father, mother, and offspring, as well
+    as the minimum distance (bottom).  The solid vertical lines in the
+    bottom panel indicate the start and stop positions of an inferred
+    de novo hemizygous deletion in the offspring (state '332').  }
+\end{figure}
+
+
+
+\section{Session information}
+<<sessionInfo, results=tex>>=
+toLatex(sessionInfo())
+@
+
+\bibliography{MinimumDistance}{}
+\bibliographystyle{plain}
+
+\end{document}

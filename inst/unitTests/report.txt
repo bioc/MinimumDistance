@@ -1,0 +1,34 @@
+RUNIT TEST PROTOCOL -- Thu Mar 22 15:34:47 2012 
+*********************************************** 
+Number of test functions: 7 
+Number of errors: 0 
+Number of failures: 0 
+
+ 
+1 Test Suite : 
+MinimumDistance unit testing - 7 test functions, 0 errors, 0 failures
+
+
+
+Details 
+*************************** 
+Test Suite: MinimumDistance unit testing 
+Test function regexp: ^test.+ 
+Test file regexp: ^test.+\.[rR]$ 
+Involved directory: 
+/home/bst/student/rscharpf/Software/MinimumDistance/tests/../inst/unitTests 
+--------------------------- 
+Test file: /home/bst/student/rscharpf/Software/MinimumDistance/tests/../inst/unitTests/test_calculateMindist.R 
+test_calculateMindist: (2 checks) ... OK (3.15 seconds)
+--------------------------- 
+Test file: /home/bst/student/rscharpf/Software/MinimumDistance/tests/../inst/unitTests/test_Pedigree-class.R 
+test_Pedigree_construction: (9 checks) ... OK (0.08 seconds)
+test_subsetPedigree: (3 checks) ... OK (0.02 seconds)
+--------------------------- 
+Test file: /home/bst/student/rscharpf/Software/MinimumDistance/tests/../inst/unitTests/test_splitsForCBS.R 
+test_cbsSplits: (1 checks) ... OK (29.51 seconds)
+--------------------------- 
+Test file: /home/bst/student/rscharpf/Software/MinimumDistance/tests/../inst/unitTests/test_TrioSetList.R 
+test_dataExamples: (2 checks) ... OK (0.69 seconds)
+test_TrioSetList_construction: (25 checks) ... OK (7.21 seconds)
+test_TrioSetListLD: (5 checks) ... OK (4.41 seconds)
