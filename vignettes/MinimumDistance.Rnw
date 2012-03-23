@@ -159,14 +159,25 @@ registerDoSNOW(cl)
 parStatus()
 @
 
+Had we executed the preceding code chunk, the output from this
+vignette would be more or less the same.  However, the containers for
+storing the low level copy number summaries and allele frequencies
+would contain \Rpackage{ff}-objects and many of the
+chromosome-specific tasks that can easily be parallelized such as
+segmentation and the posterior calling steps would be split to
+multiple workers.
+
 When parallelization is not enabled, one may want to 'register' the
-backend so that warning messages do not appear during processing.
-This is accomplished using the function \Rfunction{registerDoSEQ} in
-the \Rpackage{foreach} package.
+backend so that annoying warning messages do not appear during
+processing.  This is accomplished using the function
+\Rfunction{registerDoSEQ} in the \Rpackage{foreach} package.
 
 <<registerBackend>>=
+library(oligoClasses)
+library(MinimumDistance)
 foreach::registerDoSEQ()
 @
+
 
 \section{Detection of de novo copy number}
 \label{smoothing}
@@ -193,8 +204,6 @@ order to keep the size of the \Rpackage{MinimumDistance} package
 small, these files contain data for only 1000 markers.
 
 <<filenames>>=
-library(oligoClasses)
-library(MinimumDistance)
 path <- system.file("extdata", package="MinimumDistance")
 fnames <- list.files(path, pattern=".txt")
 fnames
@@ -435,17 +444,16 @@ lattice-style panel function that are not currently exported.
 
 <<triofig>>=
 trioSet <- stack(trioSetList)
-rd.denovoDel <- map.segs[state(map.segs) == 332, ]
+rd.denovoDel <- map.segs[state(map.segs) == 332 & coverage2(map.segs) > 5, ]
 mindist(trioSet) <- do.call("rbind", md)
 frame <- 100e3
-figs <- MinimumDistance:::xyplotTrioLrrBaf(rd=rd.denovoDel,
+figlist <- MinimumDistance:::xyplotTrioLrrBaf(rd=rd.denovoDel,
 					   object=trioSet,
 					   frame=frame,
 					   ylab="log R ratio and BAFs",
 					   xlab="physical position",
 					   panel=MinimumDistance:::xypanelTrioBaf,
-					   scales=list(x="free",
-					   y=list(alternating=1)),
+					   scales=list(x="free", y=list(alternating=1)),
 					   lrr.segments=lrr.segs,
 					   md.segments=md.segs,
 					   layout=c(1, 4), ylim=c(-3, 1.5))
@@ -454,78 +462,20 @@ figs <- MinimumDistance:::xyplotTrioLrrBaf(rd=rd.denovoDel,
 The final graphic is displayed in Figure \ref{fig:trioplot}.
 
 <<displayFigure,fig=TRUE,include=FALSE>>=
-print(figs[[2]])
+print(figlist[[1]])
 @
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\textwidth]{MinimumDistance-displayFigure}
-
-  \caption{\label{fig:trioplot} The left panels display the log R
-    ratios for the father (top left), mother, and offspring, as well
-    as the minimum distance (bottom left).  The right panels display
-    the B allele frequencies for the father, mother, and offspring.
-    The orange vertical lines indicate the start and stop positions of
-    an inferred de novo hemizygous deletion in the offspring (state
-    '332').  }
-
+  \caption{\label{fig:trioplot} The log R ratios (black) and B allele
+    frequencies (blue) for the father, mother, and offspring, as well
+    as the minimum distance (bottom).  The solid vertical lines in the
+    bottom panel indicate the start and stop positions of an inferred
+    de novo hemizygous deletion in the offspring (state '332').  }
 \end{figure}
 
-\subsection{Outline for Large Data / Parallelization}
 
-For large data sets, we have developed a pipeline that uses the
-\Rpackage{ff} package for large data support and the package
-\Rpackage{snow} for parallelization.  Currently, the central
-requirement for this approach is to parse the log R ratios and B
-allele frequencies for each sample to a separate file with the format
-roughly as in 'F.txt' (a small included with this package that we read
-in the previous section). The following (unevaluated) code chunks
-provide a general sense of the set-up and workflow. First, we enable
-large data support and register a backend for parallelization.
-
-<<lds, eval=FALSE>>=
-library2(ff)
-library2(snow)
-library2(doSNOW)
-ffdir <- "<PATH_FOR_FF_FILES>"
-ldPath(ff)
-cl <- makeCluster(22, "SOCK")
-registerDoSNOW(cl)
-@
-
-Next, we initialize a \Rclass{TrioSetList} object with the function
-\Rfunction{TrioSetListLD}.  The structure of this object is the same
-as in the previous sections, but the assay data (log R ratios and B
-allele frequencies) are stored in objects with the class
-\Rclass{ff\_array}.  In particular, this means that the assay data
-elements contain pointers to data stored on disk.  In the following
-code chunk, we call the \Rfunction{TrioSetListLD} function by
-specifying the path to the plain text files containing the log R
-ratios and B allele frequencies for each sample and the
-\Robject{pedigreeData} object.
-
-<<trioSetListLD, eval=FALSE>>=
-trioSetListff <- TrioSetListLD(path=path,
-			       fnames=allNames(pedigreeData),
-			       ext=".txt",
-			       pedigree=pedigreeData,
-			       annotationPkg="human610quadv1bCrlmm")
-@
-
-The remaining steps are the same as in the previous section:
-
-<<segmentationPosteriorCalling,eval=FALSE>>=
-mdlist <- calculateMindist(lrr(trioSetListff), outdir=ldPath())
-lrr.segs <- segment2(trioSetListff)
-md.segs <- segment2(trioSetListff, md=mdlist)
-map.segs <- computeBayesFactor(trioSetListff, ranges=md.segs2)
-@
-
-We remark that the steps in the previous code chunk benefit from
-parallelization and do not require enabling large data support with
-the \Rpackage{ff} package. However, with large data support enabled we
-have processed 1000 trios (3000 samples) on 22 worker nodes using a
-total of 100 Gb RAM (4-5 Gb per worker) in less than 24 hours.
 
 \section{Session information}
 <<sessionInfo, results=tex>>=
