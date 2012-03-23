@@ -6,6 +6,7 @@ test_dataExamples <- function(){
 }
 
 test_TrioSetList_construction <- function(){
+	library(oligoClasses)
 	checkTrue(validObject(new("TrioSetList")))
 	checkTrue(validObject(TrioSetList()))
 	checkTrue(validObject(TrioSetList(chromosome=1:22)))
@@ -59,6 +60,7 @@ test_TrioSetList_construction <- function(){
 
 	b <- baf(trioSetList)
 	b <- b[-1]
+	library(Biobase)
 	object <- assayDataElementReplace(trioSetList, "BAF", b)
 	checkException(validObject(object), silent=TRUE)
 	b <- baf(trioSetList)
@@ -94,6 +96,7 @@ test_TrioSetList_construction <- function(){
 
 test_TrioSetListLD <- function(){
 	## constructor for large data
+	library(oligoClasses)
 	path <- system.file("extdata", package="MinimumDistance")
 	fnames <- list.files(path, pattern=".txt")
 	##allow duplicated father and mother names
@@ -107,7 +110,8 @@ test_TrioSetListLD <- function(){
 	checkTrue(validObject(trioSetList))
 	checkTrue(is(lrr(trioSetList)[[1]], "array"))
 
-	library(ff)
+	library2(ff)
+	library2(foreach)
 	ldPath(tempdir())
 	registerDoSEQ()
 	trioSetListff <- TrioSetListLD(path=path,

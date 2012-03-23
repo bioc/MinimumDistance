@@ -43,6 +43,9 @@
 }
 
 \examples{
+library(MinimumDistance)
+library(oligoClasses)
+foreach::registerDoSEQ()
 data(trioSetListExample)
 data(md.segs)
 data(lrr.segs)

@@ -162,6 +162,7 @@ order to keep the size of the \Rpackage{MinimumDistance} package
 small, these files contain data for only 1000 markers.
 
 <<filenames>>=
+library(oligoClasses)
 library(MinimumDistance)
 path <- system.file("extdata", package="MinimumDistance")
 fnames <- list.files(path, pattern=".txt")
@@ -453,13 +454,13 @@ provide a general sense of the set-up and workflow. First, we enable
 large data support and register a backend for parallelization.
 
 <<lds, eval=FALSE>>=
-library(ff)
+library2(ff)
+library2(snow)
+library2(doSNOW)
 ffdir <- "<PATH_FOR_FF_FILES>"
 ldPath(ff)
-library(snow)
-options(cluster=makeCluster(22, "SOCK"))
-library(doSNOW)
-registerDoSNOW(getCluster())
+cl <- makeCluster(22, "SOCK")
+registerDoSNOW(cl)
 @
 
 Next, we initialize a \Rclass{TrioSetList} object with the function

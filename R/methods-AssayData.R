@@ -55,6 +55,7 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 	}
 	pkgs <- if(useff) c("ff", "MinimumDistance") else "MinimumDistance"
 	outdir <- ldPath()
+	i <- NULL
 	bafAndLrrList <- foreach(i=index, .packages=pkgs) %dopar% {
 		MinimumDistance:::initializeLrrAndBafArrays(dims=c(length(i), nrow(pedigree), 3), outdir=outdir, col.names=sampleNames(pedigree))
 	}
@@ -99,6 +100,7 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 		## pass the ff object / array to each worker
 		## read in the files and assign the results to column z
 		## workers read in different sets of files and assign to the baflist and lrrlist ff objects
+		if(!getDoParWorkers()) registerDoSEQ()
 		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
 			MinimumDistance:::read.bsfiles2(path=path,
 							filenames=MinimumDistance:::originalNames(fathers[i]),

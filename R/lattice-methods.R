@@ -1,5 +1,6 @@
 xyplotTrioLrrBaf <- function(rd, object, frame=200e3, lrr.segments, md.segments, ...){
 	index <- seq_len(nrow(rd))
+	i <- NULL
 	df <- foreach(i=index, .combine="rbind") %do% {
 		dataFrameFromRange2(range=rd[i, ],
 				    object=object,
@@ -8,6 +9,7 @@ xyplotTrioLrrBaf <- function(rd, object, frame=200e3, lrr.segments, md.segments,
 	}
 	df$range <- factor(paste("range", df$range), ordered=TRUE, levels=unique(paste("range", df$range)))
 	index <- split(seq_len(nrow(df)), df$range)
+	i <- j <- NULL
 	figs <- foreach(i=index, j=seq_along(index)) %do% {
 		xyplot(y~x|memberId,
 		       data=df[i, ],

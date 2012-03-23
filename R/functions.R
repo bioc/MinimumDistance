@@ -1033,13 +1033,13 @@ callDenovoSegments <- function(path="",
 	if(missing(featureData)){
 		trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
 					   baf=integerMatrix(obj[, "baf",], 1000),
-					   pedigree=pedigreeData,
+					   pedigreeData=pedigreeData,
 					   chromosome=chromosome,
 					   cdfname=cdfname)
 	} else {
 		trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
 					   baf=integerMatrix(obj[, "baf",], 1000),
-					   pedigree=pedigreeData,
+					   pedigreeData=pedigreeData,
 					   featureData=featureData,
 					   chromosome=chromosome)
 	}
@@ -1079,14 +1079,17 @@ callDenovoSegments <- function(path="",
 	index <- split(seq_len(nrow(md.segs2)), chromosome(md.segs2))
 	index <- index[match(chromosome(trioSetList), names(index))]
 	stopifnot(identical(as.character(chromosome(trioSetList)), names(index)))
-	if(!parStatus()) registerDoSEQ()
+	##if(!getDoParRegistered()) registerDoSEQ()
+	outdir <- ldPath()
+	i <- object <- NULL
 	map.segs <- foreach(object=trioSetList,
 			    i=index,
 			    .inorder=FALSE,
 			    .combine=stackRangedDataList,
-			    .packages="MinimumDistance") %dopar% {
+			    .packages="MinimumDistance") %do% {
 				    computeBayesFactor(object=object,
-						       ranges=md.segs2[i, ])
+						       ranges=md.segs2[i, ],
+						       outdir=outdir)
 			    }
 	return(map.segs)
 }

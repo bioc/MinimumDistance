@@ -1,5 +1,7 @@
 test_cbsSplits <- function(){
 	require("human610quadv1bCrlmm")
+	library(oligoClasses)
+	library2(foreach)
 	path <- system.file("extdata", package="human610quadv1bCrlmm")
 	load(file.path(path, "snpProbes.rda"))
 	load(file.path(path, "cnProbes.rda"))

@@ -242,6 +242,7 @@
 	showClass("TrioSet")
 	## instantiate a TrioSet with an array of log R ratios (logRR) and B
 	## allele frequencies
+library(MinimumDistance)
 	TrioSet()
 
         data(trioSetListExample)

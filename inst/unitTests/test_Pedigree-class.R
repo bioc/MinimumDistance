@@ -11,8 +11,7 @@ make_test_Pedigree <- function(){
 }
 
 test_Pedigree_construction <- function(){
-	##checkException(Pedigree(), silent=TRUE)
-	##trace(Pedigree, browser)
+	library(oligoClasses)
 	checkTrue(validObject(Pedigree()))
 	path <- system.file("extdata", package="MinimumDistance")
 	load(file.path(path, "pedigreeInfo.rda"))

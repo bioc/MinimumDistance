@@ -39,6 +39,7 @@ Rob Scharpf
 
 }
 \examples{
+library(oligoClasses)
 isDenovo(c(333, 332, 311, 334, 344))
 data(map.segs)
 table(isDenovo(state(map.segs)))

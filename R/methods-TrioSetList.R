@@ -348,6 +348,7 @@ computeBayesFactorTrioSetList <- function(object,
 	##if(!identical(as.character(chromosome(object)), names(index))){
 	##	stop("The supplied ranges are split into a list by chromosome and that the names
 	##}
+	i <- NULL
 	map.segs <- foreach(object=object,
 			    i=index,
 			    .inorder=FALSE,

@@ -1,13 +1,20 @@
+##---------------------------------------------------------------------------
+## Import
+##---------------------------------------------------------------------------
+## methods
+importMethodsFrom(methods, initialize, show)
+importFrom(methods, "@<-", callNextMethod, new, validObject, coerce)
+
 ## generics
 importFrom(BiocGenerics, order)
 
 ## Biobase imports
-importClassesFrom(Biobase, eSet)
-importMethodsFrom(Biobase, annotatedDataFrameFrom, "[", "$", annotatedDataFrameFrom)
-importFrom(Biobase, assayDataElementReplace, sampleNames, varLabels, rowMedians, "sampleNames<-")
+importClassesFrom(Biobase, eSet, VersionedBiobase, Versioned)
+importMethodsFrom(Biobase, annotatedDataFrameFrom, "[", "$", annotation, "annotation<-", annotatedDataFrameFrom, assayData, "assayData<-", dims, featureData, "featureData<-", fData, "fData<-", featureNames, pData, phenoData, "phenoData<-", protocolData, "protocolData<-", sampleNames, "sampleNames<-", storageMode, updateObject)
+importFrom(Biobase, assayDataElement, assayDataElementNames, assayDataElementReplace, assayDataNew, rowMedians, varLabels)
 
 ## utils
-importFrom(utils, setTxtProgressBar, txtProgressBar)
+importFrom(utils, setTxtProgressBar, txtProgressBar, packageDescription)
 
 ## plotting
 importFrom(graphics, abline, axis, layout, legend, mtext, par, plot,
@@ -36,10 +43,12 @@ importFrom(IRanges, IRanges, RangedData, RangedDataList,
 	   matchMatrix, queryHits, subjectHits)
 
 ## oligoClasses
-importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM)
+importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, gSet)
 importMethodsFrom(oligoClasses, state, coverage2, chromosome, open, openff, closeff, mean,
-		  GenomeAnnotatedDataFrameFrom)
-importFrom(oligoClasses, baf, lrr, RangedDataCNV, RangedDataCBS, RangedDataHMM)
+		  GenomeAnnotatedDataFrameFrom, checkOrder, position, isSnp, baf, lrr, close)
+importFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, chromosomePositionOrder,
+	   initializeBigMatrix, initializeBigArray, isPackageLoaded, ldPath, parStatus,
+	   splitIndicesByLength, splitIndicesByNode, integerArray, integerMatrix, chromosome2integer)
 
 ## msm
 importFrom(msm, qtnorm, dtnorm)
@@ -58,6 +67,8 @@ importFrom(SNPchip, xypanel)
 ## ff
 import(ff)
 
+## foreach
+import(foreach)
 
 ## -----------------------------------------------------------------
 ## Export

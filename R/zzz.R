@@ -6,8 +6,8 @@ THISPKG <- "MinimumDistance"
 	packageStartupMessage(paste("Welcome to MinimumDistance version ", version))
 }
 
-.onUnload <- function(libpath){
-	library.dynam.unload(THISPKG, libpath)
-}
+##.onUnload <- function(libpath){
+##	library.dynam.unload(THISPKG, libpath)
+##}
 
 
