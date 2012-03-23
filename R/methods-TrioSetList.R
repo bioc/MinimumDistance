@@ -348,13 +348,13 @@ computeBayesFactorTrioSetList <- function(object,
 	##if(!identical(as.character(chromosome(object)), names(index))){
 	##	stop("The supplied ranges are split into a list by chromosome and that the names
 	##}
-	i <- NULL
-	map.segs <- foreach(object=object,
+	X <- i <- NULL
+	map.segs <- foreach(X=object,
 			    i=index,
 			    .inorder=FALSE,
 			    .combine=stackRangedDataList,
 			    .packages="MinimumDistance") %dopar% {
-				    computeBayesFactor(object=object,
+				    computeBayesFactor(object=X,
 						       ranges=ranges[i, ],
 						       pedigreeData=pedigree(object),
 						       outdir=outdir)

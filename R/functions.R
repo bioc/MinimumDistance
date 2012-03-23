@@ -1081,7 +1081,7 @@ callDenovoSegments <- function(path="",
 	stopifnot(identical(as.character(chromosome(trioSetList)), names(index)))
 	##if(!getDoParRegistered()) registerDoSEQ()
 	outdir <- ldPath()
-	i <- object <- NULL
+	object <- i <- NULL
 	map.segs <- foreach(object=trioSetList,
 			    i=index,
 			    .inorder=FALSE,
