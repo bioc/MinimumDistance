@@ -1,0 +1,122 @@
+##---------------------------------------------------------------------------
+## Import
+##---------------------------------------------------------------------------
+## methods
+importMethodsFrom(methods, initialize, show)
+importFrom(methods, "@<-", callNextMethod, new, validObject, coerce)
+
+## generics
+importFrom(BiocGenerics, order)
+
+## Biobase imports
+importClassesFrom(Biobase, eSet, VersionedBiobase, Versioned)
+importMethodsFrom(Biobase, annotatedDataFrameFrom, "[", "$", annotation, "annotation<-", annotatedDataFrameFrom, assayData, "assayData<-", dims, featureData, "featureData<-", fData, "fData<-", featureNames, pData, phenoData, "phenoData<-", protocolData, "protocolData<-", sampleNames, "sampleNames<-", storageMode, updateObject)
+importFrom(Biobase, assayDataElement, assayDataElementNames, assayDataElementReplace, assayDataNew, rowMedians, varLabels)
+
+## utils
+importFrom(utils, setTxtProgressBar, txtProgressBar, packageDescription)
+
+## plotting
+importFrom(graphics, abline, axis, layout, legend, mtext, par, plot,
+	   polygon, rect, segments, text)
+importFrom(lattice, xyplot, simpleKey, panel.grid, panel.xyplot, lrect, ltext,
+	   lsegments,
+	   lpoints, panel.number, current.panel.limits, panel.segments,
+	   panel.axis)
+
+##import(SNPchip) -- why do we need this?
+importFrom(stats, mad)
+
+## IRanges
+importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
+		  DataTable, Vector, Annotated,
+		  List, SimpleList, CompressedList,
+		  RangesList, SimpleRangesList,
+		  RangedDataList,
+		  DataFrame,
+		  DataTableORNULL)
+importMethodsFrom(IRanges, start, end, width,"[", "[[","[<-", "[[<-", "$",
+		  nrow, "start<-", "end<-", stack, as.matrix)
+importFrom(IRanges, IRanges, RangedData, RangedDataList,
+	   findOverlaps, countOverlaps,
+	   ranges, values,
+	   matchMatrix, queryHits, subjectHits)
+
+## oligoClasses
+importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, gSet)
+importMethodsFrom(oligoClasses, state, coverage2, chromosome, open, openff, closeff, mean,
+		  GenomeAnnotatedDataFrameFrom, checkOrder, position, isSnp, baf, lrr, close)
+importFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, chromosomePositionOrder,
+	   initializeBigMatrix, initializeBigArray, isPackageLoaded, ldPath, parStatus,
+	   splitIndicesByLength, splitIndicesByNode, integerArray, integerMatrix, chromosome2integer)
+
+## msm
+importFrom(msm, qtnorm, dtnorm)
+
+## DNAcopy
+importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
+
+## VanillaICE
+importMethodsFrom(VanillaICE, emission)
+importFrom(VanillaICE, read.bsfiles, copyNumberLimits, viterbi2Wrapper, rowMAD, rescale)
+
+## SNPchip
+importMethodsFrom(SNPchip, xyplot, xyplot2)
+importFrom(SNPchip, xypanel)
+
+## ff
+import(ff)
+
+## foreach
+import(foreach)
+
+## -----------------------------------------------------------------
+## Export
+## -----------------------------------------------------------------
+exportClasses(Pedigree, TrioSet, TrioSetList)
+exportMethods("[", allNames,
+	      annotatedDataFrameFrom,
+	      baf,
+	      "baf<-",
+	      calculateMindist,
+	      computeBayesFactor,
+	      dims,
+	      fatherNames,
+	      fatherPhenoData,
+	      motherPhenoData,
+	      phenoData,
+	      lrr, "lrr<-",
+	      mindist,
+	      "mindist<-",
+	      mad2,
+	      motherNames,
+	      ncol,
+	      nrow,
+	      offspringNames,
+	      offspringPhenoData,
+	      order,
+	      pedigree,
+	      ##sampleNames2,
+	      segment2,
+	      stack,
+	      trios,
+	      updateObject,
+	      width,
+	      xyplot,
+	      initialize)
+export(callDenovoSegments,
+       concAtTop,
+       TrioSet,
+       TrioSetList,
+       TrioSetListLD,
+       correspondingCall,
+       discAtTop,
+       isDenovo,
+       narrow,
+       Pedigree,
+       stackRangedDataList,
+       xyplot,
+       xypanelMD)
+
+
+
