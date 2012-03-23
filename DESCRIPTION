@@ -8,7 +8,7 @@ Maintainer: Moiz Bootwalla <mbootwa1@jhu.edu>, Robert B Scharpf <rscharpf@jhsph.
 Description: Analysis of de novo copy number variants in trios from high-dimensional genotyping platforms
 License: Artistic-2.0
 Depends: R (>= 2.14), IRanges (>= 1.13.30)
-Imports: methods, DNAcopy, utils, msm, lattice, BiocGenerics, VanillaICE (>= 1.17.21), ff, SNPchip (>= 2.0.3), Biobase, foreach, oligoClasses (>= 1.17.36)
+Imports: methods, DNAcopy, utils, msm, lattice, BiocGenerics, VanillaICE (>= 1.17.22), ff, SNPchip (>= 2.0.3), Biobase, foreach, oligoClasses (>= 1.17.38)
 Suggests: human610quadv1bCrlmm, RUnit
 Enhances: snow, doSNOW
 Collate: AllClasses.R
