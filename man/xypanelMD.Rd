@@ -96,6 +96,7 @@ R. Scharpf
   \code{\link{xyplot}}, \code{\link{xypanel}}, \code{\link{panel.xyplot}}
 }
 \examples{
+library(oligoClasses)
 data(trioSetListExample)
 trioSet <- stack(trioSetList)
 mindist(trioSet) <- calculateMindist(lrr(trioSet))

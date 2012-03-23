@@ -93,12 +93,10 @@ segmentList <- function(object, pos, chrom, id, featureNames, segmentParents=TRU
 	resList <- vector("list", length(object))
 	if(!is.matrix & missing(id)) stop("When elements of the list are arrays, a data.frame for 'id' must be provided")
 	if(isPackageLoaded("ff")){
-		fns <- id <- obj <- pos <- chromosome <- NULL
-		## TODO: The foreach call does not make sense here...
+		obj <- position <- chromosome <- fns <- NULL
 		res <- foreach(obj=object, position=pos, chromosome=chrom, fns=featureNames, .inorder=FALSE, .combine=stackRangedDataList, .packages=c("ff", "MinimumDistance")) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, ...)
 	}  else {
-		## TODO: The foreach call does not make sense here...
-		fns <- id <- obj <- pos <- chromosome <- NULL
+		obj <- position <- chromosome <- fns <- NULL
 		res <- foreach(obj=object, position=pos, chromosome=chrom, fns=featureNames, .inorder=FALSE, .combine=stackRangedDataList, .packages="MinimumDistance") %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, ...)
 	}
 	j <- match("sample", colnames(res))

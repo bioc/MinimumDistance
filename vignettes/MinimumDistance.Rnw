@@ -136,6 +136,37 @@ possible, we have adopted standard data structures for encapsulating
 the low-level data (\Robject{eSet} extensions) and the segmented data
 (\Robject{RangedData} extensions).
 
+\section{Large data applications and parallel processing}
+
+A separate vignette for using \Rpackage{MinimumDistance} with large
+datasets is forthcoming.  For now, we remark that the discussion
+regarding the infrastructure for large data support and
+parallelization in the \R{} package \Rpackage{oligoClasses} is
+similar.  In particular, to use a cluster we check for three
+requirements: 1) 'ff' is loaded; 2) 'snow' is loaded; and 3) the
+'cluster' option is set. For example, in the following unevaluated
+code chunk would enable large data support and parallelization with 22
+worker nodes. Finally, a check that the three requirements are
+satisfied is obtained with the function \Rfunction{parStatus} in the
+\Rpackage{oligoClasses} package.
+
+<<enableLD, eval=FALSE>>=
+library(snow)
+library(doSNOW)
+library(oligoClasses)
+cl <- makeCluster(22, type="SOCK")
+registerDoSNOW(cl)
+parStatus()
+@
+
+When parallelization is not enabled, one may want to 'register' the
+backend so that warning messages do not appear during processing.
+This is accomplished using the function \Rfunction{registerDoSEQ} in
+the \Rpackage{foreach} package.
+
+<<registerBackend>>=
+foreach::registerDoSEQ()
+@
 
 \section{Detection of de novo copy number}
 \label{smoothing}
@@ -233,17 +264,16 @@ with dimension \texttt{feature x trios x family member} such queries
 are straightforward.  As the number of trios in a typical genome-wide
 association study may exceed 1000, it may be impractical to store the
 low-level summaries in a single array. To make the size of the arrays
-more manageable and to facilitate parallelization (not yet
-implemented), we organize the low-level summaries by chromosome using
-the \Rclass{TrioSetList} class. The \Rclass{TrioSetList} class has a
-slot for storing an object of class \Robject{Pedigree} (discussed
-previously), as well as slots for storing sample-level covariates on
-the offspring (\Robject{phenoData}), mother
-(\Robject{motherPhenoData}), and the father
-(\Robject{fatherPhenoData}).  Often technical, experimental, and
-phenotypic covariates for the samples in an experiment are stored in a
-single tab-delimited file in which columns are covariates and rows are
-samples.  Such a spreadsheed can be read into \R{} as a
+more manageable and to facilitate parallelization, we organize the
+low-level summaries by chromosome using the \Rclass{TrioSetList}
+class. The \Rclass{TrioSetList} class has a slot for storing an object
+of class \Robject{Pedigree} (discussed previously), as well as slots
+for storing sample-level covariates on the offspring
+(\Robject{phenoData}), mother (\Robject{motherPhenoData}), and the
+father (\Robject{fatherPhenoData}).  Often technical, experimental,
+and phenotypic covariates for the samples in an experiment are stored
+in a single tab-delimited file in which columns are covariates and
+rows are samples.  Such a spreadsheed can be read into \R{} as a
 \Robject{data.frame}. Supplying such a \Robject{data.frame} to the
 argument \Robject{sample.sheet} in the \Rfunction{TrioSetList}
 constructor function will build \Robject{AnnotatedDataFrame} objects

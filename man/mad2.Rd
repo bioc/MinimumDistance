@@ -37,7 +37,7 @@ mad2(object, byrow=FALSE, ...)
 
 \examples{
 	data(trioSetListExample)
-	registerDoSEQ()
+	foreach::registerDoSEQ()
 	## computing the MAD of the log R ratios for each individual (across markers)
 	mads.sample <- mad2(trioSetList, byrow=FALSE)
 	## compute the MAD of the log R ratio for each marker (across individuals)
