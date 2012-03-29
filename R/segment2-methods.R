@@ -264,7 +264,8 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
 	for(i in seq_along(index.list)){
 		##if (verbose) setTxtProgressBar(pb, i)
 		j <- index.list[[i]]
-		CNA.object <- CNA(genomdat=object[j, , drop=FALSE]/100,
+		r <- object[j, , drop=FALSE]/100
+		CNA.object <- CNA(genomdat=r,
 				  chrom=chrom[j],
 				  maploc=pos[j],
 				  data.type="logratio",

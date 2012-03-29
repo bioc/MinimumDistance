@@ -1109,7 +1109,7 @@ originalNames <- function(names){
 }
 
 read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
-			  lrrlist, baflist){
+			  lrrlist, baflist, featureNames){
 	i <- seq_along(sampleNames)
 	## this is simply to avoid having a large 'dat' object below.
 	if(isPackageLoaded("ff")){
@@ -1119,6 +1119,7 @@ read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
 			j <- ilist[[k]]
 			sns <- sampleNames[j]
 			dat <- read.bsfiles(path=path, filenames=filenames[j])
+			dat <- dat[match(featureNames, rownames(dat)), , , drop=FALSE]
 			l <- match(sns, colnames(baflist[[1]]))
 			for(m in seq_along(marker.index)){
 				M <- marker.index[[m]]
