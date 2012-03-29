@@ -73,6 +73,7 @@ madList <- function(object, byrow, pedigree, ...){
 					mads
 				}
 				indexList <- splitIndicesByLength(seq_len(ncol(object[[1]])), 50)
+				i <- NULL
 				mads.father <- foreach(i=indexList, .combine="c") %do% madForFFmatrix(xlist=object, i=i, j=1)
 				mads.mother <- foreach(i=indexList, .combine="c") %do% madForFFmatrix(xlist=object, i=i, j=2)
 				mads.offspr <- foreach(i=indexList, .combine="c") %do% madForFFmatrix(xlist=object, i=i, j=3)
