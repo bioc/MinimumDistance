@@ -357,7 +357,8 @@ computeBayesFactorTrioSetList <- function(object,
 				    computeBayesFactor(object=X,
 						       ranges=ranges[i, ],
 						       pedigreeData=pedigree(object),
-						       outdir=outdir)
+						       outdir=outdir,
+						       ...)
 			    }
 	map.segs$state <- trioStateNames()[map.segs$argmax]
 	return(map.segs)

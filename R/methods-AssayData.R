@@ -100,7 +100,9 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 		## pass the ff object / array to each worker
 		## read in the files and assign the results to column z
 		## workers read in different sets of files and assign to the baflist and lrrlist ff objects
+		## read one file.
 		if(!getDoParWorkers()) registerDoSEQ()
+		fns <- featureNames(featureData)
 		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
 			MinimumDistance:::read.bsfiles2(path=path,
 							filenames=MinimumDistance:::originalNames(fathers[i]),
@@ -108,7 +110,8 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 							marker.index=index,
 							z=1,
 							baflist=baflist,
-							lrrlist=lrrlist)
+							lrrlist=lrrlist,
+							featureNames=fns)
 		}
 		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
 			MinimumDistance:::read.bsfiles2(path=path,
@@ -117,7 +120,8 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 							marker.index=index,
 							z=2,
 							baflist=baflist,
-							lrrlist=lrrlist)
+							lrrlist=lrrlist,
+							featureNames=fns)
 		}
 		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
 			MinimumDistance:::read.bsfiles2(path=path,
@@ -126,7 +130,8 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 							marker.index=index,
 							z=3,
 							baflist=baflist,
-							lrrlist=lrrlist)
+							lrrlist=lrrlist,
+							featureNames=fns)
 		}
 		message("Finished reading/writing processed data.")
 		gc()
@@ -134,6 +139,18 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 		F <- read.bsfiles2(path=path, filenames=originalNames(fathers), sampleNames=sampleNames(pedigree))
 		M <- read.bsfiles2(path=path, filenames=originalNames(mothers), sampleNames=sampleNames(pedigree))
 		O <- read.bsfiles2(path=path, filenames=offsprg, sampleNames=sampleNames(pedigree))
+		## the featureData is ordered by chromosome and physical position
+##		.i <- rownames(F) %in% featureNames(featureData)
+##		F <- F[.i,,,drop=FALSE]
+##		M <- M[.i,,,drop=FALSE]
+##		O <- O[.i,,,drop=FALSE]
+		mindex <- match(featureNames(featureData), rownames(F))
+		F <- F[mindex, , , drop=FALSE]
+		M <- M[mindex, , , drop=FALSE]
+		O <- O[mindex, , , drop=FALSE]
+		##featureData <- featureData[mindex, ]
+		##if(!identical(featureNames(featureData), rownames(F))) stop("feature names in featureData do not match rownames in assay data array")
+		##index <- split(seq_len(nrow(featureData)), chromosome(featureData))
 		for(j in seq_along(index)){
 			k <- index[[j]]
 			baflist[[j]][, , 1] <- integerMatrix(F[k, 2, ], scale=1000)

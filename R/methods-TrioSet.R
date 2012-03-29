@@ -335,7 +335,9 @@ setMethod("checkOrder", signature(object="TrioSet"),
 computeBayesFactorTrioSet <- function(object,
 				      ranges,
 				      returnEmission=FALSE,
-				      collapseRanges=TRUE, outdir=ldPath(), ...){
+				      collapseRanges=TRUE,
+				      outdir=ldPath(),
+				      prOutlierBAF=1e-5,...){
 	## a TrioSet has only one chromosome
 	ldPath(outdir)
  	CHR <- unique(chromosome(object))
@@ -357,7 +359,8 @@ computeBayesFactorTrioSet <- function(object,
 		rd <- joint4(id=this.id,
 			     trioSet=object[, k],
 			     ranges=ranges[j, ],
-			     ntrios=ntrios)
+			     ntrios=ntrios,
+			     prOutlierBAF=prOutlierBAF)
 ##			     ...)
 		if(returnEmission) return(rd)
 		ranges$lik.state[j] <- rd$lik.state
@@ -378,7 +381,7 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 		  computeBayesFactorTrioSet(object=object,
 					    ranges=ranges,
 					    returnEmission=returnEmission,
-					    collapseRanges=collapseRanges, outdir=outdir,  ...)
+					    collapseRanges=collapseRanges, outdir=outdir,...)
 	  })
 
 setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
