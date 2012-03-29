@@ -6,16 +6,17 @@ catFun2 <- function(rd.query, rd.subject, ...){
 	ir.s <- IRanges(start(rd.subject), end(rd.subject))
 	mm <- findOverlaps(ir.q, ir.s, ...)
 	query.index <- queryHits(mm)
+	if(length(query.index) == 0){
+		return(0)
+	}
 	subject.index <- subjectHits(mm)
 	index <- which(chromosome(rd.query)[query.index] == chromosome(rd.subject)[subject.index] &
-			sampleNames(rd.query)[query.index] == sampleNames(rd.subject)[subject.index])
+		       sampleNames(rd.query)[query.index] == sampleNames(rd.subject)[subject.index])
 	if(length(index) > 0){
 		query.index <- unique(query.index[index])
 		p <- length(query.index)/nrow(rd.query)
 		if(p > 1) browser()
-	} else {
-		p <- 0
-	}
+	} else p <- 0
 	return(p)
 }
 
@@ -696,7 +697,7 @@ joint4 <- function(id,
 		   a=0.0009,
 		   prob.nonMendelian=1.5e-6,
 		   returnEmission=FALSE,
-		   ntrios){## all the ranges from one subject , one chromosome
+		   ntrios, ...){## all the ranges from one subject , one chromosome
 	if(missing(id)) id <- sampleNames(trioSet)[1]
 	ranges <- ranges[sampleNames(ranges) == id, ]
 	is.snp <- isSnp(trioSet)
@@ -708,18 +709,20 @@ joint4 <- function(id,
 	r <- lrr(trioSet)[, 1, ]/100
 	b <- baf(trioSet)[, 1, ]/1000
 	colnames(r) <- colnames(b) <- allNames(trioSet)
-	viterbiObj <- viterbi2Wrapper(r=r,
-                                      b=b,
-                                      pos=position(trioSet),
-                                      is.snp=isSnp(trioSet),
-                                      cnStates=cnStates,
-                                      chrom=chromosome(trioSet)[1],
-                                      is.log=TRUE,
-                                      limits=limits,
-                                      returnViterbiObject=TRUE,
-                                      p.hom=0)
+	viterbiObj <- VanillaICE::viterbi2Wrapper(r=r,
+						  b=b,
+						  pos=position(trioSet),
+						  is.snp=isSnp(trioSet),
+						  cnStates=cnStates,
+						  chrom=chromosome(trioSet)[1],
+						  is.log=TRUE,
+						  limits=limits,
+						  returnViterbiObject=TRUE,
+						  p.hom=0, ...)
 	lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
 	for(i in 1:3) lemit[, i, ] <- log(emission(viterbiObj[[i]]))
+	##.index=subjectHits(findOverlaps(segs1[2,], featureData(trioSetff)))
+	##apply(lemit[.index, 3, ], 2, sum)
 	trio.states <- trioStates(0:4)
 	tmp <- rep(NA, nrow(trio.states))
 	state.prev <- NULL
@@ -743,7 +746,8 @@ joint4 <- function(id,
 ##		if(length(index) < 2){
 ##			next()
 ##		}
-		LL <- lemit[index, , ]
+		queryIndex <- queryHits(mm)[index]
+		LL <- lemit[queryIndex, , ]
 		LLT <- matrix(NA, 3, 6)
 		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
 		rownames(LLT) <- c("F", "M", "O")
@@ -1105,7 +1109,7 @@ originalNames <- function(names){
 }
 
 read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
-			  lrrlist, baflist){
+			  lrrlist, baflist, featureNames){
 	i <- seq_along(sampleNames)
 	## this is simply to avoid having a large 'dat' object below.
 	if(isPackageLoaded("ff")){
@@ -1115,6 +1119,7 @@ read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
 			j <- ilist[[k]]
 			sns <- sampleNames[j]
 			dat <- read.bsfiles(path=path, filenames=filenames[j])
+			dat <- dat[match(featureNames, rownames(dat)), , , drop=FALSE]
 			l <- match(sns, colnames(baflist[[1]]))
 			for(m in seq_along(marker.index)){
 				M <- marker.index[[m]]
