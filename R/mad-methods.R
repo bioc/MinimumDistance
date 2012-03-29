@@ -33,9 +33,7 @@ madList <- function(object, byrow, pedigree, ...){
 	if(length(dims) != 2 && length(dims) != 3)
 		stop("Elements of list must be a matrix or an array")
 	isff <- is(object[[1]], "ff")
-	if(isff){
-		lapply(object, open)
-	}
+	if(isff) lapply(object, open)
 	is.matrix <- ifelse(length(dims) == 2, TRUE, FALSE)
 	if(!byrow){ ## by column
 		if(is.matrix){
