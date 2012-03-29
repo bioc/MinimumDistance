@@ -42,22 +42,51 @@ madList <- function(object, byrow, pedigree, ...){
 			## for parallelization, it would be better to
 			## pass the ff object to the worker nodes,
 			## calculate the mad, and return the mad.
-			F <- lapply(object, function(x) as.matrix(x[, , 1]))
-			M <- lapply(object, function(x) as.matrix(x[, , 2]))
-			O <- lapply(object, function(x) as.matrix(x[, , 3]))
-			mads.father <- madFromMatrixList(F, byrow=FALSE)
-			mads.mother <- madFromMatrixList(M, byrow=FALSE)
-			mads.offspr <- madFromMatrixList(O, byrow=FALSE)
-			if(!missing(pedigree)){
-				names(mads.father) <- fatherNames(pedigree)
-				names(mads.mother) <- motherNames(pedigree)
-				names(mads.offspr) <- offspringNames(pedigree)
-				mads <- data.frame(F=I(mads.father),
-						   M=I(mads.mother),
-						   O=I(mads.offspr))
-			} else {
-				mads <- cbind(mads.father, mads.mother, mads.offspr)
-				colnames(mads) <- c("F", "M", "O")
+			if(!isff){
+				F <- lapply(object, function(x) as.matrix(x[, , 1]))
+				M <- lapply(object, function(x) as.matrix(x[, , 2]))
+				O <- lapply(object, function(x) as.matrix(x[, , 3]))
+				mads.father <- madFromMatrixList(F, byrow=FALSE)
+				mads.mother <- madFromMatrixList(M, byrow=FALSE)
+				mads.offspr <- madFromMatrixList(O, byrow=FALSE)
+				if(!missing(pedigree)){
+					names(mads.father) <- fatherNames(pedigree)
+					names(mads.mother) <- motherNames(pedigree)
+					names(mads.offspr) <- offspringNames(pedigree)
+					mads <- data.frame(F=I(mads.father),
+							   M=I(mads.mother),
+							   O=I(mads.offspr))
+				} else {
+					mads <- cbind(mads.father, mads.mother, mads.offspr)
+					colnames(mads) <- c("F", "M", "O")
+				}
+			} else { ## big data
+				madForFFmatrix <- function(xlist, i, j){
+					## j=1 father
+					## j=2 mother
+					## j=3 offspring
+					res <- lapply(xlist, function(x, i, j){
+						m <- as.matrix(x[, i, j])
+					}, i=i, j=j)
+					res <- do.call("rbind", res)/100
+					mads <- apply(res, 2, mad, na.rm=TRUE)
+					mads
+				}
+				indexList <- splitIndicesByLength(seq_len(ncol(object[[1]])), 50)
+				mads.father <- foreach(i=indexList, .combine="c") %do% madForFFmatrix(xlist=object, i=i, j=1)
+				mads.mother <- foreach(i=indexList, .combine="c") %do% madForFFmatrix(xlist=object, i=i, j=2)
+				mads.offspr <- foreach(i=indexList, .combine="c") %do% madForFFmatrix(xlist=object, i=i, j=3)
+				if(!missing(pedigree)){
+					names(mads.father) <- fatherNames(pedigree)
+					names(mads.mother) <- motherNames(pedigree)
+					names(mads.offspr) <- offspringNames(pedigree)
+					mads <- data.frame(F=I(mads.father),
+							   M=I(mads.mother),
+							   O=I(mads.offspr))
+				} else {
+					mads <- cbind(mads.father, mads.mother, mads.offspr)
+					colnames(mads) <- c("F", "M", "O")
+				}
 			}
 		}
 	} else {## by row
