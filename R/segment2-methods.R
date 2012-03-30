@@ -34,10 +34,11 @@ setMethod("segment2", signature(object="arrayORff_array"),
 
 
 segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ...){
+	pkgs <- c("DNAcopy", neededPkgs())
 	if(is.null(md)){
 		trioset <- NULL
 		segs <- foreach(trioset=object,
-				.packages="MinimumDistance", .inorder=FALSE) %dopar% {
+				.packages=pkgs, .inorder=FALSE) %dopar% {
 					segment2(object=trioset,
 						 segmentParents=segmentParents,
 						 verbose=verbose)
@@ -48,7 +49,7 @@ segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ..
 		trioset <- mdElement <- NULL
 		segs <- foreach(trioset=object,
 				mdElement=md,
-				.packages="MinimumDistance",
+				.packages=pkgs,
 				.inorder=FALSE) %dopar% {
 					segment2(object=trioset,
 						 md=mdElement,
@@ -92,12 +93,19 @@ segmentList <- function(object, pos, chrom, id, featureNames, segmentParents=TRU
 	is.matrix <- ifelse(length(dims) == 2, TRUE, FALSE)
 	resList <- vector("list", length(object))
 	if(!is.matrix & missing(id)) stop("When elements of the list are arrays, a data.frame for 'id' must be provided")
+	pkgs <- unique(c("DNAcopy", neededPkgs()))
 	if(isPackageLoaded("ff")){
+		pkgs <- c("ff", pkgs)
 		obj <- position <- chromosome <- fns <- NULL
-		res <- foreach(obj=object, position=pos, chromosome=chrom, fns=featureNames, .inorder=FALSE, .combine=stackRangedDataList, .packages=c("ff", "MinimumDistance")) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, ...)
+		res <- foreach(obj=object,
+			       position=pos,
+			       chromosome=chrom,
+			       fns=featureNames, .inorder=FALSE,
+			       .combine=stackRangedDataList,
+			       .packages=pkgs) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, ...)
 	}  else {
 		obj <- position <- chromosome <- fns <- NULL
-		res <- foreach(obj=object, position=pos, chromosome=chrom, fns=featureNames, .inorder=FALSE, .combine=stackRangedDataList, .packages="MinimumDistance") %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, ...)
+		res <- foreach(obj=object, position=pos, chromosome=chrom, fns=featureNames, .inorder=FALSE, .combine=stackRangedDataList, .packages=pkgs) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, ...)
 	}
 	j <- match("sample", colnames(res))
 	if(!is.na(j)) res <- res[, -j]

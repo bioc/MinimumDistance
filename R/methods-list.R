@@ -1,9 +1,11 @@
 setMethod("calculateMindist", signature(object="list"),
 	  function(object, outdir=ldPath(), ...){
+		  pkgs <- neededPkgs()
 		  if(!isPackageLoaded("ff")){
-			  foreach(elt=object, .packages="MinimumDistance") %dopar% calculateMindist(elt, outdir=outdir)
+			  foreach(elt=object, .packages=pkgs) %dopar% calculateMindist(elt, outdir=outdir)
 		  } else {
-			  foreach(elt=object, .packages=c("ff", "MinimumDistance")) %dopar% calculateMindist(elt, outdir=outdir)
+			  pkgs <- c("ff", pkgs)
+			  foreach(elt=object, .packages=pkgs) %dopar% calculateMindist(elt, outdir=outdir)
 		  }
 	  })
 

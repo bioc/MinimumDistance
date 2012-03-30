@@ -53,7 +53,7 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 	} else {
 		message("ff package not loaded -- initializing arrays for BAFs and LRRs ...")
 	}
-	pkgs <- if(useff) c("ff", "MinimumDistance") else "MinimumDistance"
+	pkgs <- if(useff) c("ff", neededPkgs()) else neededPkgs()
 	outdir <- ldPath()
 	i <- NULL
 	bafAndLrrList <- foreach(i=index, .packages=pkgs) %dopar% {
