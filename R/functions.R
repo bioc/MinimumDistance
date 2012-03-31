@@ -1252,3 +1252,6 @@ trioSetListExample <- function(){
 	trioSetList@assayDataList <- ad2
 	return(trioSetList)
 }
+
+neededPkgs <- function() c("oligoClasses", "Biobase", "MinimumDistance")
+
