@@ -193,7 +193,8 @@ TrioSetList <- function(chromosome=integer(),
 TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names,
 			  pedigreeData,
 			  featureData,
-			  annotationPkg, outdir=ldPath()){
+			  annotationPkg, outdir=ldPath(),
+			  ffprefix=""){
 	if(!is(pedigreeData, "Pedigree")) stop()
 	if(missing(featureData)){
 		fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg)
@@ -205,7 +206,8 @@ TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names,
 	ad <- assayDataListLD(path=path,
 			      pedigree=pedigreeData,
 			      ext=ext,
-			      featureData=fD)
+			      featureData=fD,
+			      ffprefix=ffprefix)
 	if(!missing(samplesheet)){
 		if(missing(row.names)) stop("if samplesheet is provided, row.names can not be missing.")
 		index <- row.names %in% allNames(pedigreeData)

@@ -1234,10 +1234,12 @@ stackRangedDataList <- function(...) {
 ##	return(dat)
 ##}
 
-initializeLrrAndBafArrays <- function(dims, col.names, outdir){
+initializeLrrAndBafArrays <- function(dims, col.names, outdir, name=""){
 	ldPath(outdir)
-	bafs <- initializeBigArray("baf", dim=dims, vmode="integer")
-	lrrs <- initializeBigArray("lrr", dim=dims, vmode="integer")
+	bafname <- paste(name, "baf', sep="_")
+	lrrname <- paste(name, "lrr', sep="_")
+	bafs <- initializeBigArray(bafname, dim=dims, vmode="integer")
+	lrrs <- initializeBigArray(lrrname, dim=dims, vmode="integer")
 	colnames(bafs) <- colnames(lrrs) <- col.names
 	res <- list(baf=bafs, lrr=lrrs)
 	return(res)
