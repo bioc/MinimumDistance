@@ -1236,8 +1236,13 @@ stackRangedDataList <- function(...) {
 
 initializeLrrAndBafArrays <- function(dims, col.names, outdir, name=""){
 	ldPath(outdir)
-	bafname <- paste(name, "baf', sep="_")
-	lrrname <- paste(name, "lrr', sep="_")
+	if(name != ""){
+		bafname <- paste(name, "baf", sep="_")
+		lrrname <- paste(name, "lrr", sep="_")
+	} else {
+		bafname <- "baf"
+		lrrname <- "lrr"
+	}
 	bafs <- initializeBigArray(bafname, dim=dims, vmode="integer")
 	lrrs <- initializeBigArray(lrrname, dim=dims, vmode="integer")
 	colnames(bafs) <- colnames(lrrs) <- col.names
