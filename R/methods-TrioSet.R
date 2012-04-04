@@ -541,6 +541,20 @@ setMethod("trioplot", signature(formula="formula", object="TrioSet", range="Rang
 ##	  function(object) object@phenoData2)
 setMethod("allNames", signature(object="TrioSet"), function(object) allNames(pedigree(object)))
 
+setAs("TrioSet", "TrioSetList",
+      function(from, to){
+	      b <- cbind(baf(from)[, , 1], baf(from)[, , 2], baf(from)[,,3])
+	      colnames(b) <- c(fatherNames(from),
+			       motherNames(from),
+			       sampleNames(from))
+	      r <- cbind(lrr(from)[, , 1], lrr(from)[, , 2], lrr(from)[,,3])
+	      colnames(r) <- colnames(b)
+	      TrioSetList(lrr=r,
+			  baf=b,
+			  pedigreeData=pedigree(from),
+			  featureData=featureData(from))
+      })
+
 setAs("TrioSet", "data.frame",
       function(from, to){
 	      ##cn <- copyNumber(from)
@@ -599,6 +613,7 @@ trioSet2data.frame <- function(from){
 	stopifnot(ncol(from) == 1)
 	cn <- lrr(from)[, 1, ]/100
 	md <- as.numeric(mindist(from))/100
+	if(length(md)==0) stop("mindist slot of class TrioSet is empty")
 ##	ids <- c(allNames(from), sampleNames(from))
 ##	ids <- as.character(matrix(ids, nrow(cn), 4, byrow=TRUE))
 	sns <- matrix(c("father", "mother", "offspring", "min dist"), nrow(cn), 4, byrow=TRUE)
