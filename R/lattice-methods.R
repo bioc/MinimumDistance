@@ -57,7 +57,8 @@ xypanelTrioBaf <- function(x, y,
 			   cex.pch=0.3,
 			   ped,
 			   ..., subscripts){
-	panel.grid(v=0, h=4, "grey", lty=2)
+	##panel.grid(v=0, h=4, "grey", lty=2)
+	panel.abline(h=c(-1, 0, log2(3/2), log2(4/2)), col="grey", lty=2)
 	panel.xyplot(x[1], y[1], col="white", cex=cex.pch, ...) ## set it up, but don't plot
 	is.snp <- is.snp[subscripts]
 	ylim <- current.panel.limits()$ylim
