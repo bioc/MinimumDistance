@@ -401,6 +401,13 @@ setReplaceMethod("assayData", signature=signature(object="TrioSetList",
 			 object
                  })
 
+setReplaceMethod("phenoData", signature=signature(object="TrioSetList",
+			      value="AnnotatedDataFrame"),
+                 function(object, value) {
+			 object@phenoData <- value
+			 object
+                 })
+
 setMethod("[", signature(x="TrioSetList"),
 	  function(x, i, j, ..., drop=FALSE){
 		  ## using 'i' to subset markers does not really make
