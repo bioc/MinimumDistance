@@ -351,6 +351,10 @@ computeBayesFactorTrioSetList <- function(object,
 					  collapseRanges=TRUE,
 					  outdir=ldPath(),
 					  ...){
+	sns.ranges <- unique(sampleNames(ranges))
+	if(!all(sampleNames(object) %in% sns.ranges)){
+		ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
+	}
 	index <- split(seq_len(nrow(ranges)), chromosome(ranges))
 	index <- index[names(index) %in% chromosome(object)]
 	object <- object[chromosome(object) %in% names(index)]
