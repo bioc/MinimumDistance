@@ -718,7 +718,7 @@ joint4 <- function(id,
 						  is.log=TRUE,
 						  limits=limits,
 						  returnViterbiObject=TRUE,
-						  p.hom=0, ...)
+						  ...)
 	lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
 	for(i in 1:3) lemit[, i, ] <- log(emission(viterbiObj[[i]]))
 	##.index=subjectHits(findOverlaps(segs1[2,], featureData(trioSetff)))
@@ -751,7 +751,7 @@ joint4 <- function(id,
 		LLT <- matrix(NA, 3, 6)
 		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
 		rownames(LLT) <- c("F", "M", "O")
-		colnames(LLT) <- paste("CN_", 1:6, sep="")
+		colnames(LLT) <- paste("CN_", c(0, 1, 2, 2, 3, 4), sep="")
 		for(j in seq_len(nrow(trio.states))){
 			tmp[j] <- joint1(LLT=LLT,
 					 trio.states=trio.states,
