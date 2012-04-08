@@ -742,10 +742,6 @@ joint4 <- function(id,
 	range.index <- subjectHits(mm)[subjectHits(mm) %in% I]
 	for(i in I){
 		index <- which(range.index==i)
-##		if(nrow(obj) < 2){
-##		if(length(index) < 2){
-##			next()
-##		}
 		queryIndex <- queryHits(mm)[index]
 		LL <- lemit[queryIndex, , ]
 		LLT <- matrix(NA, 3, 6)
@@ -954,7 +950,9 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 	##
 	##
 	##---------------------------------------------------------------------------
-	abs.thr <- abs(md.range$seg.mean) > thr
+	##abs.thr <- abs(md.range$seg.mean)/md.range$mindist.mad > thr
+	mads <- pmax(md.range$mindist.mad, .1)
+	abs.thr <- abs(md.range$seg.mean)/mads > thr
 	## I1 is an indicator for whether to use the cbs start
 	I1 <- start(cbs.segs)[shits] >= start(md.range)[qhits] & start(cbs.segs)[shits] <= end(md.range)[qhits] & abs.thr[qhits]
 	I2 <- end(cbs.segs)[shits] <= end(md.range)[qhits] & end(cbs.segs)[shits] >= start(md.range)[qhits] & abs.thr[qhits]
@@ -978,7 +976,7 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 	}
 	##split(I1, qhits)
 	##split(I2, qhits)
-	stopifnot(sapply(split(st, qhits), function(x) all(diff(x) >= 0)))
+	##stopifnot(sapply(split(st, qhits), function(x) all(diff(x) >= 0)))
 	nm <- apply(cbind(st.index, en.index), 1, function(x) length(x[1]:x[2]))
 	## keep segment means the same as the minimum distance
 	tmp <- RangedData(IRanges(st, en),
@@ -994,11 +992,11 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 	##ns <- sapply(ranges.below.thr, sum)
 	uid <- paste(tmp$id, start(tmp), tmp$chrom, sep="")
 	##duplicated(uid)
-	stopifnot(!all(duplicated(uid)))
+	##stopifnot(!all(duplicated(uid)))
 	tmp <- tmp[!duplicated(uid), ]
 	## for each subject, the following must be true
 	index <- which(tmp$id[-nrow(tmp)] == tmp$id[-1])
-	stopifnot(all(end(tmp)[index] < start(tmp)[index+1]))
+	##stopifnot(all(end(tmp)[index] < start(tmp)[index+1]))
 	res <- tmp[order(tmp$id, start(tmp)), ]
 	return(res)
 }
