@@ -336,16 +336,17 @@ computeBayesFactorTrioSet <- function(object,
 				      ranges,
 				      returnEmission=FALSE,
 				      collapseRanges=TRUE,
-				      outdir=ldPath(),
-				      prOutlierBAF=1e-5,...){
+				      outdir=ldPath(), ...){
 	## a TrioSet has only one chromosome
 	ldPath(outdir)
  	CHR <- unique(chromosome(object))
 	ranges <- ranges[chromosome(ranges) == CHR, ]
+	ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
 	id <- unique(sampleNames(ranges))
 	ranges$lik.state <- NA
 	ranges$argmax <- NA
 	ranges$lik.norm <- NA
+	ranges$state <- NA
 	message("\t\tComputing Bayes factors for ", length(id), " files.")
 	pb <- txtProgressBar(min=0, max=length(id), style=3)
 	ntrios <- nrow(pedigree(object))
@@ -359,13 +360,13 @@ computeBayesFactorTrioSet <- function(object,
 		rd <- joint4(id=this.id,
 			     trioSet=object[, k],
 			     ranges=ranges[j, ],
-			     ntrios=ntrios,
-			     prOutlierBAF=prOutlierBAF)
+			     ntrios=ntrios,  ...)
 ##			     ...)
 		if(returnEmission) return(rd)
 		ranges$lik.state[j] <- rd$lik.state
 		ranges$argmax[j] <- rd$argmax
 		ranges$lik.norm[j] <- rd$lik.norm
+		ranges$state[j] <- trioStateNames()[rd$argmax]
 	}
 	close(pb)
 	if(collapseRanges)
@@ -381,7 +382,8 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 		  computeBayesFactorTrioSet(object=object,
 					    ranges=ranges,
 					    returnEmission=returnEmission,
-					    collapseRanges=collapseRanges, outdir=outdir,...)
+					    collapseRanges=collapseRanges,
+					    outdir=outdir,...)
 	  })
 
 setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
@@ -640,7 +642,7 @@ trioSet2data.frame <- function(from){
 }
 
 dataFrameFromRange2 <- function(object, range, range.index, frame=0){
-	rm <- findOverlaps(range, featureData(object), maxgap=frame) ## RangesMatching
+	rm <- IRanges::findOverlaps(range, featureData(object), maxgap=frame) ## RangesMatching
 	mm <- as.matrix(rm)
 	mm.df <- data.frame(mm)
 	mm.df$featureNames <- featureNames(object)[mm.df$subject]
@@ -654,6 +656,21 @@ dataFrameFromRange2 <- function(object, range, range.index, frame=0){
 	## coersion to data.frame
 	##
 	df <- trioSet2data.frame(obj)
+	chr <- unique(chromosome(object))
+	oindex <- which(df$memberId=="offspring")
+	findex <- which(df$memberId=="father")
+	mindex <- which(df$memberId=="mother")
+	memberid <- as.character(df$memberId)
+	nchr <- min(8, nchar(sampleNames(object)[1]))
+	oid <- substr(sampleNames(object)[1], 1, nchr)
+	fid <- substr(fatherNames(object)[1], 1, nchr)
+	mid <- substr(motherNames(object)[1], 1, nchr)
+	memberid[oindex] <- paste(oid, "(offspring)")
+	memberid[findex] <- paste(fid, "(father)")
+	memberid[mindex] <- paste(fid, "(mother)")
+	memberid <- paste("chr", chr, ": ", memberid, sep="")
+	memberid <- factor(memberid, levels=rev(unique(memberid)))
+	df$memberId <- I(memberid)
 	##df$range <- rep(i, nrow(df))##mm.df$query
 	##dfList[[i]] <- df
 	df$range <- range.index

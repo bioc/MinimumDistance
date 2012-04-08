@@ -299,10 +299,11 @@ setMethod("annotation", signature(object="TrioSetList"), function(object){
 })
 
 setMethod("dims", signature(object="TrioSetList"), function(object){
+	nr <- nrow(object)
 	nchr <- length(chromosome(object))
 	ntrios <- ncol(baf(object)[[1]])
-	dm <- c(nchr, ntrios)
-	names(dm) <- c("chromosomes", "trios")
+	dm <- c(nchr, ntrios, nr)
+	names(dm) <- c("chromosomes", "trios", "features")
 	return(dm)
 })
 
@@ -605,6 +606,10 @@ setMethod("$", signature(x="TrioSetList"),
 	  function(x, name){
 		  eval(substitute(phenoData(x)$NAME_ARG, list(NAME_ARG=name)))
 	  })
+
+
+
+setMethod("nrow", signature(x="TrioSetList"), function(x) sum(sapply(lrr(x), nrow)))
 
 
 
