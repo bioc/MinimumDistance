@@ -11,6 +11,8 @@
 \alias{baf<-,TrioSet,ff_array-method}
 \alias{baf<-}
 \alias{calculateMindist,TrioSet-method}
+\alias{coerce,TrioSet,TrioSetList-method}
+\alias{coerce,TrioSet,data.frame-method}
 \alias{computeBayesFactor,TrioSet-method}
 \alias{dim,TrioSet-method}
 \alias{fatherNames<-,TrioSet,character-method}
@@ -185,6 +187,25 @@
 }
 
 }
+}
+
+\section{Methods for coercing TrioSet objects to another class}{
+  \describe{
+
+    \item{}{\code{as(object, "TrioSetList")}: coerce an object of class
+    \code{TrioSet} to an object of class \code{TrioSetList}}
+
+    \item{}{\code{as(object, "data.frame")}: coerce an object of class
+    \code{TrioSet} to a \code{data.frame} with the following column
+    labels: x (position), lrr (log R ratio), gt (genotypes -- ignored if
+    genotypes are not included in the \code{assayData}), baf (B allele
+    frequencies), id, and is.snp.  The coercion to a \code{data.frame}
+    is used primarily for visualization methods using function derived
+    from \code{xyplot} in the \pkg{lattice} package.  This is
+    experimental and subject to change in future versions.}
+
+  }
+
 }
 
 \section{Compute the minimum distance}{
