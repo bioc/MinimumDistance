@@ -738,12 +738,15 @@ joint4 <- function(id,
 	ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
 	mm <- findOverlaps(featureData(trioSet), ranges)
 	##mm <- as.matrix()
-	I <- which(table(subjectHits(mm)) >= 2)
+	tab <- table(subjectHits(mm))
+	I <- as.integer(names(tab)[tab >= 2])
+	##I2 <- which(tab >= 2)
 	range.index <- subjectHits(mm)[subjectHits(mm) %in% I]
 	for(i in I){
 		index <- which(range.index==i)
 		queryIndex <- queryHits(mm)[index]
-		LL <- lemit[queryIndex, , ]
+		if(length(queryIndex) < 2) next()
+		LL <- lemit[queryIndex, , , drop=FALSE]
 		LLT <- matrix(NA, 3, 6)
 		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
 		rownames(LLT) <- c("F", "M", "O")
