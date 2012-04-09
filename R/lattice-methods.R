@@ -1,4 +1,7 @@
-xyplotTrioLrrBaf <- function(rd, object, frame=200e3, lrr.segments, md.segments, ...){
+xyplotTrio <- function(rd, object, frame=200e3, lrr.segments, md.segments, ...){
+	if(!is(rd, "RangedDataCNV")) stop("rd is not a RangedDataCNV-derived class")
+	if(!is(object, "TrioSet")) stop("object is not a TrioSet")
+	if(is.null(mindist(object))) stop("must add minimum distance matrix to mindist slot. Use mindist(object) <- value")
 	index <- seq_len(nrow(rd))
 	i <- NULL
 	df <- foreach(i=index, .combine="rbind") %do% {
@@ -90,13 +93,14 @@ xyplotTrioSetList <- function(object,
 	return(results)
 }
 
-xypanelTrioBaf <- function(x, y,
+xypanelTrio <- function(x, y,
 			   memberId,
 			   baf,
 			   is.snp,
 			   range,
 			   lrr.segments,
 			   md.segments,
+			baf.color="blue",
 			   col.hom="grey20",
 			   fill.hom="lightblue",
 			   col.het="grey20" ,
@@ -106,21 +110,20 @@ xypanelTrioBaf <- function(x, y,
 			   show.state=TRUE,
 			   cex.state=1,
 			   col.state="blue",
-			   cex.pch=0.3,
 			   ped,
 			   ..., subscripts){
 	##panel.grid(v=0, h=4, "grey", lty=2)
 	panel.abline(h=c(-1, 0, log2(3/2), log2(4/2)), col="grey", lty=2)
-	panel.xyplot(x[1], y[1], col="white", cex=cex.pch, ...) ## set it up, but don't plot
+	panel.xyplot(x[1], y[1], col="white", ...) ## set it up, but don't plot
 	is.snp <- is.snp[subscripts]
 	ylim <- current.panel.limits()$ylim
 	y[y>ylim[2]] <- ylim[2]
 	##
 	lpoints(x[!is.snp], y[!is.snp], col=col.np,
-		fill=fill.np, cex=cex.pch, ...)
+		fill=fill.np, ...)
 	## use whatever col.hom to color SNPs
 	lpoints(x[is.snp], y[is.snp], col=col.hom,
-		fill=fill.hom, cex=cex.pch, ...)
+		fill=fill.hom, ...)
 	j <- panel.number()
 	st <- start(range)[j]/1e6
 	lrect(xleft=st, xright=end(range)[j]/1e6,
@@ -135,7 +138,7 @@ xypanelTrioBaf <- function(x, y,
 	b[b==2] <- NA
 	blim <- c(ylim[1]+0.1, ylim[1]+1.5)
 	bnew <- rescale(b, blim[1], blim[2])
-	lpoints(x[is.snp], bnew[is.snp], cex=cex.pch, col="blue", ...)
+	lpoints(x[is.snp], bnew[is.snp], col=baf.color, ...)
 	memberId <- unique(memberId[subscripts])
 	mindistPanel <- match(memberId, levels(memberId))==1
 	##sns <- unique(sampleNames[subscripts])

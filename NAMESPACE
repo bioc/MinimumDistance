@@ -103,7 +103,7 @@ exportMethods("[", allNames,
 	      trios,
 	      updateObject,
 	      width,
-	      xyplot,
+##	      xyplot,
 	      initialize)
 export(callDenovoSegments,
        concAtTop,
@@ -116,10 +116,10 @@ export(callDenovoSegments,
        narrow,
        Pedigree,
        stackRangedDataList,
-       xyplot,
-       xyplotTrioLrrBaf,
-       xypanelTrioBaf,
-       xypanelMD)
+##       xyplot,
+       xyplotTrio,
+       xypanelTrio)
+##       xypanelMD)
 
 
 
