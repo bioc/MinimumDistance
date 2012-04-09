@@ -14,7 +14,7 @@
 }
 \usage{
 xypanelTrio(x, y, memberId, baf, is.snp, range, lrr.segments,
-md.segments, baf.color="blue", col.hom = "grey20", fill.hom = "lightblue", col.het = "grey20", fill.het = "salmon", col.np = "grey20", fill.np = "grey60", show.state = TRUE, cex.state = 1, col.state = "blue", ped, ..., subscripts)
+md.segments, baf.color="blue", col.hom = "grey20", fill.hom = "lightblue", col.het = "grey20", fill.het = "salmon", col.np = "grey20", fill.np = "grey60", state.show = TRUE, state.cex = 1, state.col = "blue", ped, ..., subscripts)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -70,13 +70,13 @@ md.segments, baf.color="blue", col.hom = "grey20", fill.hom = "lightblue", col.h
   \item{fill.np}{
     Fill color for nonpolymorphic markers (genotypes irrelevant)
 }
-  \item{show.state}{
+  \item{state.show}{
     Whether to display the inferred state from the \code{rd} object.
 }
-  \item{cex.state}{
+  \item{state.cex}{
     The size of the displayed state. Ignored if \code{show.state} is FALSE.
 }
-  \item{col.state}{
+  \item{state.col}{
     Color of the text used for displaying the state.
 }
 

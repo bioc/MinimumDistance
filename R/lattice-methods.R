@@ -77,7 +77,7 @@ xyplotTrioSetList <- function(object,
 		      ped=pedigree(object),
 		      ylab="",
 		      xlab="physical position (Mb)",
-		      panel=MinimumDistance:::xypanelTrioBaf,
+		      panel=xypanelTrio,
 		      scales=list(x="same",
 		      y=list(alternating=1, at=at, labels=labels)),
 		      layout=c(1, 4),
@@ -107,9 +107,9 @@ xypanelTrio <- function(x, y,
 			   fill.het="salmon",
 			   col.np="grey20",
 			   fill.np="grey60",
-			   show.state=TRUE,
-			   cex.state=1,
-			   col.state="blue",
+			state.show=TRUE,
+			state.cex=1,
+			state.col="blue",
 			   ped,
 			   ..., subscripts){
 	##panel.grid(v=0, h=4, "grey", lty=2)
@@ -119,20 +119,17 @@ xypanelTrio <- function(x, y,
 	ylim <- current.panel.limits()$ylim
 	y[y>ylim[2]] <- ylim[2]
 	##
-	lpoints(x[!is.snp], y[!is.snp], col=col.np,
-		fill=fill.np, ...)
+	lpoints(x[!is.snp], y[!is.snp], col=col.np, fill=fill.np, ...)
 	## use whatever col.hom to color SNPs
-	lpoints(x[is.snp], y[is.snp], col=col.hom,
-		fill=fill.hom, ...)
+	lpoints(x[is.snp], y[is.snp], col=col.hom, fill=fill.hom, ...)
 	j <- panel.number()
 	st <- start(range)[j]/1e6
-	lrect(xleft=st, xright=end(range)[j]/1e6,
-	      ybottom=-10, ytop=10, ...)
-	if(show.state){
+	lrect(xleft=st, xright=end(range)[j]/1e6, ybottom=-10, ytop=10, ...)
+	if(state.show){
 		## left justify the label to the start of the range
 		y.max <- ylim[2]
 		ltext(st, y.max, labels=paste("state", state(range)[j]),
-		      adj=c(0,1), cex=cex.state, col=col.state)
+		      adj=c(0,1), cex=state.cex, col=state.col)
 	}
 	b <- baf[subscripts]
 	b[b==2] <- NA
