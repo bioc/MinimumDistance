@@ -199,6 +199,7 @@ pruneByFactor <- function(range.object, f, verbose=FALSE){
 }
 
 combineRangesByFactor <- function(range.object, f){
+	##range.object <- range.object[!is.na(state(range.object)), ]
 	i <- which(is.na(f))
 	j <- 1
 	while(length(i) > 0){

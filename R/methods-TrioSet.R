@@ -35,7 +35,15 @@ setMethod("updateObject", signature(object="TrioSet"),
 	  })
 
 
-
+setMethod("dims", signature(object="TrioSet"),
+	  function(object){
+		  nr <- nrow(object)
+		  nchr <- 1
+		  ntrios <- ncol(baf(object))
+		  dm <- c(nchr, ntrios, nr)
+		  names(dm) <- c("chromosomes", "trios", "features")
+		  return(dm)
+	  })
 setMethod("pedigree", signature(object="TrioSet"), function(object) object@pedigree)
 ##setMethod("sampleSheet", signature(object="TrioSet"), function(object) object@sampleSheet)
 ##setReplaceMethod("sampleSheet", signature(object="TrioSet"), function(object) {object@sampleSheet)
