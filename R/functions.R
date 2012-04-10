@@ -710,6 +710,10 @@ joint4 <- function(id,
 	r <- lrr(trioSet)[, 1, ]/100
 	b <- baf(trioSet)[, 1, ]/1000
 	colnames(r) <- colnames(b) <- allNames(trioSet)
+	##
+	## we estimate the optimal state path using viterbi, but we
+	## only use the emission probabilities for the MAP
+	##
 	viterbiObj <- VanillaICE::viterbi2Wrapper(r=r,
 						  b=b,
 						  pos=position(trioSet),
