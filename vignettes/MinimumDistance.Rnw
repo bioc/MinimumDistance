@@ -443,34 +443,52 @@ development. Here, we provide a quick example using a function and a
 lattice-style panel function that are not currently exported.
 
 <<triofig>>=
-trioSet <- stack(trioSetList)
 rd.denovoDel <- map.segs[state(map.segs) == 332 & coverage2(map.segs) > 5, ]
-mindist(trioSet) <- do.call("rbind", md)
+rd <- rd.denovoDel[1, ]
+CHR <- match(chromosome(rd), chromosome(trioSetList))
+S <- match(sampleNames(rd), sampleNames(trioSetList))
+trioSet <- trioSetList[[CHR]][, S]
+mindist(trioSet) <- md[[CHR]][, S, drop=FALSE]
 frame <- 100e3
-figlist <- MinimumDistance:::xyplotTrioLrrBaf(rd=rd.denovoDel,
-					   object=trioSet,
-					   frame=frame,
-					   ylab="log R ratio and BAFs",
-					   xlab="physical position",
-					   panel=MinimumDistance:::xypanelTrioBaf,
-					   scales=list(x="free", y=list(alternating=1)),
-					   lrr.segments=lrr.segs,
-					   md.segments=md.segs,
-					   layout=c(1, 4), ylim=c(-3, 1.5))
+fig <- xyplotTrio(rd=rd,
+		  object=trioSet,
+		  frame=frame,
+		  ylab="log R ratio and BAFs",
+		  xlab="physical position (Mb)",
+		  panel=xypanelTrio,
+		  lrr.segments=lrr.segs,
+		  md.segments=md.segs,
+		  col.hom="grey50",
+		  col.het="grey50",
+		  col.np="grey20",
+		  cex=0.3,
+		  layout=c(1, 4),
+		  ylim=c(-3, 1.5),
+		  scales=list(cex=0.7, x=list(relation="same"),
+		  y=list(alternating=1,
+		  at=c(-1, 0, log2(3/2), log2(4/2)),
+		  labels=expression(-1, 0, log[2](3/2), log[2](4/2)))),
+		  par.strip.text=list(cex=0.7),
+		  state.col="black",
+		  state.cex=0.8,
+		  key=list(text=list(c(expression(log[2]("R ratios")), expression("B allele freqencies")),
+			   col=c("grey50", "blue")), columns=2))
 @
 
 The final graphic is displayed in Figure \ref{fig:trioplot}.
 
-<<displayFigure,fig=TRUE,include=FALSE>>=
-print(figlist[[1]])
+<<displayFigure>>=
+pdf("MinimumDistance-displayFigure.pdf")
+print(fig)
+dev.off()
 @
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\textwidth]{MinimumDistance-displayFigure}
-  \caption{\label{fig:trioplot} The log R ratios (black) and B allele
-    frequencies (blue) for the father, mother, and offspring, as well
-    as the minimum distance (bottom).  The solid vertical lines in the
+  \caption{\label{fig:trioplot} The log R ratios (grey) and B allele
+    frequencies (blue) for the parent-offspring trio, as well as the
+    minimum distance (bottom panel).  The solid vertical lines in the
     bottom panel indicate the start and stop positions of an inferred
     de novo hemizygous deletion in the offspring (state '332').  }
 \end{figure}

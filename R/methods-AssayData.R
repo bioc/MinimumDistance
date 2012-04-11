@@ -40,7 +40,7 @@ validAssayDataDims <- function(object){
 	if(is.null(msg)) return(TRUE) else return(msg)
 }
 
-assayDataListLD <- function(path="", ext="", pedigree, featureData){
+assayDataListLD <- function(path="", ext="", pedigree, featureData, ffprefix=""){
 	filenames <- paste(originalNames(allNames(pedigree)), ext, sep="")
 	fnames <- file.path(path, filenames)
 	stopifnot(all(file.exists(fnames)))
@@ -57,7 +57,9 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData){
 	outdir <- ldPath()
 	i <- NULL
 	bafAndLrrList <- foreach(i=index, .packages=pkgs) %dopar% {
-		MinimumDistance:::initializeLrrAndBafArrays(dims=c(length(i), nrow(pedigree), 3), outdir=outdir, col.names=sampleNames(pedigree))
+		MinimumDistance:::initializeLrrAndBafArrays(dims=c(length(i), nrow(pedigree), 3), outdir=outdir,
+							    col.names=sampleNames(pedigree),
+							    name=ffprefix)
 	}
 	baflist <- lapply(bafAndLrrList, "[[", 1)
 	lrrlist <- lapply(bafAndLrrList, "[[", 2)

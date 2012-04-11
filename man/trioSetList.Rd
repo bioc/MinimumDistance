@@ -5,7 +5,8 @@
 
 \description{Constructs and object of class \code{TrioSetList}}
 \usage{
-TrioSetList(chromosome=integer(), pedigreeData=Pedigree(), sample.sheet, row.names=NULL, lrr, baf, featureData, cdfname)
+TrioSetList(chromosome=integer(), pedigreeData=Pedigree(), sample.sheet,
+row.names=NULL, lrr, baf, featureData, cdfname, ffname="")
 }
 
 \arguments{
@@ -32,7 +33,10 @@ TrioSetList(chromosome=integer(), pedigreeData=Pedigree(), sample.sheet, row.nam
     \code{cdfname} must be specified.}
 
   \item{cdfname}{A character string providing the name of the annotation
-  package.}
+    package.}
+
+  \item{ffname}{Prefix for naming ff files. Ignored if \pkg{ff} package
+  is not loaded.}
 
 }
 

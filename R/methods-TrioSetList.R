@@ -62,7 +62,8 @@ TrioSetList <- function(chromosome=integer(),
 			row.names=NULL,
 			lrr, baf,
 			featureData,
-			cdfname){
+			cdfname,
+			ffname=""){
 	if(!missing(lrr)){
 		if(!is(lrr[1,1], "integer")){
 			stop("lrr should be a matrix of integers. Use integerMatrix(x, scale=100) for the transformation")
@@ -159,13 +160,21 @@ TrioSetList <- function(chromosome=integer(),
 	offspring.index <- match(offspring.names, colnames(lrr))
 	chromosome <- unique(chromosome(fD))
 	fdlist <- baflist <- lrrlist <- vector("list", length(chromosome))
+	if(isPackageLoaded("ff")){
+		if(ffname!=""){
+			bafname <- paste(ffname, "baf", sep="_")
+		} else bafname <- "baf"
+		if(ffname!=""){
+			lrrname <- paste(ffname, "lrr", sep="_")
+		} else lrrname <- "lrr"
+	}
 	dns <- list(sampleNames(pedigreeData), c("F", "M", "O"))
 	for(i in seq_along(marker.list)){
 		## Use the name of the offspring as the name for the trio:
 		j <- marker.list[[i]]
 		nr <- length(j)
-		bafArray <- initializeBigArray("baf", dim=c(nr, np, 3), vmode="integer")
-		logRArray <- initializeBigArray("lrr", dim=c(nr, np, 3), vmode="integer")
+		bafArray <- initializeBigArray(bafname, dim=c(nr, np, 3), vmode="integer")
+		logRArray <- initializeBigArray(lrrname, dim=c(nr, np, 3), vmode="integer")
 		dimnames(logRArray)[c(2,3)] <- dimnames(bafArray)[c(2,3)] <- dns
 		logRArray[,,"F"] <- lrr[j, father.index]
 		logRArray[,,"M"] <- lrr[j, mother.index]
@@ -193,7 +202,8 @@ TrioSetList <- function(chromosome=integer(),
 TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names,
 			  pedigreeData,
 			  featureData,
-			  annotationPkg, outdir=ldPath()){
+			  annotationPkg, outdir=ldPath(),
+			  ffprefix=""){
 	if(!is(pedigreeData, "Pedigree")) stop()
 	if(missing(featureData)){
 		fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg)
@@ -205,7 +215,8 @@ TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names,
 	ad <- assayDataListLD(path=path,
 			      pedigree=pedigreeData,
 			      ext=ext,
-			      featureData=fD)
+			      featureData=fD,
+			      ffprefix=ffprefix)
 	if(!missing(samplesheet)){
 		if(missing(row.names)) stop("if samplesheet is provided, row.names can not be missing.")
 		index <- row.names %in% allNames(pedigreeData)
@@ -288,10 +299,11 @@ setMethod("annotation", signature(object="TrioSetList"), function(object){
 })
 
 setMethod("dims", signature(object="TrioSetList"), function(object){
+	nr <- nrow(object)
 	nchr <- length(chromosome(object))
 	ntrios <- ncol(baf(object)[[1]])
-	dm <- c(nchr, ntrios)
-	names(dm) <- c("chromosomes", "trios")
+	dm <- c(nchr, ntrios, nr)
+	names(dm) <- c("chromosomes", "trios", "features")
 	return(dm)
 })
 
@@ -340,6 +352,10 @@ computeBayesFactorTrioSetList <- function(object,
 					  collapseRanges=TRUE,
 					  outdir=ldPath(),
 					  ...){
+	sns.ranges <- unique(sampleNames(ranges))
+	if(!all(sampleNames(object) %in% sns.ranges)){
+		ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
+	}
 	index <- split(seq_len(nrow(ranges)), chromosome(ranges))
 	index <- index[names(index) %in% chromosome(object)]
 	object <- object[chromosome(object) %in% names(index)]
@@ -383,6 +399,13 @@ setReplaceMethod("assayData", signature=signature(object="TrioSetList",
 			      value="AssayData"),
                  function(object, value) {
 			 object@assayDataList <- value
+			 object
+                 })
+
+setReplaceMethod("phenoData", signature=signature(object="TrioSetList",
+			      value="AnnotatedDataFrame"),
+                 function(object, value) {
+			 object@phenoData <- value
 			 object
                  })
 
@@ -583,6 +606,10 @@ setMethod("$", signature(x="TrioSetList"),
 	  function(x, name){
 		  eval(substitute(phenoData(x)$NAME_ARG, list(NAME_ARG=name)))
 	  })
+
+
+
+setMethod("nrow", signature(x="TrioSetList"), function(x) sum(sapply(lrr(x), nrow)))
 
 
 
