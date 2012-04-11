@@ -7,7 +7,8 @@
   Constructor for TrioSetList class for large data
 }
 \usage{
-TrioSetListLD(path, fnames, ext="", samplesheet, row.names, pedigreeData, featureData, annotationPkg, outdir=ldPath())
+TrioSetListLD(path, fnames, ext="", samplesheet, row.names,
+pedigreeData, featureData, annotationPkg, outdir=ldPath(), ffprefix="")
 }
 \arguments{
   \item{path}{
@@ -51,7 +52,10 @@ TrioSetListLD(path, fnames, ext="", samplesheet, row.names, pedigreeData, featur
   }
 
   \item{outdir}{Character string indicating the path for storing \code{ff}
-  objects.  Ignored if the \pkg{ff} package is not loaded.}
+    objects.  Ignored if the \pkg{ff} package is not loaded.}
+
+  \item{ffprefix}{character string indicating the prefix used to name ff
+  objects. Ignored if the \pkg{ff} package is not loaded.}
 
 }
 \details{
@@ -83,7 +87,7 @@ if(require("ff")){
 				       pedigreeData=Pedigree(data.frame(F="F.txt",
 				       M="M.txt", O="O.txt")),
 				       annotationPkg="human610quadv1bCrlmm",
-				       outdir=ldPath())
+				       outdir=ldPath(), prefix="test")
 }
 }
 \keyword{manip}

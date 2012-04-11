@@ -199,6 +199,7 @@ pruneByFactor <- function(range.object, f, verbose=FALSE){
 }
 
 combineRangesByFactor <- function(range.object, f){
+	##range.object <- range.object[!is.na(state(range.object)), ]
 	i <- which(is.na(f))
 	j <- 1
 	while(length(i) > 0){
@@ -709,6 +710,10 @@ joint4 <- function(id,
 	r <- lrr(trioSet)[, 1, ]/100
 	b <- baf(trioSet)[, 1, ]/1000
 	colnames(r) <- colnames(b) <- allNames(trioSet)
+	##
+	## we estimate the optimal state path using viterbi, but we
+	## only use the emission probabilities for the MAP
+	##
 	viterbiObj <- VanillaICE::viterbi2Wrapper(r=r,
 						  b=b,
 						  pos=position(trioSet),
@@ -718,7 +723,7 @@ joint4 <- function(id,
 						  is.log=TRUE,
 						  limits=limits,
 						  returnViterbiObject=TRUE,
-						  p.hom=0, ...)
+						  ...)
 	lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
 	for(i in 1:3) lemit[, i, ] <- log(emission(viterbiObj[[i]]))
 	##.index=subjectHits(findOverlaps(segs1[2,], featureData(trioSetff)))
@@ -738,20 +743,19 @@ joint4 <- function(id,
 	ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
 	mm <- findOverlaps(featureData(trioSet), ranges)
 	##mm <- as.matrix()
-	I <- which(table(subjectHits(mm)) >= 2)
+	tab <- table(subjectHits(mm))
+	I <- as.integer(names(tab)[tab >= 2])
+	##I2 <- which(tab >= 2)
 	range.index <- subjectHits(mm)[subjectHits(mm) %in% I]
 	for(i in I){
 		index <- which(range.index==i)
-##		if(nrow(obj) < 2){
-##		if(length(index) < 2){
-##			next()
-##		}
 		queryIndex <- queryHits(mm)[index]
-		LL <- lemit[queryIndex, , ]
+		if(length(queryIndex) < 2) next()
+		LL <- lemit[queryIndex, , , drop=FALSE]
 		LLT <- matrix(NA, 3, 6)
 		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
 		rownames(LLT) <- c("F", "M", "O")
-		colnames(LLT) <- paste("CN_", 1:6, sep="")
+		colnames(LLT) <- paste("CN_", c(0, 1, 2, 2, 3, 4), sep="")
 		for(j in seq_len(nrow(trio.states))){
 			tmp[j] <- joint1(LLT=LLT,
 					 trio.states=trio.states,
@@ -954,7 +958,9 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 	##
 	##
 	##---------------------------------------------------------------------------
-	abs.thr <- abs(md.range$seg.mean) > thr
+	##abs.thr <- abs(md.range$seg.mean)/md.range$mindist.mad > thr
+	mads <- pmax(md.range$mindist.mad, .1)
+	abs.thr <- abs(md.range$seg.mean)/mads > thr
 	## I1 is an indicator for whether to use the cbs start
 	I1 <- start(cbs.segs)[shits] >= start(md.range)[qhits] & start(cbs.segs)[shits] <= end(md.range)[qhits] & abs.thr[qhits]
 	I2 <- end(cbs.segs)[shits] <= end(md.range)[qhits] & end(cbs.segs)[shits] >= start(md.range)[qhits] & abs.thr[qhits]
@@ -978,7 +984,7 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 	}
 	##split(I1, qhits)
 	##split(I2, qhits)
-	stopifnot(sapply(split(st, qhits), function(x) all(diff(x) >= 0)))
+	##stopifnot(sapply(split(st, qhits), function(x) all(diff(x) >= 0)))
 	nm <- apply(cbind(st.index, en.index), 1, function(x) length(x[1]:x[2]))
 	## keep segment means the same as the minimum distance
 	tmp <- RangedData(IRanges(st, en),
@@ -994,11 +1000,11 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 	##ns <- sapply(ranges.below.thr, sum)
 	uid <- paste(tmp$id, start(tmp), tmp$chrom, sep="")
 	##duplicated(uid)
-	stopifnot(!all(duplicated(uid)))
+	##stopifnot(!all(duplicated(uid)))
 	tmp <- tmp[!duplicated(uid), ]
 	## for each subject, the following must be true
 	index <- which(tmp$id[-nrow(tmp)] == tmp$id[-1])
-	stopifnot(all(end(tmp)[index] < start(tmp)[index+1]))
+	##stopifnot(all(end(tmp)[index] < start(tmp)[index+1]))
 	res <- tmp[order(tmp$id, start(tmp)), ]
 	return(res)
 }
@@ -1234,10 +1240,17 @@ stackRangedDataList <- function(...) {
 ##	return(dat)
 ##}
 
-initializeLrrAndBafArrays <- function(dims, col.names, outdir){
+initializeLrrAndBafArrays <- function(dims, col.names, outdir, name=""){
 	ldPath(outdir)
-	bafs <- initializeBigArray("baf", dim=dims, vmode="integer")
-	lrrs <- initializeBigArray("lrr", dim=dims, vmode="integer")
+	if(name != ""){
+		bafname <- paste(name, "baf", sep="_")
+		lrrname <- paste(name, "lrr", sep="_")
+	} else {
+		bafname <- "baf"
+		lrrname <- "lrr"
+	}
+	bafs <- initializeBigArray(bafname, dim=dims, vmode="integer")
+	lrrs <- initializeBigArray(lrrname, dim=dims, vmode="integer")
 	colnames(bafs) <- colnames(lrrs) <- col.names
 	res <- list(baf=bafs, lrr=lrrs)
 	return(res)

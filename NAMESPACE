@@ -22,7 +22,7 @@ importFrom(graphics, abline, axis, layout, legend, mtext, par, plot,
 importFrom(lattice, xyplot, simpleKey, panel.grid, panel.xyplot, lrect, ltext,
 	   lsegments,
 	   lpoints, panel.number, current.panel.limits, panel.segments,
-	   panel.axis)
+	   panel.axis, panel.abline)
 
 ##import(SNPchip) -- why do we need this?
 importFrom(stats, mad)
@@ -79,6 +79,7 @@ exportMethods("[", allNames,
 	      baf,
 	      "baf<-",
 	      calculateMindist,
+	      coerce,
 	      computeBayesFactor,
 	      dims,
 	      fatherNames,
@@ -102,7 +103,7 @@ exportMethods("[", allNames,
 	      trios,
 	      updateObject,
 	      width,
-	      xyplot,
+##	      xyplot,
 	      initialize)
 export(callDenovoSegments,
        concAtTop,
@@ -115,8 +116,10 @@ export(callDenovoSegments,
        narrow,
        Pedigree,
        stackRangedDataList,
-       xyplot,
-       xypanelMD)
+##       xyplot,
+       xyplotTrio,
+       xypanelTrio)
+##       xypanelMD)
 
 
 

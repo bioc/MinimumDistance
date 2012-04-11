@@ -4,14 +4,17 @@ setMethod("calculateMindist", signature(object="arrayORff_array"),
 		  calculateMindistFromArray(object, outdir, ...)
 	  })
 
-calculateMindistFromArray <- function(object, outdir=ldPath(), ...){
+calculateMindistFromArray <- function(object, outdir=ldPath(), ffprefix="", ...){
 	isff <- is(object, "ff")
 	if(!parStatus()) registerDoSEQ()
 	if(isff){
 		if(!isPackageLoaded("ff")) stop(paste("array has class ", class(object)[[1]], " but the ff package is not loaded"))
 		## so that the worker nodes put the ff objects in the same directory
 		ldPath(outdir)
-		md <- initializeBigMatrix("mindist", nr=nrow(object), nc=ncol(object), vmode="double")
+		if(ffprefix != ""){
+			ffname <- paste(ffprefix, "mindist", sep="_")
+		} else ffname <- "mindist"
+		md <- initializeBigMatrix(ffname, nr=nrow(object), nc=ncol(object), vmode="double")
 		for(j in seq_len(ncol(object))){
 			d1 <- object[, j, 3] - object[, j, 1] ## offspring - father
 			d2 <- object[, j, 3] - object[, j, 2] ## offspring - mother
