@@ -110,6 +110,7 @@ xypanelTrio <- function(x, y,
 			state.show=TRUE,
 			state.cex=1,
 			state.col="blue",
+			segment.col="grey50",
 			   ped,
 			   ..., subscripts){
 	##panel.grid(v=0, h=4, "grey", lty=2)
@@ -144,7 +145,7 @@ xypanelTrio <- function(x, y,
 		lsegments(x0=start(md.segments)/1e6,
 			  x1=end(md.segments)/1e6,
 			  y0=mean(md.segments),
-			  y1=mean(md.segments), lwd=2, col="grey50")
+			  y1=mean(md.segments), lwd=2, col=segment.col)
 	} else {
 		## range is labeled by offspring id.
 		j <- match(sampleNames(range), sampleNames(ped))
@@ -159,7 +160,7 @@ xypanelTrio <- function(x, y,
 			lsegments(x0=start(lrr.segments)/1e6,
 				  x1=end(lrr.segments)/1e6,
 				  y0=mean(lrr.segments),
-				  y1=mean(lrr.segments), lwd=2, col="grey50")
+				  y1=mean(lrr.segments), lwd=2, col=segment.col)
 		}
 	}
 	if(panel.number() > 1){ ## label axis for BAFs
