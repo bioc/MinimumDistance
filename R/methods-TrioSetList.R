@@ -374,6 +374,7 @@ computeBayesFactorTrioSetList <- function(object,
 				    computeBayesFactor(object=X,
 						       ranges=ranges[i, ],
 						       pedigreeData=pedigree(object),
+						       collapseRanges=collapseRanges,
 						       outdir=outdir,
 						       ...)
 			    }
