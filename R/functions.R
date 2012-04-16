@@ -226,6 +226,7 @@ combineRangesByFactor <- function(range.object, f){
 		range.object$end.index[index] <- max(range.object$end.index[index])
 		range.object$seg.mean[index] <- sum((range.object$num.mark[index] * range.object$seg.mean[index]), na.rm=TRUE)/sum(range.object$num.mark[index],na.rm=TRUE)
 		range.object$num.mark[index] <- sum(range.object$num.mark[index], na.rm=TRUE)
+		range.object$lik.norm[index] <- sum(range.object$lik.norm[index])
 		j <- seq(length=nrow(range.object))
 		index <- index[-1]
 		j <- j[-index]
