@@ -699,7 +699,8 @@ joint4 <- function(id,
 		   a=0.0009,
 		   prob.nonMendelian=1.5e-6,
 		   returnEmission=FALSE,
-		   ntrios, ...){## all the ranges from one subject , one chromosome
+		   ntrios,
+		   mdThr=0.9, ...){## all the ranges from one subject , one chromosome
 	if(missing(id)) id <- sampleNames(trioSet)[1]
 	ranges <- ranges[sampleNames(ranges) == id, ]
 	is.snp <- isSnp(trioSet)
@@ -746,9 +747,14 @@ joint4 <- function(id,
 	##mm <- as.matrix()
 	tab <- table(subjectHits(mm))
 	I <- as.integer(names(tab)[tab >= 2])
-	##I2 <- which(tab >= 2)
 	range.index <- subjectHits(mm)[subjectHits(mm) %in% I]
-	for(i in I){
+	## only call segs that are "nonzero"
+	mads <- pmax(ranges$mindist.mad, .1)
+	abs.thr <- abs(ranges$seg.mean)/mads > mdThr
+	##.i <- which(abs(mean(ranges)) < mdThr*ranges$mindist.mad)
+	##ranges$argmax[.i] <- norm.index
+	##I <- I[-.i]
+ 	for(i in I){
 		index <- which(range.index==i)
 		queryIndex <- queryHits(mm)[index]
 		if(length(queryIndex) < 2) next()
@@ -757,25 +763,40 @@ joint4 <- function(id,
 		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
 		rownames(LLT) <- c("F", "M", "O")
 		colnames(LLT) <- paste("CN_", c(0, 1, 2, 2, 3, 4), sep="")
-		for(j in seq_len(nrow(trio.states))){
-			tmp[j] <- joint1(LLT=LLT,
-					 trio.states=trio.states,
-					 segment.index=i,
-					 state.index=j,
-					 table1=table1,
-					 table3=table3,
-					 state.prev=state.prev,
-					 prob.nonMendelian=prob.nonMendelian)
+		callrange <- abs.thr[i]
+		if(callrange){
+			for(j in seq_len(nrow(trio.states))){
+				tmp[j] <- joint1(LLT=LLT,
+						 trio.states=trio.states,
+						 segment.index=i,
+						 state.index=j,
+						 table1=table1,
+						 table3=table3,
+						 state.prev=state.prev,
+						 prob.nonMendelian=prob.nonMendelian)
 
-		}##j loop
-		## RS 4/29/2011
-		argmax <- which.max(tmp)
-		lik.norm <- tmp[norm.index]
-		ranges$lik.norm[i] <- lik.norm
-		ranges$argmax[i] <- argmax
-		ranges$lik.state[i] <- tmp[argmax]
-		stopifnot(!is.na(ranges$lik.state[i]))
-		state.prev <- trio.states[argmax, ]
+			}##j loop
+			argmax <- which.max(tmp)
+			lik.norm <- tmp[norm.index]
+			ranges$lik.norm[i] <- lik.norm
+			ranges$argmax[i] <- argmax
+			ranges$lik.state[i] <- tmp[argmax]
+			stopifnot(!is.na(ranges$lik.state[i]))
+			state.prev <- trio.states[argmax, ]
+		} else {
+			res <- joint1(LLT=LLT,
+				      trio.states=trio.states,
+				      segment.index=i,
+				      state.index=norm.index,
+				      table1=table1,
+				      table3=table3,
+				      state.prev=state.prev,
+				      prob.nonMendelian=prob.nonMendelian)
+			ranges$lik.norm[i] <- res
+			ranges$lik.state[i] <- res
+			ranges$argmax[i] <- norm.index
+			state.prev <- trio.states[norm.index, ]
+		}
 	}
 	ranges$state <- trioStateNames()[ranges$argmax]
 	ranges
