@@ -974,9 +974,9 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 	} else stop("no overlap")
 	##---------------------------------------------------------------------------
 	##
-	## only narrow the range if the minimum distance is
-	## bigger than some nominal value. Otherwise, we use
-	## the minimum distance range as is.
+	## only narrow the range if the minimum distance segment is
+	## bigger than some nominal value. Otherwise, we use the
+	## minimum distance range as is.
 	##
 	##
 	##---------------------------------------------------------------------------
@@ -984,8 +984,10 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
 	mads <- pmax(md.range$mindist.mad, .1)
 	abs.thr <- abs(md.range$seg.mean)/mads > thr
 	## I1 is an indicator for whether to use the cbs start
-	I1 <- start(cbs.segs)[shits] >= start(md.range)[qhits] & start(cbs.segs)[shits] <= end(md.range)[qhits] & abs.thr[qhits]
-	I2 <- end(cbs.segs)[shits] <= end(md.range)[qhits] & end(cbs.segs)[shits] >= start(md.range)[qhits] & abs.thr[qhits]
+	deltaStart <- start(cbs.segs)[shits] - start(md.range)[qhits] < 100e3
+	I1 <- deltaStart & start(cbs.segs)[shits] >= start(md.range)[qhits] & start(cbs.segs)[shits] <= end(md.range)[qhits] & abs.thr[qhits]
+	deltaEnd <- end(md.range)[qhits] - end(cbs.segs)[shits] < 100e3
+	I2 <- deltaEnd & end(cbs.segs)[shits] <= end(md.range)[qhits] & end(cbs.segs)[shits] >= start(md.range)[qhits] & abs.thr[qhits]
 	st <- start(cbs.segs)[shits] * I1 + start(md.range)[qhits] * (1-I1)
 	en <- end(cbs.segs)[shits] * I2 + end(md.range)[qhits] * (1-I2)
 	st.index <- (cbs.segs$start.index[shits] * I1 + md.range$start.index[qhits]*(1-I1))
