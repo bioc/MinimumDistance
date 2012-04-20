@@ -16,3 +16,5 @@ test_cbsSplits <- function(){
 	tabs <- lapply(res, table)
 	checkTrue(all(unlist(tabs) > 1000))
 }
+
+

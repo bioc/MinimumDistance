@@ -226,7 +226,7 @@ combineRangesByFactor <- function(range.object, f){
 		range.object$end.index[index] <- max(range.object$end.index[index])
 		range.object$seg.mean[index] <- sum((range.object$num.mark[index] * range.object$seg.mean[index]), na.rm=TRUE)/sum(range.object$num.mark[index],na.rm=TRUE)
 		range.object$num.mark[index] <- sum(range.object$num.mark[index], na.rm=TRUE)
-		range.object$lik.norm[index] <- sum(range.object$lik.norm[index])
+		range.object$lik.norm[index] <- sum(range.object$lik.norm[index], na.rm=TRUE)
 		j <- seq(length=nrow(range.object))
 		index <- index[-1]
 		j <- j[-index]
@@ -715,7 +715,6 @@ joint4 <- function(id,
 	##
 	## we estimate the optimal state path using viterbi, but we
 	## only use the emission probabilities for the MAP
-	##
 	viterbiObj <- VanillaICE::viterbi2Wrapper(r=r,
 						  b=b,
 						  pos=position(trioSet),
@@ -920,8 +919,7 @@ xypanelMD2 <- function(x, y,
 	}
 }
 
-
-narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE){
+narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE, fD){
 	if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
 	##stopifnot(!is.null(names(mad.minimumdistance)))
 	ix <- match(sampleNames(object), names(mad.minimumdistance))
@@ -944,7 +942,7 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE)
 			k <- indexList2[[i]]
 			md.segs <- object[j, ]
 			lr.segs <- lrr.segs[k, ]
-			segList[[i]] <- narrowRangeForChromosome(md.segs, lr.segs, thr=thr, verbose=FALSE)
+			segList[[i]] <- narrowRangeForChromosome(md.segs, lr.segs, thr=thr, verbose=FALSE, fD=fD[[i]])
 			rm(md.segs, lr.segs); gc()
 		}
 		if(verbose) close(pb)
@@ -952,86 +950,225 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE)
 		j <- match("sample", colnames(segs))
 		if(length(j) == 1) segs <- segs[, -j]
 	} else {
-		segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose)
+		segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose, fD=fD)
 	}
-	rd.cbs <- RangedDataCBS(ranges=ranges(segs), values=values(segs))
-	return(rd.cbs)
+	return(segs)
 }
 
 
-narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
+narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, fD){
 	md.range <- md.range[order(sampleNames(md.range), start(md.range)), ]
-	cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs)), ]
-	ir1 <- IRanges(start(md.range), end(md.range))
-	ir2 <- IRanges(start(cbs.segs), end(cbs.segs))
-	mm <- findOverlaps(ir1, ir2)
-	qhits <- queryHits(mm)
-	shits <- subjectHits(mm)
-	index <- which(sampleNames(md.range)[qhits] == sampleNames(cbs.segs)[shits])
-	if(length(index) > 0){
-		qhits <- qhits[index]
-		shits <- shits[index]
-	} else stop("no overlap")
-	##---------------------------------------------------------------------------
-	##
-	## only narrow the range if the minimum distance segment is
-	## bigger than some nominal value. Otherwise, we use the
-	## minimum distance range as is.
-	##
-	##
-	##---------------------------------------------------------------------------
-	##abs.thr <- abs(md.range$seg.mean)/md.range$mindist.mad > thr
 	mads <- pmax(md.range$mindist.mad, .1)
 	abs.thr <- abs(md.range$seg.mean)/mads > thr
-	## I1 is an indicator for whether to use the cbs start
-	deltaStart <- start(cbs.segs)[shits] - start(md.range)[qhits] < 100e3
-	I1 <- deltaStart & start(cbs.segs)[shits] >= start(md.range)[qhits] & start(cbs.segs)[shits] <= end(md.range)[qhits] & abs.thr[qhits]
-	deltaEnd <- end(md.range)[qhits] - end(cbs.segs)[shits] < 100e3
-	I2 <- deltaEnd & end(cbs.segs)[shits] <= end(md.range)[qhits] & end(cbs.segs)[shits] >= start(md.range)[qhits] & abs.thr[qhits]
-	st <- start(cbs.segs)[shits] * I1 + start(md.range)[qhits] * (1-I1)
-	en <- end(cbs.segs)[shits] * I2 + end(md.range)[qhits] * (1-I2)
-	st.index <- (cbs.segs$start.index[shits] * I1 + md.range$start.index[qhits]*(1-I1))
-	en.index <- (cbs.segs$end.index[shits] * I2 + md.range$end.index[qhits]*(1-I2))
-	## For each md.range range, there should only be one I1 that is TRUE
-	## If I1 and I2 are true, then a range is completely contained within the md.range segment
-	ids <- md.range$id[qhits]
-	##  |--------------|
-	## ---|--------|-----
-	## Becomes
-	##  |-|--------|---|
-	index <- which(I1 & I2)-1
-	index <- index[index!=0]
-	index <- index[ids[index] == ids[index+1]]
-	if(length(index) > 1){
-		en[index] <- st[index+1]-1
-		en.index[index] <- st.index[index+1]-1
+	md.range2 <- md.range[md.range$seg.mean > abs.thr, ]
+	if(nrow(md.range2) < 1){
+		return(md.range)
 	}
-	##split(I1, qhits)
-	##split(I2, qhits)
-	##stopifnot(sapply(split(st, qhits), function(x) all(diff(x) >= 0)))
-	nm <- apply(cbind(st.index, en.index), 1, function(x) length(x[1]:x[2]))
-	## keep segment means the same as the minimum distance
-	tmp <- RangedData(IRanges(st, en),
-			  id=sampleNames(md.range)[qhits],
-			  chrom=chromosome(md.range)[qhits],
-			  num.mark=nm,
-			  seg.mean=md.range$seg.mean[qhits],
-			  start.index=st.index,
-			  end.index=en.index,
-			  mindist.mad=md.range$mindist.mad[qhits])
-	##family=md.range$family[qhits])
-	##ranges.below.thr <- split(!abs.thr[qhits], qhits)
-	##ns <- sapply(ranges.below.thr, sum)
-	uid <- paste(tmp$id, start(tmp), tmp$chrom, sep="")
-	##duplicated(uid)
-	##stopifnot(!all(duplicated(uid)))
-	tmp <- tmp[!duplicated(uid), ]
-	## for each subject, the following must be true
-	index <- which(tmp$id[-nrow(tmp)] == tmp$id[-1])
-	##stopifnot(all(end(tmp)[index] < start(tmp)[index+1]))
-	res <- tmp[order(tmp$id, start(tmp)), ]
-	return(res)
+	cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs)), ]
+	o <- findOverlaps(md.range2, cbs.segs)
+	j <- subjectHits(o)
+	## only consider the cbs segments that have an overlap
+	offspring.segs <- cbs.segs[j, ]
+	sns <- unique(sampleNames(md.range2))
+	chr <- chromosome(md.range)[1]
+	rdlist <- list()
+	for(j in seq_along(sns)){
+		md <- md.range2[sampleNames(md.range2) == sns[j], ]
+		of <- offspring.segs[sampleNames(offspring.segs)==sns[j], ]
+		md.mad <- md$mindist.mad
+		md <- md[, match(colnames(of), colnames(md))]
+		un <- stack(RangedDataList(md, of))
+		unir <- IRanges(start(un), end(un))
+		unir <- disjoin(unir)
+		## drop ranges that are not in md
+		md2 <- IRanges(start(md), end(md))
+		o <- findOverlaps(md2, unir)
+		r <- subjectHits(o)
+		s <- queryHits(o)
+		unir <- unir[r, ]
+		rdlist[[j]] <- RangedDataCBS(IRanges(start(unir), end(unir)),
+					     sampleId=sns[j],
+					     chrom=chr,
+					     seg.mean=md$seg.mean[s],
+					     mindist.mad=md.mad[s])
+	}
+	rd <- stack(RangedDataList(rdlist))
+	rd <- rd[, -ncol(rd)]
+	o <- findOverlaps(rd, fD)
+	nmark <- sapply(split(subjectHits(o), queryHits(o)), length)
+	rd$num.mark <- 0L
+	rd$num.mark[unique(queryHits(o))] <- nmark
+	rd <- rd[rd$num.mark > 0L, ]
+
+	mrd <- md.range[md.range$seg.mean <= abs.thr, ]
+	rd2 <- stack(RangedDataList(rd, mrd))
+	rd2 <- rd2[, -ncol(rd2)]
+	rd2 <- rd2[order(sampleNames(rd2), start(rd2)), ]
+	return(rd2)
 }
+
+
+##narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE){
+##	if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
+##	##stopifnot(!is.null(names(mad.minimumdistance)))
+##	ix <- match(sampleNames(object), names(mad.minimumdistance))
+##	object$mindist.mad <- mad.minimumdistance[ix]
+##	stopifnot("mindist.mad" %in% colnames(object))
+##	lrr.segs <- lrr.segs[sampleNames(lrr.segs) %in% sampleNames(object), ]
+##	if(length(unique(chromosome(object))) > 1){
+##		if(verbose)
+##			message("narrowing the ranges by chromosome")
+##		indexList <- split(seq_len(nrow(object)), chromosome(object))
+##		indexList2 <- split(seq_len(nrow(lrr.segs)), chromosome(lrr.segs))
+##		stopifnot(all.equal(names(indexList), names(indexList2)))
+##		if(verbose) {
+##			pb <- txtProgressBar(min=0, max=length(indexList), style=3)
+##		}
+##		segList <- vector("list", length(indexList))
+##		for(i in seq_along(indexList)){
+##			if(verbose) setTxtProgressBar(pb, i)
+##			j <- indexList[[i]]
+##			k <- indexList2[[i]]
+##			md.segs <- object[j, ]
+##			lr.segs <- lrr.segs[k, ]
+##			segList[[i]] <- narrowRangeForChromosome(md.segs, lr.segs, thr=thr, verbose=FALSE)
+##			rm(md.segs, lr.segs); gc()
+##		}
+##		if(verbose) close(pb)
+##		segs <- stack(RangedDataList(segList))
+##		j <- match("sample", colnames(segs))
+##		if(length(j) == 1) segs <- segs[, -j]
+##	} else {
+##		segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose)
+##	}
+##	rd.cbs <- RangedDataCBS(ranges=ranges(segs), values=values(segs))
+##	return(rd.cbs)
+##}
+##
+##
+##narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE){
+##	md.range <- md.range[order(sampleNames(md.range), start(md.range)), ]
+##	cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs)), ]
+##	ir1 <- IRanges(start(md.range), end(md.range))
+##	ir2 <- IRanges(start(cbs.segs), end(cbs.segs))
+##	mm <- findOverlaps(ir1, ir2)
+##	qhits <- queryHits(mm)
+##	shits <- subjectHits(mm)
+##	index <- which(sampleNames(md.range)[qhits] == sampleNames(cbs.segs)[shits])
+##	if(length(index) > 0){
+##		qhits <- qhits[index]
+##		shits <- shits[index]
+##	} else stop("no overlap")
+##	##---------------------------------------------------------------------------
+##	##
+##	## only narrow the range if the minimum distance segment is
+##	## bigger than some nominal value. Otherwise, we use the
+##	## minimum distance range as is.
+##	##
+##	##
+##	##---------------------------------------------------------------------------
+##	##abs.thr <- abs(md.range$seg.mean)/md.range$mindist.mad > thr
+##	mads <- pmax(md.range$mindist.mad, .1)
+##	abs.thr <- abs(md.range$seg.mean)/mads > thr
+##	## I1 is an indicator for whether to use the cbs start
+##	deltaStart <- start(cbs.segs)[shits] > start(md.range)[qhits] & (start(cbs.segs)[shits] - start(md.range)[qhits] < 100e3)
+##	deltaEnd <- end(cbs.segs)[shits] < end(md.range)[qhits]  & (end(md.range)[qhits] - end(cbs.segs)[shits] < 100e3)
+##	I1 <- deltaStart & start(cbs.segs)[shits] >= start(md.range)[qhits] & start(cbs.segs)[shits] <= end(md.range)[qhits] & abs.thr[qhits]
+##	## indicator of whether to use the cbs end
+##	I2 <- deltaEnd & end(cbs.segs)[shits] <= end(md.range)[qhits] & end(cbs.segs)[shits] >= start(md.range)[qhits] & abs.thr[qhits]
+##	st <- start(cbs.segs)[shits] * I1 + start(md.range)[qhits] * (1-I1)
+##	en <- end(cbs.segs)[shits] * I2 + end(md.range)[qhits] * (1-I2)
+##	st.index <- (cbs.segs$start.index[shits] * I1 + md.range$start.index[qhits]*(1-I1))
+##	en.index <- (cbs.segs$end.index[shits] * I2 + md.range$end.index[qhits]*(1-I2))
+##	## For each md.range range, there should only be one I1 that is TRUE
+##	## If I1 and I2 are true, then a range is completely contained within the md.range segment
+##	ids <- md.range$id[qhits]
+##	##  |--------------|
+##	## ---|--------|-----
+##	## Becomes
+##	##  |-|--------|---|
+##	.i <- which(I1 & I2)
+##	if(length(.i) > 0){
+##		## new intervals
+##		ir <- IRanges(st[.i], en[.i])
+##		## remove intervals from ir1
+##		## these intervals in ir1 must be bigger
+##		ix <- subjectHits(findOverlaps(ir, ir1))
+##		originalIntervals <- ir1[ix, ]
+##		ids <- md.range$id[ix]
+##		means <- md.range$seg.mean[ix]
+##		chr <- chromosome(md.range)[ix]
+##		mads <- md.range$mindist.mad[ix]
+##		firstNew <- IRanges(start(originalIntervals), start(ir)-1)
+##		endNew <- IRanges(end(ir)+1, end(originalIntervals))
+##		ids <- rep(ids, each=3)
+##		chr <- rep(chr, each=3)
+##		means <- rep(means, each=3)
+##		mads <- rep(mads, each=3)
+##		res <- c(ir, firstNew, endNew)
+##		## remove originalIntervals from the original set
+##		ir1 <- ir1[-ix, ]
+##		ids1 <- md.range$id[-ix]
+##		chr1 <- chromosome(md.range)[-ix]
+##		means1 <- md.range$seg.mean[-ix]
+##		mads1 <- md.range$seg.mean[-ix]
+##		irnew <- c(ir1, res)
+##		ids2 <- c(ids1, ids)
+##		chr2 <- c(chr1, chr)
+##		mads2 <- c(mads1, mads)
+##		means2 <- c(means1, means)
+##		tmp <- RangedDataCBS(irnew,
+##				     sampleId=ids2,
+##				     chrom=chr2,
+##				     seg.mean=means2,
+##				     mindist.mad=mads2)
+##	} else return(md.range)
+##		##irnew <- irnew[order(start(irnew)), ]
+####	index <- which(I1 & I2)-1
+####	index <- index[index!=0]
+####	index <- index[ids[index] == ids[index+1]]
+#### 	ir3 <- IRanges(st[index], en[index])
+####	ir4 <- IRanges(st[index+1], en[index+1])
+####	##newRanges1 <- IRanges(st[index], st[index+1]-1)
+####	##newRanges2 <- IRanges(st[index+1], en[index])
+####	if(length(index) > 1){
+####		originalEnd <- en[index]
+####		originalStart <- st[index]
+####		newEnd <- st[index+1]-1
+####		newStart <- st[index+1]
+####		en[index] <- newEnd
+####		st <- c(st, newStart)
+####		en <- c(en, originalEnd)
+####		##en.index[index] <- st.index[index+1]-1
+####	}
+##	##split(I1, qhits)
+##	##split(I2, qhits)
+##	##stopifnot(sapply(split(st, qhits), function(x) all(diff(x) >= 0)))
+####	nm <- apply(cbind(st.index, en.index), 1, function(x) length(x[1]:x[2]))
+##	## keep segment means the same as the minimum distance
+####	tmp <- RangedData(IRanges(st, en),
+####			  ##id=sampleNames(md.range)[qhits],
+####			  id=ids2,
+####			  ##chrom=chromosome(md.range)[qhits],
+####			  chrom=chr2,
+####			  ##num.mark=nm,
+####			  seg.mean=md.range$seg.mean[qhits],
+####			  start.index=st.index,
+####			  end.index=en.index,
+####			  mindist.mad=md.range$mindist.mad[qhits])
+##	##family=md.range$family[qhits])
+##	##ranges.below.thr <- split(!abs.thr[qhits], qhits)
+##	##ns <- sapply(ranges.below.thr, sum)
+####	uid <- paste(tmp$id, start(tmp), tmp$chrom, sep="")
+##	##duplicated(uid)
+##	##stopifnot(!all(duplicated(uid)))
+####	tmp <- tmp[!duplicated(uid), ]
+##	## for each subject, the following must be true
+####	index <- which(tmp$id[-nrow(tmp)] == tmp$id[-1])
+##	##stopifnot(all(end(tmp)[index] < start(tmp)[index+1]))
+##	res <- tmp[order(tmp$id, start(tmp)), ]
+##	return(res)
+##}
 
 stackListByColIndex <- function(object, i, j){
 	X <- vector("list", length(object))
