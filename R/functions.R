@@ -920,6 +920,7 @@ xypanelMD2 <- function(x, y,
 }
 
 narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE, fD){
+	if(missing(fD)) stop("fD not specified. fD must be a list of GenomeAnnotatedDataFrames (if multiple chromosomes are in 'object'), or a single GenomeAnnotatedDataFrame (one chromosome represented in 'object')")
 	if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
 	##stopifnot(!is.null(names(mad.minimumdistance)))
 	ix <- match(sampleNames(object), names(mad.minimumdistance))
@@ -929,20 +930,27 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE,
 	if(length(unique(chromosome(object))) > 1){
 		if(verbose)
 			message("narrowing the ranges by chromosome")
+		if(!is(fD, "list")) stop("when object contains multiple chromosomes, fD should be a list of GenomeAnnotatedDataFrames")
+		chromsInFD <- sapply(fD, function(x) chromosome(x)[1])
 		indexList <- split(seq_len(nrow(object)), chromosome(object))
 		indexList2 <- split(seq_len(nrow(lrr.segs)), chromosome(lrr.segs))
-		stopifnot(all.equal(names(indexList), names(indexList2)))
-		if(verbose) {
-			pb <- txtProgressBar(min=0, max=length(indexList), style=3)
+		if(!all.equal(names(indexList), names(indexList2))){
+			stop("the chromosomes represented in the minimum distance genomic intervals (object) must be the same as the chromosomes represented in the offspring genomic intervals (lrr.segs)")
 		}
+		fD <- fD[match(names(indexList), as.character(chromsInFD))]
+		if(length(fD) != length(indexList)){
+			stop("The list of GenomeAnnotatedDataFrames (argument fD) must be the same length as the number of chromosomes represented in the minimum distange genomic intervals (object)")
+		}
+		if(verbose)  pb <- txtProgressBar(min=0, max=length(indexList), style=3)
 		segList <- vector("list", length(indexList))
 		for(i in seq_along(indexList)){
 			if(verbose) setTxtProgressBar(pb, i)
 			j <- indexList[[i]]
 			k <- indexList2[[i]]
+			feature.data <- fD[[i]]
 			md.segs <- object[j, ]
 			lr.segs <- lrr.segs[k, ]
-			segList[[i]] <- narrowRangeForChromosome(md.segs, lr.segs, thr=thr, verbose=FALSE, fD=fD[[i]])
+			segList[[i]] <- narrowRangeForChromosome(md.segs, lr.segs, thr=thr, verbose=FALSE, fD=feature.data)
 			rm(md.segs, lr.segs); gc()
 		}
 		if(verbose) close(pb)
@@ -950,6 +958,10 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE,
 		j <- match("sample", colnames(segs))
 		if(length(j) == 1) segs <- segs[, -j]
 	} else {
+		if(is(fD, "list")) {
+			fD <- fD[[1]]
+			if(chromosome(fD)[1] != chromosome(object)[1]) stop("The supplied GenomeAnnotatedDataFrame (fD) does not have the same chromosome as object")
+		}
 		segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose, fD=fD)
 	}
 	return(segs)
@@ -1001,6 +1013,7 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, 
 	rd <- rd[rd$num.mark > 0L, ]
 
 	mrd <- md.range[md.range$seg.mean <= abs.thr, ]
+	mrd <- mrd[, match(colnames(rd), colnames(mrd))]
 	rd2 <- stack(RangedDataList(rd, mrd))
 	rd2 <- rd2[, -ncol(rd2)]
 	rd2 <- rd2[order(sampleNames(rd2), start(rd2)), ]
@@ -1197,6 +1210,7 @@ callDenovoSegments <- function(path="",
 			       cdfname,
 			       chromosome=1:22,
 			       segmentParents,
+			       prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3),
 			       verbose=FALSE, ...){
 	if(!is(pedigreeData, "Pedigree")) stop("pedigreeData must be an object of class Pedigree")
 	filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
@@ -1246,7 +1260,7 @@ callDenovoSegments <- function(path="",
 			     id=id, ## NULL if segmentParents is FALSE
 			     verbose=verbose,
 			     featureNames=fns, ...)
-	md.segs2 <- narrow(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md)
+	md.segs2 <- narrow(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md, fD=Biobase::featureData(trioSetList))
 	index <- split(seq_len(nrow(md.segs2)), chromosome(md.segs2))
 	index <- index[match(chromosome(trioSetList), names(index))]
 	stopifnot(identical(as.character(chromosome(trioSetList)), names(index)))
@@ -1260,7 +1274,7 @@ callDenovoSegments <- function(path="",
 			    .packages="MinimumDistance") %do% {
 				    computeBayesFactor(object=object,
 						       ranges=md.segs2[i, ],
-						       outdir=outdir)
+						       outdir=outdir, prOutlierBAF=prOutlierBAF)
 			    }
 	return(map.segs)
 }

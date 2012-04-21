@@ -29,91 +29,90 @@ xyplotTrio <- function(rd, object, frame=200e3, lrr.segments, md.segments, ...){
 }
 
 
-xyplotTrioListLrrBaf <- function(rd, md, object, frame=200e3,
-				 lrr.segments, md.segments, ...){
-	## assume rd is one range
-	object <- object[[chromosome(rd)]]
-	marker.index <- subjectHits(findOverlaps(rd, featureData(object), maxgap=frame))
-	trio.index <- match(sampleNames(rd), sampleNames(object))
-	object <- object[marker.index, trio.index]
-	md <- md[[chromosome(rd)]]
-	md <- md[marker.index, trio.index, drop=FALSE]
-	mindist(object) <- md
- 	xyplotTrioLrrBaf(rd=rd, object=object, frame=frame, lrr.segments=lrr.segments, md.segments=md.segments, ...)
-}
+##xyplotTrioListLrrBaf <- function(rd, md, object, frame=200e3,
+##				 lrr.segments, md.segments, ...){
+##	## assume rd is one range
+##	object <- object[[chromosome(rd)]]
+##	marker.index <- subjectHits(findOverlaps(rd, featureData(object), maxgap=frame))
+##	trio.index <- match(sampleNames(rd), sampleNames(object))
+##	object <- object[marker.index, trio.index]
+##	md <- md[[chromosome(rd)]]
+##	md <- md[marker.index, trio.index, drop=FALSE]
+##	mindist(object) <- md
+## 	xyplotTrioLrrBaf(rd=rd, object=object, frame=frame, lrr.segments=lrr.segments, md.segments=md.segments, ...)
+##}
 
 
-xyplotTrioSetList <- function(object,
-			      mdlist,
-			      frame=200e3,
-			      map.segment,
-			      lrr.segments,
-			      md.segments, ...){
-	map.segment <- map.segment[1,]
-	CHR <- chromosome(map.segment)
-	id <- ss(sampleNames(map.segment))
-	lrr.segments <- lrr.segments[chromosome(lrr.segments) == CHR & ss(sampleNames(lrr.segments)) == id, ]
-	md.segments <- md.segments[chromosome(md.segments) == CHR & ss(sampleNames(md.segments)) == id, ]
-	ix <- match(sampleNames(map.segment), sampleNames(object))
-	trioSet <- object[[chromosome(map.segment)]][, ix]
-	mindist(trioSet) <- mdlist[[chromosome(map.segment)]][,ix]
-	ylab <- expression(log[2]("R ratios"))
-	ylab2 <- expression("B allele frequencies")
-	at <- c(-1, 0, log2(3/2), log2(4/2))
-	labels <- expression(-1, 0, log[2](3/2), log[2](4/2))
-	df <- dataFrameFromRange2(range=map.segment,
-				  object=trioSet,
-				  frame=frame,
-				  range.index=1)
-	df$range <- factor(paste("range", df$range), ordered=TRUE, levels=unique(paste("range", df$range)))
-	fig <- xyplot(y~x|memberId,
-		      data=df,
-		      baf=df$baf,
-		      is.snp=df$is.snp,
-		      range=map.segment,
-		      memberId=df$memberId,
-		      lrr.segments=lrr.segments,
-		      md.segments=md.segments,
-		      ped=pedigree(object),
-		      ylab="",
-		      xlab="physical position (Mb)",
-		      panel=xypanelTrio,
-		      scales=list(x="same",
-		      y=list(alternating=1, at=at, labels=labels)),
-		      layout=c(1, 4),
-		      ylim=c(-3, 1.5),
-		      key=list(text=list(c(ylab, ylab2),
-			       col=c("black", "blue")), columns=2),
-		      ...)
-	results <- list(trellis=fig,
-			trioSet=trioSet,
-			map.segment=map.segment,
-			lrr.segments=lrr.segments,
-			md.segments=md.segments)
-	return(results)
-}
+##xyplotTrioSetList <- function(object,
+##			      mdlist,
+##			      frame=200e3,
+##			      map.segment,
+##			      lrr.segments,
+##			      md.segments, ...){
+##	map.segment <- map.segment[1,]
+##	CHR <- chromosome(map.segment)
+##	id <- ss(sampleNames(map.segment))
+##	lrr.segments <- lrr.segments[chromosome(lrr.segments) == CHR & ss(sampleNames(lrr.segments)) == id, ]
+##	md.segments <- md.segments[chromosome(md.segments) == CHR & ss(sampleNames(md.segments)) == id, ]
+##	ix <- match(sampleNames(map.segment), sampleNames(object))
+##	trioSet <- object[[chromosome(map.segment)]][, ix]
+##	mindist(trioSet) <- mdlist[[chromosome(map.segment)]][,ix]
+##	ylab <- expression(log[2]("R ratios"))
+##	ylab2 <- expression("B allele frequencies")
+##	at <- c(-1, 0, log2(3/2), log2(4/2))
+##	labels <- expression(-1, 0, log[2](3/2), log[2](4/2))
+##	df <- dataFrameFromRange2(range=map.segment,
+##				  object=trioSet,
+##				  frame=frame,
+##				  range.index=1)
+##	df$range <- factor(paste("range", df$range), ordered=TRUE, levels=unique(paste("range", df$range)))
+##	fig <- xyplot(y~x|memberId,
+##		      data=df,
+##		      baf=df$baf,
+##		      is.snp=df$is.snp,
+##		      range=map.segment,
+##		      memberId=df$memberId,
+##		      lrr.segments=lrr.segments,
+##		      md.segments=md.segments,
+##		      ped=pedigree(object),
+##		      ylab="",
+##		      xlab="physical position (Mb)",
+##		      panel=xypanelTrio,
+##		      scales=list(x="same",
+##		      y=list(alternating=1, at=at, labels=labels)),
+##		      layout=c(1, 4),
+##		      ylim=c(-3, 1.5),
+##		      key=list(text=list(c(ylab, ylab2),
+##			       col=c("black", "blue")), columns=2),
+##		      ...)
+##	results <- list(trellis=fig,
+##			trioSet=trioSet,
+##			map.segment=map.segment,
+##			lrr.segments=lrr.segments,
+##			md.segments=md.segments)
+##	return(results)
+##}
 
 xypanelTrio <- function(x, y,
-			   memberId,
-			   baf,
-			   is.snp,
-			   range,
-			   lrr.segments,
-			   md.segments,
+			memberId,
+			baf,
+			is.snp,
+			range,
+			lrr.segments,
+			md.segments,
 			baf.color="blue",
-			   col.hom="grey20",
-			   fill.hom="lightblue",
-			   col.het="grey20" ,
-			   fill.het="salmon",
-			   col.np="grey20",
-			   fill.np="grey60",
+			col.hom="grey20",
+			fill.hom="lightblue",
+			col.het="grey20" ,
+			fill.het="salmon",
+			col.np="grey20",
+			fill.np="grey60",
 			state.show=TRUE,
 			state.cex=1,
 			state.col="blue",
 			segment.col="grey50",
-			   ped,
-			   ..., subscripts){
-	##panel.grid(v=0, h=4, "grey", lty=2)
+			ped,
+			..., subscripts){
 	panel.abline(h=c(-1, 0, log2(3/2), log2(4/2)), col="grey", lty=2)
 	panel.xyplot(x[1], y[1], col="white", ...) ## set it up, but don't plot
 	is.snp <- is.snp[subscripts]
