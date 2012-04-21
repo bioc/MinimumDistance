@@ -14,6 +14,7 @@
 \alias{dims,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}
 \alias{fatherPhenoData,TrioSetList-method}
+\alias{featureData,TrioSetList-method}
 \alias{motherPhenoData,TrioSetList-method}
 \alias{offspringPhenoData,TrioSetList-method}
 \alias{fatherNames}
@@ -119,6 +120,9 @@
   \item{}{\code{fatherPhenoData(object)}: Extract a
   \code{AnnotatedDataFrame} of the sample-level covariates for the
   father.}
+
+  \item{}{\code{featureData(object)}: Extracts a list of
+    \code{GenomeAnnotatedDataFrame}s.}
 
   \item{}{\code{length(object)}: The number of chromosomes.}
 
@@ -284,7 +288,9 @@ R. Scharpf
 
 \examples{
 showClass("TrioSetList")
+library(Biobase)
 TrioSetList()
-data(trioSetExample)
+data(trioSetListExample)
+featureData(trioSetList)
 }
 \keyword{classes}

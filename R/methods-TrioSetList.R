@@ -557,6 +557,9 @@ setMethod("assayDataList", signature(object="TrioSetList"),
 setMethod("featureDataList", signature(object="TrioSetList"),
 	  function(object)  object@featureDataList)
 
+setMethod("featureData", signature(object="TrioSetList"),
+	  function(object)  object@featureDataList)
+
 setMethod("lrr", signature(object="TrioSetList"),
 	  function(object){
 		  ##lapply(object, lrr)
