@@ -8,7 +8,7 @@
   posterior calling steps.
 }
 \usage{
-callDenovoSegments(path = "", pedigreeData, ext = "", featureData, cdfname, chromosome = 1:22, segmentParents, verbose = FALSE, ...)
+callDenovoSegments(path = "", pedigreeData, ext = "", featureData, cdfname, chromosome = 1:22, segmentParents, prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3), verbose = FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -40,6 +40,8 @@ callDenovoSegments(path = "", pedigreeData, ext = "", featureData, cdfname, chro
   \code{Logical}: whether to segment the parental log R ratios using
   circular binary segmentation
 }
+
+  \item{prOutlierBAF}{ Can be helpful to contrain the value for this parameter during the reestimation procedure. Appropriate constraints depend on the platform (Affy or Illumina). See \code{viterbi2Wrapper} for details.}
 
   \item{verbose}{
     \code{Logical}: whether to display verbose output indicating progress.
@@ -102,6 +104,8 @@ R. Scharpf
 
   \code{\link{state}} for accessing the state symbols (posterior calls)
   for the genomic ranges.
+
+  \code{\link{viterbi2Wrapper}}
 }
 \examples{
 library(oligoClasses)
@@ -115,7 +119,8 @@ map.segs <- callDenovoSegments(path=path,
 			       pedigreeData=ped,
 			       cdfname="human610quadv1b",
 			       chromosome=1,
-			       segmentParents=FALSE)
+			       segmentParents=FALSE,
+                               prOutlierBAF=list(initial=1e-3, max=0.01, maxROH=1e-3))
 }
 \keyword{htest}
 \keyword{models}

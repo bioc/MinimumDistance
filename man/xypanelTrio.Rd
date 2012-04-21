@@ -14,7 +14,10 @@
 }
 \usage{
 xypanelTrio(x, y, memberId, baf, is.snp, range, lrr.segments,
-md.segments, baf.color="blue", col.hom = "grey20", fill.hom = "lightblue", col.het = "grey20", fill.het = "salmon", col.np = "grey20", fill.np = "grey60", state.show = TRUE, state.cex = 1, state.col = "blue", ped, ..., subscripts)
+md.segments, baf.color="blue", col.hom = "grey20", fill.hom =
+"lightblue", col.het = "grey20", fill.het = "salmon", col.np = "grey20",
+fill.np = "grey60", state.show = TRUE, state.cex = 1, state.col =
+"blue", segment.col="grey50", ped, ..., subscripts)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -78,7 +81,11 @@ md.segments, baf.color="blue", col.hom = "grey20", fill.hom = "lightblue", col.h
 }
   \item{state.col}{
     Color of the text used for displaying the state.
-}
+  }
+
+  \item{segment.col}{ Line color for overplotting the segment means
+    (e.g., from CBS) in the \code{llr.segments} and \code{md.segments} objects.
+  }
 
   \item{ped}{
     Object of class \code{Pedigree}
