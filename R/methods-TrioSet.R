@@ -675,7 +675,7 @@ dataFrameFromRange2 <- function(object, range, range.index, frame=0){
 	mid <- substr(motherNames(object)[1], 1, nchr)
 	memberid[oindex] <- paste(oid, "(offspring)")
 	memberid[findex] <- paste(fid, "(father)")
-	memberid[mindex] <- paste(fid, "(mother)")
+	memberid[mindex] <- paste(mid, "(mother)")
 	memberid <- paste("chr", chr, ": ", memberid, sep="")
 	memberid <- factor(memberid, levels=rev(unique(memberid)))
 	df$memberId <- I(memberid)
