@@ -953,16 +953,24 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE,
 		}
 		if(verbose)  pb <- txtProgressBar(min=0, max=length(indexList), style=3)
 		segList <- vector("list", length(indexList))
-		for(i in seq_along(indexList)){
-			if(verbose) setTxtProgressBar(pb, i)
-			j <- indexList[[i]]
-			k <- indexList2[[i]]
-			feature.data <- fD[[i]]
-			md.segs <- object[j, ]
-			lr.segs <- lrr.segs[k, ]
-			segList[[i]] <- narrowRangeForChromosome(md.segs, lr.segs, thr=thr, verbose=FALSE, fD=feature.data)
-			rm(md.segs, lr.segs); gc()
+		pkgs <- neededPkgs()
+		segList <- foreach(j=indexList, k=indexList2, featureData=fD, .packages=pkgs) %dopar%{
+			MinimumDistance:::narrowRangeForChromosome(object[j, ],
+								   lrr.segs[k, ],
+								   thr=thr,
+								   verbose=FALSE,
+								   fD=featureData)
 		}
+##		for(i in seq_along(indexList)){
+##			if(verbose) setTxtProgressBar(pb, i)
+##			j <- indexList[[i]]
+##			k <- indexList2[[i]]
+##			feature.data <- fD[[i]]
+##			md.segs <- object[j, ]
+##			lr.segs <- lrr.segs[k, ]
+##			segList[[i]] <- narrowRangeForChromosome(md.segs, lr.segs, thr=thr, verbose=FALSE, fD=feature.data)
+##			rm(md.segs, lr.segs); gc()
+##		}
 		if(verbose) close(pb)
 		segs <- stack(RangedDataList(segList))
 		j <- match("sample", colnames(segs))
