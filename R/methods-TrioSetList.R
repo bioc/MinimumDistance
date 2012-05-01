@@ -615,5 +615,18 @@ setMethod("$", signature(x="TrioSetList"),
 
 setMethod("nrow", signature(x="TrioSetList"), function(x) sum(sapply(lrr(x), nrow)))
 
+setReplaceMethod("featureData", signature(object="TrioSetList", value="list"),
+		 function(object, value){
+			 object@featureDataList <- value
+			 object
+		 })
 
-
+setMethod("gcSubtract", signature(object="TrioSetList"),
+	  function(object, ...){
+		  res <- list()
+		  for(j in seq_along(object)){
+			  res[[j]] <- gcSubtract(object[[j]], ...)
+		  }
+		  object <- stack(RangedDataList(object))
+		  return(object)
+	  })

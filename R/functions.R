@@ -39,6 +39,18 @@ splitByDistance <- function(x, thr=100e3){
 	return(f)
 }
 
+splitIndicesByLength2 <- function(x, MIN.LENGTH=1000, ...){
+	f <- splitIndicesByLength(x, ...)
+	l <- sapply(f, length)
+	L <- length(l)
+	l <- l[L]
+	if(l < MIN.LENGTH & length(f) > 1){
+		f[[L-1]] <- c(f[[L-1]], f[[L]])
+		f <- f[-L]
+	}
+	return(f)
+}
+
 
 
 discAtTop <- function(ranges.query, ranges.subject, verbose=TRUE,...){
@@ -289,7 +301,7 @@ pruneMD <- function(genomdat,
 	stopifnot(length(unique(range.object$id)) == 1)
 	stopifnot(length(unique(range.object$chrom)) == 1)
 	##change.SD <- trimmed.SD*change.SD
-	genomdat <- as.numeric(genomdat)
+	genomdat <- as.numeric(genomdat)/100
 	coverage <- range.object$num.mark
 	trimmed.SD <- unique(range.object$mindist.mad)
 	stopifnot(length(trimmed.SD)==1)
@@ -354,16 +366,14 @@ pruneMD <- function(genomdat,
 	segments0 <- cbind(c(1,1+cpt.loc[-k]),cpt.loc)
 	starts <- physical.pos[segments0[, 1]]
 	ends <- physical.pos[segments0[, 2]]
+	if(length(ends) < length(starts)) ends <- c(ends, max(end(range.object)))
 	id <- unique(range.object$id)
-	res <- RangedData(IRanges(starts, ends),
-			  id=id,
-			  chrom=unique(range.object$chrom),
-			  num.mark=lseg,
-			  seg.mean=segmeans,
-			  start.index=segments0[,1],
-			  end.index=segments0[,2],
-			  mindist.mad=range.object$mindist.mad[1])
-	res$family <- unique(range.object$family)
+	res <- RangedDataCBS(IRanges(starts, ends),
+			     sampleId=id,
+			     chrom=unique(range.object$chrom),
+			     coverage=lseg,
+			     seg.mean=segmeans,
+			     mindist.mad=range.object$mindist.mad[1])
 	return(res)
 }
 
@@ -980,6 +990,7 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, 
 	o <- findOverlaps(md.range2, cbs.segs)
 	j <- subjectHits(o)
 	## only consider the cbs segments that have an overlap
+	if(!is.na(match("sample", colnames(cbs.segs)))) cbs.segs <- cbs.segs[, -match("sample", colnames(cbs.segs))]
 	offspring.segs <- cbs.segs[j, ]
 	sns <- unique(sampleNames(md.range2))
 	chr <- chromosome(md.range)[1]
@@ -1443,3 +1454,37 @@ trioSetListExample <- function(){
 
 neededPkgs <- function() c("oligoClasses", "Biobase", "MinimumDistance")
 
+gcSubtractMatrix <- function(object, center=TRUE, gc, pos, smooth.gc=TRUE, ...){
+	if(ncol(object) !=3) stop("Must pass one trio at a time.")
+	cnhat <- matrix(NA, nrow(object), ncol(object))
+	isna <- rowSums(is.na(object)) > 0
+	if(any(isna)){
+		i <- which(isna)
+		gc <- gc[-i]
+		pos <- pos[-i]
+		if(smooth.gc)
+			gc <- lowess(gc~pos, ...)$y
+		object <- object[-i, , drop=FALSE]
+	}
+	X <- cbind(1, gc)
+	## needs to be a big enough window such that we do not remove a true deletion/amplification
+	index <- splitIndicesByLength2(x=seq_along(pos), lg=10000, MIN.LENGTH=2000)
+	fitGCmodel <- function(X, Y){
+		betahat <- solve(crossprod(X), crossprod(X, Y))
+		yhat <- X %*% betahat
+		resid <- Y-yhat
+		resid
+	}
+	resid <- foreach(j=index, .combine="rbind") %do% fitGCmodel(X=X[j, ], Y=object[j, ])
+	## ensure that the chromosome arm has the same median as in the original Y's
+	if(center) resid <- resid+median(object,na.rm=TRUE)
+	if(any(isna)) cnhat[-i, ] <- resid else cnhat <- resid
+	cnhat
+}
+
+
+rescale2 <- function(x, l, u){
+	y <- (x-min(x,na.rm=TRUE))/(max(x,na.rm=TRUE)-min(x,na.rm=TRUE))
+	VanillaICE:::rescale(y, l, u)
+
+}

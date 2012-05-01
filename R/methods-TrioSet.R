@@ -52,6 +52,7 @@ setReplaceMethod("lrr", c("TrioSet", "ANY"),
 		 function(object, value) {
 			 assayDataElementReplace(object, "logRRatio", value)
 	 })
+
 setMethod("baf", "TrioSet",
 	  function(object) {
 		  assayDataElement(object, "BAF")
@@ -696,3 +697,18 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 	  function(object, verbose=TRUE, ...){
 		  calculateMindist(lrr(object))
 	  })
+
+setMethod("gcSubtract", signature(object="TrioSet"),
+	  function(object, trio.index, ...){
+		  gcSubtractTrioSet(object, trio.index, ...)
+	  })
+
+gcSubtractTrioSet <- function(object, trio.index, ...){
+	if(missing(trio.index)) J <- seq_len(ncol(object)) else J <- trio.index
+	if(!"gc" %in% fvarLabels(object)) stop("gc not in fvarLabels")
+	for(j in J){
+		r <- gcSubtractMatrix(lrr(object)[,j,], gc=fData(object)$gc, pos=position(object), ...)
+		lrr(object)[,j,] <- integerMatrix(r, 1)
+	}
+	object
+}

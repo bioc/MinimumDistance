@@ -104,7 +104,7 @@ exportMethods("[", allNames,
 	      updateObject,
 	      width,
 ##	      xyplot,
-	      initialize)
+	      initialize, gcSubtract)
 export(callDenovoSegments,
        concAtTop,
        TrioSet,
