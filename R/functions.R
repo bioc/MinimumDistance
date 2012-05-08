@@ -298,17 +298,19 @@ pruneMD <- function(genomdat,
 		  MIN.COVERAGE=3,
 		  weighted=FALSE,
 		  weights=NULL) {
-	stopifnot(length(unique(range.object$id)) == 1)
-	stopifnot(length(unique(range.object$chrom)) == 1)
+	if(length(unique(range.object$id)) != 1) stop("multiple ids in range.object")
+	if(length(unique(chromosome(range.object))) > 1) stop("Multiple chromosomes in range.object")
 	##change.SD <- trimmed.SD*change.SD
 	genomdat <- as.numeric(genomdat)/100
 	coverage <- range.object$num.mark
-	trimmed.SD <- unique(range.object$mindist.mad)
-	stopifnot(length(trimmed.SD)==1)
+	trimmed.SD <- max(mad(genomdat, na.rm=TRUE), .15)
+	##trimmed.SD <- unique(range.object$mindist.mad)
+	##stopifnot(length(trimmed.SD)==1)
 	coverage <- coverage[-length(coverage)]
 	if(FALSE){
 		numberSds <- calculateChangeSd(coverage=3:100, lambda=lambda, a=MIN.CHANGE, b=SCALE.EXP)
-		graphics:::plot(3:100, y, ylab="number of MADs", xlab="coverage")
+		y <- MIN.CHANGE+lambda*exp(-lambda*(3:100))/SCALE.EXP
+		plot(3:100, y, ylab="number of MADs", xlab="coverage")
 	}
 	##thrSD <- calculateChangeSd(coverage, lambda, trimmed.SD, change.SD)
 		##change.SD <- change.SD  ##Thresholds for right cutpoint
@@ -373,7 +375,7 @@ pruneMD <- function(genomdat,
 			     chrom=unique(range.object$chrom),
 			     coverage=lseg,
 			     seg.mean=segmeans,
-			     mindist.mad=range.object$mindist.mad[1])
+			     mindist.mad=mad(genomdat, na.rm=TRUE))
 	return(res)
 }
 

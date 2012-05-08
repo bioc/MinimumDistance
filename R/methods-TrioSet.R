@@ -446,58 +446,39 @@ setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
 	  })
 
 setMethod("prune", signature(object="TrioSet", ranges="RangedDataCNV"),
-	  function(object, ranges, ...){
-		  stop("requires mindist(object)")
-		  CHR <- unique(chromosome(object))
-		  if(verbose) message("Pruning chromosome ", CHR)
-		  if(missing(id)) id <- unique(sampleNames(ranges))
-		  index <- which(chromosome(ranges) == CHR & sampleNames(ranges) %in% id)
-		  ranges <- ranges[index, ]
-		  rdList <- vector("list", length(unique(id)))
-		  is.ff <- is(mindist(object), "ff")
-		  if(is.ff){
-			  open(mindist(object))
-		  }
-		  if(verbose){
-			  message("\tPruning ", length(unique(id)), " files.")
-			  pb <- txtProgressBar(min=0, max=length(unique(id)), style=3)
-		  }
-		  for(j in seq_along(id)){
-			  if (verbose) setTxtProgressBar(pb, j)
-			  sampleId <- id[j]
-			  rd <- ranges[sampleNames(ranges) == sampleId, ]
-			  stopifnot(nrow(rd) > 0)
-			  ## assign the mad of the minimum distance to the ranges
-			  k <- match(sampleId, sampleNames(object))
-			  ##rd$mad <- object[[1]]$mindist.mad[k]
-			  genomdat <- as.numeric(mindist(object)[, k])
-			  ## This function currently returns a RangedData object
-			  rdList[[j]] <- pruneMD(genomdat,
-						 rd,
-						 physical.pos=position(object),  ##fD$position,
-						 lambda=lambda,
-						 MIN.CHANGE=min.change,
-						 SCALE.EXP=scale.exp,
-						 MIN.COVERAGE=min.coverage)
-		  }
-		  if(verbose) close(pb)
-		  if(is.ff){
-			  close(mindist(object))
-		  }
-		  if(length(rdList) == 1) {
-			  rd <- rdList[[1]]
-		  } else {
-			  rdList <- rdList[!sapply(rdList, is.null)]
-			  ##rdList <- lapply(rdList, function(x) as(x, "RangedData"))
-			  rdl <- RangedDataList(rdList)
-			  rd <- stack(rdl)
-			  ##rd <- as(rd, "RangedDataCNV")
-			  ix <- match("sample", colnames(rd))
-			  if(length(ix) > 0) rd <- rd[, -ix]
-		  }
-		  ## This will be of class RangedData
-		  return(rd)
+	  function(object, ranges, md, verbose=TRUE, ...){
+		  pruneTrioSet(object=object, ranges=ranges, md=md, verbose=verbose, ...)
 	 })
+
+pruneTrioSet <- function(object, ranges, md, verbose=TRUE, ...){
+	CHR <- unique(chromosome(object))
+	if(verbose) message("Pruning chromosome ", CHR)
+	id <- unique(sampleNames(ranges))
+	index <- which(chromosome(ranges) == CHR & sampleNames(ranges) %in% id)
+	ranges <- ranges[index, ]
+	rdList <- vector("list", length(unique(id)))
+	if(verbose){
+		message("\tPruning ", length(unique(id)), " files.")
+		pb <- txtProgressBar(min=0, max=length(unique(id)), style=3)
+	}
+	for(j in seq_along(id)){
+		if (verbose) setTxtProgressBar(pb, j)
+		sampleId <- id[j]
+		rd <- ranges[sampleNames(ranges) == sampleId, ]
+		stopifnot(nrow(rd) > 0)
+		## assign the mad of the minimum distance to the ranges
+		k <- match(sampleId, sampleNames(object))
+		##rd$mad <- object[[1]]$mindist.mad[k]
+		genomdat <- md[, k]
+		##genomdat <- as.numeric(mindist(object)[, k])/100
+		## This function currently returns a RangedData object
+		rdList[[j]] <- pruneMD(genomdat, rd,  ...)
+	}
+	if(verbose) close(pb)
+	rd <- stack(RangedDataList(rdList))
+	rd <- rd[, -ncol(rd)]
+	return(rd)
+}
 
 ##setMethod("offspringNames", signature(object="TrioSet"), function(object){
 ##	phenoData2(object)[, "id", "O"]
@@ -670,10 +651,10 @@ dataFrameFromRange2 <- function(object, range, range.index, frame=0){
 	findex <- which(df$memberId=="father")
 	mindex <- which(df$memberId=="mother")
 	memberid <- as.character(df$memberId)
-	nchr <- min(8, nchar(sampleNames(object)[1]))
-	oid <- substr(sampleNames(object)[1], 1, nchr)
-	fid <- substr(fatherNames(object)[1], 1, nchr)
-	mid <- substr(motherNames(object)[1], 1, nchr)
+	nchr <- min(8, nchar(sampleNames(obj)[1]))
+	oid <- substr(sampleNames(obj)[1], 1, nchr)
+	fid <- substr(fatherNames(obj)[1], 1, nchr)
+	mid <- substr(motherNames(obj)[1], 1, nchr)
 	memberid[oindex] <- paste(oid, "(offspring)")
 	memberid[findex] <- paste(fid, "(father)")
 	memberid[mindex] <- paste(mid, "(mother)")
@@ -699,16 +680,68 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 	  })
 
 setMethod("gcSubtract", signature(object="TrioSet"),
-	  function(object, trio.index, ...){
-		  gcSubtractTrioSet(object, trio.index, ...)
+	  function(object, method=c("speed", "lowess"), trio.index, ...){
+		  method <- match.arg(method)
+		  gcSubtractTrioSet(object, method=method, trio.index, ...)
 	  })
 
-gcSubtractTrioSet <- function(object, trio.index, ...){
+gcSubtractTrioSet <- function(object, method, trio.index, ...){
 	if(missing(trio.index)) J <- seq_len(ncol(object)) else J <- trio.index
 	if(!"gc" %in% fvarLabels(object)) stop("gc not in fvarLabels")
-	for(j in J){
-		r <- gcSubtractMatrix(lrr(object)[,j,], gc=fData(object)$gc, pos=position(object), ...)
-		lrr(object)[,j,] <- integerMatrix(r, 1)
+	if(method=="lowess"){
+		for(j in J){
+			r <- gcSubtractMatrix(lrr(object)[,j,], gc=fData(object)$gc, pos=position(object), ...)
+			lrr(object)[,j,] <- integerMatrix(r, 1)
+		}
+	} else {
+		gcbins <- getGcBin(fData(object)$gc)
+		for(j in J){
+			r <- gcSubtractSpeed(lrr(object)[, j, ], gcbins=gcbins)
+			lrr(object)[, j, ] <- integerMatrix(r, 1)
+		}
 	}
 	object
+}
+
+gcSubtractSpeed <- function(r, gcbins){
+	r.adj <- r
+	nc <- ncol(r)
+	for(i in seq_along(gcbins)){
+		j <- gcbins[[i]]
+		mus <- apply(r[j, , drop=FALSE], 2, mean, na.rm=TRUE)
+		mus <- matrix(mus, nrow=length(j), ncol=nc, byrow=TRUE)
+		r.adj[j, ] <- r[j, , drop=FALSE] - mus
+	}
+	return(r.adj)
+}
+
+getGcBin <- function(gc){
+	cuts <- seq(0, 100, by=1)
+	bins <- cut(gc, breaks=cuts)
+	gcbins <- split(seq_len(length(gc)), bins)  ## contains indices
+	L <- sapply(gcbins, length)
+	gcbins <- gcbins[L > 0]
+	L <- L[L > 0]
+	minL <- 50
+	while(any(L < minL)){
+		index <- which(L < minL)
+		if(any(index == 1)){
+			gcbins[[2]] <- c(gcbins[[1]], gcbins[[2]])
+			gcbins <- gcbins[-1]
+			dropFirst <- TRUE
+		} else dropFirst <- FALSE
+		if(any(index == length(gcbins))){
+			LL <- length(gcbins)
+			gcbins[[LL-1]] <- c(gcbins[[LL-1]], gcbins[[LL]])
+			gcbins <- gcbins[-LL]
+			dropLast <- TRUE
+		} else dropLast <- FALSE
+		if(!(dropFirst | dropLast)){
+			index.mid <- index[index > 1 & index < length(gcbins)]
+			gcbins[[min(index.mid)-1]] <- c(gcbins[[min(index.mid)-1]], gcbins[[min(index.mid)]])
+			gcbins <- gcbins[-min(index.mid)]
+		}
+		L <- sapply(gcbins, length)
+	}
+	return(gcbins)
 }
