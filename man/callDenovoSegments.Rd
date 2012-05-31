@@ -8,7 +8,7 @@
   posterior calling steps.
 }
 \usage{
-callDenovoSegments(path = "", pedigreeData, ext = "", featureData,cdfname, chromosome = 1:22, segmentParents,prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3), verbose = FALSE,genome=c("hg19", "hg18")...)
+callDenovoSegments(path = "", pedigreeData, ext = "", featureData,cdfname, chromosome = 1:22, segmentParents,prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3), verbose = FALSE,genome=c("hg19", "hg18"),...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

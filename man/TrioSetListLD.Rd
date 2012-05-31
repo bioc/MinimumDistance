@@ -85,6 +85,7 @@ R. Scharpf
 \examples{
 if(require("ff")){
 	library(ff)
+        library(oligoClasses)
 	ldPath(tempdir())
 	path <- system.file("extdata", package="MinimumDistance")
 	fnames <- list.files(path, pattern="[FMO].txt")

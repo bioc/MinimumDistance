@@ -315,7 +315,8 @@ trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 			   pedigree=Pedigree(pedigreeInfo),
 			   sample.sheet=sample.sheet,
 			   row.names=nms,
-			   cdfname="human610quadv1bCrlmm")
+			   cdfname="human610quadv1bCrlmm",
+			   genome="hg19")
 show(trioSetList)
 @
 
@@ -443,9 +444,9 @@ development. Here, we provide a quick example using a function and a
 lattice-style panel function that are not currently exported.
 
 <<triofig>>=
-rd.denovoDel <- map.segs[state(map.segs) == 332 & coverage2(map.segs) > 5, ]
+rd.denovoDel <- map.segs[state(map.segs) == 332 & numberProbes(map.segs) > 5, ]
 rd <- rd.denovoDel[1, ]
-CHR <- match(chromosome(rd), chromosome(trioSetList))
+CHR <- match(as.character(chromosome(rd)), paste("chr",chromosome(trioSetList), sep=""))
 S <- match(sampleNames(rd), sampleNames(trioSetList))
 trioSet <- trioSetList[[CHR]][, S]
 mindist(trioSet) <- md[[CHR]][, S, drop=FALSE]

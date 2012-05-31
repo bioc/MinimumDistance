@@ -6,7 +6,7 @@ Narrow the minimum distance ranges by the segmentation of the offspring
   copy number estimates.
 }
 \usage{
-narrow(object, lrr.segs, thr, mad.minimumdistance, verbose = TRUE, fD)
+narrow(object, lrr.segs, thr, mad.minimumdistance, verbose = TRUE, fD, genome)
 }
 \arguments{
   \item{object}{
@@ -41,6 +41,13 @@ narrow(object, lrr.segs, thr, mad.minimumdistance, verbose = TRUE, fD)
   this object is used to update the coverage (column 'num.mark') in the
   \code{RangedDataCNV} object after 'narrowing' the ranges.
 }
+
+\item{genome}{This argument is ignored if both \code{object} and
+  \code{lrr.segs} are \code{GRanges} object. Otherwise, \code{object}
+  and \code{lrr.segs} will be coerced to \code{GRanges} and the coercion
+  requires the specification of the UCSC genome build (hg18 or hg19) for
+  the feature annotation.
+  }
 
 }
 

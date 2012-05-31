@@ -42,8 +42,6 @@ R. Scharpf
   \code{\linkS4class{TrioSet}}, \code{\linkS4class{TrioSetList}}
 }
 
-\examples{
-}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{methods}

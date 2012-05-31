@@ -108,10 +108,12 @@ test_TrioSetList_construction <- function(){
 
 test_TrioSetListLD <- function(){
 	## constructor for large data
+	library(MinimumDistance);library(RUnit)
 	library(oligoClasses)
 	path <- system.file("extdata", package="MinimumDistance")
 	fnames <- list.files(path, pattern=".txt")
 	##allow duplicated father and mother names
+
 	ped <- Pedigree(data.frame(F=c("F.txt", "F.txt"),
 				   M=c("M.txt", "M.txt"),
 				   O=c("O.txt", "O1.txt")))

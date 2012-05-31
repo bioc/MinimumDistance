@@ -36,7 +36,6 @@ Object of class \code{Pedigree}
 	strings provided to indicate the ids of the father, mother and
 	offspring should be ordered such that the ith element in each
 	vector are the sample identifiers for one trio.
-
 }
 
 \author{
@@ -48,14 +47,12 @@ R. Scharpf
 }
 
 \examples{
-Pedigree()
-\dontrun{
+	Pedigree()
 	Pedigree(fatherIds=letters[1], motherIds=letters[2],offspringIds=letters[3])
+	path <- system.file("extdata", package="MinimumDistance")
+	load(file.path(path, "pedigreeInfo.rda"))
+	Pedigree(pedigreeInfo)
 }
-path <- system.file("extdata", package="MinimumDistance")
-load(file.path(path, "pedigreeInfo.rda"))
-Pedigree(pedigreeInfo)
 
-}
 \keyword{manip}
 

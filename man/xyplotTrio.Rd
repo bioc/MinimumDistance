@@ -62,7 +62,7 @@ data(lrr.segs)
 data(md.segs)
 ## select a range with a possible de novo copy number alteration in the offspring
 rd <- map.segs[which(isDenovo(state(map.segs)))[1], ]
-trioSet <- trioSetList[[match(chromosome(rd), chromosome(trioSetList))]][, match(sampleNames(rd), sampleNames(trioSetList))]
+trioSet <- trioSetList[[match(as.character(chromosome(rd)), paste("chr",chromosome(trioSetList),sep=""))]][, match(sampleNames(rd), sampleNames(trioSetList))]
 mindist(trioSet) <- calculateMindist(lrr(trioSet))
 figs <- xyplotTrio(rd=rd,
 		   object=trioSet,
