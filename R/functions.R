@@ -1340,15 +1340,6 @@ originalNames <- function(names){
 	if(length(names) ==0) return(names)
 	sep <- formals(make.unique2)[["sep"]]
 	index <- grep(sep, names)
-	if(length(index) > 0){
-		names[index] <- sapply(names[index], function(x) strsplit(x, sep)[[1]][[1]])
-	}
-	names
-}
-
-originalNames <- function(names, sep){
-	if(length(names) ==0) return(names)
-	index <- grep(sep, names)
 	if(length(index) > 0) names[index] <- sapply(names[index], function(x) strsplit(x, sep)[[1]][[1]])
 	names
 }

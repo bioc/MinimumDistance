@@ -423,7 +423,6 @@ computeBayesFactorTrioSetList <- function(object,
 	map.segs <- foreach(X=object,
 			    i=index,
 			    .inorder=FALSE,
-			    .combine=stackRangedDataList,
 			    .packages=packages) %dopar% {
 				    computeBayesFactor(object=X,
 						       ranges=ranges[i, ],
@@ -432,6 +431,7 @@ computeBayesFactorTrioSetList <- function(object,
 						       outdir=outdir,
 						       ...)
 			    }
+	map.segs <- do.call("c", map.segs)
 	elementMetadata(map.segs)$state <- trioStateNames()[values(map.segs)$argmax]
 	return(map.segs)
 }

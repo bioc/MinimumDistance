@@ -10,3 +10,6 @@ setAs("RangedDataCNV", "GRanges", function(from, to){
 		elementMetadata(gr)$mindist.mad <- from$mindist.mad
 	gr
 })
+
+##setMethod("chromosome", signature(object="RangedDataCNV"), function(object) paste("chr", object@chrom, sep=""))
+setMethod("elementMetadata", signature(x="RangedDataCNV"), function(x,...) x)

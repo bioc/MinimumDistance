@@ -141,12 +141,11 @@ xypanelTrio <- function(x, y,
 	##sns <- unique(sampleNames[subscripts])
 	if(mindistPanel){
 		if(!is.null(md.segments)){
-			md.segments <- md.segments[sampleNames(md.segments) %in% sampleNames(range) & chromosome(md.segments) == chromosome(range), ]
+			md.segments <- md.segments[sampleNames(md.segments) %in% sampleNames(range) & as.character(chromosome(md.segments)) == as.character(chromosome(range)), ]
 			lsegments(x0=start(md.segments)/1e6,
 				  x1=end(md.segments)/1e6,
-				  y0=mean(md.segments),
-				  y1=mean(md.segments), lwd=2, col=segment.col)
-		}
+				  y0=elementMetadata(md.segments)$seg.mean,
+				  y1=elementMetadata(md.segments)$seg.mean, lwd=2, col=segment.col)		}
 	} else {
 		## range is labeled by offspring id.
 		if(!is.null(lrr.segments)){
@@ -157,12 +156,12 @@ xypanelTrio <- function(x, y,
 			if(fatherPanel) id <- fatherNames(ped)[j]
 			if(motherPanel) id <- motherNames(ped)[j]
 			if(offsprPanel) id <- sampleNames(ped)[j]
-			lrr.segments <- lrr.segments[sampleNames(lrr.segments) %in% id & chromosome(lrr.segments) == chromosome(range), ]
-			if(nrow(lrr.segments)>0){
+			lrr.segments <- lrr.segments[sampleNames(lrr.segments) %in% id & as.character(chromosome(lrr.segments)) == as.character(chromosome(range)), ]
+			if(length(lrr.segments)>0){
 				lsegments(x0=start(lrr.segments)/1e6,
 					  x1=end(lrr.segments)/1e6,
-					  y0=mean(lrr.segments),
-					  y1=mean(lrr.segments), lwd=2, col=segment.col)
+					  y0=elementMetadata(lrr.segments)$seg.mean,
+					  y1=elementMetadata(lrr.segments)$seg.mean, lwd=2, col=segment.col)
 			}
 		}
 	}

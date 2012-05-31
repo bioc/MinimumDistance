@@ -395,6 +395,7 @@ computeBayesFactorTrioSet <- function(object,
 	elementMetadata(ranges)$argmax <- NA
 	elementMetadata(ranges)$lik.norm <- NA
 	elementMetadata(ranges)$state <- NA
+	ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
 	id <- unique(sampleNames(ranges))
 	message("\t\tComputing Bayes factors for ", length(id), " files.")
 	pb <- txtProgressBar(min=0, max=length(id), style=3)
