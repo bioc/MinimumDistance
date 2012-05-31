@@ -12,7 +12,7 @@ import(BiocGenerics)
 ## Biobase imports
 importClassesFrom(Biobase, eSet, VersionedBiobase, Versioned)
 importMethodsFrom(Biobase, annotatedDataFrameFrom, "[", "$", annotation, "annotation<-", annotatedDataFrameFrom, assayData, "assayData<-", dims, featureData, "featureData<-", fData, "fData<-", featureNames, pData, phenoData, "phenoData<-", protocolData, "protocolData<-", sampleNames, "sampleNames<-", storageMode, updateObject)
-importFrom(Biobase, assayDataElement, assayDataElementNames, assayDataElementReplace, assayDataNew, rowMedians, varLabels)
+importFrom(Biobase, assayDataElement, assayDataElementNames, assayDataElementReplace, assayDataNew, rowMedians, varLabels, fvarLabels)
 
 ## utils
 importFrom(utils, setTxtProgressBar, txtProgressBar, packageDescription)
