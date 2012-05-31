@@ -14,19 +14,19 @@ setMethod("annotatedDataFrameFrom", signature(object="array"),
 
 ## this should probably be moved to VanillaICE, then imported by MinimumDistance
 setMethod("GenomeAnnotatedDataFrameFrom", signature(object="array"),
-	  function(object, annotationPkg){
-		  GenomeAnnotatedDataFrameFromArray(object, annotationPkg)
+	  function(object, annotationPkg, ...){
+		  GenomeAnnotatedDataFrameFromArray(object, annotationPkg, ...)
 	  })
 
-GenomeAnnotatedDataFrameFromArray <- function(object, annotationPkg){
+GenomeAnnotatedDataFrameFromArray <- function(object, annotationPkg, ...){
 	## coerce to matrix
 	dims <- dim(object)
 	is.array <- length(dims) == 3
 	if(is.array){
-		res <- oligoClasses:::GenomeAnnotatedDataFrameFromMatrix(object[, , 1], annotationPkg)
+		res <- oligoClasses:::GenomeAnnotatedDataFrameFromMatrix(object[, , 1], annotationPkg, ...)
 	} else {
 		##dim(object) <- dim(object)[c(1,2)]
-		res <- oligoClasses:::GenomeAnnotatedDataFrameFromMatrix(object, annotationPkg)
+		res <- oligoClasses:::GenomeAnnotatedDataFrameFromMatrix(object, annotationPkg, ...)
 	}
 	res
 }
@@ -36,11 +36,11 @@ GenomeAnnotatedDataFrameFromArray <- function(object, annotationPkg){
 ## by read.bsfiles.  This should be a function and not a method for
 ## class character.
 setMethod("GenomeAnnotatedDataFrameFrom", signature(object="character"),
-	  function(object, annotationPkg){
+	  function(object, annotationPkg, ...){
 		  ##check if object is a file
 		  if(!file.exists(object)) message("File ", object, " does not exist")
 		  dat <- read.bsfiles(filenames=object)
-		  GenomeAnnotatedDataFrameFrom(dat, annotationPkg)
+		  GenomeAnnotatedDataFrameFrom(dat, annotationPkg, ...)
 	  })
 
 setMethod("sampleNames2", signature(object="AnnotatedDataFrame"),

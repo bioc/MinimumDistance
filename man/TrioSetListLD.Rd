@@ -8,7 +8,8 @@
 }
 \usage{
 TrioSetListLD(path, fnames, ext="", samplesheet, row.names,
-pedigreeData, featureData, annotationPkg, outdir=ldPath(), ffprefix="")
+pedigreeData, featureData, annotationPkg, outdir=ldPath(), ffprefix="",
+genome=c("hg19", "hg18"))
 }
 \arguments{
   \item{path}{
@@ -55,7 +56,12 @@ pedigreeData, featureData, annotationPkg, outdir=ldPath(), ffprefix="")
     objects.  Ignored if the \pkg{ff} package is not loaded.}
 
   \item{ffprefix}{character string indicating the prefix used to name ff
-  objects. Ignored if the \pkg{ff} package is not loaded.}
+    objects. Ignored if the \pkg{ff} package is not loaded.}
+
+  \item{genome}{character string indicating UCSC genome build. Only
+  "hg19" is allowed for annotation packages that support a single
+  build. For annotation packages that support multiple builds, valid
+  builds are "hg18" and "hg19".}
 
 }
 \details{
@@ -87,7 +93,8 @@ if(require("ff")){
 				       pedigreeData=Pedigree(data.frame(F="F.txt",
 				       M="M.txt", O="O.txt")),
 				       annotationPkg="human610quadv1bCrlmm",
-				       outdir=ldPath(), prefix="test")
+				       outdir=ldPath(), prefix="test",
+				       genome="hg19")
 }
 }
 \keyword{manip}

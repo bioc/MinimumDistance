@@ -11,12 +11,13 @@ License: Artistic-2.0
 Depends: R (>= 2.14), IRanges (>= 1.13.30)
 Imports: methods, DNAcopy, utils, msm, lattice, BiocGenerics,
         VanillaICE (>= 1.17.22), ff, SNPchip (>= 2.0.3), Biobase,
-        foreach, oligoClasses (>= 1.17.38)
+        foreach, oligoClasses (>= 1.19.11), GenomicRanges
 Suggests: human610quadv1bCrlmm, RUnit
 Enhances: snow, doSNOW
 Collate: AllClasses.R AllGenerics.R methods-AnnotatedDataFrame.R
         methods-AssayData.R methods-Pedigree.R methods-TrioSet.R
         methods-TrioSetList.R methods-matrix.R methods-list.R
+	methods-RangedData.R
         methods-ff_array.R segment2-methods.R mad-methods.R
         lattice-methods.R functions.R utils.R zzz.R
 LazyLoad: yes

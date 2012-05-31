@@ -1,8 +1,8 @@
-xyplotTrio <- function(rd, object, frame=200e3, lrr.segments, md.segments, ...){
-	if(!is(rd, "RangedDataCNV")) stop("rd is not a RangedDataCNV-derived class")
+xyplotTrio <- function(rd, object, frame=200e3, lrr.segments=NULL, md.segments=NULL, ...){
+	##if(!is(rd, "RangedDataCNV")) stop("rd is not a RangedDataCNV-derived class")
 	if(!is(object, "TrioSet")) stop("object is not a TrioSet")
 	if(is.null(mindist(object))) stop("must add minimum distance matrix to mindist slot. Use mindist(object) <- value")
-	index <- seq_len(nrow(rd))
+	index <- seq_len(length(rd))
 	i <- NULL
 	df <- foreach(i=index, .combine="rbind") %do% {
 		dataFrameFromRange2(range=rd[i, ],
@@ -140,26 +140,30 @@ xypanelTrio <- function(x, y,
 	mindistPanel <- match(memberId, levels(memberId))==1
 	##sns <- unique(sampleNames[subscripts])
 	if(mindistPanel){
-		md.segments <- md.segments[sampleNames(md.segments) %in% sampleNames(range) & chromosome(md.segments) == chromosome(range), ]
-		lsegments(x0=start(md.segments)/1e6,
-			  x1=end(md.segments)/1e6,
-			  y0=mean(md.segments),
-			  y1=mean(md.segments), lwd=2, col=segment.col)
+		if(!is.null(md.segments)){
+			md.segments <- md.segments[sampleNames(md.segments) %in% sampleNames(range) & chromosome(md.segments) == chromosome(range), ]
+			lsegments(x0=start(md.segments)/1e6,
+				  x1=end(md.segments)/1e6,
+				  y0=mean(md.segments),
+				  y1=mean(md.segments), lwd=2, col=segment.col)
+		}
 	} else {
 		## range is labeled by offspring id.
-		j <- match(sampleNames(range), sampleNames(ped))
-		fatherPanel <- match(memberId, levels(memberId))==4
-		motherPanel <- match(memberId, levels(memberId))==3
-		offsprPanel <- match(memberId, levels(memberId))==2
-		if(fatherPanel) id <- fatherNames(ped)[j]
-		if(motherPanel) id <- motherNames(ped)[j]
-		if(offsprPanel) id <- sampleNames(ped)[j]
-		lrr.segments <- lrr.segments[sampleNames(lrr.segments) %in% id & chromosome(lrr.segments) == chromosome(range), ]
-		if(nrow(lrr.segments)>0){
-			lsegments(x0=start(lrr.segments)/1e6,
-				  x1=end(lrr.segments)/1e6,
-				  y0=mean(lrr.segments),
-				  y1=mean(lrr.segments), lwd=2, col=segment.col)
+		if(!is.null(lrr.segments)){
+			j <- match(sampleNames(range), sampleNames(ped))
+			fatherPanel <- match(memberId, levels(memberId))==4
+			motherPanel <- match(memberId, levels(memberId))==3
+			offsprPanel <- match(memberId, levels(memberId))==2
+			if(fatherPanel) id <- fatherNames(ped)[j]
+			if(motherPanel) id <- motherNames(ped)[j]
+			if(offsprPanel) id <- sampleNames(ped)[j]
+			lrr.segments <- lrr.segments[sampleNames(lrr.segments) %in% id & chromosome(lrr.segments) == chromosome(range), ]
+			if(nrow(lrr.segments)>0){
+				lsegments(x0=start(lrr.segments)/1e6,
+					  x1=end(lrr.segments)/1e6,
+					  y0=mean(lrr.segments),
+					  y1=mean(lrr.segments), lwd=2, col=segment.col)
+			}
 		}
 	}
 	if(panel.number() > 1){ ## label axis for BAFs

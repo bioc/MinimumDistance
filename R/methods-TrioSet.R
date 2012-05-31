@@ -5,25 +5,62 @@ setMethod("initialize", "TrioSet",
 		   fatherPhenoData=annotatedDataFrameFrom(assayData, byrow=FALSE),
 		   motherPhenoData=annotatedDataFrameFrom(assayData, byrow=FALSE),
 		   annotation=character(),
-		   featureData=GenomeAnnotatedDataFrameFrom(assayData, annotation),
+		   featureData=GenomeAnnotatedDataFrameFrom(assayData, annotation, genome=genome),
 		   experimentData=new("MIAME"),
 		   protocolData=phenoData[, integer(0)],
 		   logRRatio=array(NA, dim=c(0, 0, 3)),
 		   BAF=array(NA, dim=c(0,0,3)),
 		   pedigree=Pedigree(),
-		   mindist=NULL, ...){
+		   mindist=NULL,
+		   genome=c("hg19", "hg18"), ...){
+		  .Object@pedigree <- pedigree
+		  .Object@fatherPhenoData <- fatherPhenoData
+		  .Object@motherPhenoData <- motherPhenoData
 		  callNextMethod(.Object,
 				 assayData=assayData,
 				 phenoData=phenoData,
-				 fatherPhenoData=fatherPhenoData,
+				 ##fatherPhenoData=fatherPhenoData,
 				 motherPhenoData=motherPhenoData,
 				 featureData=featureData,
 				 experimentData=experimentData,
 				 annotation=annotation,
 				 protocolData=protocolData,
 				 pedigree=pedigree,
-				 mindist=mindist, ...)
+				 mindist=mindist,
+				 genome=match.arg(genome), ...)
 	  })
+
+setValidity("TrioSet", function(object){
+	ped <- pedigree(object)
+	validObject(ped)
+	validObject(featureData(object))
+	nms <- ls(assayData(object))
+	if(!all(c("BAF", "logRRatio") %in% nms)){
+		msg <- "BAF and logRRatio are required elements of the assayData"
+		return(msg)
+	}
+	elt <- nms[[1]]
+	elt <- assayData(object)[[elt]]
+	if(ncol(elt) > 0){
+		sns.ped <- sampleNames(ped)
+		if(length(sns.ped) != ncol(elt)){
+			return("Number of samples in pedigree slot should be the same as the number of columns in the TrioSet object")
+		}
+	}
+	if(!identical(sampleNames(object), sampleNames(phenoData(object)))){
+		return("sampleNames of TrioSetList object must be the same as the sampleNames of the phenoData")
+	}
+	if(!identical(fatherNames(object), originalNames(sampleNames(fatherPhenoData(object))))){
+		return("fatherNames of TrioSetList object must be the same as the sampleNames of the fatherPhenoData")
+	}
+	if(!identical(motherNames(object), originalNames(sampleNames(motherPhenoData(object))))){
+		stop("motherNames of TrioSetList object must be the same as the sampleNames of the motherPhenoData")
+	}
+	if(!is.null(mindist(object))){
+		if(!identical(colnames(mindist(object)), sampleNames(object)))
+			stop("colnames of mindist matrix must be same as the sampleNames of the TrioSet object")
+	}
+})
 
 setMethod("updateObject", signature(object="TrioSet"),
 	  function(object, ..., verbose=FALSE){
@@ -81,7 +118,7 @@ TrioSet <- function(pedigreeData=Pedigree(),
 		    featureData,
 		    cdfname,
 		    drop=TRUE,
-		    mindist=NULL){
+		    mindist=NULL, genome=c("hg19", "hg18")){
 	if(missing(lrr) | missing(baf)){
 		object <- new("TrioSet",
 			      pedigree=pedigreeData)
@@ -101,7 +138,7 @@ TrioSet <- function(pedigreeData=Pedigree(),
 	}
 	if(missing(featureData)){
 		if(missing(cdfname)) stop("If featureData is not supplied, a valid cdfname must be provided for feature annotation")
-		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname)
+		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname, genome=match.arg(genome))
 		fD <- featureData[order(chromosome(featureData), position(featureData)), ]
 		rm(featureData); gc()
 	} else {
@@ -186,7 +223,8 @@ TrioSet <- function(pedigreeData=Pedigree(),
 		      motherPhenoData=motherPhenoData,
 		      pedigree=pedigreeData,
 		      featureData=fD,
-		      mindist=mindist)
+		      mindist=mindist,
+		      genome=match.arg(genome))
 }
 
 
@@ -200,6 +238,7 @@ setMethod("show", signature(object="TrioSet"),
 		  paste(assayDataElementNames(object), collapse=", "), "\n")
 	      cat("  dimension:\n")
 	      print(adim)
+	      cat("genome:", genomeBuild(object), "\n")
 	  })
 
 setMethod("open", "TrioSet", function(con, ...){
@@ -349,13 +388,14 @@ computeBayesFactorTrioSet <- function(object,
 	## a TrioSet has only one chromosome
 	ldPath(outdir)
  	CHR <- unique(chromosome(object))
-	ranges <- ranges[chromosome(ranges) == CHR, ]
-	ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
+	if(is(ranges, "RangedDataCNV"))
+		ranges <- as(ranges, "GRanges")
+	ranges <- ranges[chromosome(ranges) == paste("chr",CHR,sep=""), ]
+	elementMetadata(ranges)$lik.state <- NA
+	elementMetadata(ranges)$argmax <- NA
+	elementMetadata(ranges)$lik.norm <- NA
+	elementMetadata(ranges)$state <- NA
 	id <- unique(sampleNames(ranges))
-	ranges$lik.state <- NA
-	ranges$argmax <- NA
-	ranges$lik.norm <- NA
-	ranges$state <- NA
 	message("\t\tComputing Bayes factors for ", length(id), " files.")
 	pb <- txtProgressBar(min=0, max=length(id), style=3)
 	ntrios <- nrow(pedigree(object))
@@ -365,21 +405,22 @@ computeBayesFactorTrioSet <- function(object,
 		k <- match(this.id, sampleNames(object))
 		if(i %% 100 == 0)
 			message("   sample ", this.id, " (", i, "/", length(id), ")")
-		j <- which(ranges$id == this.id)
+		j <- which(sampleNames(ranges) == this.id)
 		rd <- joint4(id=this.id,
 			     trioSet=object[, k],
 			     ranges=ranges[j, ],
 			     ntrios=ntrios,  ...)
-##			     ...)
 		if(returnEmission) return(rd)
-		ranges$lik.state[j] <- rd$lik.state
-		ranges$argmax[j] <- rd$argmax
-		ranges$lik.norm[j] <- rd$lik.norm
-		ranges$state[j] <- trioStateNames()[rd$argmax]
+		if(length(id) > 1){
+			elementMetadata(ranges)$lik.state[j] <- values(rd)$lik.state
+			elementMetadata(ranges)$argmax[j] <- values(rd)$argmax
+			elementMetadata(ranges)$lik.norm[j] <- values(rd)$lik.norm
+			elementMetadata(ranges)$state[j] <- trioStateNames()[values(rd)$argmax]
+		} else ranges <- rd
 	}
 	close(pb)
 	if(collapseRanges)
-		ranges <- pruneByFactor(ranges, f=ranges$argmax, verbose=FALSE)
+		ranges <- pruneByFactor(ranges, f=values(ranges)$argmax, verbose=FALSE)
 	ranges
 }
 
@@ -632,8 +673,13 @@ trioSet2data.frame <- function(from){
 }
 
 dataFrameFromRange2 <- function(object, range, range.index, frame=0){
-	rm <- IRanges::findOverlaps(range, featureData(object), maxgap=frame) ## RangesMatching
-	mm <- as.matrix(rm)
+	if(is(range, "RangedDataCNV"))
+		rm <- IRanges::findOverlaps(range, featureData(object), maxgap=frame) ## RangesMatching
+	if(is(range, "GRanges")){
+		frange <- makeFeatureGRanges(featureData(object), genomeBuild(object))
+		rm <- findOverlaps(range, frange, maxgap=frame)
+	}
+	mm <- IRanges::as.matrix(rm)
 	mm.df <- data.frame(mm)
 	mm.df$featureNames <- featureNames(object)[mm.df$subject]
 	marker.index <- mm.df$subject

@@ -6,7 +6,8 @@ importMethodsFrom(methods, initialize, show)
 importFrom(methods, "@<-", callNextMethod, new, validObject, coerce)
 
 ## generics
-importFrom(BiocGenerics, order)
+##importFrom(BiocGenerics, order, nrow)
+import(BiocGenerics)
 
 ## Biobase imports
 importClassesFrom(Biobase, eSet, VersionedBiobase, Versioned)
@@ -28,27 +29,30 @@ importFrom(lattice, xyplot, simpleKey, panel.grid, panel.xyplot, lrect, ltext,
 importFrom(stats, mad)
 
 ## IRanges
-importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
-		  DataTable, Vector, Annotated,
-		  List, SimpleList, CompressedList,
-		  RangesList, SimpleRangesList,
-		  RangedDataList,
-		  DataFrame,
-		  DataTableORNULL)
-importMethodsFrom(IRanges, start, end, width,"[", "[[","[<-", "[[<-", "$",
-		  nrow, "start<-", "end<-", stack, as.matrix)
-importFrom(IRanges, IRanges, RangedData, RangedDataList,
-	   findOverlaps, countOverlaps,
-	   ranges, values,
-	   matchMatrix, queryHits, subjectHits)
+##importClassesFrom(IRanges, RangedData, IRanges, IntervalTree,
+##		  DataTable, Vector, Annotated,
+##		  List, SimpleList, CompressedList,
+##		  RangesList, SimpleRangesList,
+##		  RangedDataList,
+##		  DataFrame,
+##		  DataTableORNULL)
+##importMethodsFrom(IRanges, start, end, width,"[", "[[","[<-", "[[<-", "$",
+##		  nrow, "start<-", "end<-", stack, as.matrix)
+##importFrom(IRanges, IRanges, RangedData, RangedDataList,
+##	   findOverlaps, countOverlaps,
+##	   ranges, values,
+##	   matchMatrix, queryHits, subjectHits)
+import(GenomicRanges)
 
 ## oligoClasses
-importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, gSet)
+importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, gSet, gSetList)
 importMethodsFrom(oligoClasses, state, coverage2, chromosome, open, openff, closeff, mean,
-		  GenomeAnnotatedDataFrameFrom, checkOrder, position, isSnp, baf, lrr, close)
+		  GenomeAnnotatedDataFrameFrom, checkOrder, position, isSnp, baf, lrr, close,
+		  genomeBuild, "genomeBuild<-", makeFeatureGRanges, numberProbes)
 importFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, chromosomePositionOrder,
 	   initializeBigMatrix, initializeBigArray, isPackageLoaded, ldPath, parStatus,
-	   splitIndicesByLength, splitIndicesByNode, integerArray, integerMatrix, chromosome2integer)
+	   splitIndicesByLength, splitIndicesByNode, integerArray, integerMatrix, chromosome2integer,
+	   getSequenceLengths)
 
 ## msm
 importFrom(msm, qtnorm, dtnorm)
@@ -99,7 +103,7 @@ exportMethods("[", allNames,
 	      pedigree,
 	      ##sampleNames2,
 	      segment2,
-	      stack,
+	      ##stack,
 	      trios,
 	      updateObject,
 	      width,

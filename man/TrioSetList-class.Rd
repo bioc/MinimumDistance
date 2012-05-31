@@ -18,6 +18,7 @@
 \alias{motherPhenoData,TrioSetList-method}
 \alias{offspringPhenoData,TrioSetList-method}
 \alias{fatherNames}
+\alias{gcSubtract,TrioSetList-method}
 \alias{initialize,TrioSetList-method}
 \alias{length,TrioSetList-method}
 \alias{lrr,TrioSetList-method}
@@ -274,6 +275,12 @@
     slot.  If the elements are \code{AnnotatedDataFrame} instead of
     \code{GenomeAnnotatedDataFrame}, the \code{featureDataList} slot is updated.}
 
+  \item{}{\code{gcSubtract(object, method=c("speed", "lowess"),
+      trio.index, ...)}:
+
+    \code{method} indicates the type of GC correction. [[NEED ADDL
+    DETAILS]].
+  }
   }
 }
 
@@ -283,7 +290,7 @@ R. Scharpf
 }
 
 \seealso{
-  \code{\linkS4class{TrioSet}}, \code{\linkS4class{Pedigree}}
+  \code{\linkS4class{TrioSet}}, \code{\linkS4class{Pedigree}}, \code{\link{gcSubtract}}
 }
 
 \examples{

@@ -181,13 +181,14 @@ combineRanges <- function(deletion.ranges, amp.ranges){
 
 pruneByFactor <- function(range.object, f, verbose=FALSE){
 	rd <- list()
-	id.chr <- paste(range.object$id, chromosome(range.object), sep="_")
+	id.chr <- paste(sampleNames(range.object), chromosome(range.object), sep="_")
 	ff <- unique(id.chr)
 	##for(i in seq_along(unique(range.object$id))){
 	if(verbose){
 		message("Pruning ", length(ff), " files.")
 		pb <- txtProgressBar(min=0, max=length(ff), style=3)
 	}
+	## do for each element in a GRangesList
 	for(i in seq_along(ff)){
 		if(verbose) setTxtProgressBar(pb, i)
 		##id <- unique(range.object$id)[i]
@@ -197,17 +198,19 @@ pruneByFactor <- function(range.object, f, verbose=FALSE){
 		rd[[i]] <- combineRangesByFactor(range.object[index, ], f=f[index])
 	}
 	if(verbose) close(pb)
-	##ok <- tryCatch(tmp <- do.call("rbind", rd), error=function(e) FALSE)
-	ok <- tryCatch(stack(RangedDataList(rd)), error=function(e) FALSE)
-	if(!is(ok, "RangedData")) {
-		message("trouble combining RangedData objects.  Returning list")
-		ok <- rd
-	} else {
-		j <- match("sample",colnames(ok))
-		if(length(j) == 1)
-			ok <- ok[, -j]
-	}
-	return(ok)
+	##ok <- tryCatch(stack(RangedDataList(rd)), error=function(e) FALSE)
+	##rd <- GRangesList(rd)
+	rd <- stackRangedDataList(rd)
+##	names(rd) <- unique(sampleNames(range.object))
+##	if(!is(ok, "RangedData")) {
+##		message("trouble combining RangedData objects.  Returning list")
+##		ok <- rd
+##	} else {
+##		j <- match("sample",colnames(ok))
+##		if(length(j) == 1)
+##			ok <- ok[, -j]
+##	}
+	return(rd)
 }
 
 combineRangesByFactor <- function(range.object, f){
@@ -234,12 +237,17 @@ combineRangesByFactor <- function(range.object, f){
 		min.index <- min(index)
 		max.index <- max(index)
 		end(range.object)[index] <- max(end(range.object)[index])
-		range.object$lik.state[index] <- sum(range.object$lik.state[index], na.rm=TRUE)
-		range.object$end.index[index] <- max(range.object$end.index[index])
-		range.object$seg.mean[index] <- sum((range.object$num.mark[index] * range.object$seg.mean[index]), na.rm=TRUE)/sum(range.object$num.mark[index],na.rm=TRUE)
-		range.object$num.mark[index] <- sum(range.object$num.mark[index], na.rm=TRUE)
-		range.object$lik.norm[index] <- sum(range.object$lik.norm[index], na.rm=TRUE)
-		j <- seq(length=nrow(range.object))
+		emd <- elementMetadata(range.object)
+		emd$lik.state[index] <- sum(emd$lik.state[index], na.rm=TRUE)
+		##elementMetadata(range.object)$end.index[index] <- max(range.object$end.index[index])
+		emd$seg.mean[index] <- sum((numberProbes(range.object)[index]*emd$seg.mean[index]), na.rm=TRUE)/sum(numberProbes(range.object)[index], na.rm=TRUE)
+		##emd$seg.mean[index] <- sum((range.object$num.mark[index] * range.object$seg.mean[index]), na.rm=TRUE)/sum(range.object$num.mark[index],na.rm=TRUE)
+		emd$numberProbes[index] <- sum(numberProbes(range.object)[index], na.rm=TRUE)
+		##range.object$num.mark[index] <- sum(range.object$num.mark[index], na.rm=TRUE)
+		emd$lik.norm[index] <- sum(emd$lik.norm[index], na.rm=TRUE)
+		##range.object$lik.norm[index] <- sum(range.object$lik.norm[index], na.rm=TRUE)
+		elementMetadata(range.object) <- emd
+		j <- seq_len(length(range.object))
 		index <- index[-1]
 		j <- j[-index]
 		if(length(j) == 0){
@@ -727,20 +735,18 @@ joint4 <- function(id,
 	##
 	## we estimate the optimal state path using viterbi, but we
 	## only use the emission probabilities for the MAP
-	viterbiObj <- VanillaICE::viterbi2Wrapper(r=r,
-						  b=b,
-						  pos=position(trioSet),
-						  is.snp=isSnp(trioSet),
-						  cnStates=cnStates,
-						  chrom=chromosome(trioSet)[1],
-						  is.log=TRUE,
-						  limits=limits,
-						  returnViterbiObject=TRUE,
-						  ...)
+	viterbiObj <- viterbi2Wrapper(r=r,
+				      b=b,
+				      pos=position(trioSet),
+				      is.snp=isSnp(trioSet),
+				      cnStates=cnStates,
+				      chrom=chromosome(trioSet)[1],
+				      is.log=TRUE,
+				      limits=limits,
+				      returnViterbiObject=TRUE,
+				      ...)
 	lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
 	for(i in 1:3) lemit[, i, ] <- log(emission(viterbiObj[[i]]))
-	##.index=subjectHits(findOverlaps(segs1[2,], featureData(trioSetff)))
-	##apply(lemit[.index, 3, ], 2, sum)
 	trio.states <- trioStates(0:4)
 	tmp <- rep(NA, nrow(trio.states))
 	state.prev <- NULL
@@ -748,23 +754,22 @@ joint4 <- function(id,
 	table1 <- readTable1(a=a)
 	loader("pennCNV_MendelianProb.rda")
 	table3 <- getVarInEnv("pennCNV_MendelianProb")
-	##table3 <- readTable3(a=a)
-	##weightR <- 1/2
 	state.names <- trioStateNames()
 	norm.index <- which(state.names=="333")
 	ranges <- ranges[order(start(ranges)), ]
-	ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
-	mm <- findOverlaps(featureData(trioSet), ranges)
+	##ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
+	lik.norm <- argmax <- lik.state <- rep(NA, length(ranges))
+	frange <- makeFeatureGRanges(trioSet)
+	cnt <- countOverlaps(ranges, frange)
+	mm <- findOverlaps(frange, ranges)
 	##mm <- as.matrix()
-	tab <- table(subjectHits(mm))
-	I <- as.integer(names(tab)[tab >= 2])
+	##tab <- table(subjectHits(mm))
+	##I <- as.integer(names(tab)[tab >= 2])
+	I <- which(cnt >= 2)
 	range.index <- subjectHits(mm)[subjectHits(mm) %in% I]
 	## only call segs that are "nonzero"
-	mads <- pmax(ranges$mindist.mad, .1)
-	abs.thr <- abs(ranges$seg.mean)/mads > mdThr
-	##.i <- which(abs(mean(ranges)) < mdThr*ranges$mindist.mad)
-	##ranges$argmax[.i] <- norm.index
-	##I <- I[-.i]
+	mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
+	abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
  	for(i in I){
 		index <- which(range.index==i)
 		queryIndex <- queryHits(mm)[index]
@@ -787,13 +792,11 @@ joint4 <- function(id,
 						 prob.nonMendelian=prob.nonMendelian)
 
 			}##j loop
-			argmax <- which.max(tmp)
-			lik.norm <- tmp[norm.index]
-			ranges$lik.norm[i] <- lik.norm
-			ranges$argmax[i] <- argmax
-			ranges$lik.state[i] <- tmp[argmax]
-			stopifnot(!is.na(ranges$lik.state[i]))
-			state.prev <- trio.states[argmax, ]
+			lik.norm[i] <- tmp[norm.index]
+			argmax[i] <- which.max(tmp)
+			lik.state[i] <- tmp[argmax[i]]
+			##stopifnot(!is.na(lik.state[i]))
+			state.prev <- trio.states[argmax[i], ]
 		} else {
 			res <- joint1(LLT=LLT,
 				      trio.states=trio.states,
@@ -803,13 +806,16 @@ joint4 <- function(id,
 				      table3=table3,
 				      state.prev=state.prev,
 				      prob.nonMendelian=prob.nonMendelian)
-			ranges$lik.norm[i] <- res
-			ranges$lik.state[i] <- res
-			ranges$argmax[i] <- norm.index
+			lik.norm[i] <- res
+			lik.state[i] <- res
+			argmax[i] <- norm.index
 			state.prev <- trio.states[norm.index, ]
 		}
 	}
-	ranges$state <- trioStateNames()[ranges$argmax]
+	elementMetadata(ranges)$state <- trioStateNames()[argmax]
+	elementMetadata(ranges)$argmax <- argmax
+	elementMetadata(ranges)$lik.state <- lik.state
+	elementMetadata(ranges)$lik.norm <- lik.norm
 	ranges
 }
 
@@ -936,16 +942,18 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE,
 	if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
 	##stopifnot(!is.null(names(mad.minimumdistance)))
 	ix <- match(sampleNames(object), names(mad.minimumdistance))
-	object$mindist.mad <- mad.minimumdistance[ix]
-	stopifnot("mindist.mad" %in% colnames(object))
+	if(is(object, "RangedDataCNV")){
+		stop("object is a RangedDataCNV-derived class.  This class is being phased out in favor of GRanges.  See oligoClasses:::coerceToGRanges() to coerce between RangedDataCNV and GRanges.")
+	}
+	elementMetadata(object)$mindist.mad <- mad.minimumdistance[ix]
 	lrr.segs <- lrr.segs[sampleNames(lrr.segs) %in% sampleNames(object), ]
 	if(length(unique(chromosome(object))) > 1){
 		if(verbose)
 			message("narrowing the ranges by chromosome")
 		if(!is(fD, "list")) stop("when object contains multiple chromosomes, fD should be a list of GenomeAnnotatedDataFrames")
-		chromsInFD <- sapply(fD, function(x) chromosome(x)[1])
-		indexList <- split(seq_len(nrow(object)), chromosome(object))
-		indexList2 <- split(seq_len(nrow(lrr.segs)), chromosome(lrr.segs))
+		chromsInFD <- paste("chr", sapply(fD, function(x) chromosome(x)[1]), sep="")
+		indexList <- split(seq_len(length(object)), as.character(chromosome(object)))
+		indexList2 <- split(seq_len(length(lrr.segs)), as.character(chromosome(lrr.segs)))
 		if(!all.equal(names(indexList), names(indexList2))){
 			stop("the chromosomes represented in the minimum distance genomic intervals (object) must be the same as the chromosomes represented in the offspring genomic intervals (lrr.segs)")
 		}
@@ -974,13 +982,16 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE,
 ##			rm(md.segs, lr.segs); gc()
 ##		}
 		if(verbose) close(pb)
-		segs <- stack(RangedDataList(segList))
-		j <- match("sample", colnames(segs))
-		if(length(j) == 1) segs <- segs[, -j]
+		segs <- stackRangedDataList(segList)
+		##j <- match("sample", colnames(segs))
+		##if(length(j) == 1) segs <- segs[, -j]
 	} else {
 		if(is(fD, "list")) {
 			fD <- fD[[1]]
-			if(chromosome(fD)[1] != chromosome(object)[1]) stop("The supplied GenomeAnnotatedDataFrame (fD) does not have the same chromosome as object")
+			if(is(object, "GRanges")){
+				chr <- as.character(chromosome(object)[1])
+			} else chr <- paste("chr", chromosome(object)[1], sep="")
+			if(paste("chr", chromosome(fD)[1], sep="") != chr) stop("The supplied GenomeAnnotatedDataFrame (fD) does not have the same chromosome as object")
 		}
 		segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose, fD=fD)
 	}
@@ -990,10 +1001,10 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE,
 
 narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, fD){
 	md.range <- md.range[order(sampleNames(md.range), start(md.range)), ]
-	mads <- pmax(md.range$mindist.mad, .1)
-	abs.thr <- abs(md.range$seg.mean)/mads > thr
-	md.range2 <- md.range[md.range$seg.mean > abs.thr, ]
-	if(nrow(md.range2) < 1){
+	mads <- pmax(values(md.range)$mindist.mad, .1)
+	abs.thr <- abs(values(md.range)$seg.mean)/mads > thr
+	md.range2 <- md.range[values(md.range)$seg.mean > abs.thr, ]
+	if(length(md.range2) < 1){
 		return(md.range)
 	}
 	cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs)), ]
@@ -1008,35 +1019,49 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, 
 	for(j in seq_along(sns)){
 		md <- md.range2[sampleNames(md.range2) == sns[j], ]
 		of <- offspring.segs[sampleNames(offspring.segs)==sns[j], ]
-		md.mad <- md$mindist.mad
-		md <- md[, match(colnames(of), colnames(md))]
-		un <- stack(RangedDataList(md, of))
-		unir <- IRanges(start(un), end(un))
-		unir <- disjoin(unir)
-		## drop ranges that are not in md
-		md2 <- IRanges(start(md), end(md))
-		o <- findOverlaps(md2, unir)
+		md.mad <- values(md)$mindist.mad
+		md <- md[, match(colnames(values(of)), colnames(values(md)))]
+		## stack the ranges of the minimum distance segments and the offspring segments
+		un <- stackRangedDataList(list(md, of))
+		## find the disjoint ranges
+		disj <- disjoin(un)
+		o <- findOverlaps(md, disj)
+##		unir <- IRanges(start(un), end(un))
+##		unir <- disjoin(unir)
+##		## drop ranges that are not in md
+##		md2 <- IRanges(start(md), end(md))
+##		o <- findOverlaps(md2, unir)
+		## which minimumdistance intervals are spanned by a disjoint interval
 		r <- subjectHits(o)
 		s <- queryHits(o)
-		unir <- unir[r, ]
-		rdlist[[j]] <- RangedDataCBS(IRanges(start(unir), end(unir)),
-					     sampleId=sns[j],
-					     chrom=chr,
-					     seg.mean=md$seg.mean[s],
-					     mindist.mad=md.mad[s])
+		## only keep the disjoint intervals for which a minimum distance segment is overlapping
+		##  (filters intervals that have a minimum distance of approx. zero)
+		disj <- disj[r, ]
+		elementMetadata(disj)$sample <- sampleNames(md)[s]
+		elementMetadata(disj)$numberProbes <- 0L ## update later
+		elementMetadata(disj)$seg.mean <- values(md)$seg.mean[s]
+		elementMetadata(disj)$mindist.mad <- md.mad[s]
+		##elementMetadata(disj)$mindist.mad <- md.mad[s]
+##		rdlist[[j]] <- RangedDataCBS(IRanges(start(unir), end(unir)),
+##					     sampleId=sns[j],
+##					     chrom=chr,
+##					     seg.mean=md$seg.mean[s],
+##					     mindist.mad=md.mad[s])
+		rdlist[[j]] <- disj
 	}
-	rd <- stack(RangedDataList(rdlist))
-	rd <- rd[, -ncol(rd)]
-	o <- findOverlaps(rd, fD)
-	nmark <- sapply(split(subjectHits(o), queryHits(o)), length)
-	rd$num.mark <- 0L
-	rd$num.mark[unique(queryHits(o))] <- nmark
-	rd <- rd[rd$num.mark > 0L, ]
-
-	mrd <- md.range[md.range$seg.mean <= abs.thr, ]
-	mrd <- mrd[, match(colnames(rd), colnames(mrd))]
-	rd2 <- stack(RangedDataList(rd, mrd))
-	rd2 <- rd2[, -ncol(rd2)]
+	rd <- stackRangedDataList(rdlist)
+	##rd <- rd[, -ncol(rd)]
+	frange <- makeFeatureGRanges(fD, metadata(rd)[["genome"]])
+	cnt <- countOverlaps(rd, frange)
+	##o <- findOverlaps(rd, frange)
+	##nmark <- sapply(split(subjectHits(o), queryHits(o)), length)
+	elementMetadata(rd)$numberProbes <- cnt
+	##rd$num.mark[unique(queryHits(o))] <- nmark
+	rd <- rd[numberProbes(rd) > 0L, ]
+	mrd <- md.range[elementMetadata(md.range)$seg.mean <= abs.thr, ]
+	mrd <- mrd[, match(colnames(values(rd)), colnames(values(mrd)))]
+	rd2 <- stackRangedDataList(rd, mrd)
+	##rd2 <- rd2[, -ncol(rd2)]
 	rd2 <- rd2[order(sampleNames(rd2), start(rd2)), ]
 	return(rd2)
 }
@@ -1232,7 +1257,8 @@ callDenovoSegments <- function(path="",
 			       chromosome=1:22,
 			       segmentParents,
 			       prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3),
-			       verbose=FALSE, ...){
+			       verbose=FALSE, genome=c("hg19", "hg18"), ...){
+	genome <- match.arg(genome)
 	if(!is(pedigreeData, "Pedigree")) stop("pedigreeData must be an object of class Pedigree")
 	filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
 	obj <- read.bsfiles(filenames=filenames, path="", ext="")
@@ -1241,13 +1267,15 @@ callDenovoSegments <- function(path="",
 					   baf=integerMatrix(obj[, "baf",], 1000),
 					   pedigreeData=pedigreeData,
 					   chromosome=chromosome,
-					   cdfname=cdfname)
+					   cdfname=cdfname,
+					   genome=genome)
 	} else {
 		trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
 					   baf=integerMatrix(obj[, "baf",], 1000),
 					   pedigreeData=pedigreeData,
 					   featureData=featureData,
-					   chromosome=chromosome)
+					   chromosome=chromosome,
+					   genome=genome)
 	}
 	md <- calculateMindist(lrr(trioSetList), verbose=verbose)
 	mads.md <- mad2(md, byrow=FALSE)
@@ -1258,6 +1286,7 @@ callDenovoSegments <- function(path="",
 			    verbose=verbose,
 			    id=offspringNames(trioSetList),
 			    featureNames=fns,
+			    genome=genome,
 			    ...)
 	lrrs <- lrr(trioSetList)
 	if(!segmentParents){
@@ -1280,11 +1309,11 @@ callDenovoSegments <- function(path="",
 			     chrom=chromosome(trioSetList, as.list=TRUE),
 			     id=id, ## NULL if segmentParents is FALSE
 			     verbose=verbose,
-			     featureNames=fns, ...)
+			     featureNames=fns, genome=genome, ...)
 	md.segs2 <- narrow(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md, fD=Biobase::featureData(trioSetList))
-	index <- split(seq_len(nrow(md.segs2)), chromosome(md.segs2))
-	index <- index[match(chromosome(trioSetList), names(index))]
-	stopifnot(identical(as.character(chromosome(trioSetList)), names(index)))
+	index <- split(seq_len(length(md.segs2)), as.character(chromosome(md.segs2)))
+	index <- index[match(paste("chr", chromosome(trioSetList), sep=""), names(index))]
+	stopifnot(identical(paste("chr", chromosome(trioSetList), sep=""), names(index)))
 	##if(!getDoParRegistered()) registerDoSEQ()
 	outdir <- ldPath()
 	object <- i <- NULL
@@ -1302,11 +1331,19 @@ callDenovoSegments <- function(path="",
 
 make.unique2 <- function(names, sep="___DUP") make.unique(names, sep)
 originalNames <- function(names){
+	if(length(names) ==0) return(names)
 	sep <- formals(make.unique2)[["sep"]]
 	index <- grep(sep, names)
 	if(length(index) > 0){
 		names[index] <- sapply(names[index], function(x) strsplit(x, sep)[[1]][[1]])
 	}
+	names
+}
+
+originalNames <- function(names, sep){
+	if(length(names) ==0) return(names)
+	index <- grep(sep, names)
+	if(length(index) > 0) names[index] <- sapply(names[index], function(x) strsplit(x, sep)[[1]][[1]])
 	names
 }
 
@@ -1337,9 +1374,11 @@ read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
 }
 
 stackRangedDataList <- function(...) {
-	object <- stack(RangedDataList(...))
-	j <- match("sample", colnames(object))
-	if(is.na(j))  object else object[, -j]
+	##object <- stack(RangedDataList(...))
+	object <- GRangesList(list(...)[[1]])
+	unlist(object)
+	##j <- match("sample", colnames(object))
+	##if(is.na(j))  object else object[, -j]
 }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~ The rest is old code that has been commented out.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1485,6 +1524,7 @@ gcSubtractMatrix <- function(object, center=TRUE, gc, pos, smooth.gc=TRUE, ...){
 		resid <- Y-yhat
 		resid
 	}
+	j <- NULL
 	resid <- foreach(j=index, .combine="rbind") %do% fitGCmodel(X=X[j, ], Y=object[j, ])
 	## ensure that the chromosome arm has the same median as in the original Y's
 	if(center) resid <- resid+median(object,na.rm=TRUE)

@@ -49,8 +49,9 @@ R. Scharpf
 
 \examples{
 Pedigree()
-Pedigree(fatherIds=letters[1], motherIds=letters[2],offspringIds=letters[3])
-
+\dontrun{
+	Pedigree(fatherIds=letters[1], motherIds=letters[2],offspringIds=letters[3])
+}
 path <- system.file("extdata", package="MinimumDistance")
 load(file.path(path, "pedigreeInfo.rda"))
 Pedigree(pedigreeInfo)

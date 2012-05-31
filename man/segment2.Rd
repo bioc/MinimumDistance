@@ -91,7 +91,9 @@ must be vectors of the same size.}
 data(trioSetListExample)
 mdlist <- calculateMindist(lrr(trioSetList))
 md.segs <- segment2(trioSetList, md=mdlist)
+metadata(md.segs)
 lrr.segs <- segment2(trioSetList, segmentParents=FALSE)
+metadata(lrr.segs)
 }
 
 }

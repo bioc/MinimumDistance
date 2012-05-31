@@ -120,7 +120,9 @@ map.segs <- callDenovoSegments(path=path,
 			       cdfname="human610quadv1b",
 			       chromosome=1,
 			       segmentParents=FALSE,
-                               prOutlierBAF=list(initial=1e-3, max=0.01, maxROH=1e-3))
+                               prOutlierBAF=list(initial=1e-3, max=0.01,
+			       maxROH=1e-3),
+			       genome="hg19")
 }
 \keyword{htest}
 \keyword{models}
