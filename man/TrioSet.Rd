@@ -9,7 +9,8 @@
 }
 \usage{
 TrioSet(pedigreeData = Pedigree(), sample.sheet, row.names = NULL, lrr,
-  baf, featureData, cdfname, drop = TRUE, mindist=NULL)
+  baf, featureData, cdfname, drop = TRUE, mindist=NULL, genome=c("hg19",
+  "hg18"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -49,6 +50,10 @@ TrioSet(pedigreeData = Pedigree(), sample.sheet, row.names = NULL, lrr,
   \item{mindist}{
     A \code{matrix} of the minimum distance.
   }
+
+  \item{genome}{\code{character}: the UCSC genome build used for the
+    probe annotation}
+
 }
 
 \value{

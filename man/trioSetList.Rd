@@ -6,8 +6,7 @@
 \description{Constructs and object of class \code{TrioSetList}}
 \usage{
 TrioSetList(chromosome=integer(), pedigreeData=Pedigree(), sample.sheet,
-row.names=NULL, lrr, baf, featureData, cdfname, ffname="",
-genome=c("hg19", "hg18"))
+row.names=NULL, lrr, baf, featureData, cdfname, ffname="",genome)
 }
 
 \arguments{

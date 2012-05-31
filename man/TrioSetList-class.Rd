@@ -6,7 +6,7 @@
 \alias{allNames}
 \alias{[,TrioSetList-method}
 \alias{$,TrioSetList-method}
-\alias{[[,TrioSetList-method}
+\alias{[[,TrioSetList,ANY,ANY-method}
 \alias{annotation,TrioSetList-method}
 \alias{baf,TrioSetList-method}
 \alias{baf}

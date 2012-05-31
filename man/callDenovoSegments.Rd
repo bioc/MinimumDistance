@@ -8,7 +8,7 @@
   posterior calling steps.
 }
 \usage{
-callDenovoSegments(path = "", pedigreeData, ext = "", featureData, cdfname, chromosome = 1:22, segmentParents, prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3), verbose = FALSE, ...)
+callDenovoSegments(path = "", pedigreeData, ext = "", featureData,cdfname, chromosome = 1:22, segmentParents,prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3), verbose = FALSE,genome=c("hg19", "hg18")...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -46,6 +46,9 @@ callDenovoSegments(path = "", pedigreeData, ext = "", featureData, cdfname, chro
   \item{verbose}{
     \code{Logical}: whether to display verbose output indicating progress.
   }
+
+  \item{genome}{\code{character}: the UCSC genome build used for the
+    probe annotation}
 
   \item{\dots}{
     Additional arguments can be specified for the \code{segment}
