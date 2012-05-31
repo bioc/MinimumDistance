@@ -937,13 +937,19 @@ xypanelMD2 <- function(x, y,
 	}
 }
 
-narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE, fD){
+narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE, fD, genome){
 	if(missing(fD)) stop("fD not specified. fD must be a list of GenomeAnnotatedDataFrames (if multiple chromosomes are in 'object'), or a single GenomeAnnotatedDataFrame (one chromosome represented in 'object')")
 	if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
 	##stopifnot(!is.null(names(mad.minimumdistance)))
 	ix <- match(sampleNames(object), names(mad.minimumdistance))
-	if(is(object, "RangedDataCNV")){
-		stop("object is a RangedDataCNV-derived class.  This class is being phased out in favor of GRanges.  See oligoClasses:::coerceToGRanges() to coerce between RangedDataCNV and GRanges.")
+	if(is(object, "RangedDataCNV")) {
+		if(missing(genome)) stop("must supply genome (hg18 or hg19) if object is RangedDataCNV")
+		object <- as(object, "GRanges")
+		metadata(object) <- list(genome=genome)
+	}
+	if(is(lrr.segs, "RangedDataCNV")) {
+		lrr.segs <- as(lrr.segs, "GRanges")
+		metadata(lrr.segs) <- list(genome=genome)
 	}
 	elementMetadata(object)$mindist.mad <- mad.minimumdistance[ix]
 	lrr.segs <- lrr.segs[sampleNames(lrr.segs) %in% sampleNames(object), ]
@@ -964,6 +970,7 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE,
 		if(verbose)  pb <- txtProgressBar(min=0, max=length(indexList), style=3)
 		segList <- vector("list", length(indexList))
 		pkgs <- neededPkgs()
+		j <- k <- NULL
 		segList <- foreach(j=indexList, k=indexList2, featureData=fD, .packages=pkgs) %dopar%{
 			MinimumDistance:::narrowRangeForChromosome(object[j, ],
 								   lrr.segs[k, ],
@@ -987,10 +994,9 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE,
 		##if(length(j) == 1) segs <- segs[, -j]
 	} else {
 		if(is(fD, "list")) {
-			fD <- fD[[1]]
-			if(is(object, "GRanges")){
-				chr <- as.character(chromosome(object)[1])
-			} else chr <- paste("chr", chromosome(object)[1], sep="")
+			chroms <- paste("chr", sapply(fD, function(x) chromosome(x)[1]), sep="")
+			fD <- fD[[match(as.character(chromosome(object))[1], chroms)]]
+			chr <- as.character(chromosome(object)[1])
 			if(paste("chr", chromosome(fD)[1], sep="") != chr) stop("The supplied GenomeAnnotatedDataFrame (fD) does not have the same chromosome as object")
 		}
 		segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose, fD=fD)
@@ -1002,8 +1008,8 @@ narrow <- function(object, lrr.segs, thr=0.9, mad.minimumdistance, verbose=TRUE,
 narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, fD){
 	md.range <- md.range[order(sampleNames(md.range), start(md.range)), ]
 	mads <- pmax(values(md.range)$mindist.mad, .1)
-	abs.thr <- abs(values(md.range)$seg.mean)/mads > thr
-	md.range2 <- md.range[values(md.range)$seg.mean > abs.thr, ]
+	abs.thr <- abs(values(md.range)$seg.mean)/mads
+	md.range2 <- md.range[abs.thr > thr, ]
 	if(length(md.range2) < 1){
 		return(md.range)
 	}
@@ -1058,10 +1064,10 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, 
 	elementMetadata(rd)$numberProbes <- cnt
 	##rd$num.mark[unique(queryHits(o))] <- nmark
 	rd <- rd[numberProbes(rd) > 0L, ]
-	mrd <- md.range[elementMetadata(md.range)$seg.mean <= abs.thr, ]
+	mrd <- md.range[abs.thr <= thr, ]
 	mrd <- mrd[, match(colnames(values(rd)), colnames(values(mrd)))]
-	rd2 <- stackRangedDataList(rd, mrd)
-	##rd2 <- rd2[, -ncol(rd2)]
+	rd2 <- c(rd, mrd)
+	##	rd2 <- sort(rd2)
 	rd2 <- rd2[order(sampleNames(rd2), start(rd2)), ]
 	return(rd2)
 }
