@@ -9,7 +9,8 @@
   a trio using lattice.
 }
 \usage{
-xyplotTrio(rd, object, frame = 2e+05, lrr.segments, md.segments, ...)
+xyplotTrio(rd, object, frame = 2e+05, lrr.segments, md.segments,
+  nchar_sampleid=15L, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -32,6 +33,10 @@ xyplotTrio(rd, object, frame = 2e+05, lrr.segments, md.segments, ...)
   the results of a segmentation of the minimum distance (e.g, by circular
   binary segmentation).
 }
+
+\item{nchar_sampleid}{Integer specifying the number of characters of the
+  sample identifier to display in the panel.  The default is 15
+  characters. }
 
 \item{\dots}{
   Additional arguments are passed to \code{xypanelTrio} and low-level

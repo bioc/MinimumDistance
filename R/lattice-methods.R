@@ -1,4 +1,4 @@
-xyplotTrio <- function(rd, object, frame=200e3, lrr.segments=NULL, md.segments=NULL, ...){
+xyplotTrio <- function(rd, object, frame=200e3, lrr.segments=NULL, md.segments=NULL, nchar_sampleid=15L, ...){
 	##if(!is(rd, "RangedDataCNV")) stop("rd is not a RangedDataCNV-derived class")
 	if(!is(object, "TrioSet")) stop("object is not a TrioSet")
 	if(is.null(mindist(object))) stop("must add minimum distance matrix to mindist slot. Use mindist(object) <- value")
@@ -8,7 +8,8 @@ xyplotTrio <- function(rd, object, frame=200e3, lrr.segments=NULL, md.segments=N
 		dataFrameFromRange2(range=rd[i, ],
 				    object=object,
 				    frame=frame,
-				    range.index=i)
+				    range.index=i,
+				    nchar_sampleid=nchar_sampleid)
 	}
 	df$range <- factor(paste("range", df$range), ordered=TRUE, levels=unique(paste("range", df$range)))
 	index <- split(seq_len(nrow(df)), df$range)

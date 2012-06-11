@@ -673,7 +673,7 @@ trioSet2data.frame <- function(from){
 	return(df)
 }
 
-dataFrameFromRange2 <- function(object, range, range.index, frame=0){
+dataFrameFromRange2 <- function(object, range, range.index, frame=0, nchar_sampleid=15){
 	if(is(range, "RangedDataCNV"))
 		rm <- IRanges::findOverlaps(range, featureData(object), maxgap=frame) ## RangesMatching
 	if(is(range, "GRanges")){
@@ -698,7 +698,7 @@ dataFrameFromRange2 <- function(object, range, range.index, frame=0){
 	findex <- which(df$memberId=="father")
 	mindex <- which(df$memberId=="mother")
 	memberid <- as.character(df$memberId)
-	nchr <- min(8, nchar(sampleNames(obj)[1]))
+	nchr <- min(nchar_sampleid, nchar(sampleNames(obj)[1]))
 	oid <- substr(sampleNames(obj)[1], 1, nchr)
 	fid <- substr(fatherNames(obj)[1], 1, nchr)
 	mid <- substr(motherNames(obj)[1], 1, nchr)
