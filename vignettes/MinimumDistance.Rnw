@@ -408,7 +408,7 @@ median absolute deviation from zero are edited using the
 
 <<narrow,results=hide>>=
 mads.md <- mad2(md, byrow=FALSE)
-md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md, fD=featureData(trioSetList))
+md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md, fD=featureData(trioSetList), genome="hg18")
 @
 
 To each range (segment) the maximum posterior probability and the
