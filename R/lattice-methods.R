@@ -4,6 +4,13 @@ xyplotTrio <- function(rd, object, frame=200e3, lrr.segments=NULL, md.segments=N
 	if(is.null(mindist(object))) stop("must add minimum distance matrix to mindist slot. Use mindist(object) <- value")
 	index <- seq_len(length(rd))
 	i <- NULL
+	if("xlim" %in% names(list(...))){
+		xlim <- list(...)[["xlim"]]
+		ir <- IRanges(xlim[1]*1e6, xlim[2]*1e6)
+		ir2 <- IRanges(start(rd), end(rd))
+		rd <- rd[subjectHits(findOverlaps(ir, ir2)), ]
+	}
+	if(length(rd)==0) return()
 	df <- foreach(i=index, .combine="rbind") %do% {
 		dataFrameFromRange2(range=rd[i, ],
 				    object=object,
@@ -142,11 +149,12 @@ xypanelTrio <- function(x, y,
 	##sns <- unique(sampleNames[subscripts])
 	if(mindistPanel){
 		if(!is.null(md.segments)){
-			md.segments <- md.segments[sampleNames(md.segments) %in% sampleNames(range) & as.character(chromosome(md.segments)) == as.character(chromosome(range)), ]
-			lsegments(x0=start(md.segments)/1e6,
-				  x1=end(md.segments)/1e6,
-				  y0=elementMetadata(md.segments)$seg.mean,
-				  y1=elementMetadata(md.segments)$seg.mean, lwd=2, col=segment.col)		}
+			md.segs <- md.segments[sampleNames(md.segments) %in% sampleNames(range) & as.character(chromosome(md.segments)) == as.character(chromosome(range)), ]
+			lsegments(x0=start(md.segs)/1e6,
+				  x1=end(md.segs)/1e6,
+				  y0=elementMetadata(md.segs)$seg.mean,
+				  y1=elementMetadata(md.segs)$seg.mean, lwd=2, col=segment.col)
+		}
 	} else {
 		## range is labeled by offspring id.
 		if(!is.null(lrr.segments)){
