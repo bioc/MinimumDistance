@@ -1535,3 +1535,74 @@ rescale2 <- function(x, l, u){
 	VanillaICE:::rescale(y, l, u)
 
 }
+
+dataFrameFromRange2 <- function(object, range, range.index, frame=0, nchar_sampleid=15){
+	if(is(range, "RangedDataCNV"))
+		rm <- IRanges::findOverlaps(range, featureData(object), maxgap=frame) ## RangesMatching
+	if(is(range, "GRanges")){
+		frange <- makeFeatureGRanges(featureData(object), genomeBuild(object))
+		rm <- findOverlaps(range, frange, maxgap=frame)
+	}
+	mm <- IRanges::as.matrix(rm)
+	mm.df <- data.frame(mm)
+	mm.df$featureNames <- featureNames(object)[mm.df$subject]
+	marker.index <- mm.df$subject
+	sample.index <- match(sampleNames(range), sampleNames(object))
+	if(any(is.na(sample.index))) stop("sampleNames in RangedData do not match sampleNames in ", class(data), " object")
+	sample.index <- unique(sample.index)
+	obj <- object[marker.index, sample.index]
+	mm.df$subject <- match(mm.df$featureNames, featureNames(obj))
+	##
+	## coersion to data.frame
+	##
+	df <- trioSet2data.frame(obj)
+	chr <- unique(chromosome(object))
+	oindex <- which(df$memberId=="offspring")
+	findex <- which(df$memberId=="father")
+	mindex <- which(df$memberId=="mother")
+	memberid <- as.character(df$memberId)
+	nchr <- min(nchar_sampleid, nchar(sampleNames(obj)[1]))
+	oid <- substr(sampleNames(obj)[1], 1, nchr)
+	fid <- substr(fatherNames(obj)[1], 1, nchr)
+	mid <- substr(motherNames(obj)[1], 1, nchr)
+	memberid[oindex] <- paste(oid, "(offspring)")
+	memberid[findex] <- paste(fid, "(father)")
+	memberid[mindex] <- paste(mid, "(mother)")
+	memberid <- paste("chr", chr, ": ", memberid, sep="")
+	memberid <- factor(memberid, levels=rev(unique(memberid)))
+	df$memberId <- I(memberid)
+	##df$range <- rep(i, nrow(df))##mm.df$query
+	##dfList[[i]] <- df
+	df$range <- range.index
+	df
+}
+
+trioSet2data.frame <- function(from){
+	cn <- lrr(from)[, 1, ]/100
+	md.null <- is.null(mindist(from))
+	if(!md.null) {
+		md <- as.numeric(mindist(from))/100
+		mdlabel <- "md"
+	} else {
+		mdlabel <- md <- NULL
+	}
+	labels <- c("father", "mother", "offspring", mdlabel)
+	J <- length(labels)
+	sns <- matrix(labels, nrow(cn), J, byrow=TRUE)
+	sns <- as.character(sns)
+	cn <- as.numeric(cn)
+	y <- c(cn, md)
+	bf <- as.numeric(baf(from)[, 1, ])/1000
+	bf <- c(bf, rep(NA, length(md)))
+	x <- rep(position(from)/1e6, J)
+	is.snp <- rep(isSnp(from), J)
+	df <- data.frame(x=x,
+			 y=y,
+			 baf=bf,
+			 memberId=sns,
+			 trioId=rep(sampleNames(from), length(y)),
+			 is.snp=is.snp,
+			 stringsAsFactors=FALSE)
+	df$memberId <- factor(df$memberId, ordered=TRUE, levels=rev(labels))
+	return(df)
+}

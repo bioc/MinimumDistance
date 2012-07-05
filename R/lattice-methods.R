@@ -1,9 +1,8 @@
 xyplotTrio <- function(rd, object, frame=200e3, lrr.segments=NULL, md.segments=NULL, nchar_sampleid=15L, ...){
 	##if(!is(rd, "RangedDataCNV")) stop("rd is not a RangedDataCNV-derived class")
 	if(!is(object, "TrioSet")) stop("object is not a TrioSet")
-	if(is.null(mindist(object))) stop("must add minimum distance matrix to mindist slot. Use mindist(object) <- value")
+	##if(is.null(mindist(object))) stop("must add minimum distance matrix to mindist slot. Use mindist(object) <- value")
 	index <- seq_len(length(rd))
-	i <- NULL
 	if("xlim" %in% names(list(...))){
 		xlim <- list(...)[["xlim"]]
 		ir <- IRanges(xlim[1]*1e6, xlim[2]*1e6)
@@ -11,6 +10,7 @@ xyplotTrio <- function(rd, object, frame=200e3, lrr.segments=NULL, md.segments=N
 		rd <- rd[subjectHits(findOverlaps(ir, ir2)), ]
 	}
 	if(length(rd)==0) return()
+	i <- NULL
 	df <- foreach(i=index, .combine="rbind") %do% {
 		dataFrameFromRange2(range=rd[i, ],
 				    object=object,
@@ -30,7 +30,8 @@ xyplotTrio <- function(rd, object, frame=200e3, lrr.segments=NULL, md.segments=N
 		       memberId=df$memberId[i],
 		       lrr.segments=lrr.segments,
 		       md.segments=md.segments,
-		       ped=pedigree(object), ...)
+		       ped=pedigree(object),
+		       nchar_sampleid=nchar_sampleid, ...)
 	}
 	if(length(figs)==1) figs <- figs[[1]]
 	return(figs)
@@ -120,6 +121,7 @@ xypanelTrio <- function(x, y,
 			state.col="blue",
 			segment.col="grey50",
 			ped,
+			nchar_sampleid,
 			..., subscripts){
 	panel.abline(h=c(-1, 0, log2(3/2), log2(4/2)), col="grey", lty=2)
 	panel.xyplot(x[1], y[1], col="white", ...) ## set it up, but don't plot
@@ -145,8 +147,7 @@ xypanelTrio <- function(x, y,
 	bnew <- rescale(b, blim[1], blim[2])
 	lpoints(x[is.snp], bnew[is.snp], col=baf.color, ...)
 	memberId <- unique(memberId[subscripts])
-	mindistPanel <- match(memberId, levels(memberId))==1
-	##sns <- unique(sampleNames[subscripts])
+	mindistPanel <- length(grep("md", as.character(memberId)))==1
 	if(mindistPanel){
 		if(!is.null(md.segments)){
 			md.segs <- md.segments[sampleNames(md.segments) %in% sampleNames(range) & as.character(chromosome(md.segments)) == as.character(chromosome(range)), ]
@@ -157,15 +158,12 @@ xypanelTrio <- function(x, y,
 		}
 	} else {
 		## range is labeled by offspring id.
+		memberId <- as.character(memberId)
+		id <- strsplit(memberId, "\ ")[[1]][[2]]
+		sns <- sampleNames(lrr.segments)
+		stripname <- function(nchar_sampleid) substr(sns, 1, nchar_sampleid)
 		if(!is.null(lrr.segments)){
-			j <- match(sampleNames(range), sampleNames(ped))
-			fatherPanel <- match(memberId, levels(memberId))==4
-			motherPanel <- match(memberId, levels(memberId))==3
-			offsprPanel <- match(memberId, levels(memberId))==2
-			if(fatherPanel) id <- fatherNames(ped)[j]
-			if(motherPanel) id <- motherNames(ped)[j]
-			if(offsprPanel) id <- sampleNames(ped)[j]
-			lrr.segments <- lrr.segments[sampleNames(lrr.segments) %in% id & as.character(chromosome(lrr.segments)) == as.character(chromosome(range)), ]
+			lrr.segments <- lrr.segments[stripname(nchar_sampleid) == id & chromosome(lrr.segments)==chromosome(range), ]
 			if(length(lrr.segments)>0){
 				lsegments(x0=start(lrr.segments)/1e6,
 					  x1=end(lrr.segments)/1e6,
