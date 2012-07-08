@@ -9,9 +9,12 @@ setMethod("segment2", signature(object="TrioSet"),
 	  })
 
 setMethod("segment2", signature(object="list"),
-	  function(object, pos, chrom, id=NULL, featureNames, segmentParents=TRUE, verbose=TRUE, ...){
+	  function(object, pos, chrom, id=NULL, featureNames, segmentParents=TRUE, verbose=TRUE, genome, ...){
 		  ## elements of list must be a matrix or an array
-		  segmentList(object, pos, chrom, id, featureNames, segmentParents=segmentParents, verbose=verbose, ...)
+		  if(missing(genome)) stop("must specify UCSC genome build")
+		  segs <- segmentList(object, pos, chrom, id, featureNames, segmentParents=segmentParents, verbose=verbose, genome=genome, ...)
+		  metadata(segs) <- list(genome=genome)
+		  segs
 	  })
 
 setMethod("segment2", signature(object="matrix"),
@@ -41,7 +44,7 @@ segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ..
 				.packages=pkgs, .inorder=FALSE) %dopar% {
 					segment2(object=trioset,
 						 segmentParents=segmentParents,
-						 verbose=verbose)
+						 verbose=verbose, ...)
 				}
 		segs <- stackRangedDataList(segs)
 	} else {
@@ -53,7 +56,7 @@ segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ..
 				.inorder=FALSE) %dopar% {
 					segment2(object=trioset,
 						 md=mdElement,
-						 verbose=verbose)
+						 verbose=verbose, ...)
 				}
 		segs <- stackRangedDataList(segs)
 	}
@@ -62,30 +65,34 @@ segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ..
 
 segmentTrioSet <- function(object, md, segmentParents, verbose, ...){
 	if(is.null(md)){
-		segmentArray(object=lrr(object),
-			     pos=position(object),
-			     chrom=chromosome(object),
-			     id=trios(object),
-			     featureNames=featureNames(object),
-			     segmentParents=segmentParents,
-			     verbose=verbose)
+		segs <- segmentArray(object=lrr(object),
+				     pos=position(object),
+				     chrom=chromosome(object),
+				     id=trios(object),
+				     featureNames=featureNames(object),
+				     segmentParents=segmentParents,
+				     verbose=verbose,
+				     genome=genomeBuild(object))
 	} else {
 		if(is(md, "logical")){
 			md <- mindist(object)
 			stopifnot(!is.null(md))
 		}
-		segment2(object=md,
-			 pos=position(object),
-			 chrom=chromosome(object),
-			 id=sampleNames(object),
-			 featureNames=featureNames(object),
-			 verbose=verbose)
+		segs <- segment2(object=md,
+				 pos=position(object),
+				 chrom=chromosome(object),
+				 id=sampleNames(object),
+				 featureNames=featureNames(object),
+				 verbose=verbose,
+				 genome=genomeBuild(object))
 	}
+	metadata(segs) <- list(genome=genomeBuild(object))
+	segs
 }
 
 
 
-segmentList <- function(object, pos, chrom, id, featureNames, segmentParents=TRUE, verbose=TRUE, ...){
+segmentList <- function(object, pos, chrom, id, featureNames, segmentParents=TRUE, verbose=TRUE, genome, ...){
 	##warning("segmentList not well tested!")
 	dims <- dim(object[[1]])
 	if(length(dims) != 2 && length(dims) != 3)
@@ -102,13 +109,13 @@ segmentList <- function(object, pos, chrom, id, featureNames, segmentParents=TRU
 			       chromosome=chrom,
 			       fns=featureNames, .inorder=FALSE,
 			       .combine=stackRangedDataList,
-			       .packages=pkgs) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, ...)
+			       .packages=pkgs) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, genome=genome, ...)
 	}  else {
 		obj <- position <- chromosome <- fns <- NULL
-		res <- foreach(obj=object, position=pos, chromosome=chrom, fns=featureNames, .inorder=FALSE, .combine=stackRangedDataList, .packages=pkgs) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, ...)
+		res <- foreach(obj=object, position=pos, chromosome=chrom, fns=featureNames, .inorder=FALSE, .combine=stackRangedDataList, .packages=pkgs) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, genome=genome, ...)
 	}
-	j <- match("sample", colnames(res))
-	if(!is.na(j)) res <- res[, -j]
+##	j <- match("sample", colnames(res))
+##	if(!is.na(j)) res <- res[, -j]
 	return(res)
 }
 
@@ -189,12 +196,13 @@ segmentArray <- function(object, pos, chrom, id, featureNames, segmentParents, v
 						     verbose=verbose, ...)
 		}
 		if(!segmentParents){
-			segs <- stack(RangedDataList(segs.o))
+			##segs <- stack(RangedDataList(segs.o))
+			segs <- stackRangedDataList(segs.o)
 		} else {
-			segs.f <- stack(RangedDataList(segs.f))
-			segs.m <- stack(RangedDataList(segs.m))
-			segs.o <- stack(RangedDataList(segs.o))
-			segs <- stack(RangedDataList(list(segs.f, segs.m, segs.o)))
+			segs.f <- stackRangedDataList(segs.f)
+			segs.m <- stackRangedDataList(segs.m)
+			segs.o <- stackRangedDataList(segs.o)
+			segs <- stackRangedDataList(list(segs.f, segs.m, segs.o))
 		}
 	} else {
 		if(!segmentParents %in% 1:3) stop("segmentParents must be logical, or an integer (1, 2, or 3)")
@@ -207,7 +215,7 @@ segmentArray <- function(object, pos, chrom, id, featureNames, segmentParents, v
 						     featureNames=featureNames,
 						     verbose=verbose, ...)
 		}
-		segs <- stack(RangedDataList(segs))
+		segs <- stackRangedDataList(segs)
 	}
 	return(segs)
 }
@@ -238,7 +246,7 @@ segmentArray <- function(object, pos, chrom, id, featureNames, segmentParents, v
 
 
 
-segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
+segmentMatrix <- function(object, pos, chrom, id, featureNames, genome, ...){
 	if(!is(object, "matrix")) stop("object must be a matrix")
 	##featureNames <- rownames(object)
 	if(any(duplicated(pos))){
@@ -250,24 +258,9 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
 	index.list <- split(seq_along(marker.index), arm)
 	iMax <- sapply(split(marker.index, arm), max)
 	pMax <- pos[iMax]
-##	if(verbose){
-##		##message("\t\tSmoothing outliers and running circular binary segmentation on ", ncol(object), " samples.")
-##		pb <- txtProgressBar(min=0, max=length(index.list), style=3)
-##	}
-	##
-	## The names returned by DNAcopy's segment are not necessarily the
-	## same as the original names
-	## (e.g., if '@' is embedded in the name, or the
-	##  first charcter is numeric)
-	##  The hash table guarantees that the sample names returned are identical
-	##  to the original names
-	##
-	##hash.matrix <- cbind(paste("s", seq_len(ncol(object)), sep=""), colnames(object))
 	hash.matrix <- cbind(paste("s", seq_len(ncol(object)), sep=""), id)
 	colnames(hash.matrix) <- c("key", "original.id")
 	rownames(object) <- featureNames
-	##
-	##
 	segs <- vector("list", length(index.list))
 	for(i in seq_along(index.list)){
 		##if (verbose) setTxtProgressBar(pb, i)
@@ -283,8 +276,6 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
 		rm(smu.object); gc()
 		df <- tmp$output
 		sr <- tmp$segRows
-		##df <- cbind(tmp$output, tmp$segRows)
-		##md.segs[[i]] <-
 		firstMarker <- rownames(CNA.object)[sr$startRow]
 		endMarker <- rownames(CNA.object)[sr$endRow]
 		df$start.index <- match(firstMarker, featureNames)
@@ -301,12 +292,22 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames, ...){
 	} else segs <- segs[[1]]
 	key.index <- match(segs$ID, hash.matrix[, "key"])
 	orig.id <- hash.matrix[key.index, "original.id"]
-	ranges <- RangedDataCBS(ranges=IRanges(segs$loc.start, segs$loc.end),
-				chromosome=segs$chrom,
-				sampleId=orig.id,
-				coverage=segs$num.mark,
-				seg.mean=segs$seg.mean,
-				startIndexInChromosome=segs$start.index,
-				endIndexInChromosome=segs$end.index)
+##	ranges <- RangedDataCBS(ranges=IRanges(segs$loc.start, segs$loc.end),
+##				chromosome=segs$chrom,
+##				sampleId=orig.id,
+##				coverage=segs$num.mark,
+##				seg.mean=segs$seg.mean,
+##				startIndexInChromosome=segs$start.index,
+##				endIndexInChromosome=segs$end.index)
+	ranges <- GRanges(paste("chr", segs$chrom, sep=""),
+			  IRanges(segs$loc.start, segs$loc.end),
+			  sample=orig.id,
+			  numberProbes=segs$num.mark,
+			  seg.mean=segs$seg.mean)
+	if(!missing(genome)){
+		sl <- getSequenceLengths(genome)
+		sl <- sl[match(unique(as.character(seqnames(ranges))), names(sl))]
+		seqlengths(ranges) <- sl
+	}
 	return(ranges)
 }

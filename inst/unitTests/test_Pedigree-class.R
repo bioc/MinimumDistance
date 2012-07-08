@@ -66,3 +66,5 @@ test_subsetPedigree <- function(){
 					M=letters[2],
 					O=letters[3])))
 }
+
+

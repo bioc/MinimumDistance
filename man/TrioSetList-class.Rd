@@ -6,7 +6,7 @@
 \alias{allNames}
 \alias{[,TrioSetList-method}
 \alias{$,TrioSetList-method}
-\alias{[[,TrioSetList-method}
+\alias{[[,TrioSetList,ANY,ANY-method}
 \alias{annotation,TrioSetList-method}
 \alias{baf,TrioSetList-method}
 \alias{baf}
@@ -14,9 +14,11 @@
 \alias{dims,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}
 \alias{fatherPhenoData,TrioSetList-method}
+\alias{featureData,TrioSetList-method}
 \alias{motherPhenoData,TrioSetList-method}
 \alias{offspringPhenoData,TrioSetList-method}
 \alias{fatherNames}
+\alias{gcSubtract,TrioSetList-method}
 \alias{initialize,TrioSetList-method}
 \alias{length,TrioSetList-method}
 \alias{lrr,TrioSetList-method}
@@ -119,6 +121,9 @@
   \item{}{\code{fatherPhenoData(object)}: Extract a
   \code{AnnotatedDataFrame} of the sample-level covariates for the
   father.}
+
+  \item{}{\code{featureData(object)}: Extracts a list of
+    \code{GenomeAnnotatedDataFrame}s.}
 
   \item{}{\code{length(object)}: The number of chromosomes.}
 
@@ -270,6 +275,12 @@
     slot.  If the elements are \code{AnnotatedDataFrame} instead of
     \code{GenomeAnnotatedDataFrame}, the \code{featureDataList} slot is updated.}
 
+  \item{}{\code{gcSubtract(object, method=c("speed", "lowess"),
+      trio.index, ...)}:
+
+    \code{method} indicates the type of GC correction. [[NEED ADDL
+    DETAILS]].
+  }
   }
 }
 
@@ -279,12 +290,14 @@ R. Scharpf
 }
 
 \seealso{
-  \code{\linkS4class{TrioSet}}, \code{\linkS4class{Pedigree}}
+  \code{\linkS4class{TrioSet}}, \code{\linkS4class{Pedigree}}, \code{\link{gcSubtract}}
 }
 
 \examples{
 showClass("TrioSetList")
+library(Biobase)
 TrioSetList()
-data(trioSetExample)
+data(trioSetListExample)
+featureData(trioSetList)
 }
 \keyword{classes}

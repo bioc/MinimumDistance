@@ -6,7 +6,7 @@
 \description{Constructs and object of class \code{TrioSetList}}
 \usage{
 TrioSetList(chromosome=integer(), pedigreeData=Pedigree(), sample.sheet,
-row.names=NULL, lrr, baf, featureData, cdfname, ffname="")
+row.names=NULL, lrr, baf, featureData, cdfname, ffname="",genome)
 }
 
 \arguments{
@@ -36,7 +36,12 @@ row.names=NULL, lrr, baf, featureData, cdfname, ffname="")
     package.}
 
   \item{ffname}{Prefix for naming ff files. Ignored if \pkg{ff} package
-  is not loaded.}
+    is not loaded.}
+
+    \item{genome}{character string indicating UCSC genome build. Only
+  "hg19" is allowed for annotation packages that support a single
+  build. For annotation packages that support multiple builds, valid
+  builds are "hg18" and "hg19".}
 
 }
 
@@ -66,7 +71,8 @@ trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 			   pedigree=Pedigree(pedigreeInfo),
 			   sample.sheet=sample.sheet,
 			   row.names=nms,
-			   cdfname="human610quadv1bCrlmm")
+			   cdfname="human610quadv1bCrlmm",
+			   genome="hg19")
 motherPhenoData(trioSetList)
 fatherPhenoData(trioSetList)
 offspringPhenoData(trioSetList)

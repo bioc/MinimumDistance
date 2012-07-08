@@ -5,25 +5,62 @@ setMethod("initialize", "TrioSet",
 		   fatherPhenoData=annotatedDataFrameFrom(assayData, byrow=FALSE),
 		   motherPhenoData=annotatedDataFrameFrom(assayData, byrow=FALSE),
 		   annotation=character(),
-		   featureData=GenomeAnnotatedDataFrameFrom(assayData, annotation),
+		   featureData=GenomeAnnotatedDataFrameFrom(assayData, annotation, genome=genome),
 		   experimentData=new("MIAME"),
 		   protocolData=phenoData[, integer(0)],
 		   logRRatio=array(NA, dim=c(0, 0, 3)),
 		   BAF=array(NA, dim=c(0,0,3)),
 		   pedigree=Pedigree(),
-		   mindist=NULL, ...){
+		   mindist=NULL,
+		   genome=c("hg19", "hg18"), ...){
+		  .Object@pedigree <- pedigree
+		  .Object@fatherPhenoData <- fatherPhenoData
+		  .Object@motherPhenoData <- motherPhenoData
 		  callNextMethod(.Object,
 				 assayData=assayData,
 				 phenoData=phenoData,
-				 fatherPhenoData=fatherPhenoData,
+				 ##fatherPhenoData=fatherPhenoData,
 				 motherPhenoData=motherPhenoData,
 				 featureData=featureData,
 				 experimentData=experimentData,
 				 annotation=annotation,
 				 protocolData=protocolData,
 				 pedigree=pedigree,
-				 mindist=mindist, ...)
+				 mindist=mindist,
+				 genome=match.arg(genome), ...)
 	  })
+
+setValidity("TrioSet", function(object){
+	ped <- pedigree(object)
+	validObject(ped)
+	validObject(featureData(object))
+	nms <- ls(assayData(object))
+	if(!all(c("BAF", "logRRatio") %in% nms)){
+		msg <- "BAF and logRRatio are required elements of the assayData"
+		return(msg)
+	}
+	elt <- nms[[1]]
+	elt <- assayData(object)[[elt]]
+	if(ncol(elt) > 0){
+		sns.ped <- sampleNames(ped)
+		if(length(sns.ped) != ncol(elt)){
+			return("Number of samples in pedigree slot should be the same as the number of columns in the TrioSet object")
+		}
+	}
+	if(!identical(sampleNames(object), sampleNames(phenoData(object)))){
+		return("sampleNames of TrioSetList object must be the same as the sampleNames of the phenoData")
+	}
+	if(!identical(fatherNames(object), originalNames(sampleNames(fatherPhenoData(object))))){
+		return("fatherNames of TrioSetList object must be the same as the sampleNames of the fatherPhenoData")
+	}
+	if(!identical(motherNames(object), originalNames(sampleNames(motherPhenoData(object))))){
+		stop("motherNames of TrioSetList object must be the same as the sampleNames of the motherPhenoData")
+	}
+	if(!is.null(mindist(object))){
+		if(!identical(colnames(mindist(object)), sampleNames(object)))
+			stop("colnames of mindist matrix must be same as the sampleNames of the TrioSet object")
+	}
+})
 
 setMethod("updateObject", signature(object="TrioSet"),
 	  function(object, ..., verbose=FALSE){
@@ -52,6 +89,7 @@ setReplaceMethod("lrr", c("TrioSet", "ANY"),
 		 function(object, value) {
 			 assayDataElementReplace(object, "logRRatio", value)
 	 })
+
 setMethod("baf", "TrioSet",
 	  function(object) {
 		  assayDataElement(object, "BAF")
@@ -80,7 +118,7 @@ TrioSet <- function(pedigreeData=Pedigree(),
 		    featureData,
 		    cdfname,
 		    drop=TRUE,
-		    mindist=NULL){
+		    mindist=NULL, genome=c("hg19", "hg18")){
 	if(missing(lrr) | missing(baf)){
 		object <- new("TrioSet",
 			      pedigree=pedigreeData)
@@ -100,7 +138,7 @@ TrioSet <- function(pedigreeData=Pedigree(),
 	}
 	if(missing(featureData)){
 		if(missing(cdfname)) stop("If featureData is not supplied, a valid cdfname must be provided for feature annotation")
-		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname)
+		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname, genome=match.arg(genome))
 		fD <- featureData[order(chromosome(featureData), position(featureData)), ]
 		rm(featureData); gc()
 	} else {
@@ -185,7 +223,8 @@ TrioSet <- function(pedigreeData=Pedigree(),
 		      motherPhenoData=motherPhenoData,
 		      pedigree=pedigreeData,
 		      featureData=fD,
-		      mindist=mindist)
+		      mindist=mindist,
+		      genome=match.arg(genome))
 }
 
 
@@ -199,6 +238,7 @@ setMethod("show", signature(object="TrioSet"),
 		  paste(assayDataElementNames(object), collapse=", "), "\n")
 	      cat("  dimension:\n")
 	      print(adim)
+	      cat("genome:", genomeBuild(object), "\n")
 	  })
 
 setMethod("open", "TrioSet", function(con, ...){
@@ -348,13 +388,15 @@ computeBayesFactorTrioSet <- function(object,
 	## a TrioSet has only one chromosome
 	ldPath(outdir)
  	CHR <- unique(chromosome(object))
-	ranges <- ranges[chromosome(ranges) == CHR, ]
+	if(is(ranges, "RangedDataCNV"))
+		ranges <- as(ranges, "GRanges")
+	ranges <- ranges[chromosome(ranges) == paste("chr",CHR,sep=""), ]
+	elementMetadata(ranges)$lik.state <- NA
+	elementMetadata(ranges)$argmax <- NA
+	elementMetadata(ranges)$lik.norm <- NA
+	elementMetadata(ranges)$state <- NA
 	ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
 	id <- unique(sampleNames(ranges))
-	ranges$lik.state <- NA
-	ranges$argmax <- NA
-	ranges$lik.norm <- NA
-	ranges$state <- NA
 	message("\t\tComputing Bayes factors for ", length(id), " files.")
 	pb <- txtProgressBar(min=0, max=length(id), style=3)
 	ntrios <- nrow(pedigree(object))
@@ -364,21 +406,23 @@ computeBayesFactorTrioSet <- function(object,
 		k <- match(this.id, sampleNames(object))
 		if(i %% 100 == 0)
 			message("   sample ", this.id, " (", i, "/", length(id), ")")
-		j <- which(ranges$id == this.id)
+		j <- which(sampleNames(ranges) == this.id)
 		rd <- joint4(id=this.id,
 			     trioSet=object[, k],
 			     ranges=ranges[j, ],
-			     ntrios=ntrios,  ...)
-##			     ...)
+			     ntrios=ntrios, ...)
+			     ##ntrios=ntrios, returnEmission=TRUE, ...)
 		if(returnEmission) return(rd)
-		ranges$lik.state[j] <- rd$lik.state
-		ranges$argmax[j] <- rd$argmax
-		ranges$lik.norm[j] <- rd$lik.norm
-		ranges$state[j] <- trioStateNames()[rd$argmax]
+		if(length(id) > 1){
+			elementMetadata(ranges)$lik.state[j] <- values(rd)$lik.state
+			elementMetadata(ranges)$argmax[j] <- values(rd)$argmax
+			elementMetadata(ranges)$lik.norm[j] <- values(rd)$lik.norm
+			elementMetadata(ranges)$state[j] <- trioStateNames()[values(rd)$argmax]
+		} else ranges <- rd
 	}
 	close(pb)
 	if(collapseRanges)
-		ranges <- pruneByFactor(ranges, f=ranges$argmax, verbose=FALSE)
+		ranges <- pruneByFactor(ranges, f=values(ranges)$argmax, verbose=FALSE)
 	ranges
 }
 
@@ -445,58 +489,39 @@ setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
 	  })
 
 setMethod("prune", signature(object="TrioSet", ranges="RangedDataCNV"),
-	  function(object, ranges, ...){
-		  stop("requires mindist(object)")
-		  CHR <- unique(chromosome(object))
-		  if(verbose) message("Pruning chromosome ", CHR)
-		  if(missing(id)) id <- unique(sampleNames(ranges))
-		  index <- which(chromosome(ranges) == CHR & sampleNames(ranges) %in% id)
-		  ranges <- ranges[index, ]
-		  rdList <- vector("list", length(unique(id)))
-		  is.ff <- is(mindist(object), "ff")
-		  if(is.ff){
-			  open(mindist(object))
-		  }
-		  if(verbose){
-			  message("\tPruning ", length(unique(id)), " files.")
-			  pb <- txtProgressBar(min=0, max=length(unique(id)), style=3)
-		  }
-		  for(j in seq_along(id)){
-			  if (verbose) setTxtProgressBar(pb, j)
-			  sampleId <- id[j]
-			  rd <- ranges[sampleNames(ranges) == sampleId, ]
-			  stopifnot(nrow(rd) > 0)
-			  ## assign the mad of the minimum distance to the ranges
-			  k <- match(sampleId, sampleNames(object))
-			  ##rd$mad <- object[[1]]$mindist.mad[k]
-			  genomdat <- as.numeric(mindist(object)[, k])
-			  ## This function currently returns a RangedData object
-			  rdList[[j]] <- pruneMD(genomdat,
-						 rd,
-						 physical.pos=position(object),  ##fD$position,
-						 lambda=lambda,
-						 MIN.CHANGE=min.change,
-						 SCALE.EXP=scale.exp,
-						 MIN.COVERAGE=min.coverage)
-		  }
-		  if(verbose) close(pb)
-		  if(is.ff){
-			  close(mindist(object))
-		  }
-		  if(length(rdList) == 1) {
-			  rd <- rdList[[1]]
-		  } else {
-			  rdList <- rdList[!sapply(rdList, is.null)]
-			  ##rdList <- lapply(rdList, function(x) as(x, "RangedData"))
-			  rdl <- RangedDataList(rdList)
-			  rd <- stack(rdl)
-			  ##rd <- as(rd, "RangedDataCNV")
-			  ix <- match("sample", colnames(rd))
-			  if(length(ix) > 0) rd <- rd[, -ix]
-		  }
-		  ## This will be of class RangedData
-		  return(rd)
+	  function(object, ranges, md, verbose=TRUE, ...){
+		  pruneTrioSet(object=object, ranges=ranges, md=md, verbose=verbose, ...)
 	 })
+
+pruneTrioSet <- function(object, ranges, md, verbose=TRUE, ...){
+	CHR <- unique(chromosome(object))
+	if(verbose) message("Pruning chromosome ", CHR)
+	id <- unique(sampleNames(ranges))
+	index <- which(chromosome(ranges) == CHR & sampleNames(ranges) %in% id)
+	ranges <- ranges[index, ]
+	rdList <- vector("list", length(unique(id)))
+	if(verbose){
+		message("\tPruning ", length(unique(id)), " files.")
+		pb <- txtProgressBar(min=0, max=length(unique(id)), style=3)
+	}
+	for(j in seq_along(id)){
+		if (verbose) setTxtProgressBar(pb, j)
+		sampleId <- id[j]
+		rd <- ranges[sampleNames(ranges) == sampleId, ]
+		stopifnot(nrow(rd) > 0)
+		## assign the mad of the minimum distance to the ranges
+		k <- match(sampleId, sampleNames(object))
+		##rd$mad <- object[[1]]$mindist.mad[k]
+		genomdat <- md[, k]
+		##genomdat <- as.numeric(mindist(object)[, k])/100
+		## This function currently returns a RangedData object
+		rdList[[j]] <- pruneMD(genomdat, rd,  ...)
+	}
+	if(verbose) close(pb)
+	rd <- stack(RangedDataList(rdList))
+	rd <- rd[, -ncol(rd)]
+	return(rd)
+}
 
 ##setMethod("offspringNames", signature(object="TrioSet"), function(object){
 ##	phenoData2(object)[, "id", "O"]
@@ -619,72 +644,6 @@ setAs("TrioSet", "data.frame",
 	      return(df)
       })
 
-trioSet2data.frame <- function(from){
-	stopifnot(ncol(from) == 1)
-	cn <- lrr(from)[, 1, ]/100
-	md <- as.numeric(mindist(from))/100
-	if(length(md)==0) stop("mindist slot of class TrioSet is empty")
-##	ids <- c(allNames(from), sampleNames(from))
-##	ids <- as.character(matrix(ids, nrow(cn), 4, byrow=TRUE))
-	sns <- matrix(c("father", "mother", "offspring", "min dist"), nrow(cn), 4, byrow=TRUE)
-	sns <- as.character(sns)
-	cn <- as.numeric(cn)
-	##is.lrr <- c(rep(1L, length(cn)), rep(0L, length(md)))
-	y <- c(cn, md)
-	##member <- c(sns, rep("min dist", length(md)))
-	##gt <- as.integer(gt)
-	bf <- as.numeric(baf(from)[, 1, ])/1000
-	bf <- c(bf, rep(NA, length(md)))
-	x <- rep(position(from)/1e6, 4)
-	is.snp <- rep(isSnp(from), 4)
-	df <- data.frame(x=x,
-			 y=y,
-			 baf=bf,
-			 memberId=sns,
-			 ##sampleNames=ids,
-			 trioId=rep(sampleNames(from), length(y)),
-			 is.snp=is.snp,
-			 stringsAsFactors=FALSE)
-	df$memberId <- factor(df$memberId, ordered=TRUE, levels=rev(c("father", "mother", "offspring", "min dist")))
-	return(df)
-}
-
-dataFrameFromRange2 <- function(object, range, range.index, frame=0){
-	rm <- IRanges::findOverlaps(range, featureData(object), maxgap=frame) ## RangesMatching
-	mm <- as.matrix(rm)
-	mm.df <- data.frame(mm)
-	mm.df$featureNames <- featureNames(object)[mm.df$subject]
-	marker.index <- mm.df$subject
-	sample.index <- match(sampleNames(range), sampleNames(object))
-	if(any(is.na(sample.index))) stop("sampleNames in RangedData do not match sampleNames in ", class(data), " object")
-	sample.index <- unique(sample.index)
-	obj <- object[marker.index, sample.index]
-	mm.df$subject <- match(mm.df$featureNames, featureNames(obj))
-	##
-	## coersion to data.frame
-	##
-	df <- trioSet2data.frame(obj)
-	chr <- unique(chromosome(object))
-	oindex <- which(df$memberId=="offspring")
-	findex <- which(df$memberId=="father")
-	mindex <- which(df$memberId=="mother")
-	memberid <- as.character(df$memberId)
-	nchr <- min(8, nchar(sampleNames(object)[1]))
-	oid <- substr(sampleNames(object)[1], 1, nchr)
-	fid <- substr(fatherNames(object)[1], 1, nchr)
-	mid <- substr(motherNames(object)[1], 1, nchr)
-	memberid[oindex] <- paste(oid, "(offspring)")
-	memberid[findex] <- paste(fid, "(father)")
-	memberid[mindex] <- paste(fid, "(mother)")
-	memberid <- paste("chr", chr, ": ", memberid, sep="")
-	memberid <- factor(memberid, levels=rev(unique(memberid)))
-	df$memberId <- I(memberid)
-	##df$range <- rep(i, nrow(df))##mm.df$query
-	##dfList[[i]] <- df
-	df$range <- range.index
-	df
-}
-
 setMethod("order", signature(...="TrioSet"),
 	  function(..., na.last=TRUE,decreasing=FALSE){
 		  x <- list(...)[[1]]
@@ -696,3 +655,70 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 	  function(object, verbose=TRUE, ...){
 		  calculateMindist(lrr(object))
 	  })
+
+setMethod("gcSubtract", signature(object="TrioSet"),
+	  function(object, method=c("speed", "lowess"), trio.index, ...){
+		  method <- match.arg(method)
+		  gcSubtractTrioSet(object, method=method, trio.index, ...)
+	  })
+
+gcSubtractTrioSet <- function(object, method, trio.index, ...){
+	if(missing(trio.index)) J <- seq_len(ncol(object)) else J <- trio.index
+	if(!"gc" %in% fvarLabels(object)) stop("gc not in fvarLabels")
+	if(method=="lowess"){
+		for(j in J){
+			r <- gcSubtractMatrix(lrr(object)[,j,], gc=fData(object)$gc, pos=position(object), ...)
+			lrr(object)[,j,] <- integerMatrix(r, 1)
+		}
+	} else {
+		gcbins <- getGcBin(fData(object)$gc)
+		for(j in J){
+			r <- gcSubtractSpeed(lrr(object)[, j, ], gcbins=gcbins)
+			lrr(object)[, j, ] <- integerMatrix(r, 1)
+		}
+	}
+	object
+}
+
+gcSubtractSpeed <- function(r, gcbins){
+	r.adj <- r
+	nc <- ncol(r)
+	for(i in seq_along(gcbins)){
+		j <- gcbins[[i]]
+		mus <- apply(r[j, , drop=FALSE], 2, mean, na.rm=TRUE)
+		mus <- matrix(mus, nrow=length(j), ncol=nc, byrow=TRUE)
+		r.adj[j, ] <- r[j, , drop=FALSE] - mus
+	}
+	return(r.adj)
+}
+
+getGcBin <- function(gc){
+	cuts <- seq(0, 100, by=1)
+	bins <- cut(gc, breaks=cuts)
+	gcbins <- split(seq_len(length(gc)), bins)  ## contains indices
+	L <- sapply(gcbins, length)
+	gcbins <- gcbins[L > 0]
+	L <- L[L > 0]
+	minL <- 50
+	while(any(L < minL)){
+		index <- which(L < minL)
+		if(any(index == 1)){
+			gcbins[[2]] <- c(gcbins[[1]], gcbins[[2]])
+			gcbins <- gcbins[-1]
+			dropFirst <- TRUE
+		} else dropFirst <- FALSE
+		if(any(index == length(gcbins))){
+			LL <- length(gcbins)
+			gcbins[[LL-1]] <- c(gcbins[[LL-1]], gcbins[[LL]])
+			gcbins <- gcbins[-LL]
+			dropLast <- TRUE
+		} else dropLast <- FALSE
+		if(!(dropFirst | dropLast)){
+			index.mid <- index[index > 1 & index < length(gcbins)]
+			gcbins[[min(index.mid)-1]] <- c(gcbins[[min(index.mid)-1]], gcbins[[min(index.mid)]])
+			gcbins <- gcbins[-min(index.mid)]
+		}
+		L <- sapply(gcbins, length)
+	}
+	return(gcbins)
+}

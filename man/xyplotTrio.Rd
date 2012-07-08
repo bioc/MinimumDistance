@@ -9,7 +9,8 @@
   a trio using lattice.
 }
 \usage{
-xyplotTrio(rd, object, frame = 2e+05, lrr.segments, md.segments, ...)
+xyplotTrio(rd, object, frame = 2e+05, lrr.segments, md.segments,
+  nchar_sampleid=15L, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -32,6 +33,10 @@ xyplotTrio(rd, object, frame = 2e+05, lrr.segments, md.segments, ...)
   the results of a segmentation of the minimum distance (e.g, by circular
   binary segmentation).
 }
+
+\item{nchar_sampleid}{Integer specifying the number of characters of the
+  sample identifier to display in the panel.  The default is 15
+  characters. }
 
 \item{\dots}{
   Additional arguments are passed to \code{xypanelTrio} and low-level
@@ -62,7 +67,7 @@ data(lrr.segs)
 data(md.segs)
 ## select a range with a possible de novo copy number alteration in the offspring
 rd <- map.segs[which(isDenovo(state(map.segs)))[1], ]
-trioSet <- trioSetList[[match(chromosome(rd), chromosome(trioSetList))]][, match(sampleNames(rd), sampleNames(trioSetList))]
+trioSet <- trioSetList[[match(as.character(chromosome(rd)), paste("chr",chromosome(trioSetList),sep=""))]][, match(sampleNames(rd), sampleNames(trioSetList))]
 mindist(trioSet) <- calculateMindist(lrr(trioSet))
 figs <- xyplotTrio(rd=rd,
 		   object=trioSet,

@@ -9,17 +9,65 @@ setMethod("initialize", signature(.Object="TrioSetList"),
 		   phenoData=annotatedDataFrameFrom(assayDataList, byrow=FALSE),
 		   fatherPhenoData=annotatedDataFrameFrom(assayDataList, byrow=FALSE),
 		   motherPhenoData=annotatedDataFrameFrom(assayDataList, byrow=FALSE),
+		   genome=c("hg19", "hg18"),
 		   ...){
-		  callNextMethod(.Object,
-				 pedigree=pedigreeData,
-				 assayDataList=assayDataList,
-				 featureDataList=featureDataList,
-				 phenoData=phenoData,
-				 fatherPhenoData=fatherPhenoData,
-				 motherPhenoData=motherPhenoData,
-				 chromosome=chromosome,
-				 ...)
+		  .Object <- callNextMethod(.Object,
+					    pedigree=pedigreeData,
+					    assayDataList=assayDataList,
+					    featureDataList=featureDataList,
+					    phenoData=phenoData,
+					    fatherPhenoData=fatherPhenoData,
+					    motherPhenoData=motherPhenoData,
+					    chromosome=chromosome,
+					    genome=match.arg(genome),
+					    ...)
+		  if(all(sapply(featureDataList, nrow) == 0)) .Object@genome <- ""
+		  .Object
 	  })
+
+setMethod("elementLengths", signature(x="TrioSetList"), function(x){
+	if(length(x) == 0) return(0L)
+	as.integer(sapply(featureData(x), nrow))
+})
+
+setValidity("TrioSetList", function(object){
+	l <- elementLengths(object)
+	if(any(l > 0)){
+		if(!genomeBuild(object) %in% c("hg19", "hg18"))
+			return(paste("genome is ", genomeBuild(object), ", but must be 'hg18' or 'hg19'.", sep=""))
+	}
+	nms <- ls(assayData(object))
+	if(!all(c("BAF", "logRRatio") %in% nms)){
+		msg <- "BAF and logRRatio are required elements of the assayData"
+		return(msg)
+	}
+	if(length(object) > 0){
+		msg <- validAssayDataDims(assayData(object))
+		if(!all(msg == TRUE)) return(msg)
+		elt <- (ls(assayDataList(object)))[[1]]
+		b <- assayDataList(object)[[elt]]
+		if(length(chromosome(object)) != length(b)){
+			return("chromosome slot must be the same length as the length of the list for each assayData element")
+		}
+	}
+	validObject(pedigree(object))
+	if(!identical(sampleNames(object), sampleNames(phenoData(object)))){
+		stop("sampleNames of TrioSetList object must be the same as the sampleNames of the phenoData")
+	}
+	if(!identical(fatherNames(object), originalNames(sampleNames(fatherPhenoData(object))))){
+		stop("fatherNames of TrioSetList object must be the same as the sampleNames of the fatherPhenoData")
+	}
+	if(!identical(motherNames(object), originalNames(sampleNames(motherPhenoData(object))))){
+		stop("motherNames of TrioSetList object must be the same as the sampleNames of the motherPhenoData")
+	}
+	if(length(featureDataList(object)) != length(chromosome(object))){
+		return("each chromosome should have an element in the featureDataList")
+	}
+	if(length(featureDataList(object)) > 0){
+		isGAD <- sapply(featureDataList(object), function(x) is(x, "GenomeAnnotatedDataFrame"))
+		if(!all(isGAD)) return("featureDataList must be comprised of GenomeAnnotatedDataFrame(s)")
+	}
+})
 
 setMethod("updateObject", signature(object="TrioSetList"),
 	  function(object, ..., verbose=FALSE){
@@ -63,7 +111,8 @@ TrioSetList <- function(chromosome=integer(),
 			lrr, baf,
 			featureData,
 			cdfname,
-			ffname=""){
+			ffname="",
+			genome){
 	if(!missing(lrr)){
 		if(!is(lrr[1,1], "integer")){
 			stop("lrr should be a matrix of integers. Use integerMatrix(x, scale=100) for the transformation")
@@ -71,6 +120,7 @@ TrioSetList <- function(chromosome=integer(),
 		if(!is(baf[1,1], "integer")){
 			stop("baf should be a matrix of integers.  Use integerMatrix(x, scale=1000) for the transformation")
 		}
+		if(missing(genome)) stop("Argument genome is missing.  Must specify UCSC genome build genome ('hg18' or 'hg19').")
 	}
 	if(nrow(pedigreeData) > 0 & !(missing(lrr) | missing(baf))){
 		if(!missing(sample.sheet)){
@@ -128,7 +178,7 @@ TrioSetList <- function(chromosome=integer(),
 			baf <- baf[!is.na(rownames(baf)), ]
 		}
 		##featureData <- oligoClasses:::featureDataFrom(cdfname)
-		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname)
+		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname, genome=genome)
 		fD <- featureData[order(chromosome(featureData), position(featureData)), ]
 		rm(featureData); gc()
 	} else {
@@ -189,13 +239,15 @@ TrioSetList <- function(chromosome=integer(),
 	}
 	ad <- AssayDataList(logRRatio=lrrlist,
 			    BAF=baflist)
-	object <- new("TrioSetList", assayDataList=ad,
+	object <- new("TrioSetList",
+		      assayDataList=ad,
 		      featureDataList=fdlist,
 		      chromosome=chromosome,
 		      pedigree=pedigreeData,
 		      fatherPhenoData=fatherPhenoData,
 		      motherPhenoData=motherPhenoData,
-		      phenoData=phenoData)
+		      phenoData=phenoData,
+		      genome=genome)
 	return(object)
 }
 
@@ -203,10 +255,11 @@ TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names,
 			  pedigreeData,
 			  featureData,
 			  annotationPkg, outdir=ldPath(),
-			  ffprefix=""){
+			  ffprefix="",
+			  genome=c("hg19", "hg18")){
 	if(!is(pedigreeData, "Pedigree")) stop()
 	if(missing(featureData)){
-		fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg)
+		fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg, genome=match.arg(genome))
 		fD <- fD[chromosome(fD) < 23 & !is.na(chromosome(fD)), ]
 	} else {
 		fD <- featureData
@@ -253,7 +306,8 @@ TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names,
 		      pedigree=pedigreeData,
 		      fatherPhenoData=fatherPhenoData,
 		      motherPhenoData=motherPhenoData,
-		      phenoData=offsprPhenoData)
+		      phenoData=offsprPhenoData,
+		      genome=match.arg(genome))
 	return(object)
 }
 
@@ -356,10 +410,10 @@ computeBayesFactorTrioSetList <- function(object,
 	if(!all(sampleNames(object) %in% sns.ranges)){
 		ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
 	}
-	index <- split(seq_len(nrow(ranges)), chromosome(ranges))
-	index <- index[names(index) %in% chromosome(object)]
-	object <- object[chromosome(object) %in% names(index)]
-	index <- index[match(chromosome(object), names(index))]
+	index <- split(seq_len(length(ranges)), as.character(chromosome(ranges)))
+	index <- index[names(index) %in% paste("chr", chromosome(object), sep="")]
+	object <- object[paste("chr", chromosome(object), sep="") %in% names(index)]
+	index <- index[match(paste("chr", chromosome(object), sep=""),  names(index))]
 	##stopifnot(identical(as.character(chromosome(object)), names(index)))
 	##if(!identical(as.character(chromosome(object)), names(index))){
 	##	stop("The supplied ranges are split into a list by chromosome and that the names
@@ -369,15 +423,16 @@ computeBayesFactorTrioSetList <- function(object,
 	map.segs <- foreach(X=object,
 			    i=index,
 			    .inorder=FALSE,
-			    .combine=stackRangedDataList,
 			    .packages=packages) %dopar% {
 				    computeBayesFactor(object=X,
 						       ranges=ranges[i, ],
 						       pedigreeData=pedigree(object),
+						       collapseRanges=collapseRanges,
 						       outdir=outdir,
 						       ...)
 			    }
-	map.segs$state <- trioStateNames()[map.segs$argmax]
+	map.segs <- do.call("c", map.segs)
+	elementMetadata(map.segs)$state <- trioStateNames()[values(map.segs)$argmax]
 	return(map.segs)
 }
 
@@ -479,7 +534,8 @@ setMethod("[[", signature(x="TrioSetList"),
 				   fatherPhenoData=fatherPhenoData(x),
 				   motherPhenoData=motherPhenoData(x),
 				   pedigree=pedigree(x),
-				   featureData=featureDataList(x)[[i]])
+				   featureData=featureDataList(x)[[i]],
+				   genome=genomeBuild(x))
 		  } else {
 			  stop("subscript out of bounds")
 		  }
@@ -489,6 +545,7 @@ setMethod("show", signature(object="TrioSetList"),
 	  function(object){
 		  lo <- length(lrr(object))
 		  cat(class(object), " of length ", lo, "\n", sep="")
+		  cat("genome:", genomeBuild(object), "\n")
 	  })
 
 setMethod("length", signature(x="TrioSetList"), function(x) length(x@chromosome))
@@ -556,6 +613,9 @@ setMethod("assayDataList", signature(object="TrioSetList"),
 setMethod("featureDataList", signature(object="TrioSetList"),
 	  function(object)  object@featureDataList)
 
+setMethod("featureData", signature(object="TrioSetList"),
+	  function(object)  object@featureDataList)
+
 setMethod("lrr", signature(object="TrioSetList"),
 	  function(object){
 		  ##lapply(object, lrr)
@@ -611,5 +671,18 @@ setMethod("$", signature(x="TrioSetList"),
 
 setMethod("nrow", signature(x="TrioSetList"), function(x) sum(sapply(lrr(x), nrow)))
 
+setReplaceMethod("featureData", signature(object="TrioSetList", value="list"),
+		 function(object, value){
+			 object@featureDataList <- value
+			 object
+		 })
 
-
+setMethod("gcSubtract", signature(object="TrioSetList"),
+	  function(object, ...){
+		  res <- list()
+		  for(j in seq_along(object)){
+			  res[[j]] <- gcSubtract(object[[j]], ...)
+		  }
+		  object <- stack(RangedDataList(object))
+		  return(object)
+	  })

@@ -1,10 +1,10 @@
 setMethod("calculateMindist", signature(object="arrayORff_array"),
-	  function(object, outdir, ...){
+	  function(object, outdir, center, ...){
 		  ##stopifnot(ncol(object)==3)
 		  calculateMindistFromArray(object, outdir, ...)
 	  })
 
-calculateMindistFromArray <- function(object, outdir=ldPath(), ffprefix="", ...){
+calculateMindistFromArray <- function(object, outdir=ldPath(), ffprefix="", center=FALSE, ...){
 	isff <- is(object, "ff")
 	if(!parStatus()) registerDoSEQ()
 	if(isff){
@@ -15,6 +15,15 @@ calculateMindistFromArray <- function(object, outdir=ldPath(), ffprefix="", ...)
 			ffname <- paste(ffprefix, "mindist", sep="_")
 		} else ffname <- "mindist"
 		md <- initializeBigMatrix(ffname, nr=nrow(object), nc=ncol(object), vmode="double")
+##		lrrF <- object[, j, 1]
+##		lrrM <- object[, j, 2]
+##		lrrO <- object[, j, 3]
+##		if(center){
+##			medsO <- apply(lrrO, median, na.rm=TRUE)
+##			medsM <- apply(lrrM, median, na.rm=TRUE)
+##			medsF <- apply(lrrF, median, na.rm=TRUE)
+##
+##		}
 		for(j in seq_len(ncol(object))){
 			d1 <- object[, j, 3] - object[, j, 1] ## offspring - father
 			d2 <- object[, j, 3] - object[, j, 2] ## offspring - mother
