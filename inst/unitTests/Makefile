@@ -14,3 +14,17 @@ test: # Run unit tests
 	cd ${TOP}/tests;\
 	R --vanilla --slave < ${SUITE}
 
+release:
+	R_LIBS_USER=~/Library/R/2.15-bioc-release/library R-2.15 CMD INSTALL --no-lock ${PKG}
+	export RCMDCHECK=FALSE;\
+	export RUNITFILEPATTERN="$(file)";\
+	cd ${TOP}/tests;\
+	R_LIBS_USER=~/Library/R/2.15-bioc-release/library R-2.15 --vanilla --slave < ${SUITE}
+
+devel:
+	R_LIBS_USER=~/Library/R/2.15-bioc-devel/library R-2.15 CMD INSTALL --no-lock ${PKG}
+	export RCMDCHECK=FALSE;\
+	export RUNITFILEPATTERN="$(file)";\
+	cd ${TOP}/tests;\
+	R_LIBS_USER=~/Library/R/2.15-bioc-devel/library R-2.15 --vanilla --slave < ${SUITE}
+

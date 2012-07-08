@@ -45,7 +45,6 @@ R. Scharpf
 \examples{
 data(trioSetListExample)
 mdlist <- calculateMindist(lrr(trioSetList))
-
 trioSet <- stack(trioSetList)
 md <- calculateMindist(lrr(trioSet))
 }

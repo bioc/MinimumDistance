@@ -19,6 +19,7 @@
 \alias{fatherNames<-}
 \alias{fatherNames,TrioSet-method}
 \alias{fatherPhenoData,TrioSet-method}
+\alias{gcSubtract,TrioSet-method}
 \alias{motherPhenoData,TrioSet-method}
 \alias{offspringPhenoData}
 \alias{offspringPhenoData,TrioSet-method}
@@ -249,6 +250,13 @@
     \code{AnnotatedDataFrame}, the \code{featureData} is updated to the
     \code{GenomeAnnotatedDataFrame} class.}
 
+  \item{}{\code{gcSubtract(object, method=c("speed", "lowess"),
+      trio.index, ...)}:
+
+    \code{method} indicates the type of GC correction. [[NEED ADDL
+    DETAILS]].
+  }
+
   }
 }
 
@@ -263,7 +271,8 @@
 	showClass("TrioSet")
 	## instantiate a TrioSet with an array of log R ratios (logRR) and B
 	## allele frequencies
-library(MinimumDistance)
+	library(MinimumDistance)
+	new("TrioSet")
 	TrioSet()
 
         data(trioSetListExample)

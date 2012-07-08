@@ -39,10 +39,19 @@ validPedigree <- function(object){
 	return(msg)
 }
 
-
+setValidity("Pedigree", function(object){
+	msg <- validPedigree(object)
+	if(is.null(msg)) return(TRUE) else return(msg)
+})
 
 setMethod("initialize", signature(.Object="Pedigree"),
-	  function(.Object, trios, trioIndex, ...){
+	  function(.Object,
+		   trios=data.frame(F=character(),
+		   M=character(),
+		   O=character(), stringsAsFactors=FALSE),
+		   trioIndex=data.frame(individualId=character(),
+		   memberId=character(), index.in.pedigree=integer(), stringsAsFactors=FALSE),
+		   ...){
 		  callNextMethod(.Object, trios=trios, trioIndex=trioIndex, ...)
 	  })
 
@@ -54,10 +63,6 @@ Pedigree <- function(pedigreeInfo,
 		msg <- "pedigreeInfo must be a data.frame with column names 'F', 'M', and 'O'"
 		if(!is(pedigreeInfo, "data.frame"))
 			stop(msg)
-##		trios <- data.frame(F=make.unique2(as.character(pedigreeInfo[[1]])),
-##				    M=make.unique2(as.character(pedigreeInfo[[2]])),
-##				    O=as.character(pedigreeInfo[[3]]),
-##				    stringsAsFactors=FALSE)
 		trios <- data.frame(F=as.character(pedigreeInfo[[1]]),
 				    M=as.character(pedigreeInfo[[2]]),
 				    O=as.character(pedigreeInfo[[3]]),
@@ -67,10 +72,6 @@ Pedigree <- function(pedigreeInfo,
 		fatherIds <- as.character(fatherIds)
 		motherIds <- as.character(motherIds)
 		offspringIds <- as.character(offspringIds)
-##		trios <- data.frame(F=make.unique2(fatherIds),
-##				    M=make.unique2(motherIds),
-##				    O=offspringIds,
-##				    stringsAsFactors=FALSE)
 		trios <- data.frame(F=fatherIds,
 				    M=motherIds,
 				    O=offspringIds,

@@ -315,7 +315,8 @@ trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 			   pedigree=Pedigree(pedigreeInfo),
 			   sample.sheet=sample.sheet,
 			   row.names=nms,
-			   cdfname="human610quadv1bCrlmm")
+			   cdfname="human610quadv1bCrlmm",
+			   genome="hg19")
 show(trioSetList)
 @
 
@@ -407,7 +408,7 @@ median absolute deviation from zero are edited using the
 
 <<narrow,results=hide>>=
 mads.md <- mad2(md, byrow=FALSE)
-md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md)
+md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md, fD=featureData(trioSetList), genome="hg18")
 @
 
 To each range (segment) the maximum posterior probability and the
@@ -415,7 +416,7 @@ posterior probability of the normal range are computed using the
 function \Rfunction{computeBayesFactor}.
 
 <<computeBayesFactor,results=hide>>=
-map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2)
+map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2, prOutlierBAF=list(initial=1e-4, max=1e-2, maxROH=1e-3))
 show(map.segs)
 @
 
@@ -443,9 +444,9 @@ development. Here, we provide a quick example using a function and a
 lattice-style panel function that are not currently exported.
 
 <<triofig>>=
-rd.denovoDel <- map.segs[state(map.segs) == 332 & coverage2(map.segs) > 5, ]
+rd.denovoDel <- map.segs[state(map.segs) == 332 & numberProbes(map.segs) > 5, ]
 rd <- rd.denovoDel[1, ]
-CHR <- match(chromosome(rd), chromosome(trioSetList))
+CHR <- match(as.character(chromosome(rd)), paste("chr",chromosome(trioSetList), sep=""))
 S <- match(sampleNames(rd), sampleNames(trioSetList))
 trioSet <- trioSetList[[CHR]][, S]
 mindist(trioSet) <- md[[CHR]][, S, drop=FALSE]
@@ -453,7 +454,7 @@ frame <- 100e3
 fig <- xyplotTrio(rd=rd,
 		  object=trioSet,
 		  frame=frame,
-		  ylab="log R ratio and BAFs",
+		  ylab="log R ratio",
 		  xlab="physical position (Mb)",
 		  panel=xypanelTrio,
 		  lrr.segments=lrr.segs,
@@ -470,6 +471,7 @@ fig <- xyplotTrio(rd=rd,
 		  labels=expression(-1, 0, log[2](3/2), log[2](4/2)))),
 		  par.strip.text=list(cex=0.7),
 		  state.col="black",
+		  segment.col="black",
 		  state.cex=0.8,
 		  key=list(text=list(c(expression(log[2]("R ratios")), expression("B allele freqencies")),
 			   col=c("grey50", "blue")), columns=2))

@@ -6,7 +6,7 @@ Narrow the minimum distance ranges by the segmentation of the offspring
   copy number estimates.
 }
 \usage{
-narrow(object, lrr.segs, thr, mad.minimumdistance, verbose = TRUE)
+narrow(object, lrr.segs, thr, mad.minimumdistance, verbose = TRUE, fD, genome)
 }
 \arguments{
   \item{object}{
@@ -26,7 +26,28 @@ narrow(object, lrr.segs, thr, mad.minimumdistance, verbose = TRUE)
   the \code{sampleNames} of the \code{TrioSet} or \code{TrioSetList}
   object.}
 
-  \item{verbose}{ Logical. Whether to display messages that indicate progress.}
+  \item{verbose}{ Logical. Whether to display messages that indicate
+    progress.}
+
+  \item{fD}{If \code{object} contains genomic ranges for a single
+  chromosome, \code{fD} should be an object of class
+  \code{GenomeAnnotatedDataFrame}.  If \code{object} contains genomic
+  intervals from multiple chromosomes, \code{fD} should be a list of
+  \code{GenomeAnnotatedDataFrame}s.  To extract a list of
+  \code{GenomeAnnotatedDataFrames}, use the method \code{featureData}
+  defined for a \code{TrioSetList} class. To extract a
+  \code{GenomeAnnotatedDataFrame}, apply the \code{featureData} method
+  to a \code{TrioSet} object.  The feature-level annotation contained in
+  this object is used to update the coverage (column 'num.mark') in the
+  \code{RangedDataCNV} object after 'narrowing' the ranges.
+}
+
+\item{genome}{This argument is ignored if both \code{object} and
+  \code{lrr.segs} are \code{GRanges} object. Otherwise, \code{object}
+  and \code{lrr.segs} will be coerced to \code{GRanges} and the coercion
+  requires the specification of the UCSC genome build (hg18 or hg19) for
+  the feature annotation.
+  }
 
 }
 
@@ -62,7 +83,7 @@ Rob Scharpf
 	data(md.segs)
         md <- calculateMindist(lrr(trioSetList))
 	md.mads <- mad2(md, byrow=FALSE)
-	md.segs.narrowed <- narrow(object=md.segs, lrr.segs=lrr.segs, thr=0.1, mad.minimumdistance=md.mads)
+	md.segs.narrowed <- narrow(object=md.segs, lrr.segs=lrr.segs, thr=0.9, mad.minimumdistance=md.mads, fD=featureData(trioSetList))
 }
 \keyword{manip}
 
