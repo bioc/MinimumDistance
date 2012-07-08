@@ -12,6 +12,7 @@ test_pipeline <- function(){
 }
 
 test_posteriorCalls <- function(){
+	library(MinimumDistance); library(RUnit)
 	library(oligoClasses)
 	library2(foreach)
 	registerDoSEQ()
@@ -31,8 +32,6 @@ test_posteriorCalls <- function(){
 	path <- system.file("extdata", package="MinimumDistance")
 	load(file.path(path, "trioSet12023chr12.rda"))
 	tSet <- trioSet12023chr12
-	##trioSet12023chr12 <- updateObjectFromSlots(tSet)
-	##genomeBuild(trioSet12023chr12) <- "hg18"
 	res <- computeBayesFactor(tSet, gr, prOutlierBAF=list(initial=1e-4, max=1e-2, maxROH=1e-3))
 	res <- computeBayesFactor(tSet, rd2, prOutlierBAF=list(initial=1e-4, max=1e-2, maxROH=1e-3))
 	checkTrue(as.character(unlist(state(res), use.names=FALSE)) %in% c("334", "333"))

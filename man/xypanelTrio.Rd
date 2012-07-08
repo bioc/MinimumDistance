@@ -17,7 +17,7 @@ xypanelTrio(x, y, memberId, baf, is.snp, range, lrr.segments,
 md.segments, baf.color="blue", col.hom = "grey20", fill.hom =
 "lightblue", col.het = "grey20", fill.het = "salmon", col.np = "grey20",
 fill.np = "grey60", state.show = TRUE, state.cex = 1, state.col =
-"blue", segment.col="grey50", ped, ..., subscripts)
+"blue", segment.col="grey50", ped, nchar_sampleid,..., subscripts)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -89,7 +89,15 @@ fill.np = "grey60", state.show = TRUE, state.cex = 1, state.col =
 
   \item{ped}{
     Object of class \code{Pedigree}
-}
+  }
+
+  \item{nchar_sampleid}{
+
+    Integer indicating the number of characters of the sample identifier
+    printed in the panel strip.
+
+  }
+
   \item{\dots}{
     Additional arguments to \code{lpoints} and \code{panel.xyplot}
 }

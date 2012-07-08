@@ -410,7 +410,8 @@ computeBayesFactorTrioSet <- function(object,
 		rd <- joint4(id=this.id,
 			     trioSet=object[, k],
 			     ranges=ranges[j, ],
-			     ntrios=ntrios,  ...)
+			     ntrios=ntrios, ...)
+			     ##ntrios=ntrios, returnEmission=TRUE, ...)
 		if(returnEmission) return(rd)
 		if(length(id) > 1){
 			elementMetadata(ranges)$lik.state[j] <- values(rd)$lik.state

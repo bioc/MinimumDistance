@@ -718,7 +718,7 @@ joint4 <- function(id,
 		   cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),
 		   a=0.0009,
 		   prob.nonMendelian=1.5e-6,
-		   returnEmission=FALSE,
+		   ##returnEmission=FALSE,
 		   ntrios,
 		   mdThr=0.9, ...){## all the ranges from one subject , one chromosome
 	if(missing(id)) id <- sampleNames(trioSet)[1]
@@ -735,18 +735,19 @@ joint4 <- function(id,
 	##
 	## we estimate the optimal state path using viterbi, but we
 	## only use the emission probabilities for the MAP
-	viterbiObj <- viterbi2Wrapper(r=r,
-				      b=b,
-				      pos=position(trioSet),
-				      is.snp=isSnp(trioSet),
-				      cnStates=cnStates,
-				      chrom=chromosome(trioSet)[1],
-				      is.log=TRUE,
-				      limits=limits,
-				      returnViterbiObject=TRUE,
-				      ...)
-	lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
-	for(i in 1:3) lemit[, i, ] <- log(emission(viterbiObj[[i]]))
+	emit <- viterbi2Wrapper(r=r,
+				b=b,
+				pos=position(trioSet),
+				is.snp=isSnp(trioSet),
+				cnStates=cnStates,
+				chrom=chromosome(trioSet)[1],
+				is.log=TRUE,
+				limits=limits,
+				returnEmission=TRUE,
+				...)
+	lemit <- log(emit)
+	##lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
+	##for(i in 1:3) lemit[, i, ] <- log(emission(viterbiObj[[i]]))
 	trio.states <- trioStates(0:4)
 	tmp <- rep(NA, nrow(trio.states))
 	state.prev <- NULL
