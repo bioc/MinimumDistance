@@ -61,7 +61,6 @@ importFrom(msm, qtnorm, dtnorm)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 
 ## VanillaICE
-importMethodsFrom(VanillaICE, emission)
 importFrom(VanillaICE, read.bsfiles, copyNumberLimits, viterbi2Wrapper, rowMAD, rescale)
 
 ## SNPchip
