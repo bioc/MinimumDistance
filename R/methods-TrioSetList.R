@@ -432,7 +432,9 @@ computeBayesFactorTrioSetList <- function(object,
 						       outdir=outdir,
 						       ...)
 			    }
-	map.segs <- do.call("c", map.segs)
+	map.segs.list <- GRangesList(map.segs)
+	map.segs <- unlist(map.segs.list)
+	##map.segs <- do.call("c", map.segs)
 	elementMetadata(map.segs)$state <- trioStateNames()[values(map.segs)$argmax]
 	return(map.segs)
 }

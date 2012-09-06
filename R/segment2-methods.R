@@ -246,15 +246,17 @@ segmentArray <- function(object, pos, chrom, id, featureNames, segmentParents, v
 
 
 
-segmentMatrix <- function(object, pos, chrom, id, featureNames, genome, ...){
-	if(!is(object, "matrix")) stop("object must be a matrix")
+segmentMatrix <- function(object, pos, chrom, id, featureNames,
+			  genome, gapsize=75e3, ...){
+	if(!is(object, "matrix"))
+		stop("object must be a matrix")
 	##featureNames <- rownames(object)
 	if(any(duplicated(pos))){
 		marker.index <- seq_len(nrow(object))[!duplicated(pos)]
 	} else marker.index <- seq_len(nrow(object))
 	pos <- pos[marker.index]
 	chrom <- chrom[marker.index]
-	arm <- splitByDistance(pos, thr=100e3)
+	arm <- splitByDistance(pos, thr=gapsize)
 	index.list <- split(seq_along(marker.index), arm)
 	iMax <- sapply(split(marker.index, arm), max)
 	pMax <- pos[iMax]
@@ -292,13 +294,6 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames, genome, ...){
 	} else segs <- segs[[1]]
 	key.index <- match(segs$ID, hash.matrix[, "key"])
 	orig.id <- hash.matrix[key.index, "original.id"]
-##	ranges <- RangedDataCBS(ranges=IRanges(segs$loc.start, segs$loc.end),
-##				chromosome=segs$chrom,
-##				sampleId=orig.id,
-##				coverage=segs$num.mark,
-##				seg.mean=segs$seg.mean,
-##				startIndexInChromosome=segs$start.index,
-##				endIndexInChromosome=segs$end.index)
 	ranges <- GRanges(paste("chr", segs$chrom, sep=""),
 			  IRanges(segs$loc.start, segs$loc.end),
 			  sample=orig.id,
