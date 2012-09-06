@@ -282,16 +282,61 @@ combine.data.frames <- function(dist.df, penn.df){
 	return(combined.df)
 }
 
+
+
+##offspring.hemizygousPenn <- function() c("332", "432", "342", "442")
+offspring.hemizygousPenn <- function(){
+	tmp <- expand.grid(c(1,3,5,6), c(1,3,5,6), 1)
+	dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
+	dels <- dels[-1]
+}
+##offspring.hemizygous <- function() c("221", "321", "231", "441", "341", "431")
+offspring.hemizygous <- function() {
+	tmp <- expand.grid(c(0,2,3,4), c(0,2,3,4), 1)
+	dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
+	dels <- dels[-1]
+	dels
+}
+offspring.homozygous <- function(){
+	tmp <- expand.grid(c(1,2,3,4), c(1,2,3,4), 0)
+	dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
+	dels
+}
+##offspring.homozygous <- function() c("220", "210", "120", "320", "230", "330", "110", "310")
 deletionStates <- function(){
 	st1 <- offspring.hemizygous()
 	st2 <- offspring.homozygous()
 	as.integer(c(st1,st2))
 }
-offspring.hemizygous <- function() c("332", "432", "342", "442")
-offspring.homozygous <- function() c("331", "321", "231", "431", "341", "441", "221", "421")
-duplicationStates <- function() as.integer(c("335", "334", "224", "225", "115", "114", "124", "125", "214", "215", "324", "325", "234", "235", "124", "125", "214", "215", "314", "315", "134", "135"))
-duplicationStatesPenn <- function() as.integer(c("335", "225", "115", "125", "215", "325", "235", "125", "215", "315", "135"))
+##duplicationStates <- function() as.integer(c("224", "223", "113", "114", "013", "014", "103", "104", "213", "214", "123", "124", "013", "014", "103", "104", "203", "204", "023", "024"))
+duplicationStates <- function(){
+	tmp <- expand.grid(c(0,1,2,4), c(0,1,2,4), 3)
+	sdups <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
+	sdups <- sdups[-1]
+	tmp <- expand.grid(c(0,1,2,3), c(0,1,2,3), 4)
+	ddups <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
+	ddups <- ddups[-1]
+	c(sdups, ddups)
+}
+##duplicationStatesPenn <- function() as.integer(c("335", "336", "225", "226", "115", "116", "125", "215", "325", "235", "125", "215", "315", "135"))
+duplicationStatesPenn <- function() {
+	tmp <- expand.grid(c(1,2,3,6), c(1,2,3,6), 5)
+	sdups <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
+	sdups <- sdups[-1]
+	tmp <- expand.grid(c(1,2,3,6), c(1,2,3,6), 5)
+	ddups <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
+	ddups <- ddups[-1]
+	c(sdups, ddups)
+##	dups.penn <- expand.grid(c(1,2,3,5,6), c(1,2,3,5,6), c(5,6))
+##	paste(dups.penn$Var1, dups.penn$Var2, dups.penn$Var3)
+}
 isDenovo <- function(states) states %in% c(duplicationStates(), deletionStates())
+
+##offspring.hemizygous <- function() c("332", "532", "352", "552")
+##offspring.homozygous <- function() c("331", "321", "231", "531", "351", "551", "221", "521")
+##duplicationStates <- function() as.integer(c("336", "335", "225", "226", "116", "115", "125", "126", "215", "216", "325", "326", "235", "236", "125", "126", "215", "216", "315", "316", "135", "136"))
+####duplicationStatesPenn <- function() as.integer(c("335", "225", "115", "125", "215", "325", "235", "125", "215", "315", "135"))
+##isDenovo <- function(states) states %in% c(duplicationStates(), deletionStates())
 
 calculateChangeSd <- function(coverage=1:500, lambda=0.05, a=0.2, b=0.025)
 	a + lambda*exp(-lambda*coverage)/b
@@ -551,10 +596,12 @@ rowMAD <- function(x, y, ...){
 	return(mad)
 }
 
+dups.penn <- expand.grid(c(1,2,3,5,6), c(1,2,3,5,6), c(5,6))
+
 trioStates <- function(states=0:4){
 	trio.states <- as.matrix(expand.grid(states, states, states))
 	index <- which(trio.states[, 1] == 0 & trio.states[, 2] == 0 & trio.states[, 3] > 0)
-	trio.states <- trio.states+1
+	##trio.states <- trio.states+1
 	colnames(trio.states) <- c("F", "M", "O")
 	## 125 possible
 	## remove 00 > 0 as possibilities
