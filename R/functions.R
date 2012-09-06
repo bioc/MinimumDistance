@@ -722,7 +722,8 @@ joint1 <- function(LLT, ##object,
 	if(missing(log.pi))
 		log.pi <- log(initialStateProbs(ncol(LLT), epsilon=0.5))
 	Prob.DN <- prob.nonMendelian
-	state <- trio.states[state.index, ]
+	state <- trio.states[state.index, ] + 1L
+	state.prev <- state.prev+1L
 	fmo <- c(LLT[1, state[1]], LLT[2, state[2]], LLT[3, state[3]])
 	if(segment.index == 1 | is.null(state.prev)){
 		## assume Pr(z_1,f | lambda) = Pr(z_2,m | lambda) = pi
@@ -803,7 +804,7 @@ joint4 <- function(id,
 	loader("pennCNV_MendelianProb.rda")
 	table3 <- getVarInEnv("pennCNV_MendelianProb")
 	state.names <- trioStateNames()
-	norm.index <- which(state.names=="333")
+	norm.index <- which(state.names=="222")
 	ranges <- ranges[order(start(ranges)), ]
 	##ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
 	lik.norm <- argmax <- lik.state <- rep(NA, length(ranges))
@@ -827,6 +828,8 @@ joint4 <- function(id,
 		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
 		rownames(LLT) <- c("F", "M", "O")
 		colnames(LLT) <- paste("CN_", c(0, 1, 2, 2, 3, 4), sep="")
+		LLT[, 3] <- pmax(LLT[, 3], LLT[, 4])
+		LLT <- LLT[, -4]
 		callrange <- abs.thr[i]
 		if(callrange){
 			for(j in seq_len(nrow(trio.states))){
