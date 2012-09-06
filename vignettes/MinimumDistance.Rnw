@@ -309,6 +309,7 @@ load(file.path(path, "pedigreeInfo.rda"))
 load(file.path(path, "sample.sheet.rda"))
 load(file.path(path, "logRratio.rda"))
 load(file.path(path, "baf.rda"))
+stopifnot(colnames(logRratio) %in% allNames(Pedigree(pedigreeInfo)))
 nms <- paste("NA",substr(sample.sheet$Sample.Name, 6, 10),sep="")
 trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 			   baf=baf,
@@ -408,7 +409,7 @@ median absolute deviation from zero are edited using the
 
 <<narrow,results=hide>>=
 mads.md <- mad2(md, byrow=FALSE)
-md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md, fD=featureData(trioSetList), genome="hg18")
+md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md, fD=featureData(trioSetList), genome="hg19")
 @
 
 To each range (segment) the maximum posterior probability and the
@@ -416,7 +417,8 @@ posterior probability of the normal range are computed using the
 function \Rfunction{computeBayesFactor}.
 
 <<computeBayesFactor,results=hide>>=
-map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2, prOutlierBAF=list(initial=1e-4, max=1e-2, maxROH=1e-3))
+##trace(MinimumDistance:::joint4, browser)
+map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2)
 show(map.segs)
 @
 
@@ -444,7 +446,7 @@ development. Here, we provide a quick example using a function and a
 lattice-style panel function that are not currently exported.
 
 <<triofig>>=
-rd.denovoDel <- map.segs[state(map.segs) == 332 & numberProbes(map.segs) > 5, ]
+rd.denovoDel <- map.segs[state(map.segs) == 221 & numberProbes(map.segs) > 5, ]
 rd <- rd.denovoDel[1, ]
 CHR <- match(as.character(chromosome(rd)), paste("chr",chromosome(trioSetList), sep=""))
 S <- match(sampleNames(rd), sampleNames(trioSetList))
