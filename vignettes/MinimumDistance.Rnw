@@ -291,16 +291,18 @@ for father, mother, and offspring, extracting the appropriate rows
 following codechunk we load a \Robject{data.frame} called
 `sample.sheet' and pass the \Robject{sample.sheet} object to the
 \Rfunction{TrioSetList} constructor.  In addition, we load a matrix of
-log R ratios and a matrix of B allele frequencies.  (The matrices for
+log R ratios and a matrix of B allele frequencies.  The matrices for
 the log R ratios and B allele frequences contain only 25 markers for
 each chromosome as the intent is to illustrate the steps required for
-initializing a data structure of the \Robject{TrioSetList} class.)
+initializing a data structure of the \Robject{TrioSetList} class.
 Using the information stored in the \Robject{Pedigree} class, the
 matrices are transformed to 3-dimensional arrays and stored in the
-\Robject{assayDataList} slot of the \Rclass{TrioSetList}
-class. Accessors \Rfunction{lrr} and \Rfunction{baf} are available for
-extracting the list of arrays for the log R ratios and B allele
-frequencies.
+\Robject{assayDataList} slot of the \Rclass{TrioSetList} class. It is
+important that the column identifiers for the log R ratio and B allele
+frequency matrices correspond to sample identifiers in the
+\Robject{Pedigree} object.  Accessors \Rfunction{lrr} and
+\Rfunction{baf} are available for extracting the list of arrays for
+the log R ratios and B allele frequencies.
 
 <<constructSampleSheet>>=
 library(human610quadv1bCrlmm)
