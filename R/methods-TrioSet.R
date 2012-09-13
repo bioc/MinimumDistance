@@ -391,6 +391,8 @@ computeBayesFactorTrioSet <- function(object,
 	if(is(ranges, "RangedDataCNV"))
 		ranges <- as(ranges, "GRanges")
 	ranges <- ranges[chromosome(ranges) == paste("chr",CHR,sep=""), ]
+	if(!any(chromosome(ranges) %in% paste("chr", chromosome(object)[1], sep="")))
+		stop("chromosome of TrioSet object is not present in the ranges object")
 	elementMetadata(ranges)$lik.state <- NA
 	elementMetadata(ranges)$argmax <- NA
 	elementMetadata(ranges)$lik.norm <- NA

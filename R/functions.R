@@ -817,8 +817,13 @@ joint4 <- function(id,
 	I <- which(cnt >= 2)
 	range.index <- subjectHits(mm)[subjectHits(mm) %in% I]
 	## only call segs that are "nonzero"
-	mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
-	abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
+	if("mindist.mad" %in% colnames(elementMetadata(ranges))){
+		mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
+		abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
+	} else{
+		## call all segments
+		abs.thr <- rep(TRUE, length(ranges))
+	}
  	for(i in I){
 		index <- which(range.index==i)
 		queryIndex <- queryHits(mm)[index]
