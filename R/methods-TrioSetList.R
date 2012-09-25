@@ -121,6 +121,11 @@ TrioSetList <- function(chromosome=integer(),
 			stop("baf should be a matrix of integers.  Use integerMatrix(x, scale=1000) for the transformation")
 		}
 		if(missing(genome)) stop("Argument genome is missing.  Must specify UCSC genome build genome ('hg18' or 'hg19').")
+		if(!missing(pedigreeData)){
+			if(!fatherNames(pedigreeData) %in% colnames(lrr)) stop("column names of lrr and baf matrices must match names the pedigree file")
+			if(!motherNames(pedigreeData) %in% colnames(lrr)) stop("column names of lrr and baf matrices must match names the pedigree file")
+			if(!offspringNames(pedigreeData) %in% colnames(lrr)) stop("column names of lrr and baf matrices must match names the pedigree file")
+		}
 	}
 	if(nrow(pedigreeData) > 0 & !(missing(lrr) | missing(baf))){
 		if(!missing(sample.sheet)){
@@ -414,10 +419,6 @@ computeBayesFactorTrioSetList <- function(object,
 	index <- index[names(index) %in% paste("chr", chromosome(object), sep="")]
 	object <- object[paste("chr", chromosome(object), sep="") %in% names(index)]
 	index <- index[match(paste("chr", chromosome(object), sep=""),  names(index))]
-	##stopifnot(identical(as.character(chromosome(object)), names(index)))
-	##if(!identical(as.character(chromosome(object)), names(index))){
-	##	stop("The supplied ranges are split into a list by chromosome and that the names
-	##}
 	X <- i <- NULL
 	packages <- neededPkgs()
 	map.segs <- foreach(X=object,
@@ -431,7 +432,9 @@ computeBayesFactorTrioSetList <- function(object,
 						       outdir=outdir,
 						       ...)
 			    }
-	map.segs <- do.call("c", map.segs)
+	map.segs.list <- GRangesList(map.segs)
+	map.segs <- unlist(map.segs.list)
+	##map.segs <- do.call("c", map.segs)
 	elementMetadata(map.segs)$state <- trioStateNames()[values(map.segs)$argmax]
 	return(map.segs)
 }

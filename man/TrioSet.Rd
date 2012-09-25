@@ -75,7 +75,8 @@ R. Scharpf
 	trioSet <- TrioSet(lrr=logRratio,
 			   baf=baf,
 			   pedigree=Pedigree(pedigreeInfo),
-			   cdfname="human610quadv1bCrlmm")
+			   cdfname="human610quadv1bCrlmm",
+			   genome="hg18")
 }
 \keyword{manip}
 
