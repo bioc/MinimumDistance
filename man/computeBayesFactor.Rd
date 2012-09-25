@@ -3,9 +3,9 @@
 
 \title{Compute Bayes factors for minimum distance segments }
 
-\description{ Estimate the trio copy number state for each minimum
-  distance segment using the maximum a posterior probability. The
-  posterior probability of the normal state is also returned.
+\description{ Estimates the trio copy number state for the minimum
+  distance segments as the state that maximizes the posterior probability. The
+  posterior probability for the normal state ('333') is also returned.
 }
 
 \usage{
@@ -17,9 +17,7 @@
     A object of class \code{TrioSetList} or \code{TrioSet}.
 }
 
-  \item{ranges}{
-    A \code{RangedDataCBS} object.
-}
+  \item{ranges}{ A \code{GRanges} object. }
 
   \item{\dots}{Additional arguments specified in the methods for
     \code{\linkS4class{TrioSet}} and \code{\linkS4class{TrioSetList}}.}
@@ -27,7 +25,7 @@
 }
 
 \value{
-  A object of class \code{RangedDataCBS}.
+  A  \code{GRanges} object.
 }
 
 \references{

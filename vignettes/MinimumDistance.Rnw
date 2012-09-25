@@ -291,16 +291,18 @@ for father, mother, and offspring, extracting the appropriate rows
 following codechunk we load a \Robject{data.frame} called
 `sample.sheet' and pass the \Robject{sample.sheet} object to the
 \Rfunction{TrioSetList} constructor.  In addition, we load a matrix of
-log R ratios and a matrix of B allele frequencies.  (The matrices for
+log R ratios and a matrix of B allele frequencies.  The matrices for
 the log R ratios and B allele frequences contain only 25 markers for
 each chromosome as the intent is to illustrate the steps required for
-initializing a data structure of the \Robject{TrioSetList} class.)
+initializing a data structure of the \Robject{TrioSetList} class.
 Using the information stored in the \Robject{Pedigree} class, the
 matrices are transformed to 3-dimensional arrays and stored in the
-\Robject{assayDataList} slot of the \Rclass{TrioSetList}
-class. Accessors \Rfunction{lrr} and \Rfunction{baf} are available for
-extracting the list of arrays for the log R ratios and B allele
-frequencies.
+\Robject{assayDataList} slot of the \Rclass{TrioSetList} class. It is
+important that the column identifiers for the log R ratio and B allele
+frequency matrices correspond to sample identifiers in the
+\Robject{Pedigree} object.  Accessors \Rfunction{lrr} and
+\Rfunction{baf} are available for extracting the list of arrays for
+the log R ratios and B allele frequencies.
 
 <<constructSampleSheet>>=
 library(human610quadv1bCrlmm)
@@ -309,6 +311,7 @@ load(file.path(path, "pedigreeInfo.rda"))
 load(file.path(path, "sample.sheet.rda"))
 load(file.path(path, "logRratio.rda"))
 load(file.path(path, "baf.rda"))
+stopifnot(colnames(logRratio) %in% allNames(Pedigree(pedigreeInfo)))
 nms <- paste("NA",substr(sample.sheet$Sample.Name, 6, 10),sep="")
 trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 			   baf=baf,
@@ -316,7 +319,7 @@ trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 			   sample.sheet=sample.sheet,
 			   row.names=nms,
 			   cdfname="human610quadv1bCrlmm",
-			   genome="hg19")
+			   genome="hg18")
 show(trioSetList)
 @
 
@@ -416,7 +419,8 @@ posterior probability of the normal range are computed using the
 function \Rfunction{computeBayesFactor}.
 
 <<computeBayesFactor,results=hide>>=
-map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2, prOutlierBAF=list(initial=1e-4, max=1e-2, maxROH=1e-3))
+##trace(MinimumDistance:::joint4, browser)
+map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2)
 show(map.segs)
 @
 
@@ -444,7 +448,7 @@ development. Here, we provide a quick example using a function and a
 lattice-style panel function that are not currently exported.
 
 <<triofig>>=
-rd.denovoDel <- map.segs[state(map.segs) == 332 & numberProbes(map.segs) > 5, ]
+rd.denovoDel <- map.segs[state(map.segs) == 221 & numberProbes(map.segs) > 5, ]
 rd <- rd.denovoDel[1, ]
 CHR <- match(as.character(chromosome(rd)), paste("chr",chromosome(trioSetList), sep=""))
 S <- match(sampleNames(rd), sampleNames(trioSetList))

@@ -3,11 +3,11 @@ test_cbsSplits <- function(){
 	library(oligoClasses)
 	library2(foreach)
 	path <- system.file("extdata", package="human610quadv1bCrlmm")
-	load(file.path(path, "snpProbes.rda"))
-	load(file.path(path, "cnProbes.rda"))
+	load(file.path(path, "snpProbes_hg18.rda"))
+	load(file.path(path, "cnProbes_hg18.rda"))
 	x <- matrix(NA, nrow=nrow(snpProbes)+nrow(cnProbes), 1)
 	rownames(x) <- c(rownames(snpProbes), rownames(cnProbes))
-	fd <- GenomeAnnotatedDataFrameFrom(x, annotationPkg="human610quadv1bCrlmm", genome="hg19")
+	fd <- GenomeAnnotatedDataFrameFrom(x, annotationPkg="human610quadv1bCrlmm", genome="hg18")
 	fd <- fd[order(chromosome(fd), position(fd)), ]
 	fd <- fd[chromosome(fd) < 23, ]
 	pos <- position(fd)

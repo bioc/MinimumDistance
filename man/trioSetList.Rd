@@ -17,8 +17,7 @@ row.names=NULL, lrr, baf, featureData, cdfname, ffname="",genome)
 
   \item{sample.sheet}{A \code{data.frame} of sample-level covariates.}
 
-  \item{row.names}{If \code{sample.sheet} is non-missing,
-  \code{row.names} must the specified. The \code{row.names} must match
+  \item{row.names}{The \code{row.names} must match
   the sample identifiers stored in the argument to \code{pedigreeData}.
   If \code{sample.sheet} is missing, \code{row.names} is ignored.}
 
@@ -72,7 +71,7 @@ trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 			   sample.sheet=sample.sheet,
 			   row.names=nms,
 			   cdfname="human610quadv1bCrlmm",
-			   genome="hg19")
+			   genome="hg18")
 motherPhenoData(trioSetList)
 fatherPhenoData(trioSetList)
 offspringPhenoData(trioSetList)
