@@ -319,7 +319,7 @@ trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 			   sample.sheet=sample.sheet,
 			   row.names=nms,
 			   cdfname="human610quadv1bCrlmm",
-			   genome="hg19")
+			   genome="hg18")
 show(trioSetList)
 @
 
@@ -411,7 +411,7 @@ median absolute deviation from zero are edited using the
 
 <<narrow,results=hide>>=
 mads.md <- mad2(md, byrow=FALSE)
-md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md, fD=featureData(trioSetList), genome="hg19")
+md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md, fD=featureData(trioSetList), genome="hg18")
 @
 
 To each range (segment) the maximum posterior probability and the

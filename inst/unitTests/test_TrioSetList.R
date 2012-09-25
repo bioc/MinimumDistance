@@ -24,7 +24,7 @@ test_TrioSetList_construction <- function(){
 				   baf=baf,
 				   pedigree=ped,
 				   cdfname="human610quadv1bCrlmm",
-				   genome="hg19")
+				   genome="hg18")
 	checkTrue(validObject(trioSetList))
 	## the following should fail since hg18 build is not currently
 	## available with the supplied annotation package
@@ -32,14 +32,14 @@ test_TrioSetList_construction <- function(){
 				   baf=baf,
 				   pedigree=ped,
 				   cdfname="human610quadv1bCrlmm",
-				   genome="hg18"))
+				   genome="hg19"))
 	load(file.path(path, "sample.sheet.rda"))
 	checkException(TrioSetList(lrr=logRratio, ## must provide row.names
 				   baf=baf,
 				   pedigree=ped,
 				   sample.sheet=sample.sheet,
 				   cdfname="human610quadv1bCrlmm",
-				   genome="hg19"), silent=TRUE)
+				   genome="hg18"), silent=TRUE)
 	nms <- paste("NA",substr(sample.sheet$Sample.Name, 6, 10),sep="")
 	trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 				   baf=baf,
@@ -47,21 +47,21 @@ test_TrioSetList_construction <- function(){
 				   sample.sheet=sample.sheet,
 				   row.names=nms,
 				   cdfname="human610quadv1bCrlmm",
-				   genome="hg19")
+				   genome="hg18")
 	checkTrue(validObject(trioSetList))
 	trioSet <- TrioSet(lrr=logRratio,
 			   baf=baf,
 			   pedigree=ped,
 			   cdfname="human610quadv1bCrlmm",
-			   genome="hg19")
+			   genome="hg18")
 	checkTrue(validObject(trioSet))
-	##trace(TrioSet, browser)
 	trioSet <- TrioSet(lrr=logRratio,
 			   baf=baf,
 			   pedigree=ped,
 			   sample.sheet=sample.sheet,
 			   row.names=nms,
-			   cdfname="human610quadv1bCrlmm")
+			   cdfname="human610quadv1bCrlmm",
+			   genome="hg18")
 	checkTrue(validObject(trioSet))
 
 	checkTrue(validObject(trioSetList[[1]]))
@@ -121,7 +121,7 @@ test_TrioSetListLD <- function(){
 				     fnames=fnames,
 				     pedigreeData=ped,
 				     annotationPkg="human610quadv1bCrlmm",
-				     genome="hg19")
+				     genome="hg18")
 	checkTrue(validObject(trioSetList))
 	checkTrue(is(lrr(trioSetList)[[1]], "array"))
 
@@ -132,7 +132,8 @@ test_TrioSetListLD <- function(){
 	trioSetListff <- TrioSetListLD(path=path,
 				       fnames=fnames,
 				       pedigreeData=ped,
-				       annotationPkg="human610quadv1bCrlmm")
+				       annotationPkg="human610quadv1bCrlmm",
+				       genome="hg18")
 	checkTrue(validObject(trioSetListff))
 	checkTrue(is(lrr(trioSetListff)[[1]], "ff_array"))
 	checkTrue(identical(lrr(trioSetListff)[[1]][,,], lrr(trioSetList)[[1]]))

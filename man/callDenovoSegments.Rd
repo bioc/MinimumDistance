@@ -125,7 +125,7 @@ map.segs <- callDenovoSegments(path=path,
 			       segmentParents=FALSE,
                                prOutlierBAF=list(initial=1e-3, max=0.01,
 			       maxROH=1e-3),
-			       genome="hg19")
+			       genome="hg18")
 }
 \keyword{htest}
 \keyword{models}

@@ -71,7 +71,7 @@ trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 			   sample.sheet=sample.sheet,
 			   row.names=nms,
 			   cdfname="human610quadv1bCrlmm",
-			   genome="hg19")
+			   genome="hg18")
 motherPhenoData(trioSetList)
 fatherPhenoData(trioSetList)
 offspringPhenoData(trioSetList)
