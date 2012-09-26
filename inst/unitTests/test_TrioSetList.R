@@ -28,18 +28,18 @@ test_TrioSetList_construction <- function(){
 	checkTrue(validObject(trioSetList))
 	## the following should fail since hg18 build is not currently
 	## available with the supplied annotation package
-	checkException(TrioSetList(lrr=logRratio,
-				   baf=baf,
-				   pedigree=ped,
-				   cdfname="human610quadv1bCrlmm",
-				   genome="hg19"))
+##	checkException(TrioSetList(lrr=logRratio,
+##				   baf=baf,
+##				   pedigree=ped,
+##				   cdfname="human610quadv1bCrlmm",
+##				   genome="hg19"))
 	load(file.path(path, "sample.sheet.rda"))
-	checkException(TrioSetList(lrr=logRratio, ## must provide row.names
-				   baf=baf,
-				   pedigree=ped,
-				   sample.sheet=sample.sheet,
-				   cdfname="human610quadv1bCrlmm",
-				   genome="hg18"), silent=TRUE)
+##	checkException(TrioSetList(lrr=logRratio, ## must provide row.names
+##				   baf=baf,
+##				   pedigree=ped,
+##				   sample.sheet=sample.sheet,
+##				   cdfname="human610quadv1bCrlmm",
+##				   genome="hg18"), silent=TRUE)
 	nms <- paste("NA",substr(sample.sheet$Sample.Name, 6, 10),sep="")
 	trioSetList <- TrioSetList(lrr=logRratio, ## must provide row.names
 				   baf=baf,

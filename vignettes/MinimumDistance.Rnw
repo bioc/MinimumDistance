@@ -238,10 +238,12 @@ distance using circular binary segmentation, and calls the trio copy
 number state using the maximum posterior probability.
 
 <<callDenovoSegments>>=
-map.segs <- callDenovoSegments(path=path, pedigreeData=ped,
+map.segs <- callDenovoSegments(path=path,
+			       pedigreeData=ped,
 			       cdfname="human610quadv1b",
-			       chromosome=1, segmentParents=FALSE)
-head(map.segs)
+			       chromosome=1,
+			       segmentParents=FALSE,
+			       genome="hg18")
 @
 
 The object returned by \Rfunction{callDenovoSegments} is an object of
