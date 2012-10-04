@@ -119,10 +119,11 @@ export(callDenovoSegments,
        narrow,
        Pedigree,
        stackRangedDataList,
-##       xyplot,
        xyplotTrio,
        xypanelTrio)
-##       xypanelMD)
+
+## deprecated functions
+export(xyplotTrioLrrBaf)
 
 
 
