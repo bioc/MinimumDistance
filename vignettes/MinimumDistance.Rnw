@@ -247,13 +247,14 @@ map.segs <- callDenovoSegments(path=path,
 @
 
 The object returned by \Rfunction{callDenovoSegments} is an object of
-class \Robject{RangedDataHMM}. The state symbols are the integer copy
-number inferred for the father, mother and offspring with an offset of
-1. For example, the symbol for state '321' would indicate two DNA
-copies in father, 1 copy in the mother, and 0 copies in the offspring.
-In the above example, de novo copy number alterations were not
-detected and the state '333' indicates that the father, mother, and
-offspring appear to be diploid for the interval beginning at
+class \Robject{RangedDataHMM}. The numeric $xyz$ trio state symbol
+indicates that the father has $x$ copies, the mother has $y$ copies,
+and the offspring has $z$ copies.  For example, the symbol for state
+'321' would indicate a single copy duplication for the father, diploid
+copy number for the mother, and a hemizygous deletion in the
+offspring.  In the above example, de novo copy number alterations were
+not detected and the state '222' indicates that the father, mother,
+and offspring appear to be diploid for the interval beginning at
 \Sexpr{start(map.segs)} bp and ending at \Sexpr{end(map.segs)}.
 
 
@@ -498,7 +499,7 @@ dev.off()
     frequencies (blue) for the parent-offspring trio, as well as the
     minimum distance (bottom panel).  The solid vertical lines in the
     bottom panel indicate the start and stop positions of an inferred
-    de novo hemizygous deletion in the offspring (state '332').  }
+    de novo hemizygous deletion in the offspring (state '221').  }
 \end{figure}
 
 
