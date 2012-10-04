@@ -5,7 +5,7 @@
 
 \description{ Estimates the trio copy number state for the minimum
   distance segments as the state that maximizes the posterior probability. The
-  posterior probability for the normal state ('333') is also returned.
+  posterior probability for the normal state ('222') is also returned.
 }
 
 \usage{
@@ -25,7 +25,10 @@
 }
 
 \value{
-  A  \code{GRanges} object.
+  A  \code{GRanges} object.  The \code{value}  label "state" contains
+  the trio copy number state denoted by xyz, where x is the copy number
+  for the father, y is the copy number for the mother, and z is the copy
+  number of the offspring.
 }
 
 \references{
@@ -51,5 +54,7 @@ mdlist <- calculateMindist(lrr(trioSetList))
 mads.md <- mad2(mdlist, byrow=FALSE)
 md.segs2 <- narrow(md.segs, lrr.segs, mad.minimumdistance=mads.md, thr=0.9, fD=featureData(trioSetList))
 map.segs <- computeBayesFactor(trioSetList, ranges=md.segs2, prOutlierBAF=list(initial=1e-4, max=1e-2, maxROH=1e-4))
+## the trio states
+state(map.segs)
 }
 \keyword{htest}
