@@ -415,9 +415,12 @@ computeBayesFactorTrioSetList <- function(object,
 	if(!all(sampleNames(object) %in% sns.ranges)){
 		ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
 	}
+	chr <- intersect(paste("chr", chromosome(object), sep=""), unique(chromosome(ranges)))
+	object <- object[paste("chr", chromosome(object), sep="") %in% chr]
+	ranges <- ranges[chromosome(ranges) %in% chr, ]
+
 	index <- split(seq_len(length(ranges)), as.character(chromosome(ranges)))
-	index <- index[names(index) %in% paste("chr", chromosome(object), sep="")]
-	object <- object[paste("chr", chromosome(object), sep="") %in% names(index)]
+	## reorder index by ordering in trioSetList object
 	index <- index[match(paste("chr", chromosome(object), sep=""),  names(index))]
 	X <- i <- NULL
 	packages <- neededPkgs()

@@ -397,6 +397,9 @@ computeBayesFactorTrioSet <- function(object,
 	elementMetadata(ranges)$argmax <- NA
 	elementMetadata(ranges)$lik.norm <- NA
 	elementMetadata(ranges)$state <- NA
+	if(!"seg.mean" %in% colnames(values(ranges))){
+		elementMetadata(ranges)$seg.mean <- NA
+	}
 	ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
 	id <- unique(sampleNames(ranges))
 	message("\t\tComputing Bayes factors for ", length(id), " files.")

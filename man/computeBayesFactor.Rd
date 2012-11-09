@@ -53,7 +53,7 @@ data(lrr.segs)
 mdlist <- calculateMindist(lrr(trioSetList))
 mads.md <- mad2(mdlist, byrow=FALSE)
 md.segs2 <- narrow(md.segs, lrr.segs, mad.minimumdistance=mads.md, thr=0.9, fD=featureData(trioSetList))
-map.segs <- computeBayesFactor(trioSetList, ranges=md.segs2, prOutlierBAF=list(initial=1e-4, max=1e-2, maxROH=1e-4))
+map.segs <- computeBayesFactor(trioSetList, ranges=md.segs2)
 ## the trio states
 state(map.segs)
 }

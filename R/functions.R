@@ -229,7 +229,10 @@ combineRangesByFactor <- function(range.object, f){
 	}
 	##stopifnot(all(!is.na(f)))
 	ff <- cumsum(c(0, abs(diff(as.integer(as.factor(f))))))
-	if(!any(duplicated(ff))) return(range.object)
+	if(!any(duplicated(ff))) {
+
+		return(range.object)
+	}
 	for(i in seq_along(unique(ff))){
 		x <- unique(ff)[i]
 		if(sum(ff==x) == 1) next()
