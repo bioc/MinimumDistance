@@ -47,7 +47,8 @@ import(GenomicRanges)
 ## oligoClasses
 importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, gSet, gSetList)
 importMethodsFrom(oligoClasses, state, coverage2, chromosome, open, openff, closeff, mean,
-		  GenomeAnnotatedDataFrameFrom, checkOrder, position, isSnp, baf, lrr, close,
+		  GenomeAnnotatedDataFrameFrom, checkOrder, position, isSnp, baf, lrr, "baf<-", "lrr<-",
+		  close,
 		  genomeBuild, "genomeBuild<-", makeFeatureGRanges, numberProbes)
 importFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, chromosomePositionOrder,
 	   initializeBigMatrix, initializeBigArray, isPackageLoaded, ldPath, parStatus,
@@ -79,8 +80,6 @@ import(foreach)
 exportClasses(Pedigree, TrioSet, TrioSetList)
 exportMethods("[", allNames,
 	      annotatedDataFrameFrom,
-	      baf,
-	      "baf<-",
 	      calculateMindist,
 	      coerce,
 	      computeBayesFactor,
@@ -89,7 +88,6 @@ exportMethods("[", allNames,
 	      fatherPhenoData,
 	      motherPhenoData,
 	      phenoData,
-	      lrr, "lrr<-",
 	      mindist,
 	      "mindist<-",
 	      mad2,
