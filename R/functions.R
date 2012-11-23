@@ -10,11 +10,18 @@ catFun2 <- function(rd.query, rd.subject, ...){
 		return(0)
 	}
 	subject.index <- subjectHits(mm)
-	index <- which(chromosome(rd.query)[query.index] == chromosome(rd.subject)[subject.index] &
-		       sampleNames(rd.query)[query.index] == sampleNames(rd.subject)[subject.index])
+	isRangedData <- is(rd.query, "RangedDataCBS")
+	if(isRangedData){
+		index <- which(chromosome(rd.query)[query.index] == chromosome(rd.subject)[subject.index] &
+			       sampleNames(rd.query)[query.index] == sampleNames(rd.subject)[subject.index])
+	} else {
+		index <- which(chromosome(rd.query)[query.index] == chromosome(rd.subject)[subject.index] &
+			       sampleNames(rd.query)[query.index] == sampleNames(rd.subject)[subject.index])
+	}
 	if(length(index) > 0){
 		query.index <- unique(query.index[index])
-		p <- length(query.index)/nrow(rd.query)
+		nr <- if(isRangedData) nrow(rd.query) else length(rd.query)
+		p <- length(query.index)/nr
 		if(p > 1) browser()
 	} else p <- 0
 	return(p)
