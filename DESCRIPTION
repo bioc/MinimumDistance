@@ -7,7 +7,7 @@ Author: Robert B Scharpf and Ingo Ruczinski
 Maintainer: Robert B Scharpf <rscharpf@jhsph.edu>
 Description: Analysis of de novo copy number variants in trios from high-dimensional genotyping platforms
 License: Artistic-2.0
-Depends: R (>= 2.14), BiocGenerics (>= 0.3.2), IRanges (>= 1.13.30)
+Depends: R (>= 2.14), BiocGenerics (>= 0.3.2), IRanges (>= 1.13.30), trioClasses
 Imports: methods, DNAcopy, utils, msm, lattice, BiocGenerics,
         VanillaICE (>= 1.19.23), ff, SNPchip (>= 2.3.10), Biobase (>= 2.17.8),
         foreach, oligoClasses (>= 1.21.4), GenomicRanges
