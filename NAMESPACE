@@ -74,10 +74,12 @@ import(ff)
 ## foreach
 import(foreach)
 
+## trioClasses
+importClassesFrom(trioClasses, Pedigree, TrioSet, TrioSetList)
+
 ## -----------------------------------------------------------------
 ## Export
 ## -----------------------------------------------------------------
-exportClasses(Pedigree, TrioSet, TrioSetList)
 exportMethods("[", allNames,
 	      annotatedDataFrameFrom,
 	      calculateMindist,
