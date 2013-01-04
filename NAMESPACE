@@ -3,7 +3,7 @@
 ##---------------------------------------------------------------------------
 ## methods
 importMethodsFrom(methods, initialize, show)
-importFrom(methods, "@<-", callNextMethod, new, validObject, coerce)
+importFrom(methods, callNextMethod, new, validObject, coerce)
 
 ## generics
 ##importFrom(BiocGenerics, order, nrow)
