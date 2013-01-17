@@ -7,18 +7,41 @@ Author: Robert B Scharpf and Ingo Ruczinski
 Maintainer: Robert B Scharpf <rscharpf@jhsph.edu>
 Description: Analysis of de novo copy number variants in trios from high-dimensional genotyping platforms
 License: Artistic-2.0
-Depends: R (>= 2.14), BiocGenerics (>= 0.3.2), IRanges (>= 1.13.30), trioClasses
-Imports: methods, DNAcopy, utils, msm, lattice, BiocGenerics,
-        VanillaICE (>= 1.19.23), ff, SNPchip (>= 2.3.10), Biobase (>= 2.17.8),
-        foreach, oligoClasses (>= 1.21.4), GenomicRanges
+Depends: R (>= 2.14), BiocGenerics (>= 0.3.2), IRanges (>= 1.13.30)
+Imports: methods,
+         DNAcopy,
+	 utils,
+	 msm,
+	 lattice,
+	 BiocGenerics,
+         VanillaICE (>= 1.19.23),
+	 ff,
+	 SNPchip (>= 2.3.10),
+	 Biobase (>= 2.17.8),
+         foreach,
+	 oligoClasses (>= 1.21.4),
+	 GenomicRanges
 Suggests: human610quadv1bCrlmm, RUnit
 Enhances: snow, doSNOW
-Collate: AllClasses.R AllGenerics.R methods-AnnotatedDataFrame.R
-        methods-AssayData.R methods-Pedigree.R methods-TrioSet.R
-        methods-TrioSetList.R methods-matrix.R methods-list.R
-	methods-RangedData.R
-        methods-ff_array.R segment2-methods.R mad-methods.R
-        lattice-methods.R functions.R utils.R zzz.R
+Collate: AllGenerics.R
+         AllClasses.R
+	 methods-AnnotatedDataFrame.R
+         methods-AssayData.R
+	 methods-Pedigree.R
+	 methods-Pedigree2.R
+	 methods-TrioSE.R
+	 methods-TrioSet.R
+         methods-TrioSetList.R
+	 methods-matrix.R
+	 methods-list.R
+	 methods-RangedData.R
+         methods-ff_array.R
+	 segment2-methods.R
+	 mad-methods.R
+         lattice-methods.R
+	 functions.R
+	 utils.R
+	 zzz.R
 LazyLoad: yes
 biocViews: Microarray, SNP, Bioinformatics, CopyNumberVariants
 Packaged: 2012-03-23 14:08:50 UTC; rscharpf

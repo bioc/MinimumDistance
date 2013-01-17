@@ -100,9 +100,9 @@ setMethod("fatherNames", signature(object="Pedigree"), function(object) trios(ob
 setMethod("motherNames", signature(object="Pedigree"), function(object) trios(object)$M)
 setMethod("show", signature(object="Pedigree"),
 	  function(object){
-		  cat('An object of class "Pedigree": \n')
-		  cat('Father (F), Mother (M), and Offspring (O) \n')
-		  cat('Slot "trios":\n')
+		  ##cat('An object of class "Pedigree": \n')
+		  ##cat('Father (F), Mother (M), and Offspring (O) \n')
+		  ##cat('Slot "trios":\n')
 		  print(head(trios(object), n=2))
 		  if(nrow(trios(object)) > 2){
 			  cat(".\n.\n.\n")

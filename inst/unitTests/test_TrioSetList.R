@@ -54,6 +54,44 @@ test_TrioSetList_construction <- function(){
 			   pedigree=ped,
 			   cdfname="human610quadv1bCrlmm",
 			   genome="hg18")
+
+	if(FALSE){
+		path <- system.file("extdata", package="MinimumDistance")
+		load(file.path(path, "logRratio.rda"))
+		load(file.path(path, "baf.rda"))
+		load(file.path(path, "pedigreeInfo.rda"))
+		ped <- Pedigree(pedigreeInfo)
+		r <- lrr(trioSet)
+		chrom <- paste("chr", chromosome(trioSet), sep="")
+		seqinfo <- Seqinfo(seqnames=unique(chrom),
+				   genome="hg18")
+		rowData <- GRanges(chrom,
+				   IRanges(position(trioSet)-12,
+					   position(trioSet)+12),
+				   seqinfo=seqinfo)
+		## rownames of colData are the column names of the
+		## summarized experiment - rownames are offspring ids.
+		## - colnames are father, mother, offspring - 3rd
+		## dimension is covariates on the family members
+		## (e.g., age, ...)  - perhaps require id for a label
+		## in third dimension.
+		## class Pedigree could inherit from DataFrame.
+		ary <- I(array(NA, dim=c(ncol(trioSet), 3, 2)))
+		dimnames(ary) <- list(sampleNames(ped),
+				      c("father", "mother", "offspring"),
+				      c("id", "age"))
+		##colData <- DataFrame(ary, metadata=rep(c("father", "mother", "offspring"), 2))
+		colData <- DataFrame(ary) ##metadata=rep(c("father", "mother", "offspring"), 2))
+		## Need to rewrite fatherNames, motherNames, offspringNames accessors
+		colData[[1]][, "father", "id"] ##make an accessor
+		colData[[1]][, "mother", "id"] ##make an accessor
+		colData[[1]][, "offspring", "id"] ##make an accessor
+		rownames(colData) <- sampleNames(ped)
+		##colnames(colData) <- c("father", "mother", "offspring")
+		se <- SummarizedExperiment(assays=SimpleList(lrr=r),
+					   rowData=rowData,
+					   colData=colData)
+	}
 	checkTrue(validObject(trioSet))
 	trioSet <- TrioSet(lrr=logRratio,
 			   baf=baf,
