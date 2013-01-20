@@ -59,8 +59,8 @@ R Scharpf
 }
 
 \examples{
-
 library(oligoClasses)
+library(MinimumDistance)
 data(trioSetListExample)
 data(map.segs)
 data(lrr.segs)

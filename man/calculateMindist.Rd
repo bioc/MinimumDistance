@@ -43,10 +43,9 @@ R. Scharpf
 
 
 \examples{
+library(oligoClasses)
 data(trioSetListExample)
 mdlist <- calculateMindist(lrr(trioSetList))
-trioSet <- stack(trioSetList)
-md <- calculateMindist(lrr(trioSet))
 }
 \keyword{math}
 \keyword{univar}

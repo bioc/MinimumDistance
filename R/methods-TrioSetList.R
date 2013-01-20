@@ -97,7 +97,8 @@ GenomeAnnotatedDataFrameFromList <- function(object, annotationPkg){
 	elt <- object[[nms[1]]]
 	fdlist <- vector("list", length(elt))
 	for(i in seq_along(elt)){
-		fdlist[[i]] <- GenomeAnnotatedDataFrameFromArray(elt[[i]], annotationPkg)
+		##fdlist[[i]] <- GenomeAnnotatedDataFrameFromArray(elt[[i]], annotationPkg)
+		fdlist[[i]] <- GenomeAnnotatedDataFrameFrom(elt[[i]], annotationPkg)
 	}
 	return(fdlist)
 }
@@ -122,9 +123,9 @@ TrioSetList <- function(chromosome=integer(),
 		}
 		if(missing(genome)) stop("Argument genome is missing.  Must specify UCSC genome build genome ('hg18' or 'hg19').")
 		if(!missing(pedigreeData)){
-			if(!fatherNames(pedigreeData) %in% colnames(lrr)) stop("column names of lrr and baf matrices must match names the pedigree file")
-			if(!motherNames(pedigreeData) %in% colnames(lrr)) stop("column names of lrr and baf matrices must match names the pedigree file")
-			if(!offspringNames(pedigreeData) %in% colnames(lrr)) stop("column names of lrr and baf matrices must match names the pedigree file")
+			if(!all(fatherNames(pedigreeData) %in% colnames(lrr))) stop("column names of lrr and baf matrices must match names the pedigree file")
+			if(!all(motherNames(pedigreeData) %in% colnames(lrr))) stop("column names of lrr and baf matrices must match names the pedigree file")
+			if(!all(offspringNames(pedigreeData) %in% colnames(lrr))) stop("column names of lrr and baf matrices must match names the pedigree file")
 		}
 	}
 	if(nrow(pedigreeData) > 0 & !(missing(lrr) | missing(baf))){
@@ -381,6 +382,11 @@ setMethod("sampleNames", signature(object="TrioSetList"),
 ##			 return(object)
 ##	 })
 
+##setReplaceMethod(mindist, c("TrioSetList", "list"),
+##		 function(object, value){
+##
+##})
+
 setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 	  function(object, ranges, id, lambda, min.change, min.coverage,
 		   scale.exp, verbose, ...){
@@ -398,11 +404,12 @@ setMethod("computeBayesFactor", signature(object="TrioSetList"),
 	  function(object, ranges,
 		   returnEmission=FALSE,
 		   collapseRanges=TRUE, ...){
-		  computeBayesFactorTrioSetList(object=object,
-						ranges=ranges,
-						returnEmission=returnEmission,
-						collapseRanges=collapseRanges,
-						...)
+		  .Defunct(msg="computeBayesFactor method is defunct. See MAP instead.")
+##		  computeBayesFactorTrioSetList(object=object,
+##						ranges=ranges,
+##						returnEmission=returnEmission,
+##						collapseRanges=collapseRanges,
+##						...)
 	  })
 
 computeBayesFactorTrioSetList <- function(object,
@@ -415,9 +422,12 @@ computeBayesFactorTrioSetList <- function(object,
 	if(!all(sampleNames(object) %in% sns.ranges)){
 		ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
 	}
+	chr <- intersect(paste("chr", chromosome(object), sep=""), unique(chromosome(ranges)))
+	object <- object[paste("chr", chromosome(object), sep="") %in% chr]
+	ranges <- ranges[chromosome(ranges) %in% chr, ]
+
 	index <- split(seq_len(length(ranges)), as.character(chromosome(ranges)))
-	index <- index[names(index) %in% paste("chr", chromosome(object), sep="")]
-	object <- object[paste("chr", chromosome(object), sep="") %in% names(index)]
+	## reorder index by ordering in trioSetList object
 	index <- index[match(paste("chr", chromosome(object), sep=""),  names(index))]
 	X <- i <- NULL
 	packages <- neededPkgs()
@@ -682,10 +692,200 @@ setReplaceMethod("featureData", signature(object="TrioSetList", value="list"),
 
 setMethod("gcSubtract", signature(object="TrioSetList"),
 	  function(object, ...){
-		  res <- list()
-		  for(j in seq_along(object)){
-			  res[[j]] <- gcSubtract(object[[j]], ...)
-		  }
-		  object <- stack(RangedDataList(object))
-		  return(object)
+		  .Defunct("methods for GC correction have beem moved to the ArrayTV package available from GitHub")
+##		  res <- list()
+##		  for(j in seq_along(object)){
+##			  res[[j]] <- gcSubtract(object[[j]], ...)
+##		  }
+##		  object <- stack(RangedDataList(object))
+##		  return(object)
 	  })
+
+.clone_TrioSetList <- function(object, ids, prefix="clone"){
+	if(missing(ids)) ids <- sampleNames(object)
+	index <- match(ids, sampleNames(object))
+	ids <- as.character(ids)
+	r <- lrr(object)
+	b <- baf(object)
+	rcopy.list <- list()
+	bcopy.list <- list()
+	for(i in seq_along(r)){
+		x <- r[[i]]
+		y <- b[[i]]
+		open(x)
+		open(y)
+		rcopy <- initializeBigArray(paste(prefix, "lrr", sep="-"), dim=c(nrow(x), length(ids), 3), vmode="integer")
+		bcopy <- initializeBigArray(paste(prefix, "baf", sep="-"), dim=c(nrow(x), length(ids), 3), vmode="integer")
+		dimnames(rcopy) <- list(rownames(x),
+					colnames(x)[index],
+					dimnames(x)[[3]])
+		dimnames(bcopy) <- dimnames(rcopy)
+		J <- match(ids, colnames(x))
+		for(j in seq_along(J)){
+			k <- J[j]
+			rcopy[, j, ] <- x[, k, ]
+			bcopy[, j, ] <- y[, k, ]
+		}
+		rcopy.list[[i]] <- rcopy
+		bcopy.list[[i]] <- bcopy
+		close(x)
+		close(y)
+	}
+	adl <- AssayDataList(BAF=bcopy.list, logRRatio=rcopy.list)
+	k <- index
+	pd <- phenoData(object)[k, ]
+	fatherdata <- fatherPhenoData(object)[k, ]
+	motherdata <- motherPhenoData(object)[k, ]
+	new("TrioSetList",
+	    assayDataList=adl,
+	    featureDataList=featureData(object),
+	    phenoData=pd,
+	    fatherPhenoData=fatherdata,
+	    motherPhenoData=motherdata,
+	    chromosome=chromosome(object),
+	    annotation=annotation(object),
+	    genome=genomeBuild(object),
+	    pedigree=pedigree(object)[k, ])
+}
+
+setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
+						     ranges,
+						     id,
+						     TAUP=1e10,
+						     tauMAX,
+						     cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
+						     pr.nonmendelian=1.5e-6,
+						     mdThr=0.9, ...){
+						     ##collapseRanges=TRUE,...){
+	.map_trioSetList(object=object,
+			 ranges=ranges,
+			 id=id,
+			 TAUP=TAUP,
+			 tauMAX=tauMAX,
+			 cnStates=cnStates,
+			 pr.nonmendelian=pr.nonmendelian,
+			 mdThr=mdThr, ...)
+})
+
+.map_trioSetList <- function(object,
+			     ranges, id,
+			     TAUP=1e10,
+			     tauMAX,
+			     cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
+			     pr.nonmendelian=1.5e-6,
+			     mdThr=0.9,...){
+	pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+	if(missing(id)) id <- sampleNames(object)
+	index.trios <- match(id, sampleNames(object))
+	if(!all(sampleNames(ranges) %in% id))
+		ranges <- ranges[sampleNames(ranges) %in% id, ]
+	if(!all(id %in% sampleNames(ranges))){
+		object <- object[, match(unique(sampleNames(ranges)), id)]
+		id <- id[id %in% sampleNames(ranges)]
+	}
+	chrom.ranges <- unique(chromosome(ranges))
+	chrom.object <- paste("chr", chromosome(object), sep="")
+	object <- object[chrom.object %in% chrom.ranges]
+	ranges <- ranges[chrom.ranges %in% chrom.object, ]
+	## only call segs that are "nonzero"
+	if("mindist.mad" %in% colnames(elementMetadata(ranges))){
+		mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
+		abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
+	} else{
+		## call all segments
+		abs.thr <- rep(TRUE, length(ranges))
+	}
+	elementMetadata(ranges)$exceeds.md.thr <- abs.thr
+	ocSamples(1) ## has to be 1. This will process 3 samples per alotted CPU
+	chunks <- splitIndicesByLength(index.trios, ocSamples())
+	rlist <- lrr(object)
+	blist <- baf(object)
+	pos <- unlist(position(object))
+	chr <- rep(chromosome(object), elementLengths(object))
+	build <- genomeBuild(object)
+	sl <- oligoClasses:::setSequenceLengths(build,
+						paste("chr", chromosome(object), sep=""))
+	feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
+				   seqlengths=sl)
+	grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
+	is.snp <- unlist(lapply(featureDataList(object), isSnp))
+	snp.index <- which(is.snp)
+	anyNP <- any(!is.snp)
+	center <- TRUE
+	pkgs <- c("oligoClasses", "VanillaICE")
+	isff <- is(rlist[[1]], "ff")
+	if(isff) pkgs <- c("ff", pkgs)
+	matrixFun <- generatorMatrix(rlist, blist, chr, center=TRUE,
+				     snp.index=snp.index, anyNP=anyNP,
+				     ped=pedigree(object))
+	overlapFun <- generatorOverlapFeatures(feature.granges)
+	grl <- split(ranges, sampleNames(ranges))
+	grl <- grl[match(sampleNames(object), names(grl))]
+	rm(pos, chr, blist, rlist); gc()
+	results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
+		emit <- viterbi2Wrapper(index.samples=i,
+					snp.index=snp.index,
+					anyNP=anyNP,
+					is.log=TRUE,
+					limits=c(-4, 3),
+					cnStates=cnStates,
+					grFun=grFun,
+					matrixFun=matrixFun,
+					returnEmission=TRUE, ...)
+		granges <- sort(granges)
+		ranges <- loglik(emit=emit,
+				 ranges=granges,
+				 pr.nonmendelian=pr.nonmendelian,
+				 overlapFun=overlapFun)
+		chr.arm <- oligoClasses:::.getArm(chromosome(ranges), start(ranges), build)
+		ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
+		ranges
+	}
+	results <- unlist(GRangesList(results))
+	metadata(results) <- metadata(ranges)
+	return(results)
+}
+
+setMethod("coerce", signature(from="TrioSetList", to="SummarizedExperiment"),
+	  function(from, to){
+		  if(ncol(from) > 1) stop("coercion to SummarizedExperiment does not work when ncol > 1")
+		  ##nms <- varLabels(from@featureDataList[[1]])
+		  chrom <- rep(paste("chr", chromosome(from), sep=""),
+			       elementLengths(from))
+		  pos <- unlist(position(from))
+		  is.snp <- unlist(lapply(featureDataList(from), isSnp))
+		  ## stack the featureDataList to make featureData
+		  ## make granges object from featureData
+		  sl <- getSequenceLengths(genomeBuild(from))
+		  sl <- sl[unique(chrom)]
+
+		  seqinfo <- Seqinfo(seqnames=unique(chrom),
+				     genome="hg18")
+		  gr <- GRanges(chrom, IRanges(pos,pos), isSnp=is.snp,
+				seqlengths=sl,
+				seqinfo=seqinfo)
+		  names(gr) <- unlist(featureNames(from))
+		  rlist <- lrr(from)
+		  blist <- baf(from)
+		  isff <- is(rlist[[1]], "ff")
+		  if(isff) require("ff")
+		  ##if(is(rlist[[1]], "ff")
+		  rl <- lapply(rlist, "[", , 1, , drop=TRUE) ##function(x) x[, ,drop=FALSE])
+		  bl <- lapply(blist, "[", , 1, , drop=TRUE) ##function(x) x[, ,drop=FALSE])
+		  r <- do.call("rbind", rl)
+		  b <- do.call("rbind", bl)
+		  ##rownames(r) <- rownames(b) <- unlist(featureNames(from))
+		  ped <- as.character(trios(pedigree(from)))
+		  ##colData <- DataFrame(pData(from))
+		  ##rownames(colData) <- sampleNames(from)
+		  colnames(r) <- colnames(b) <- ped
+		  SummarizedExperiment(assays=SimpleList(lrr=r, baf=b),
+				       rowData=gr)
+	  })
+
+##setMethod("dataFrame", signature(range="GRanges", data="SummarizedExperiment"),
+##	  function(range, data, ...){
+##		  dataFrameSummarizedExperimentTrio(range=range, object=data, ...)
+##	  })
+
+

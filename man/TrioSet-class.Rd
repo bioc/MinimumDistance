@@ -13,13 +13,13 @@
 \alias{calculateMindist,TrioSet-method}
 \alias{coerce,TrioSet,TrioSetList-method}
 \alias{coerce,TrioSet,data.frame-method}
-\alias{computeBayesFactor,TrioSet-method}
+%\alias{computeBayesFactor,TrioSet-method}
 \alias{dim,TrioSet-method}
 \alias{fatherNames<-,TrioSet,character-method}
 \alias{fatherNames<-}
 \alias{fatherNames,TrioSet-method}
 \alias{fatherPhenoData,TrioSet-method}
-\alias{gcSubtract,TrioSet-method}
+%\alias{gcSubtract,TrioSet-method}
 \alias{motherPhenoData,TrioSet-method}
 \alias{offspringPhenoData}
 \alias{offspringPhenoData,TrioSet-method}
@@ -27,6 +27,7 @@
 \alias{lrr<-}
 \alias{lrr,TrioSet-method}
 \alias{lrr<-,TrioSet-method}
+\alias{MAP,TrioSet,GRanges-method}
 \alias{mindist<-,TrioSet,matrix-method}
 \alias{mindist,TrioSet-method}
 \alias{mindist}
@@ -223,13 +224,27 @@
 
   \describe{
 
-    \item{}{\code{computeBayesFactor(object, ranges, mad.marker,
+    \item{}{\code{MAP(object, ranges, mad.marker,
     mad.sample, returnEmission=FALSE, verbose=TRUE, ...)}: Compute
     posterior probabilities for the trio copy number states. The called
     trio copy number state is the argmax of the posterior
     probabilities. See examples below for computing the standard
     deviation of the markers for argument \code{mad.marker} and the
-    standard deviation of the samples for argument \code{mad.sample}.}
+    standard deviation of the samples for argument \code{mad.sample}.
+
+    The MAP function returns a \code{GRanges} or a \code{GRangesList}
+    object with the genomic intervals annotated by the trio copy number
+    state (see below), the number of markers used to call the region,
+    the segment mean as estimated by circular binary segmentation,
+    the log-likelihood of the diploid state, and the log-likelihood of
+    the MAP estimate.
+
+    The trio copy number states are indicated by the integer xyz, where
+    \code{x} is the copy number of the father, \code{y} is the copy
+    number of the mother, and \code{z} is the copy number of the offspring.
+
+
+  }
 
   }
 
@@ -238,7 +253,7 @@
 
 \section{Visualization}{
   \describe{
-    \item{}{\code{xyplot(x, data, ...)}       }
+    See \code{\link{xyplotTrio}}
   }
 }
 
@@ -250,15 +265,10 @@
     \code{AnnotatedDataFrame}, the \code{featureData} is updated to the
     \code{GenomeAnnotatedDataFrame} class.}
 
-  \item{}{\code{gcSubtract(object, method=c("speed", "lowess"),
-      trio.index, ...)}:
-
-    \code{method} indicates the type of GC correction. [[NEED ADDL
-    DETAILS]].
   }
 
-  }
 }
+
 
 \author{R. Scharpf}
 
@@ -271,10 +281,8 @@
 	showClass("TrioSet")
 	## instantiate a TrioSet with an array of log R ratios (logRR) and B
 	## allele frequencies
-	library(MinimumDistance)
 	new("TrioSet")
 	TrioSet()
-
         data(trioSetListExample)
         trioSet <- stack(trioSetList)
 }

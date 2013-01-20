@@ -60,6 +60,7 @@ segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ..
 				}
 		segs <- stackRangedDataList(segs)
 	}
+	metadata(segs) <- list(genome=genomeBuild(object))
 	return(segs)
 }
 
@@ -108,12 +109,13 @@ segmentList <- function(object, pos, chrom, id, featureNames, segmentParents=TRU
 			       position=pos,
 			       chromosome=chrom,
 			       fns=featureNames, .inorder=FALSE,
-			       .combine=stackRangedDataList,
+			       ##.combine=stackRangedDataList,
 			       .packages=pkgs) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, genome=genome, ...)
 	}  else {
 		obj <- position <- chromosome <- fns <- NULL
-		res <- foreach(obj=object, position=pos, chromosome=chrom, fns=featureNames, .inorder=FALSE, .combine=stackRangedDataList, .packages=pkgs) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, genome=genome, ...)
+		res <- foreach(obj=object, position=pos, chromosome=chrom, fns=featureNames, .inorder=FALSE, .packages=pkgs) %dopar% segment2(object=obj, pos=position, chrom=chromosome, id=id, featureNames=fns, verbose=verbose, genome=genome, ...)
 	}
+	res <- unlist(GRangesList(res))
 ##	j <- match("sample", colnames(res))
 ##	if(!is.na(j)) res <- res[, -j]
 	return(res)
@@ -129,7 +131,8 @@ segmentff_matrix <- function(object, pos, chrom, id, featureNames, ...){
 	for(i in seq_len(nc)){
 		segs[[i]] <- segmentMatrix(object[, i, drop=FALSE], pos=pos, chrom=chrom, id=id[i], featureNames, ...)
 	}
-	segs <- stack(RangedDataList(segs))
+	##segs <- stack(RangedDataList(segs))
+	segs <- unlist(GRangesList(segs))
 	return(segs)
 }
 
@@ -157,10 +160,11 @@ segmentff_matrix2 <- function(object, pos, chrom, fid, mid, oid,
 					     featureNames, ...)
 
 	}
-	segs.f <- stack(RangedDataList(segs.f))
-	segs.m <- stack(RangedDataList(segs.m))
-	segs.o <- stack(RangedDataList(segs.o))
-	segs <- stack(RangedDataList(segs.f, segs.m, segs.o))
+	segs.f <- unlist(GRangesList(segs.f))
+	segs.m <- unlist(GRangesList(segs.m))
+	segs.o <- unlist(GRangesList(segs.o))
+	segs <- unlist(GRangesList(segs.f, segs.m, segs.o))
+	##segs <- stack(RangedDataList(segs.f, segs.m, segs.o))
 	return(segs)
 }
 
@@ -197,12 +201,17 @@ segmentArray <- function(object, pos, chrom, id, featureNames, segmentParents, v
 		}
 		if(!segmentParents){
 			##segs <- stack(RangedDataList(segs.o))
-			segs <- stackRangedDataList(segs.o)
+			##segs <- stackRangedDataList(segs.o)
+			segs <- unlist(GRangesList(segs.o))
 		} else {
-			segs.f <- stackRangedDataList(segs.f)
-			segs.m <- stackRangedDataList(segs.m)
-			segs.o <- stackRangedDataList(segs.o)
-			segs <- stackRangedDataList(list(segs.f, segs.m, segs.o))
+			##segs.f <- stackRangedDataList(segs.f)
+			segs.f <- unlist(GRangesList(segs.f))
+			segs.m <- unlist(GRangesList(segs.m))
+			segs.o <- unlist(GRangesList(segs.o))
+##			segs.m <- stackRangedDataList(segs.m)
+##			segs.o <- stackRangedDataList(segs.o)
+			segs <- unlist(GRangesList(segs.f, segs.m, segs.o))
+			##segs <- stackRangedDataList(list(segs.f, segs.m, segs.o))
 		}
 	} else {
 		if(!segmentParents %in% 1:3) stop("segmentParents must be logical, or an integer (1, 2, or 3)")
@@ -215,7 +224,8 @@ segmentArray <- function(object, pos, chrom, id, featureNames, segmentParents, v
 						     featureNames=featureNames,
 						     verbose=verbose, ...)
 		}
-		segs <- stackRangedDataList(segs)
+		##segs <- stackRangedDataList(segs)
+		segs <- unlist(GRangesList(segs))
 	}
 	return(segs)
 }

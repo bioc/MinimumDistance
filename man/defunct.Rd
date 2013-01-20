@@ -1,6 +1,12 @@
 \name{Deprecated}
 \title{MinimumDistance Deprecated}
 \alias{xyplotTrioLrrBaf}
-\description{ The function xyplotTrioLrrBaf has been deprecated. See
-  \code{\link{xyplotTrio}} and the panel function \code{\link{xypanelTrio}}.}
+\alias{computeBayesFactor}
+\alias{computeBayesFactor,TrioSet-method}
+\alias{computeBayesFactor,TrioSetList-method}
+\alias{gcSubtract,TrioSet-method}
+\alias{gcSubtract,TrioSetList-method}
+\alias{narrow}
+\description{ The function, class, or data object you asked for has been
+  deprecated.}
 \keyword{internal}
