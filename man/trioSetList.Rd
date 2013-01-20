@@ -52,6 +52,7 @@ An object of class \code{TrioSetList}
   \code{\linkS4class{TrioSetList}}, \code{\link{phenoData}}
 }
 \examples{
+library(oligoClasses)
 TrioSetList()
 TrioSetList(chromosome=1:22)
 

@@ -397,6 +397,9 @@ computeBayesFactorTrioSet <- function(object,
 	elementMetadata(ranges)$argmax <- NA
 	elementMetadata(ranges)$lik.norm <- NA
 	elementMetadata(ranges)$state <- NA
+	if(!"seg.mean" %in% colnames(values(ranges))){
+		elementMetadata(ranges)$seg.mean <- NA
+	}
 	ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
 	id <- unique(sampleNames(ranges))
 	message("\t\tComputing Bayes factors for ", length(id), " files.")
@@ -433,11 +436,12 @@ setMethod("computeBayesFactor", signature(object="TrioSet"),
 		   ranges,
 		   returnEmission=FALSE,
 		   collapseRanges=TRUE, outdir=ldPath(), ...){
-		  computeBayesFactorTrioSet(object=object,
-					    ranges=ranges,
-					    returnEmission=returnEmission,
-					    collapseRanges=collapseRanges,
-					    outdir=outdir,...)
+		  .Defunct(msg="computeBayesFactor method is defunct. See MAP instead.")
+##		  computeBayesFactorTrioSet(object=object,
+##					    ranges=ranges,
+##					    returnEmission=returnEmission,
+##					    collapseRanges=collapseRanges,
+##					    outdir=outdir,...)
 	  })
 
 setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
@@ -660,67 +664,167 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 
 setMethod("gcSubtract", signature(object="TrioSet"),
 	  function(object, method=c("speed", "lowess"), trio.index, ...){
-		  method <- match.arg(method)
-		  gcSubtractTrioSet(object, method=method, trio.index, ...)
+		  .Defunct("methods for GC correction have been moved to the ArrayTV package available from GitHub")
+##		  method <- match.arg(method)
+##		  gcSubtractTrioSet(object, method=method, trio.index, ...)
 	  })
 
-gcSubtractTrioSet <- function(object, method, trio.index, ...){
-	if(missing(trio.index)) J <- seq_len(ncol(object)) else J <- trio.index
-	if(!"gc" %in% fvarLabels(object)) stop("gc not in fvarLabels")
-	if(method=="lowess"){
-		for(j in J){
-			r <- gcSubtractMatrix(lrr(object)[,j,], gc=fData(object)$gc, pos=position(object), ...)
-			lrr(object)[,j,] <- integerMatrix(r, 1)
-		}
-	} else {
-		gcbins <- getGcBin(fData(object)$gc)
-		for(j in J){
-			r <- gcSubtractSpeed(lrr(object)[, j, ], gcbins=gcbins)
-			lrr(object)[, j, ] <- integerMatrix(r, 1)
-		}
-	}
-	object
-}
+##gcSubtractTrioSet <- function(object, method, trio.index, ...){
+##	if(missing(trio.index)) J <- seq_len(ncol(object)) else J <- trio.index
+##	if(!"gc" %in% fvarLabels(object)) stop("gc not in fvarLabels")
+##	if(method=="lowess"){
+##		for(j in J){
+##			r <- gcSubtractMatrix(lrr(object)[,j,], gc=fData(object)$gc, pos=position(object), ...)
+##			lrr(object)[,j,] <- integerMatrix(r, 1)
+##		}
+##	} else {
+##		gcbins <- getGcBin(fData(object)$gc)
+##		for(j in J){
+##			r <- gcSubtractSpeed(lrr(object)[, j, ], gcbins=gcbins)
+##			lrr(object)[, j, ] <- integerMatrix(r, 1)
+##		}
+##	}
+##	object
+##}
+##
+##gcSubtractSpeed <- function(r, gcbins){
+##	r.adj <- r
+##	nc <- ncol(r)
+##	for(i in seq_along(gcbins)){
+##		j <- gcbins[[i]]
+##		mus <- apply(r[j, , drop=FALSE], 2, mean, na.rm=TRUE)
+##		mus <- matrix(mus, nrow=length(j), ncol=nc, byrow=TRUE)
+##		r.adj[j, ] <- r[j, , drop=FALSE] - mus
+##	}
+##	return(r.adj)
+##}
+##
+##getGcBin <- function(gc){
+##	cuts <- seq(0, 100, by=1)
+##	bins <- cut(gc, breaks=cuts)
+##	gcbins <- split(seq_len(length(gc)), bins)  ## contains indices
+##	L <- sapply(gcbins, length)
+##	gcbins <- gcbins[L > 0]
+##	L <- L[L > 0]
+##	minL <- 50
+##	while(any(L < minL)){
+##		index <- which(L < minL)
+##		if(any(index == 1)){
+##			gcbins[[2]] <- c(gcbins[[1]], gcbins[[2]])
+##			gcbins <- gcbins[-1]
+##			dropFirst <- TRUE
+##		} else dropFirst <- FALSE
+##		if(any(index == length(gcbins))){
+##			LL <- length(gcbins)
+##			gcbins[[LL-1]] <- c(gcbins[[LL-1]], gcbins[[LL]])
+##			gcbins <- gcbins[-LL]
+##			dropLast <- TRUE
+##		} else dropLast <- FALSE
+##		if(!(dropFirst | dropLast)){
+##			index.mid <- index[index > 1 & index < length(gcbins)]
+##			gcbins[[min(index.mid)-1]] <- c(gcbins[[min(index.mid)-1]], gcbins[[min(index.mid)]])
+##			gcbins <- gcbins[-min(index.mid)]
+##		}
+##		L <- sapply(gcbins, length)
+##	}
+##	return(gcbins)
+##}
 
-gcSubtractSpeed <- function(r, gcbins){
-	r.adj <- r
-	nc <- ncol(r)
-	for(i in seq_along(gcbins)){
-		j <- gcbins[[i]]
-		mus <- apply(r[j, , drop=FALSE], 2, mean, na.rm=TRUE)
-		mus <- matrix(mus, nrow=length(j), ncol=nc, byrow=TRUE)
-		r.adj[j, ] <- r[j, , drop=FALSE] - mus
-	}
-	return(r.adj)
-}
+setMethod(MAP, c("TrioSet", "GRanges"), function(object,
+						 ranges, id,
+						 TAUP=1e10,
+						 tauMAX,
+						 cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
+						 pr.nonmendelian=1.5e-6,
+						 mdThr=0.9, ...){
+	.map_trioSet(object=object,
+		     ranges=ranges,
+		     id=id,
+		     TAUP=TAUP,
+		     tauMAX=tauMAX,
+		     cnStates=cnStates,
+		     pr.nonmendelian=pr.nonmendelian,
+		     mdThr=mdThr,...)
+})
 
-getGcBin <- function(gc){
-	cuts <- seq(0, 100, by=1)
-	bins <- cut(gc, breaks=cuts)
-	gcbins <- split(seq_len(length(gc)), bins)  ## contains indices
-	L <- sapply(gcbins, length)
-	gcbins <- gcbins[L > 0]
-	L <- L[L > 0]
-	minL <- 50
-	while(any(L < minL)){
-		index <- which(L < minL)
-		if(any(index == 1)){
-			gcbins[[2]] <- c(gcbins[[1]], gcbins[[2]])
-			gcbins <- gcbins[-1]
-			dropFirst <- TRUE
-		} else dropFirst <- FALSE
-		if(any(index == length(gcbins))){
-			LL <- length(gcbins)
-			gcbins[[LL-1]] <- c(gcbins[[LL-1]], gcbins[[LL]])
-			gcbins <- gcbins[-LL]
-			dropLast <- TRUE
-		} else dropLast <- FALSE
-		if(!(dropFirst | dropLast)){
-			index.mid <- index[index > 1 & index < length(gcbins)]
-			gcbins[[min(index.mid)-1]] <- c(gcbins[[min(index.mid)-1]], gcbins[[min(index.mid)]])
-			gcbins <- gcbins[-min(index.mid)]
-		}
-		L <- sapply(gcbins, length)
+.map_trioSet <- function(object,
+			 ranges, id,
+			 TAUP=1e10,
+			 tauMAX,
+			 cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
+			 pr.nonmendelian=1.5e-6,
+			 mdThr=0.9,...){
+	pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+	if(isPackageLoaded("ff")) pkgs <- c("ff", pkgs)
+	if(missing(id)) id <- sampleNames(object)
+	build <- genomeBuild(object)
+	index.trios <- match(id, sampleNames(object))
+	if(!all(sampleNames(ranges) %in% id))
+		ranges <- ranges[sampleNames(ranges) %in% id, ]
+	if(!all(id %in% sampleNames(ranges))){
+		object <- object[, match(unique(sampleNames(ranges)), id)]
+		id <- id[id %in% sampleNames(ranges)]
 	}
-	return(gcbins)
+	id <- id[id %in% sampleNames(ranges)]
+	chrom.ranges <- unique(chromosome(ranges))
+	chrom.object <- paste("chr", chromosome(object), sep="")
+	object <- object[chrom.object %in% chrom.ranges, ]
+	ranges <- ranges[chrom.ranges %in% chrom.object, ]
+	## only call segs that are "nonzero"
+	if("mindist.mad" %in% colnames(elementMetadata(ranges))){
+		mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
+		abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
+	} else{
+		## call all segments
+		abs.thr <- rep(TRUE, length(ranges))
+	}
+	elementMetadata(ranges)$exceeds.md.thr <- abs.thr
+	ocSamples(1) ## has to be 1. This will process 3 samples per alotted CPU
+	chunks <- splitIndicesByLength(index.trios, ocSamples())
+	r <- lrr(object)
+	b <- baf(object)
+	pos <- position(object)
+	chr <- chromosome(object)
+	sl <- oligoClasses:::setSequenceLengths(build,
+						paste("chr", unique(chr), sep=""))
+	feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
+				   seqlengths=sl)
+	grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
+	is.snp <- isSnp(object)
+	snp.index <- which(is.snp)
+	anyNP <- any(!is.snp)
+	center <- TRUE
+	pkgs <- c("oligoClasses", "VanillaICE")
+	isff <- is(r, "ff")
+	if(isff) pkgs <- c("ff", pkgs)
+	matrixFun <- generatorMatrix2(r, b, chr, center=TRUE,
+				      snp.index=snp.index,
+				      anyNP=anyNP,
+				      ped=pedigree(object))
+	overlapFun <- generatorOverlapFeatures(feature.granges)
+	grl <- split(ranges, sampleNames(ranges))
+	grl <- grl[match(sampleNames(object), names(grl))]
+	rm(pos, chr, b, r); gc()
+	results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
+		emit <- viterbi2Wrapper(index.samples=i,
+					snp.index=snp.index,
+					anyNP=anyNP,
+					is.log=TRUE,
+					limits=c(-4, 3),
+					cnStates=cnStates,
+					grFun=grFun,
+					matrixFun=matrixFun,
+					returnEmission=TRUE, ...)
+		granges <- sort(granges)
+		ranges <- loglik(emit=emit,
+				 ranges=granges,
+				 pr.nonmendelian=pr.nonmendelian,
+				 overlapFun=overlapFun)
+		chr.arm <- oligoClasses:::.getArm(chromosome(ranges), start(ranges), build)
+		ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
+		ranges
+	}
+	results <- unlist(GRangesList(results))
+	metadata(results) <- metadata(ranges)
+	return(results)
 }
