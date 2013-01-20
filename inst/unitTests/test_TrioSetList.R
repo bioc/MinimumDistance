@@ -19,7 +19,6 @@ test_TrioSetList_construction <- function(){
 	load(file.path(path, "baf.rda"))
 	load(file.path(path, "pedigreeInfo.rda"))
 	ped <- Pedigree(pedigreeInfo)
-	##trace(TrioSetList, browser)
 	trioSetList <- TrioSetList(lrr=logRratio,
 				   baf=baf,
 				   pedigree=ped,

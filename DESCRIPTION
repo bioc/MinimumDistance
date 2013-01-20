@@ -14,22 +14,20 @@ Imports: methods,
 	 msm,
 	 lattice,
 	 BiocGenerics,
-         VanillaICE (>= 1.19.23),
+         VanillaICE (>= 1.21.24),
 	 ff,
-	 SNPchip (>= 2.3.10),
 	 Biobase (>= 2.17.8),
          foreach,
-	 oligoClasses (>= 1.21.4),
-	 GenomicRanges
-Suggests: human610quadv1bCrlmm, RUnit
+	 oligoClasses (>= 1.21.12),
+	 GenomicRanges,
+	 matrixStats
+Suggests: human610quadv1bCrlmm (>= 1.0.3), RUnit
 Enhances: snow, doSNOW
 Collate: AllGenerics.R
          AllClasses.R
 	 methods-AnnotatedDataFrame.R
          methods-AssayData.R
 	 methods-Pedigree.R
-	 methods-Pedigree2.R
-	 methods-TrioSE.R
 	 methods-TrioSet.R
          methods-TrioSetList.R
 	 methods-matrix.R
@@ -40,6 +38,7 @@ Collate: AllGenerics.R
 	 mad-methods.R
          lattice-methods.R
 	 functions.R
+	 generator-funs.R
 	 utils.R
 	 zzz.R
 LazyLoad: yes

@@ -31,3 +31,7 @@ setGeneric("trioIndex", function(object) standardGeneric("trioIndex"))
 setGeneric("chromosomeList", function(object) standardGeneric("chromosomeList"))
 setGeneric("sampleNames2", function(object) standardGeneric("sampleNames2"))
 setGeneric("gcSubtract", function(object, ...) setGeneric("gcSubtract"))
+setGeneric("MAP", function(object, ranges, id,
+			   TAUP=1e10, tauMAX=1-5e-8,
+			   cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
+			   pr.nonmendelian=1.5e-6, mdThr=0.9, ...) standardGeneric("MAP"))

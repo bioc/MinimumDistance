@@ -1,4 +1,5 @@
 test_calculateMindist <- function(){
+	library(oligoClasses)
 	data(trioSetListExample)
 	mdlist <- calculateMindist(lrr(trioSetList))
 

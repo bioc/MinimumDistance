@@ -8,7 +8,8 @@
   posterior calling steps.
 }
 \usage{
-callDenovoSegments(path = "", pedigreeData, ext = "", featureData,cdfname, chromosome = 1:22, segmentParents,prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3), verbose = FALSE,genome=c("hg19", "hg18"),...)
+callDenovoSegments(path = "", pedigreeData, ext = "", featureData,
+cdfname, chromosome = 1:22, segmentParents, mdThr=0.9, prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3), verbose = FALSE,genome=c("hg19", "hg18"),...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -39,6 +40,11 @@ callDenovoSegments(path = "", pedigreeData, ext = "", featureData,cdfname, chrom
 \item{segmentParents}{
   \code{Logical}: whether to segment the parental log R ratios using
   circular binary segmentation
+}
+
+\item{mdThr}{
+  \code{numeric}: the maximum a posteriori estimate of the trio copy
+  number state is only computed for segments with |mean| greater than \code{mdThr}
 }
 
   \item{prOutlierBAF}{ Can be helpful to contrain the value for this parameter during the reestimation procedure. Appropriate constraints depend on the platform (Affy or Illumina). See \code{viterbi2Wrapper} for details.}

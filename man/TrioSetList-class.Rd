@@ -10,7 +10,8 @@
 \alias{annotation,TrioSetList-method}
 \alias{baf,TrioSetList-method}
 \alias{baf}
-\alias{computeBayesFactor,TrioSetList-method}
+%\alias{computeBayesFactor,TrioSetList-method}
+\alias{coerce,TrioSetList,SummarizedExperiment-method}
 \alias{dims,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}
 \alias{fatherPhenoData,TrioSetList-method}
@@ -18,11 +19,12 @@
 \alias{motherPhenoData,TrioSetList-method}
 \alias{offspringPhenoData,TrioSetList-method}
 \alias{fatherNames}
-\alias{gcSubtract,TrioSetList-method}
+%\alias{gcSubtract,TrioSetList-method}
 \alias{initialize,TrioSetList-method}
 \alias{length,TrioSetList-method}
 \alias{lrr,TrioSetList-method}
 \alias{mad2,TrioSetList-method}
+\alias{MAP,TrioSetList,GRanges-method}
 \alias{mindist<-,TrioSetList,list-method}
 \alias{mindist,TrioSetList-method}
 \alias{motherNames,TrioSetList-method}
@@ -255,16 +257,36 @@
 
   \describe{
 
-    \item{}{\code{computeBayesFactor(object, ranges, mad.marker,
+    \item{}{\code{MAP(object, ranges, mad.marker,
     mad.sample, returnEmission=FALSE, verbose=TRUE, ...)}: Compute
     posterior probabilities for the trio copy number states. The called
     trio copy number state is the argmax of the posterior
     probabilities. See examples below for computing the standard
     deviation of the markers for argument \code{mad.marker} and the
-    standard deviation of the samples for argument \code{mad.sample}.}
+    standard deviation of the samples for argument \code{mad.sample}.
+
+    The MAP function returns a \code{GRanges} or a \code{GRangesList}
+    object with the genomic intervals annotated by the trio copy number
+    state (see below), the number of markers used to call the region,
+    the segment mean as estimated by circular binary segmentation,
+    the log-likelihood of the diploid state, and the log-likelihood of
+    the MAP estimate.
+
+    The trio copy number states are indicated by the integer xyz, where
+    \code{x} is the copy number of the father, \code{y} is the copy
+    number of the mother, and \code{z} is the copy number of the offspring.
+
+  }
 
 }
 
+}
+\section{coercion}{
+  \describe{
+    \item{}{\code{as(object, "SummarizedExperiment")} Coerces a
+      \code{TrioSetList} object to a \code{SummarizedExperiment}.
+  }
+}
 }
 
 \section{Miscellaneous}{
@@ -275,12 +297,12 @@
     slot.  If the elements are \code{AnnotatedDataFrame} instead of
     \code{GenomeAnnotatedDataFrame}, the \code{featureDataList} slot is updated.}
 
-  \item{}{\code{gcSubtract(object, method=c("speed", "lowess"),
-      trio.index, ...)}:
-
-    \code{method} indicates the type of GC correction. [[NEED ADDL
-    DETAILS]].
-  }
+%  \item{}{\code{gcSubtract(object, method=c("speed", "lowess"),
+%      trio.index, ...)}:
+%
+%    \code{method} indicates the type of GC correction. [[NEED ADDL
+%    DETAILS]].
+%  }
   }
 }
 

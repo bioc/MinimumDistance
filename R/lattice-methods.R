@@ -163,15 +163,17 @@ xypanelTrio <- function(x, y,
 		## range is labeled by offspring id.
 		memberId <- as.character(memberId)
 		id <- strsplit(memberId, "\ ")[[1]][[2]]
-		sns <- sampleNames(lrr.segments)
-		stripname <- function(nchar_sampleid) substr(sns, 1, nchar_sampleid)
 		if(!is.null(lrr.segments)){
-			lrr.segments <- lrr.segments[stripname(nchar_sampleid) == id & chromosome(lrr.segments)==chromosome(range), ]
-			if(length(lrr.segments)>0){
-				lsegments(x0=start(lrr.segments)/1e6,
-					  x1=end(lrr.segments)/1e6,
-					  y0=elementMetadata(lrr.segments)$seg.mean,
-					  y1=elementMetadata(lrr.segments)$seg.mean, lwd=2, col=segment.col)
+			sns <- sampleNames(lrr.segments)
+			stripname <- function(nchar_sampleid) substr(sns, 1, nchar_sampleid)
+			if(!is.null(lrr.segments)){
+				lrr.segments <- lrr.segments[stripname(nchar_sampleid) == id & chromosome(lrr.segments)==chromosome(range), ]
+				if(length(lrr.segments)>0){
+					lsegments(x0=start(lrr.segments)/1e6,
+						  x1=end(lrr.segments)/1e6,
+						  y0=elementMetadata(lrr.segments)$seg.mean,
+						  y1=elementMetadata(lrr.segments)$seg.mean, lwd=2, col=segment.col)
+				}
 			}
 		}
 	}

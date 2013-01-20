@@ -173,6 +173,8 @@ processing.  This is accomplished using the function
 \Rfunction{registerDoSEQ} in the \Rpackage{foreach} package.
 
 <<registerBackend>>=
+library(SNPchip)
+library(GenomicRanges)
 library(oligoClasses)
 library(MinimumDistance)
 foreach::registerDoSEQ()
@@ -231,39 +233,40 @@ ped <- Pedigree(pedigreeInfo)
 ped
 @
 
-The function \Rfunction{callDenovoSegments} reads the BeadStudio files
-using information contained in the \Robject{ped} object, computes the
-minimum distance (see Section \ref{option2}), segments the minimum
-distance using circular binary segmentation, and calls the trio copy
-number state using the maximum posterior probability.
+%The function \Rfunction{callDenovoSegments} reads the BeadStudio files
+%using information contained in the \Robject{ped} object, computes the
+%minimum distance (see Section \ref{option2}), segments the minimum
+%distance using circular binary segmentation, and calls the trio copy
+%number state using the maximum posterior probability.
+%
+%<<callDenovoSegments>>=
+%trace(callDenovoSegments, browser)
+%map.segs <- callDenovoSegments(path=path,
+%			       pedigreeData=ped,
+%			       cdfname="human610quadv1b",
+%			       chromosome=1,
+%			       segmentParents=FALSE,
+%			       genome="hg18")
+%%@
+%
+%The object returned by \Rfunction{callDenovoSegments} is an object of
+%class \Robject{RangedDataHMM}. The numeric $xyz$ trio state symbol
+%indicates that the father has $x$ copies, the mother has $y$ copies,
+%and the offspring has $z$ copies.  For example, the symbol for state
+%'321' would indicate a single copy duplication for the father, diploid
+%copy number for the mother, and a hemizygous deletion in the
+%offspring.  In the above example, de novo copy number alterations were
+%not detected and the state '222' indicates that the father, mother,
+%and offspring appear to be diploid for the interval beginning at
+%{start(map.segs)} bp and ending at {end(map.segs)}.
 
-<<callDenovoSegments>>=
-map.segs <- callDenovoSegments(path=path,
-			       pedigreeData=ped,
-			       cdfname="human610quadv1b",
-			       chromosome=1,
-			       segmentParents=FALSE,
-			       genome="hg18")
-@
 
-The object returned by \Rfunction{callDenovoSegments} is an object of
-class \Robject{RangedDataHMM}. The numeric $xyz$ trio state symbol
-indicates that the father has $x$ copies, the mother has $y$ copies,
-and the offspring has $z$ copies.  For example, the symbol for state
-'321' would indicate a single copy duplication for the father, diploid
-copy number for the mother, and a hemizygous deletion in the
-offspring.  In the above example, de novo copy number alterations were
-not detected and the state '222' indicates that the father, mother,
-and offspring appear to be diploid for the interval beginning at
-\Sexpr{start(map.segs)} bp and ending at \Sexpr{end(map.segs)}.
-
-
-\subsection{Pipeline using intermediate data strutures for storing log
-R ratios and B allele frequencies}
-\label{option2}
-
-This section describes a pipeline that permits the user to manipulate
-and plot intermediate data structures.
+%\subsection{Pipeline using intermediate data strutures for storing log
+%R ratios and B allele frequencies}
+%\label{option2}
+%
+%This section describes a pipeline that permits the user to manipulate
+%and plot intermediate data structures.
 
 \paragraph{Instantiating a \Robject{TrioSetList} object}.
 
@@ -410,28 +413,29 @@ lrr.segs <- segment2(trioSetList, segmentParents=TRUE)
 
 Minimum distance segments with a mean absolute value greater than 1
 median absolute deviation from zero are edited using the
-\Rfunction{narrow}:
+\Rfunction{narrowRanges}:
 
 <<narrow,results=hide>>=
 mads.md <- mad2(md, byrow=FALSE)
-md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md, fD=featureData(trioSetList), genome="hg18")
+md.segs2 <- narrowRanges(md.segs, lrr.segs, thr=0.75,
+			 mad.minimumdistance=mads.md,
+			 fD=featureData(trioSetList))
 @
 
 To each range (segment) the maximum posterior probability and the
 posterior probability of the normal range are computed using the
-function \Rfunction{computeBayesFactor}.
+function \Rfunction{MAP}.
 
 <<computeBayesFactor,results=hide>>=
-##trace(MinimumDistance:::joint4, browser)
-map.segs <- computeBayesFactor(object=trioSetList, ranges=md.segs2)
-show(map.segs)
+gr <- MAP(object=trioSetList, ranges=md.segs2, nupdates=5)
+show(gr)
 @
 
-We remark that the \Rfunction{computeBayesFactor} method can be
-applied to a single interval.  For example,
+Note the \Rfunction{MAP} can be applied to a single interval.  For
+example,
 
 <<computeBayesFactorOneRange>>=
-computeBayesFactor(trioSetList, md.segs2[1, ])
+MAP(trioSetList, md.segs2[1, ])
 @
 
 The ratio of posterior probabilities can be used to rank genomic
@@ -443,58 +447,115 @@ the \Rfunction{computeBayesFactor} function.
 \subsection{Visualizations}
 \label{viz}
 
-The \R{} package \Rpackage{VanillaICE} contains methods for
-visualizing \Rclass{RangedData} objects that build on the
-infrastructure in the \Rpackage{lattice} package.  Visualizations for
-trios will extend these methods and are currently under
-development. Here, we provide a quick example using a function and a
-lattice-style panel function that are not currently exported.
+%The \R{} package \Rpackage{VanillaICE} contains methods for
+%visualizing \Rclass{RangedData} objects that build on the
+%infrastructure in the \Rpackage{lattice} package.  Visualizations for
+%trios will extend these methods and are currently under
+%development. Here, we provide a quick example using a function and a
+%lattice-style panel function that are not currently exported.
+
+To plot the log R ratios and B allele frequencies for one of the de
+novo deletions, we extract these low-level summaries from the
+\Robject{TrioSetList} object into a \Rclass{data.frame} that can be
+used by the \Rfunction{xyplot} function in the \Rpackage{lattice}
+package.
 
 <<triofig>>=
-rd.denovoDel <- map.segs[state(map.segs) == 221 & numberProbes(map.segs) > 5, ]
-rd <- rd.denovoDel[1, ]
-CHR <- match(as.character(chromosome(rd)), paste("chr",chromosome(trioSetList), sep=""))
-S <- match(sampleNames(rd), sampleNames(trioSetList))
-trioSet <- trioSetList[[CHR]][, S]
-mindist(trioSet) <- md[[CHR]][, S, drop=FALSE]
-frame <- 100e3
-fig <- xyplotTrio(rd=rd,
-		  object=trioSet,
-		  frame=frame,
-		  ylab="log R ratio",
-		  xlab="physical position (Mb)",
-		  panel=xypanelTrio,
-		  lrr.segments=lrr.segs,
-		  md.segments=md.segs,
-		  col.hom="grey50",
-		  col.het="grey50",
-		  col.np="grey20",
-		  cex=0.3,
-		  layout=c(1, 4),
-		  ylim=c(-3, 1.5),
-		  scales=list(cex=0.7, x=list(relation="same"),
-		  y=list(alternating=1,
-		  at=c(-1, 0, log2(3/2), log2(4/2)),
-		  labels=expression(-1, 0, log[2](3/2), log[2](4/2)))),
-		  par.strip.text=list(cex=0.7),
-		  state.col="black",
-		  segment.col="black",
-		  state.cex=0.8,
-		  key=list(text=list(c(expression(log[2]("R ratios")), expression("B allele freqencies")),
-			   col=c("grey50", "blue")), columns=2))
+denovo.range <- GRanges("chr22", IRanges(20.8e6, 21.4e6))
+i <- subjectHits(findOverlaps(denovo.range, gr))
+gr.denovo <- gr[i, ]
+gr.denovo <- gr.denovo[state(gr.denovo)=="221", ]
+library(lattice)
+library(foreach)
+trioSet <- trioSetList[[2]][, match(sampleNames(gr.denovo), sampleNames(trioSetList))]
+mindist(trioSet) <- md[[2]][, match(sampleNames(gr.denovo), sampleNames(trioSetList)), drop=FALSE]
+fig <- xyplotTrio(gr.denovo, trioSet, frame=500e3,
+	   ylab="log R ratio and BAFs",
+	   xlab="physical position (Mb)",
+	   panel=xypanelTrio,
+	   scales=list(x="same",
+	   y=list(alternating=1,
+	   at=c(-1, 0, log2(3/2), log2(4/2)),
+	   labels=expression(-1, 0, log[2](3/2), log[2](4/2)))),
+	   lrr.segments=lrr.segs,
+	   md.segments=md.segs,
+	   layout=c(1, 4),
+	   col.hom="grey50",
+	   col.het="grey50",
+	   col.np="grey20",
+	   state.cex=0.8,
+	   cex=0.3,
+	   ylim=c(-3, 1.5),
+	   par.strip.text=list(lines=0.8, cex=0.6),
+	   key=list(text=list(c(expression(log[2]("R ratios")), expression("B allele freqencies")),
+		    col=c("black", "blue")), columns=2))
 @
+
+%se <- as(tList, "SummarizedExperiment")
+%df <- .to_data.frame(gr.denovo, se, maxgap=500e3)
+%panelFun <- function(x,y, granges, id, chrom, subscripts, mapcalls, ...){
+%	id <- id[subscripts][1]
+%	chr <- chrom[subscripts][1]
+%	granges <- granges[sampleNames(granges)==id & chromosome(granges)==chr,]
+%	if(panel.number()==1)
+%		mapcalls <- mapcalls[sampleNames(mapcalls)==id & chromosome(mapcalls)==chr,]
+%	panel.grid()
+%	panel.xyplot(x,y,...)
+%	x0 <- start(granges)/1e6
+%	x1 <- end(granges)/1e6
+%	lsegments(x0,
+%		  values(granges)$seg.mean,
+%		  x1,
+%		  values(granges)$seg.mean, lwd=2,col="black")
+%	if(panel.number()==1){
+%		mapcalls <- mapcalls[state(mapcalls) != "222", ]
+%		st <- start(mapcalls)/1e6
+%		en <- end(mapcalls)/1e6
+%		y0 <- rep(1.0, length(st))
+%		y1 <- rep(1.3, length(st))
+%		lrect(st, y0, en, y1, col=as.integer(as.factor(state(mapcalls))),
+%		      border=as.integer(as.factor(state(mapcalls))))
+%		mns <- apply(cbind(st, en), 1, mean)
+%		ltext(mns, 1.15, state(mapcalls), col="white", cex=1.2)
+%	}
+%}
+%lfig <- xyplot(lrr~x/1e6|interval, df,
+%	       pch=20,
+%	       col="gray",
+%	       lwd=2,
+%	       scales=list(x=list(relation="free", axs="i")),
+%	       layout=c(3,1),
+%	       xlab="Mb", ylab="log R ratios",
+%	       granges=lrr.segs,
+%	       id=df$id,
+%	       chrom=df$chrom,
+%	       mapcalls=gr,
+%	       panel=panelFun,
+%	       ylim=c(-2, 1.5))
+%bfig <- xyplot(baf~x/1e6|interval, df,
+%	       pch=20,
+%	       col="gray",
+%	       lwd=2,
+%	       scales=list(x=list(relation="free",axs="i")),
+%	       layout=c(3,1),
+%	       xlab="Mb", ylab="BAFs")
+%arrangeFigs(list(lrr=lfig, baf=bfig))
+%@
+%<<echo=FALSE,eval=FALSE>>=
+%gr2 <- gr[sampleNames(gr)==sampleNames(gr.denovo) & chromosome(gr)=="chr22", ]
+%@
 
 The final graphic is displayed in Figure \ref{fig:trioplot}.
 
-<<displayFigure>>=
-pdf("MinimumDistance-displayFigure.pdf")
+<<displayFigure,echo=FALSE,results=hide>>=
+pdf("triofig.pdf", width=10, height=6)
 print(fig)
 dev.off()
 @
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\textwidth]{MinimumDistance-displayFigure}
+  \includegraphics[width=\textwidth]{triofig}
   \caption{\label{fig:trioplot} The log R ratios (grey) and B allele
     frequencies (blue) for the parent-offspring trio, as well as the
     minimum distance (bottom panel).  The solid vertical lines in the

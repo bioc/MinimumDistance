@@ -2,6 +2,21 @@
 ## output and (2) that the output is in a format that can be handled
 ## by read.bsfiles.  This should be a function and not a method for
 ## class character.
+annotatedDataFrameFromArray <- function(object, byrow=FALSE, ...){
+        if(dim(object)[[3]] > 0){
+                object <- object[, , 1, drop=TRUE]
+                res <- Biobase:::annotatedDataFrameFromMatrix(object, byrow=byrow, ...)
+        } else res <- Biobase:::annotatedDataFrameFromMatrix(matrix(), byrow=byrow, ...)
+        return(res)
+}
+
+setMethod("annotatedDataFrameFrom", signature(object="ff_array"),
+          annotatedDataFrameFromArray)
+
+setMethod("annotatedDataFrameFrom", signature(object="array"),
+          annotatedDataFrameFromArray)
+
+
 setMethod("GenomeAnnotatedDataFrameFrom", signature(object="character"),
 	  function(object, annotationPkg, genome, ...){
 		  ##check if object is a file
