@@ -10,6 +10,7 @@ generatorTransitionProbs <- function(chrom, position, build, ids, TAUP, tauMAX){
 		sp <- split(statePath, chrarm)
 		rlist <- lapply(sp, Rle)
 		pos <- split(position, chrarm)
+		states <- x1 <- x2 <- x <- rl <- NULL
 		starts <- foreach(rl=rlist, x=pos) %do% x[start(rl)]
 		ends <- foreach(rl=rlist, x=pos) %do% x[end(rl)]
 		statelist <- foreach(states=sp, rl=rlist) %do% states[start(rl)]
