@@ -94,7 +94,7 @@ if(require("ff")){
 				       pedigreeData=Pedigree(data.frame(F="F.txt",
 				       M="M.txt", O="O.txt")),
 				       annotationPkg="human610quadv1bCrlmm",
-				       outdir=ldPath(), prefix="test",
+				       outdir=ldPath(), ffprefix="test",
 				       genome="hg19")
 }
 }
