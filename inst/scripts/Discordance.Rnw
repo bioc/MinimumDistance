@@ -1,0 +1,7 @@
+Sweave the cleft analysis to load all the files
+
+\SweaveInput{cleft}
+
+<<trioSetList>>=
+
+@

@@ -1,0 +1,176 @@
+%\VignetteIndexEntry{Detection of de novo copy number alterations in case-parent trios}
+%\VignetteDepends{VanillaICE}
+%\VignetteKeywords{MinimumDistance, copy number, SNP, case-parent trios, de novo}
+%\VignettePackage{MinimumDistance}
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rcode}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textsf{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\R}{\textsf{R}}
+\newcommand{\md}{\Rpackage{MinimumDistance}}
+\newcommand{\F}{\mathrm{F}}
+\newcommand{\M}{\mathrm{M}}
+\newcommand{\Of}{\mathrm{O}}
+\newcommand{\RR}{\mathrm{LR}}
+\newcommand{\LR}{\mathrm{LR}}
+\newcommand{\Blrr}{\mbox{\boldmath $R$}}
+\newcommand{\Bbaf}{\mbox{\boldmath $B$}}
+\newcommand{\logRratio}{$\log_2$ R ratio}
+\newcommand{\lrrlong}{$\log_2$ R ratio}
+\newcommand{\blrr}{\mbox{\boldmath $r$}}
+%\newcommand{\bbaf}{\mbox{\boldmath $b$}}
+\newcommand{\baf}{B allele frequency}
+\newcommand{\bafs}{B allele frequencies}
+\newcommand{\tsl}{trioSetList}
+\newcommand{\ts}{trioSet object}
+\newcommand{\mindist}{\ensuremath{\mbox{\boldmath $d$}}}
+\DeclareMathOperator{\I}{\mathbb{I}}
+\usepackage[margin=1in]{geometry}
+
+
+\title{}
+\date{\today}
+
+\author{Moiz Bootwalla and Rob Scharpf}
+
+\begin{document}
+\maketitle
+
+<<setup, echo=FALSE, results=hide>>=
+options(prompt="R> ", continue=" ", device=pdf, width=65)
+@
+
+<<enableLD>>=
+library(ff)
+outdir <- "/local_data/r00/beaty/fffiles"
+suppressWarnings(dir.create(outdir))
+@
+
+
+<<textFiles>>=
+library(MinimumDistance)
+path <- "/local_data/r00/beaty/txtfiles"
+fnames <- list.files(path)
+ldPath(outdir)
+@
+
+
+<<samplesheet, eval=FALSE>>=
+library(CleftExperimentData)
+load("~/Projects/BeatyExperimentData/data/samplesheet.rda")
+samplesheet <- samplesheet[, -(30:31)]
+ped <- read.csv("/thumper/ctsa/beaty/family_info/may_peds.csv", sep=";",
+		stringsAsFactors=FALSE)
+samplesheet <- removeFlaggedSamplesAndMerge(fnames, samplesheet, ped)
+pedigree <- pedigreeFromSampleSheet(fnames, samplesheet)
+@
+
+<<ConstructTrioSetList, eval=FALSE>>=
+ped <- pedigree[1:5, ]
+##trace(MinimumDistance:::assayDataListLD, browser)
+trioSetListff <- TrioSetListLD(path=path, fnames=allNames(ped), ext=".txt",
+			       samplesheet=samplesheet,
+			       row.names=samplesheet$Sample.Name,
+			       pedigree=ped,
+			       annotationPkg="human610quadv1bCrlmm")
+save(trioSetListff, file="/local_data/r00/beaty/fffiles/trioSetListff.rda")
+lrr(trioSetListff)[[1]][1, , ]
+baf(trioSetListff)[[1]][1, , ]
+##save(trioSetListff, file=file.path(outdir, "trioSetListff.rda"))
+@
+
+<<loadTrioSet>>=
+load("/local_data/r00/beaty/fffiles/trioSetListff.rda")
+@
+
+<<calculateMinimumDistance>>=
+mdlist <- calculateMindist(lrr(trioSetListff))
+mdlist[[1]][1:10,]
+@
+
+<<segmentLRR>>=
+##trioSet10 <- trioSetListff[[10]]
+##trioSet10 <- trioSet10[1:100, 1, ]
+##trioSet11 <- trioSetListff[[11]]
+##trioSet11 <- trioSet11[1:100, 1, ]
+##X <- list(trioSet10, trioSet11)
+##trace(MinimumDistance:::segmentMatrix, browser)
+##system.time(res <- foreach(object=X,
+##			   .packages=c("ff", "MinimumDistance"),
+##			   .inorder=FALSE,
+##			   .combine=stackRangedDataList) %dopar% {
+##				   segment2(object)
+##			   })
+##snow.time(res1 <- foreach(object=X, .packages=c("ff", "MinimumDistance"), .combine=stackRangedDataList) %do% segment2(object))
+##snow.time(res2 <- foreach(object=X, .packages=c("ff", "MinimumDistance"), .combine=stackRangedDataList) %dopar% segment2(object))
+##identical(res1, res2)
+if(FALSE){
+	snow.time(lrr.segs <- foreach(object=trioSetListff,
+				      .packages=c("ff", "MinimumDistance"),
+				      .inorder=FALSE,
+				      .combine=stackRangedDataList) %dopar% {
+					      segment2(object=object)
+				      })
+	save(lrr.segs, file="/local_data/r00/beaty/rangedData/lrr.segs.rda")
+} else {
+	load("/local_data/r00/beaty/rangedData/lrr.segs.rda")
+}
+@
+
+<<segmentMD>>=
+if(FALSE){
+	snow.time(md.segs <- foreach(object=trioSetListff, md=mdlist, verbose=rep(FALSE, length(mdlist)),
+				     .packages="MinimumDistance",
+				     .inorder=FALSE,
+				     .combine=stackRangedDataList) %dopar% {
+					     segment2(object=object, md=md, verbose=verbose)
+				     })
+	save(md.segs, file="/local_data/r00/beaty/rangedData/md.segs.rda")
+} else {
+	load("/local_data/r00/beaty/rangedData/md.segs.rda")
+}
+@
+
+<<varianceEstimates>>=
+##trace(MinimumDistance:::madFromMatrixList, browser)
+mads.md <- mad2(mdlist, byrow=FALSE) ## mad across all autosomes
+md.segs2 <- narrow(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md)
+mads.lrr.sample <- mad2(lrr(trioSetListff), byrow=FALSE)
+##trace(MinimumDistance:::madList, browser)
+mads.lrr.marker <- mad2(lrr(trioSetListff),
+			pedigree=pedigree(trioSetListff),
+			byrow=TRUE)
+@
+
+<<posteriorCalls>>=
+index <- split(seq_len(nrow(md.segs2)), chromosome(md.segs2))
+index <- index[match(chromosome(trioSetListff), names(index))]
+stopifnot(identical(as.character(chromosome(trioSetListff)), names(index)))
+map.segs <- foreach(obj=trioSetListff, i=index,
+		    mad.marker=mads.lrr.marker,
+		    .inorder=FALSE,
+		    .combine=stackRangedDataList,
+		    .packages="MinimumDistance") %dopar% {
+			    computeBayesFactor(object=obj,
+					       ranges=md.segs2[i, ],
+					       pedigreeData=pedigree(trioSetListff),
+					       mad.marker=mad.marker,
+					       mad.sample=mads.lrr.sample,
+					       collapseRanges=FALSE,
+					       verbose=FALSE)
+		    }
+save(map.segs, file="/local_data/r00/beaty/rangedData/map.segs.rda")
+@
+
+
+
