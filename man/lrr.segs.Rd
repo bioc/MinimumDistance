@@ -21,7 +21,7 @@
 
   See \code{\linkS4class{RangedDataCBS}} for accessors and methods
   available for objects of this class.  See
-  \code{\link{computeBayesFactor}} for details regarding how the object
+  \code{\link{MAP}} for details regarding how the object
   \code{map.segs} was instantiated.
 
 }

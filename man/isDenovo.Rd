@@ -22,7 +22,7 @@ isDenovo(states)
   the father has x copies, the mother has y copies, and the offspring
   has z copies.  For example, the state '221' indicates copy number 2 in
   the mother and father, and a hemizygous deletion in the offspring.
-  See \code{computeBayesFactor} for details.  A subset of the possible
+  See \code{MAP} for details.  A subset of the possible
   state combinations, such as '221', are considered de novo.
 
 }
@@ -35,7 +35,7 @@ Rob Scharpf
 
 \seealso{
 
- \code{\link{computeBayesFactor}}.  See \code{\link{state}} for the
+ \code{\link{MAP}}.  See \code{\link{state}} for the
  accessor to extract the trio copy number state.
 
 }

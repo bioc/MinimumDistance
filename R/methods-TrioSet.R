@@ -381,70 +381,6 @@ setMethod("checkOrder", signature(object="TrioSet"),
             .checkOrder(object, verbose)
 	  })
 
-computeBayesFactorTrioSet <- function(object,
-				      ranges,
-				      returnEmission=FALSE,
-				      collapseRanges=TRUE,
-				      outdir=ldPath(), ...){
-	## a TrioSet has only one chromosome
-	ldPath(outdir)
- 	CHR <- unique(chromosome(object))
-	if(is(ranges, "RangedDataCNV"))
-		ranges <- as(ranges, "GRanges")
-	ranges <- ranges[chromosome(ranges) == paste("chr",CHR,sep=""), ]
-	if(!any(chromosome(ranges) %in% paste("chr", chromosome(object)[1], sep="")))
-		stop("chromosome of TrioSet object is not present in the ranges object")
-	elementMetadata(ranges)$lik.state <- NA
-	elementMetadata(ranges)$argmax <- NA
-	elementMetadata(ranges)$lik.norm <- NA
-	elementMetadata(ranges)$state <- NA
-	if(!"seg.mean" %in% colnames(values(ranges))){
-		elementMetadata(ranges)$seg.mean <- NA
-	}
-	ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
-	id <- unique(sampleNames(ranges))
-	message("\t\tComputing Bayes factors for ", length(id), " files.")
-	pb <- txtProgressBar(min=0, max=length(id), style=3)
-	ntrios <- nrow(pedigree(object))
-	for(i in seq_along(id)){
-		setTxtProgressBar(pb, i)
-		this.id <- id[i]
-		k <- match(this.id, sampleNames(object))
-		if(i %% 100 == 0)
-			message("   sample ", this.id, " (", i, "/", length(id), ")")
-		j <- which(sampleNames(ranges) == this.id)
-		rd <- joint4(id=this.id,
-			     trioSet=object[, k],
-			     ranges=ranges[j, ],
-			     ntrios=ntrios, ...)
-			     ##ntrios=ntrios, returnEmission=TRUE, ...)
-		if(returnEmission) return(rd)
-		if(length(id) > 1){
-			elementMetadata(ranges)$lik.state[j] <- values(rd)$lik.state
-			elementMetadata(ranges)$argmax[j] <- values(rd)$argmax
-			elementMetadata(ranges)$lik.norm[j] <- values(rd)$lik.norm
-			elementMetadata(ranges)$state[j] <- trioStateNames()[values(rd)$argmax]
-		} else ranges <- rd
-	}
-	close(pb)
-	if(collapseRanges)
-		ranges <- pruneByFactor(ranges, f=values(ranges)$argmax, verbose=FALSE)
-	ranges
-}
-
-setMethod("computeBayesFactor", signature(object="TrioSet"),
-	  function(object,
-		   ranges,
-		   returnEmission=FALSE,
-		   collapseRanges=TRUE, outdir=ldPath(), ...){
-		  .Defunct(msg="computeBayesFactor method is defunct. See MAP instead.")
-##		  computeBayesFactorTrioSet(object=object,
-##					    ranges=ranges,
-##					    returnEmission=returnEmission,
-##					    collapseRanges=collapseRanges,
-##					    outdir=outdir,...)
-	  })
-
 setMethod("todf", signature(object="TrioSet", rangeData="RangedData"),
 	  function(object, rangeData, frame, ...){
 		  ## FIX
@@ -806,6 +742,7 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 	grl <- split(ranges, sampleNames(ranges))
 	grl <- grl[match(sampleNames(object), names(grl))]
 	rm(pos, chr, b, r); gc()
+        i <- NULL
 	results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
 		emit <- viterbi2Wrapper(index.samples=i,
 					snp.index=snp.index,

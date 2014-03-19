@@ -10,7 +10,6 @@
 \alias{annotation,TrioSetList-method}
 \alias{baf,TrioSetList-method}
 \alias{baf}
-%\alias{computeBayesFactor,TrioSetList-method}
 \alias{coerce,TrioSetList,SummarizedExperiment-method}
 \alias{dims,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}

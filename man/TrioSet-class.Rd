@@ -13,7 +13,6 @@
 \alias{calculateMindist,TrioSet-method}
 \alias{coerce,TrioSet,TrioSetList-method}
 \alias{coerce,TrioSet,data.frame-method}
-%\alias{computeBayesFactor,TrioSet-method}
 \alias{dim,TrioSet-method}
 \alias{fatherNames<-,TrioSet,character-method}
 \alias{fatherNames<-}

@@ -1,5 +1,3 @@
-##assayDataStorageMode <- Biobase:::assayDataStorageMode
-
 catFun2 <- function(rd.query, rd.subject, ...){
 	##stopifnot(nrow(rd.query) == nrow(rd.subject)) ## must compare same list size
 	ir.q <- IRanges(start(rd.query), end(rd.query))
@@ -1747,4 +1745,9 @@ setSequenceLengths <- function(build, names){ ## names are unique(seqnames(objec
     return(FALSE)
   }
   TRUE
+}
+
+isFF <- function(object){
+  names <- ls(assayData(object))
+  is(assayData(object)[[names[[1]]]], "ff") | is(assayData(object)[[names[[1]]]], "ffdf")
 }
