@@ -5,6 +5,9 @@ test_TrioSetListdataExamples <- function(){
   checkTrue(validObject(trioSetList[[1]]))
   trioSet <- stack(trioSetList)
   checkTrue(validObject(trioSet))
+  x <- dim(trioSet)
+  y <- setNames(c(43364L, 2L, 3L), c("Features", "Trios", "Members"))
+  checkIdentical(x, y)
 }
 
 test_TrioSetList_construction <- function(){

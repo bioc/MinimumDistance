@@ -302,10 +302,11 @@ setReplaceMethod("mindist", signature(object="TrioSet", value="matrix"),
 ##		 })
 
 setMethod("dim", "TrioSet", function(x) {
-	adim <- Biobase:::assayDataDim(assayData(x))
-	names(adim) <- c("Features", "Trios", "Members")
-	adim
+  adim <- callNextMethod(x)
+  names(adim) <- c("Features", "Trios", "Members")
+  adim
 })
+
 setMethod("ncol", signature(x="TrioSet"), function(x) dim(x)[[2]])
 
 setMethod("trios", signature(object="TrioSet"),
