@@ -803,8 +803,8 @@ setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
 	pos <- unlist(position(object))
 	chr <- rep(chromosome(object), elementLengths(object))
 	build <- genomeBuild(object)
-	sl <- oligoClasses:::setSequenceLengths(build,
-						paste("chr", chromosome(object), sep=""))
+	sl <- setSequenceLengths(build,
+                                 paste("chr", chromosome(object), sep=""))
 	feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
 				   seqlengths=sl)
 	grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
@@ -837,7 +837,7 @@ setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
 				 ranges=granges,
 				 pr.nonmendelian=pr.nonmendelian,
 				 overlapFun=overlapFun)
-		chr.arm <- oligoClasses:::.getArm(chromosome(ranges), start(ranges), build)
+		chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
 		ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
 		ranges
 	}
@@ -887,5 +887,3 @@ setMethod("coerce", signature(from="TrioSetList", to="SummarizedExperiment"),
 ##	  function(range, data, ...){
 ##		  dataFrameSummarizedExperimentTrio(range=range, object=data, ...)
 ##	  })
-
-

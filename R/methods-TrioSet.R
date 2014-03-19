@@ -785,8 +785,8 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 	b <- baf(object)
 	pos <- position(object)
 	chr <- chromosome(object)
-	sl <- oligoClasses:::setSequenceLengths(build,
-						paste("chr", unique(chr), sep=""))
+	sl <- setSequenceLengths(build,
+                                 paste("chr", unique(chr), sep=""))
 	feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
 				   seqlengths=sl)
 	grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
@@ -820,7 +820,7 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 				 ranges=granges,
 				 pr.nonmendelian=pr.nonmendelian,
 				 overlapFun=overlapFun)
-		chr.arm <- oligoClasses:::.getArm(chromosome(ranges), start(ranges), build)
+		chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
 		ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
 		ranges
 	}

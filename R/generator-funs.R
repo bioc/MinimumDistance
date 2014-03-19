@@ -1,7 +1,7 @@
 generatorTransitionProbs <- function(chrom, position, build, ids, TAUP, tauMAX){
 	S <- 6
-	CHR <- paste("chr", oligoClasses::integer2chromosome(chrom), sep="")
-	chrarm <- oligoClasses:::.getArm(as.integer(chrom), position, build)
+	CHR <- paste("chr", integer2chromosome(chrom), sep="")
+	chrarm <- .getArm(as.integer(chrom), position, build)
 	chrarm <- factor(chrarm, unique(chrarm))
 	sl <- getSequenceLengths(build)
 	sl <- sl[unique(CHR)]

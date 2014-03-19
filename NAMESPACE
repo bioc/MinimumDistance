@@ -53,7 +53,7 @@ importMethodsFrom(oligoClasses, state, coverage2, chromosome, open, openff, clos
 importFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, chromosomePositionOrder,
 	   initializeBigMatrix, initializeBigArray, isPackageLoaded, ldPath, parStatus,
 	   splitIndicesByLength, splitIndicesByNode, integerArray, integerMatrix, chromosome2integer,
-	   getSequenceLengths)
+	   getSequenceLengths, ocSamples, integer2chromosome)
 
 ## msm
 importFrom(msm, qtnorm, dtnorm)

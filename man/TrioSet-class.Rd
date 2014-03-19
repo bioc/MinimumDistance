@@ -278,12 +278,13 @@
 }
 
 \examples{
-	showClass("TrioSet")
-	## instantiate a TrioSet with an array of log R ratios (logRR) and B
-	## allele frequencies
-	new("TrioSet")
-	TrioSet()
-        data(trioSetListExample)
-        trioSet <- stack(trioSetList)
+library(IRanges)
+showClass("TrioSet")
+## instantiate a TrioSet with an array of log R ratios (logRR) and B
+## allele frequencies
+new("TrioSet")
+TrioSet()
+data(trioSetListExample)
+trioSet <- stack(trioSetList)
 }
 \keyword{classes}
