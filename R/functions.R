@@ -1,4 +1,4 @@
-assayDataStorageMode <- Biobase:::assayDataStorageMode
+##assayDataStorageMode <- Biobase:::assayDataStorageMode
 
 catFun2 <- function(rd.query, rd.subject, ...){
 	##stopifnot(nrow(rd.query) == nrow(rd.subject)) ## must compare same list size

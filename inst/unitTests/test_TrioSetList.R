@@ -8,6 +8,8 @@ test_TrioSetListdataExamples <- function(){
   x <- dim(trioSet)
   y <- setNames(c(43364L, 2L, 3L), c("Features", "Trios", "Members"))
   checkIdentical(x, y)
+  library(Biobase)
+  checkTrue(storageMode(MinimumDistance:::AssayDataList("lockedEnvironment")) == "lockedEnvironment")
 }
 
 test_TrioSetList_construction <- function(){

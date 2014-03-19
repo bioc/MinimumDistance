@@ -1,13 +1,14 @@
 AssayDataList <- function(storage.mode = c("lockedEnvironment", "environment", "list"), ...) {
-	storage.mode <- match.arg(storage.mode) ## defaults to "lockedEnvironment"
-	assayData <- switch(storage.mode,
-			    lockedEnvironment =,
-			    environment = new.env(parent=emptyenv()),
-			    list = list())
-	arglist <- list(...)
-	for (nm in names(arglist)) assayData[[nm]] <- arglist[[nm]]
-	if (storage.mode == "lockedEnvironment") Biobase:::assayDataEnvLock(assayData)
-	assayData
+  storage.mode <- match.arg(storage.mode) ## defaults to "lockedEnvironment"
+  assayData <- switch(storage.mode,
+                      lockedEnvironment =,
+                      environment = new.env(parent=emptyenv()),
+                      list = list())
+  arglist <- list(...)
+  for (nm in names(arglist)) assayData[[nm]] <- arglist[[nm]]
+  ##if (storage.mode == "lockedEnvironment") Biobase:::assayDataEnvLock(assayData)
+  storageMode(assayData) <- storage.mode
+  assayData
 }
 
 assayDataListDims <- function(object) {
@@ -107,7 +108,7 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData, ffprefix="")
 		fns <- featureNames(featureData)
 		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
                   read.bsfiles2(path=path,
-                                filenames=MinimumDistance:::originalNames(fathers[i]),
+                                filenames=originalNames(fathers[i]),
                                 sampleNames=sampleNames(pedigree)[i],
                                 marker.index=index,
                                 z=1,
@@ -117,7 +118,7 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData, ffprefix="")
 		}
 		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
                   read.bsfiles2(path=path,
-                                filenames=MinimumDistance:::originalNames(mothers[i]),
+                                filenames=originalNames(mothers[i]),
                                 sampleNames=sampleNames(pedigree)[i],
                                 marker.index=index,
                                 z=2,

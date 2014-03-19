@@ -11,7 +11,7 @@ import(BiocGenerics)
 
 ## Biobase imports
 importClassesFrom(Biobase, eSet, VersionedBiobase, Versioned)
-importMethodsFrom(Biobase, "[", "$", annotatedDataFrameFrom, assayData, "assayData<-", dims, featureData, "featureData<-", fData, "fData<-", featureNames, pData, phenoData, "phenoData<-", protocolData, "protocolData<-", sampleNames, "sampleNames<-", storageMode, updateObject)
+importMethodsFrom(Biobase, "[", "$", annotatedDataFrameFrom, assayData, "assayData<-", dims, featureData, "featureData<-", fData, "fData<-", featureNames, pData, phenoData, "phenoData<-", protocolData, "protocolData<-", sampleNames, "sampleNames<-", storageMode, "storageMode<-", updateObject)
 importFrom(Biobase, assayDataElement, assayDataElementNames, assayDataElementReplace, assayDataNew, varLabels, fvarLabels)
 
 ## utils
