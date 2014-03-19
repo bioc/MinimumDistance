@@ -11,16 +11,16 @@ AssayDataList <- function(storage.mode = c("lockedEnvironment", "environment", "
 }
 
 assayDataListDims <- function(object) {
-	nms <- if (assayDataStorageMode(object) == "list") names(object) else ls(object)
-	if (length(nms) == 0)
-		return(matrix(integer(0), nrow = 2, ncol = 0,
-			      dimnames = list(c("Features", "Samples"), character(0))))
-	d <- lapply(nms, function(i) lapply(object[[i]], dim)) ##dim(object[[i]]))
-	##rownames(d) <- c("Features", "Samples", rep("...", nrow(d)-2))
-	names(d) <- nms
-	##colnames(d) <- nms
-	##d[,order(colnames(d)), drop=FALSE]
-	return(d)
+  nms <- if (storageMode(object) == "list") names(object) else ls(object)
+  if (length(nms) == 0)
+    return(matrix(integer(0), nrow = 2, ncol = 0,
+                  dimnames = list(c("Features", "Samples"), character(0))))
+  d <- lapply(nms, function(i) lapply(object[[i]], dim)) ##dim(object[[i]]))
+  ##rownames(d) <- c("Features", "Samples", rep("...", nrow(d)-2))
+  names(d) <- nms
+  ##colnames(d) <- nms
+  ##d[,order(colnames(d)), drop=FALSE]
+  return(d)
 }
 
 
@@ -57,9 +57,9 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData, ffprefix="")
 	outdir <- ldPath()
 	i <- NULL
 	bafAndLrrList <- foreach(i=index, .packages=pkgs) %dopar% {
-		MinimumDistance:::initializeLrrAndBafArrays(dims=c(length(i), nrow(pedigree), 3), outdir=outdir,
-							    col.names=sampleNames(pedigree),
-							    name=ffprefix)
+          initializeLrrAndBafArrays(dims=c(length(i), nrow(pedigree), 3), outdir=outdir,
+                                    col.names=sampleNames(pedigree),
+                                    name=ffprefix)
 	}
 	baflist <- lapply(bafAndLrrList, "[[", 1)
 	lrrlist <- lapply(bafAndLrrList, "[[", 2)
@@ -106,35 +106,35 @@ assayDataListLD <- function(path="", ext="", pedigree, featureData, ffprefix="")
 		if(!getDoParWorkers()) registerDoSEQ()
 		fns <- featureNames(featureData)
 		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
-			MinimumDistance:::read.bsfiles2(path=path,
-							filenames=MinimumDistance:::originalNames(fathers[i]),
-							sampleNames=sampleNames(pedigree)[i],
-							marker.index=index,
-							z=1,
-							baflist=baflist,
-							lrrlist=lrrlist,
-							featureNames=fns)
+                  read.bsfiles2(path=path,
+                                filenames=MinimumDistance:::originalNames(fathers[i]),
+                                sampleNames=sampleNames(pedigree)[i],
+                                marker.index=index,
+                                z=1,
+                                baflist=baflist,
+                                lrrlist=lrrlist,
+                                featureNames=fns)
 		}
 		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
-			MinimumDistance:::read.bsfiles2(path=path,
-							filenames=MinimumDistance:::originalNames(mothers[i]),
-							sampleNames=sampleNames(pedigree)[i],
-							marker.index=index,
-							z=2,
-							baflist=baflist,
-							lrrlist=lrrlist,
-							featureNames=fns)
+                  read.bsfiles2(path=path,
+                                filenames=MinimumDistance:::originalNames(mothers[i]),
+                                sampleNames=sampleNames(pedigree)[i],
+                                marker.index=index,
+                                z=2,
+                                baflist=baflist,
+                                lrrlist=lrrlist,
+                                featureNames=fns)
 		}
 		res <- foreach(i=ilist, .packages=pkgs) %dopar% {
-			MinimumDistance:::read.bsfiles2(path=path,
-							filenames=offsprg[i],
-							sampleNames=sampleNames(pedigree)[i],
-							marker.index=index,
-							z=3,
-							baflist=baflist,
-							lrrlist=lrrlist,
-							featureNames=fns)
-		}
+			read.bsfiles2(path=path,
+                                      filenames=offsprg[i],
+                                      sampleNames=sampleNames(pedigree)[i],
+                                      marker.index=index,
+                                      z=3,
+                                      baflist=baflist,
+                                      lrrlist=lrrlist,
+                                      featureNames=fns)
+                      }
 		message("Finished reading/writing processed data.")
 		gc()
 	} else {

@@ -1022,11 +1022,11 @@ narrowRanges <- function(object, lrr.segs, thr=0.9,
 		pkgs <- neededPkgs()
 		j <- k <- NULL
 		segList <- foreach(j=indexList, k=indexList2, featureData=fD, .packages=pkgs) %dopar%{
-			MinimumDistance:::narrowRangeForChromosome(object[j, ],
-								   lrr.segs[k, ],
-								   thr=thr,
-								   verbose=FALSE,
-								   fD=featureData)
+                  narrowRangeForChromosome(object[j, ],
+                                           lrr.segs[k, ],
+                                           thr=thr,
+                                           verbose=FALSE,
+                                           fD=featureData)
 		}
 		if(verbose) close(pb)
 		segs <- unlist(GRangesList(segList))
