@@ -1735,3 +1735,16 @@ setSequenceLengths <- function(build, names){ ## names are unique(seqnames(objec
   chr.arm[!is.na(arm)] <- paste(chrom[!is.na(arm)], arm[!is.na(arm)], sep="")
   chr.arm
 }
+
+
+.checkOrder <- function(object, verbose=FALSE){
+  d <- diff(order(chromosome(object), position(object)))
+  if(any(d < 0)){
+    if(verbose)
+      warning("Object should be ordered by chromosome and physical position.\n",
+              "Try \n",
+              "> object <- order(object) \n")
+    return(FALSE)
+  }
+  TRUE
+}

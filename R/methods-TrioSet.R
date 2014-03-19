@@ -377,7 +377,7 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 
 setMethod("checkOrder", signature(object="TrioSet"),
 	  function(object, verbose=FALSE){
-		  oligoClasses:::.checkOrder(object, verbose)
+            .checkOrder(object, verbose)
 	  })
 
 computeBayesFactorTrioSet <- function(object,
