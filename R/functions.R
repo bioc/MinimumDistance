@@ -1557,9 +1557,8 @@ gcSubtractMatrix <- function(object, center=TRUE, gc, pos, smooth.gc=TRUE, ...){
 
 
 rescale2 <- function(x, l, u){
-	y <- (x-min(x,na.rm=TRUE))/(max(x,na.rm=TRUE)-min(x,na.rm=TRUE))
-	VanillaICE:::rescale(y, l, u)
-
+  y <- (x-min(x,na.rm=TRUE))/(max(x,na.rm=TRUE)-min(x,na.rm=TRUE))
+  rescale(y, l, u)
 }
 
 dataFrameFromRange2 <- function(object, range, range.index, frame=0, nchar_sampleid=15){

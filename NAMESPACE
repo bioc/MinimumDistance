@@ -42,7 +42,7 @@ importFrom(stats, mad)
 ##	   findOverlaps, countOverlaps,
 ##	   ranges, values,
 ##	   matchMatrix, queryHits, subjectHits)
-import(GenomicRanges)
+import(GenomicRanges, IRanges)
 
 ## oligoClasses
 importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, gSet, gSetList)
@@ -128,6 +128,3 @@ export(callDenovoSegments,
 
 ## deprecated functions
 export(xyplotTrioLrrBaf)
-
-
-
