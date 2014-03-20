@@ -9,7 +9,7 @@
 \alias{motherNames,Pedigree-method}
 \alias{offspringNames,Pedigree-method}
 \alias{trios,Pedigree-method}
-\alias{[,Pedigree-method}
+\alias{[,Pedigree,ANY,ANY,ANY-method}
 %\alias{xsegment,TrioSet,Pedigree-method}
 
 \title{Container for storing pedigree information}

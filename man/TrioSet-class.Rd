@@ -2,8 +2,8 @@
 \Rdversion{1.1}
 \docType{class}
 \alias{TrioSet-class}
-\alias{[,TrioSet-method}
-\alias{[,ff_array-method}
+\alias{[,TrioSet,ANY,ANY,ANY-method}
+\alias{[,ff_array,ANY,ANY,ANY-method}
 \alias{allNames,TrioSet-method}
 \alias{baf,TrioSet-method}
 \alias{baf<-,TrioSet-method}

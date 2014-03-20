@@ -4,7 +4,7 @@
 \alias{TrioSetList-class}
 \alias{allNames,TrioSetList-method}
 \alias{allNames}
-\alias{[,TrioSetList-method}
+\alias{[,TrioSetList,ANY,ANY,ANY-method}
 \alias{$,TrioSetList-method}
 \alias{[[,TrioSetList,ANY,ANY-method}
 \alias{annotation,TrioSetList-method}
