@@ -121,30 +121,30 @@ madList <- function(object, byrow, pedigree, ...){
 }
 
 madFromMatrixList <- function(object, byrow=TRUE){
-	if(isPackageLoaded("ff")) pkgs <- c("ff", "MinimumDistance") else pkgs <- "MinimumDistance"
-	if(!byrow){
-		## this could be done more efficiently by following the
-		## apply example in the foreach documentation...
-		ilist <- splitIndicesByLength(seq_len(ncol(object[[1]])), 100)
-		i <- NULL
-		Xlist <- foreach(i=ilist, .packages=pkgs) %dopar% MinimumDistance:::stackListByColIndex(object, i)
-		mads <- foreach(i = Xlist, .packages=pkgs) %dopar% apply(i/100, 2, mad, na.rm=TRUE)
-		mads <- unlist(mads)
-		names(mads) <- colnames(object[[1]])
-		mads
-	} else {
-		x <- NULL
-		mads <- foreach(x = object, .packages=pkgs) %do% rowMAD(x/100, na.rm=TRUE)
-                if( !is.null(dim(mads[[1]])) & !is.null(rownames(object[[1]]))){
-			labelrows <- function(x, fns) {
-				rownames(x) <- fns
-				return(x)
-			}
-			fns <- NULL
-			mads <- foreach(x=mads, fns=lapply(object, rownames)) %do% labelrows(x=x, fns=fns)
-                }
-	}
-	return(mads)
+  if(isPackageLoaded("ff")) pkgs <- c("ff", "MinimumDistance") else pkgs <- "MinimumDistance"
+  if(!byrow){
+    ## this could be done more efficiently by following the
+    ## apply example in the foreach documentation...
+    ilist <- splitIndicesByLength(seq_len(ncol(object[[1]])), 100)
+    i <- NULL
+    Xlist <- foreach(i=ilist, .packages=pkgs) %dopar% stackListByColIndex(object, i)
+    mads <- foreach(i = Xlist, .packages=pkgs) %dopar% apply(i/100, 2, mad, na.rm=TRUE)
+    mads <- unlist(mads)
+    names(mads) <- colnames(object[[1]])
+    mads
+  } else {
+    x <- NULL
+    mads <- foreach(x = object, .packages=pkgs) %do% rowMAD(x/100, na.rm=TRUE)
+    if( !is.null(dim(mads[[1]])) & !is.null(rownames(object[[1]]))){
+      labelrows <- function(x, fns) {
+        rownames(x) <- fns
+        return(x)
+      }
+      fns <- NULL
+      mads <- foreach(x=mads, fns=lapply(object, rownames)) %do% labelrows(x=x, fns=fns)
+    }
+  }
+  return(mads)
 }
 
 ##---------------------------------------------------------------------------

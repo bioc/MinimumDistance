@@ -1,10 +1,15 @@
-test_dataExamples <- function(){
-	library(MinimumDistance);library(RUnit)
-	data(trioSetListExample)
-	checkTrue(validObject(trioSetList))
-	checkTrue(validObject(trioSetList[[1]]))
-	trioSet <- stack(trioSetList)
-	checkTrue(validObject(trioSet))
+test_TrioSetListdataExamples <- function(){
+  library(IRanges)
+  data(trioSetListExample)
+  checkTrue(validObject(trioSetList))
+  checkTrue(validObject(trioSetList[[1]]))
+  trioSet <- stack(trioSetList)
+  checkTrue(validObject(trioSet))
+  x <- dim(trioSet)
+  y <- setNames(c(43364L, 2L, 3L), c("Features", "Trios", "Members"))
+  checkIdentical(x, y)
+  library(Biobase)
+  checkTrue(storageMode(MinimumDistance:::AssayDataList("lockedEnvironment")) == "lockedEnvironment")
 }
 
 test_TrioSetList_construction <- function(){
@@ -175,6 +180,3 @@ test_TrioSetListLD <- function(){
 	checkTrue(is(lrr(trioSetListff)[[1]], "ff_array"))
 	checkTrue(identical(lrr(trioSetListff)[[1]][,,], lrr(trioSetList)[[1]]))
 }
-
-
-

@@ -1,5 +1,3 @@
-assayDataStorageMode <- Biobase:::assayDataStorageMode
-
 catFun2 <- function(rd.query, rd.subject, ...){
 	##stopifnot(nrow(rd.query) == nrow(rd.subject)) ## must compare same list size
 	ir.q <- IRanges(start(rd.query), end(rd.query))
@@ -1022,11 +1020,11 @@ narrowRanges <- function(object, lrr.segs, thr=0.9,
 		pkgs <- neededPkgs()
 		j <- k <- NULL
 		segList <- foreach(j=indexList, k=indexList2, featureData=fD, .packages=pkgs) %dopar%{
-			MinimumDistance:::narrowRangeForChromosome(object[j, ],
-								   lrr.segs[k, ],
-								   thr=thr,
-								   verbose=FALSE,
-								   fD=featureData)
+                  narrowRangeForChromosome(object[j, ],
+                                           lrr.segs[k, ],
+                                           thr=thr,
+                                           verbose=FALSE,
+                                           fD=featureData)
 		}
 		if(verbose) close(pb)
 		segs <- unlist(GRangesList(segList))
@@ -1557,9 +1555,8 @@ gcSubtractMatrix <- function(object, center=TRUE, gc, pos, smooth.gc=TRUE, ...){
 
 
 rescale2 <- function(x, l, u){
-	y <- (x-min(x,na.rm=TRUE))/(max(x,na.rm=TRUE)-min(x,na.rm=TRUE))
-	VanillaICE:::rescale(y, l, u)
-
+  y <- (x-min(x,na.rm=TRUE))/(max(x,na.rm=TRUE)-min(x,na.rm=TRUE))
+  rescale(y, l, u)
 }
 
 dataFrameFromRange2 <- function(object, range, range.index, frame=0, nchar_sampleid=15){
@@ -1713,4 +1710,44 @@ loglik <- function(emit, ranges, pr.nonmendelian,
 	elementMetadata(ranges)$lik.state <- lik.state
 	elementMetadata(ranges)$lik.norm <- lik.norm
 	ranges
+}
+
+setSequenceLengths <- function(build, names){ ## names are unique(seqnames(object))
+  sl <- getSequenceLengths(build)
+  sl[match(unique(names), names(sl))]
+}
+
+.getArm <- function(chrom, pos, genome){
+  if(is.integer(chrom)) chrom <- paste("chr", integer2chromosome(chrom), sep="")
+  path.gap <- system.file("extdata", package="SNPchip")
+  gaps <- readRDS(list.files(path.gap, pattern=paste("gap_", genome, ".rda", sep=""), full.names=TRUE))
+  centromere.starts <- start(gaps)
+  centromere.ends <- end(gaps)
+  names(centromere.ends) <- names(centromere.starts) <- seqnames(gaps)
+  centromere.starts <- centromere.starts[chrom]
+  centromere.ends <- centromere.ends[chrom]
+  chr.arm <- arm <- rep(NA, length(pos))
+  arm[pos <= centromere.starts] <- "p"
+  arm[pos >= centromere.ends] <- "q"
+  ##arm <- ifelse(pos <= centromere.starts, "p", "q")
+  chr.arm[!is.na(arm)] <- paste(chrom[!is.na(arm)], arm[!is.na(arm)], sep="")
+  chr.arm
+}
+
+
+.checkOrder <- function(object, verbose=FALSE){
+  d <- diff(order(chromosome(object), position(object)))
+  if(any(d < 0)){
+    if(verbose)
+      warning("Object should be ordered by chromosome and physical position.\n",
+              "Try \n",
+              "> object <- order(object) \n")
+    return(FALSE)
+  }
+  TRUE
+}
+
+isFF <- function(object){
+  names <- ls(assayData(object))
+  is(assayData(object)[[names[[1]]]], "ff") | is(assayData(object)[[names[[1]]]], "ffdf")
 }

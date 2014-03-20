@@ -2,8 +2,8 @@
 \Rdversion{1.1}
 \docType{class}
 \alias{TrioSet-class}
-\alias{[,TrioSet-method}
-\alias{[,ff_array-method}
+\alias{[,TrioSet,ANY,ANY,ANY-method}
+\alias{[,ff_array,ANY,ANY,ANY-method}
 \alias{allNames,TrioSet-method}
 \alias{baf,TrioSet-method}
 \alias{baf<-,TrioSet-method}
@@ -13,7 +13,6 @@
 \alias{calculateMindist,TrioSet-method}
 \alias{coerce,TrioSet,TrioSetList-method}
 \alias{coerce,TrioSet,data.frame-method}
-%\alias{computeBayesFactor,TrioSet-method}
 \alias{dim,TrioSet-method}
 \alias{fatherNames<-,TrioSet,character-method}
 \alias{fatherNames<-}
@@ -278,12 +277,13 @@
 }
 
 \examples{
-	showClass("TrioSet")
-	## instantiate a TrioSet with an array of log R ratios (logRR) and B
-	## allele frequencies
-	new("TrioSet")
-	TrioSet()
-        data(trioSetListExample)
-        trioSet <- stack(trioSetList)
+library(IRanges)
+showClass("TrioSet")
+## instantiate a TrioSet with an array of log R ratios (logRR) and B
+## allele frequencies
+new("TrioSet")
+TrioSet()
+data(trioSetListExample)
+trioSet <- stack(trioSetList)
 }
 \keyword{classes}
