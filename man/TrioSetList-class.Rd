@@ -4,13 +4,12 @@
 \alias{TrioSetList-class}
 \alias{allNames,TrioSetList-method}
 \alias{allNames}
-\alias{[,TrioSetList-method}
+\alias{[,TrioSetList,ANY,ANY,ANY-method}
 \alias{$,TrioSetList-method}
 \alias{[[,TrioSetList,ANY,ANY-method}
 \alias{annotation,TrioSetList-method}
 \alias{baf,TrioSetList-method}
 \alias{baf}
-%\alias{computeBayesFactor,TrioSetList-method}
 \alias{coerce,TrioSetList,SummarizedExperiment-method}
 \alias{dims,TrioSetList-method}
 \alias{fatherNames,TrioSetList-method}

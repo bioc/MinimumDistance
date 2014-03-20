@@ -11,7 +11,7 @@ import(BiocGenerics)
 
 ## Biobase imports
 importClassesFrom(Biobase, eSet, VersionedBiobase, Versioned)
-importMethodsFrom(Biobase, annotatedDataFrameFrom, "[", "$", annotatedDataFrameFrom, assayData, "assayData<-", dims, featureData, "featureData<-", fData, "fData<-", featureNames, pData, phenoData, "phenoData<-", protocolData, "protocolData<-", sampleNames, "sampleNames<-", storageMode, updateObject)
+importMethodsFrom(Biobase, "[", "$", annotatedDataFrameFrom, assayData, "assayData<-", dims, featureData, "featureData<-", fData, "fData<-", featureNames, pData, phenoData, "phenoData<-", protocolData, "protocolData<-", sampleNames, "sampleNames<-", storageMode, "storageMode<-", updateObject)
 importFrom(Biobase, assayDataElement, assayDataElementNames, assayDataElementReplace, assayDataNew, varLabels, fvarLabels)
 
 ## utils
@@ -42,7 +42,7 @@ importFrom(stats, mad)
 ##	   findOverlaps, countOverlaps,
 ##	   ranges, values,
 ##	   matchMatrix, queryHits, subjectHits)
-import(GenomicRanges)
+import(GenomicRanges, IRanges)
 
 ## oligoClasses
 importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, gSet, gSetList)
@@ -53,7 +53,7 @@ importMethodsFrom(oligoClasses, state, coverage2, chromosome, open, openff, clos
 importFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, chromosomePositionOrder,
 	   initializeBigMatrix, initializeBigArray, isPackageLoaded, ldPath, parStatus,
 	   splitIndicesByLength, splitIndicesByNode, integerArray, integerMatrix, chromosome2integer,
-	   getSequenceLengths)
+	   getSequenceLengths, ocSamples, integer2chromosome)
 
 ## msm
 importFrom(msm, qtnorm, dtnorm)
@@ -86,7 +86,6 @@ exportMethods("[", allNames,
 	      annotatedDataFrameFrom,
 	      calculateMindist,
 	      coerce,
-	      computeBayesFactor,
 	      dims,
 	      fatherNames,
 	      fatherPhenoData,
@@ -128,6 +127,3 @@ export(callDenovoSegments,
 
 ## deprecated functions
 export(xyplotTrioLrrBaf)
-
-
-

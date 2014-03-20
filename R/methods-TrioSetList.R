@@ -400,55 +400,6 @@ setMethod("prune", signature(object="TrioSetList", ranges="RangedDataCNV"),
 		  return(rdList)
 	  })
 
-setMethod("computeBayesFactor", signature(object="TrioSetList"),
-	  function(object, ranges,
-		   returnEmission=FALSE,
-		   collapseRanges=TRUE, ...){
-		  .Defunct(msg="computeBayesFactor method is defunct. See MAP instead.")
-##		  computeBayesFactorTrioSetList(object=object,
-##						ranges=ranges,
-##						returnEmission=returnEmission,
-##						collapseRanges=collapseRanges,
-##						...)
-	  })
-
-computeBayesFactorTrioSetList <- function(object,
-					  ranges,
-					  returnEmission=FALSE,
-					  collapseRanges=TRUE,
-					  outdir=ldPath(),
-					  ...){
-	sns.ranges <- unique(sampleNames(ranges))
-	if(!all(sampleNames(object) %in% sns.ranges)){
-		ranges <- ranges[sampleNames(ranges) %in% sampleNames(object), ]
-	}
-	chr <- intersect(paste("chr", chromosome(object), sep=""), unique(chromosome(ranges)))
-	object <- object[paste("chr", chromosome(object), sep="") %in% chr]
-	ranges <- ranges[chromosome(ranges) %in% chr, ]
-
-	index <- split(seq_len(length(ranges)), as.character(chromosome(ranges)))
-	## reorder index by ordering in trioSetList object
-	index <- index[match(paste("chr", chromosome(object), sep=""),  names(index))]
-	X <- i <- NULL
-	packages <- neededPkgs()
-	map.segs <- foreach(X=object,
-			    i=index,
-			    .inorder=FALSE,
-			    .packages=packages) %dopar% {
-				    computeBayesFactor(object=X,
-						       ranges=ranges[i, ],
-						       pedigreeData=pedigree(object),
-						       collapseRanges=collapseRanges,
-						       outdir=outdir,
-						       ...)
-			    }
-	map.segs.list <- GRangesList(map.segs)
-	map.segs <- unlist(map.segs.list)
-	##map.segs <- do.call("c", map.segs)
-	elementMetadata(map.segs)$state <- trioStateNames()[values(map.segs)$argmax]
-	return(map.segs)
-}
-
 
 setMethod("assayData", signature(object="TrioSetList"),
 	  function(object) assayDataList(object))
@@ -803,8 +754,8 @@ setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
 	pos <- unlist(position(object))
 	chr <- rep(chromosome(object), elementLengths(object))
 	build <- genomeBuild(object)
-	sl <- oligoClasses:::setSequenceLengths(build,
-						paste("chr", chromosome(object), sep=""))
+	sl <- setSequenceLengths(build,
+                                 paste("chr", chromosome(object), sep=""))
 	feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
 				   seqlengths=sl)
 	grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
@@ -822,6 +773,7 @@ setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
 	grl <- split(ranges, sampleNames(ranges))
 	grl <- grl[match(sampleNames(object), names(grl))]
 	rm(pos, chr, blist, rlist); gc()
+        i <- NULL
 	results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
 		emit <- viterbi2Wrapper(index.samples=i,
 					snp.index=snp.index,
@@ -837,7 +789,7 @@ setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
 				 ranges=granges,
 				 pr.nonmendelian=pr.nonmendelian,
 				 overlapFun=overlapFun)
-		chr.arm <- oligoClasses:::.getArm(chromosome(ranges), start(ranges), build)
+		chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
 		ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
 		ranges
 	}
@@ -887,5 +839,3 @@ setMethod("coerce", signature(from="TrioSetList", to="SummarizedExperiment"),
 ##	  function(range, data, ...){
 ##		  dataFrameSummarizedExperimentTrio(range=range, object=data, ...)
 ##	  })
-
-
