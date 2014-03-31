@@ -757,126 +757,6 @@ joint1 <- function(LLT, ##object,
 	return(res)
 }
 
-##joint4 <- function(id,
-##		   trioSet,
-##		   ranges,
-##		   cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),		   a=0.0009,
-##		   prob.nonMendelian=1.5e-6,
-##		   ##returnEmission=FALSE,
-##		   ntrios,
-##		   mdThr=0.9, ...){## all the ranges from one subject , one chromosome
-##	if(missing(id)) id <- sampleNames(trioSet)[1]
-##	ranges <- ranges[sampleNames(ranges) == id, ]
-##	is.snp <- isSnp(trioSet)
-##	stopifnot(ncol(trioSet)==1)
-##	limits <- copyNumberLimits(is.log=TRUE)
-##	##
-##	## transform back to original scale
-##	##
-##	r <- lrr(trioSet)[, 1, ]/100
-##	b <- baf(trioSet)[, 1, ]/1000
-##	colnames(r) <- colnames(b) <- allNames(trioSet)
-##	##
-##	## we estimate the optimal state path using viterbi, but we
-##	## only use the emission probabilities for the MAP
-##	emit <- viterbi2Wrapper(r=r,
-##				b=b,
-##				pos=position(trioSet),
-##				is.snp=isSnp(trioSet),
-##				cnStates=cnStates,
-##				chrom=chromosome(trioSet)[1],
-##				is.log=TRUE,
-##				limits=limits,
-##				returnEmission=TRUE,
-##				...)
-##	lemit <- log(emit)
-##	##lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
-##	##for(i in 1:3) lemit[, i, ] <- log(emission(viterbiObj[[i]]))
-##	trio.states <- trioStates(0:4)
-##	tmp <- rep(NA, nrow(trio.states))
-##	state.prev <- NULL
-##	denovo.prev <- NULL
-##	table1 <- readTable1(a=a)
-##	loader("pennCNV_MendelianProb.rda")
-##	table3 <- getVarInEnv("pennCNV_MendelianProb")
-##	state.names <- trioStateNames()
-##	norm.index <- which(state.names=="222")
-##	ranges <- ranges[order(start(ranges)), ]
-##	##ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
-##	lik.norm <- argmax <- lik.state <- rep(NA, length(ranges))
-##	frange <- makeFeatureGRanges(trioSet)
-##	cnt <- countOverlaps(ranges, frange)
-##	mm <- findOverlaps(frange, ranges)
-##	##mm <- as.matrix()
-##	##tab <- table(subjectHits(mm))
-##	##I <- as.integer(names(tab)[tab >= 2])
-##	I <- which(cnt >= 2)
-##	range.index <- subjectHits(mm)[subjectHits(mm) %in% I]
-##	## only call segs that are "nonzero"
-##	if("mindist.mad" %in% colnames(elementMetadata(ranges))){
-##		mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
-##		abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
-##	} else{
-##		## call all segments
-##		abs.thr <- rep(TRUE, length(ranges))
-##	}
-## 	for(i in I){
-##		index <- which(range.index==i)
-##		queryIndex <- queryHits(mm)[index]
-##		if(length(queryIndex) < 2) next()
-##		LL <- lemit[queryIndex, , , drop=FALSE]
-##		LLT <- matrix(NA, 3, 6)
-##		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
-##		rownames(LLT) <- c("F", "M", "O")
-##		colnames(LLT) <- paste("CN_", c(0, 1, 2, 2, 3, 4), sep="")
-##		LLT[, 3] <- pmax(LLT[, 3], LLT[, 4])
-##		LLT <- LLT[, -4]
-##		callrange <- abs.thr[i]
-##		if(callrange){
-##			for(j in seq_len(nrow(trio.states))){
-##				tmp[j] <- joint1(LLT=LLT,
-##						 trio.states=trio.states,
-##						 segment.index=i,
-##						 state.index=j,
-##						 table1=table1,
-##						 table3=table3,
-##						 state.prev=state.prev,
-##						 prob.nonMendelian=prob.nonMendelian)
-##
-##			}##j loop
-##			lik.norm[i] <- tmp[norm.index]
-##			argmax[i] <- which.max(tmp)
-##			lik.state[i] <- tmp[argmax[i]]
-##			##stopifnot(!is.na(lik.state[i]))
-##			state.prev <- trio.states[argmax[i], ]
-##		} else {
-##			res <- joint1(LLT=LLT,
-##				      trio.states=trio.states,
-##				      segment.index=i,
-##				      state.index=norm.index,
-##				      table1=table1,
-##				      table3=table3,
-##				      state.prev=state.prev,
-##				      prob.nonMendelian=prob.nonMendelian)
-##			lik.norm[i] <- res
-##			lik.state[i] <- res
-##			argmax[i] <- norm.index
-##			state.prev <- trio.states[norm.index, ]
-##		}
-##	}
-##	elementMetadata(ranges)$state <- trioStateNames()[argmax]
-##	elementMetadata(ranges)$argmax <- argmax
-##	elementMetadata(ranges)$lik.state <- lik.state
-##	elementMetadata(ranges)$lik.norm <- lik.norm
-##	ranges
-##}
-
-##pennTable <- function(a=0.0009, M=array(as.double(0), dim=rep(5,6))){
-##	res <- .C("calculateCHIT", a=as.double(a), M=M)
-##}
-
-
-
 xypanelMD <- function(x, y,
 		      id,
 		      gt,
@@ -1287,76 +1167,84 @@ callDenovoSegments <- function(path="",
 			       mdThr=0.9,
 			       prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3),
 			       verbose=FALSE, genome=c("hg19", "hg18"), ...){
-	pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
-	genome <- match.arg(genome)
-	if(!is(pedigreeData, "Pedigree")) stop("pedigreeData must be an object of class Pedigree")
-	filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
-	obj <- read.bsfiles(filenames=filenames, path="", ext="")
-	if(missing(featureData)){
-		trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
-					   baf=integerMatrix(obj[, "baf",], 1000),
-					   pedigreeData=pedigreeData,
-					   chromosome=chromosome,
-					   cdfname=cdfname,
-					   genome=genome)
-	} else {
-		trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
-					   baf=integerMatrix(obj[, "baf",], 1000),
-					   pedigreeData=pedigreeData,
-					   featureData=featureData,
-					   chromosome=chromosome,
-					   genome=genome)
-	}
-	isff <- is(lrr(trioSetList)[[1]], "ff")
-	if(isff) pkgs <- c("ff", pkgs)
-	md <- calculateMindist(lrr(trioSetList), verbose=verbose)
-	mads.md <- mad2(md, byrow=FALSE)
-	fns <- featureNames(trioSetList)
-	md.segs <- segment2(object=md,
-			    pos=position(trioSetList),
-			    chrom=chromosome(trioSetList, as.list=TRUE),
-			    verbose=verbose,
-			    id=offspringNames(trioSetList),
-			    featureNames=fns,
-			    genome=genome,
-			    ...)
-	lrrs <- lrr(trioSetList)
-	if(!segmentParents){
-		## when segmenting only the offspring,
-		## the trio names are the same as the sampleNames
-		lrrs <- lapply(lrrs, function(x){
-			dns <- dimnames(x)
-			x <- x[, , 3, drop=FALSE]
-			dim(x) <- c(nrow(x), ncol(x))
-			dimnames(x) <- list(dns[[1]], dns[[2]])
-			return(x)
-		})
-		id <- offspringNames(trioSetList)
-	} else{
-		id=trios(trioSetList)
-	}
-	pos <- position(trioSetList)
-	lrr.segs <- segment2(object=lrrs,
-			     pos=position(trioSetList),
-			     chrom=chromosome(trioSetList, as.list=TRUE),
-			     id=id, ## NULL if segmentParents is FALSE
-			     verbose=verbose,
-			     featureNames=fns, genome=genome, ...)
-	md.segs2 <- narrowRanges(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md, fD=Biobase::featureData(trioSetList))
-	index <- splitIndicesByLength(seq_len(ncol(trioSetList)), 1)
-	##if(!getDoParRegistered()) registerDoSEQ()
-	outdir <- ldPath()
-	id <- sampleNames(trioSetList)
-	object <- i <- NULL
-	map.segs <- foreach(i=index,
-			    .packages=pkgs, .combine="unlist") %dopar% {
-				    MAP(object=trioSetList,
-					ranges=md.segs2,
-					id=id[i],
-					mdThr=mdThr,
-					prOutlierBAF=prOutlierBAF)
-			    }
-	return(map.segs)
+  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+  genome <- match.arg(genome)
+  if(!is(pedigreeData, "Pedigree")) stop("pedigreeData must be an object of class Pedigree")
+  filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
+  ##obj <- read.bsfiles(filenames=filenames, path="", ext="")
+  keep <- c("SNP.Name", "Allele1...AB", "Allele2...AB",
+            "Log.R.Ratio", "B.Allele.Freq")
+  labels <- setNames(c("Allele1", "Allele2", "LRR", "BAF"), keep[-1])
+  classes <- c(rep("character", 3), rep("numeric", 2))
+  header_info <- headerInfo(file, skip=10, sep=",",
+                            keep=keep, labels=labels,
+                            classes=classes)
+  obj <- read_beadstudio(filenames=filenames)
+  if(missing(featureData)){
+    trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
+                               baf=integerMatrix(obj[, "baf",], 1000),
+                               pedigreeData=pedigreeData,
+                               chromosome=chromosome,
+                               cdfname=cdfname,
+                               genome=genome)
+  } else {
+    trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
+                               baf=integerMatrix(obj[, "baf",], 1000),
+                               pedigreeData=pedigreeData,
+                               featureData=featureData,
+                               chromosome=chromosome,
+                               genome=genome)
+  }
+  isff <- is(lrr(trioSetList)[[1]], "ff")
+  if(isff) pkgs <- c("ff", pkgs)
+  md <- calculateMindist(lrr(trioSetList), verbose=verbose)
+  mads.md <- mad2(md, byrow=FALSE)
+  fns <- featureNames(trioSetList)
+  md.segs <- segment2(object=md,
+                      pos=position(trioSetList),
+                      chrom=chromosome(trioSetList, as.list=TRUE),
+                      verbose=verbose,
+                      id=offspringNames(trioSetList),
+                      featureNames=fns,
+                      genome=genome,
+                      ...)
+  lrrs <- lrr(trioSetList)
+  if(!segmentParents){
+    ## when segmenting only the offspring,
+    ## the trio names are the same as the sampleNames
+    lrrs <- lapply(lrrs, function(x){
+      dns <- dimnames(x)
+      x <- x[, , 3, drop=FALSE]
+      dim(x) <- c(nrow(x), ncol(x))
+      dimnames(x) <- list(dns[[1]], dns[[2]])
+      return(x)
+    })
+    id <- offspringNames(trioSetList)
+  } else{
+    id=trios(trioSetList)
+  }
+  pos <- position(trioSetList)
+  lrr.segs <- segment2(object=lrrs,
+                       pos=position(trioSetList),
+                       chrom=chromosome(trioSetList, as.list=TRUE),
+                       id=id, ## NULL if segmentParents is FALSE
+                       verbose=verbose,
+                       featureNames=fns, genome=genome, ...)
+  md.segs2 <- narrowRanges(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md, fD=Biobase::featureData(trioSetList))
+  index <- splitIndicesByLength(seq_len(ncol(trioSetList)), 1)
+  ##if(!getDoParRegistered()) registerDoSEQ()
+  outdir <- ldPath()
+  id <- sampleNames(trioSetList)
+  object <- i <- NULL
+  map.segs <- foreach(i=index,
+                      .packages=pkgs, .combine="unlist") %dopar% {
+                        MAP(object=trioSetList,
+                            ranges=md.segs2,
+                            id=id[i],
+                            mdThr=mdThr,
+                            prOutlierBAF=prOutlierBAF)
+                      }
+  return(map.segs)
 }
 
 make.unique2 <- function(names, sep="___DUP") make.unique(names, sep)

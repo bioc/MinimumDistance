@@ -26,24 +26,26 @@ setClass("TrioSet", contains="gSet",
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 setClass("TrioSetList", contains="gSetList",
 	 representation(pedigree="Pedigree",
-			##assayDataList="AssayData",
-			##phenoData="AnnotatedDataFrame",
 			fatherPhenoData="AnnotatedDataFrame",
 			motherPhenoData="AnnotatedDataFrame"))
-			##featureDataList="list",
-			##chromosome="integer"))
 
 setClass("Pedigree2", contains="DataFrame")
-##Pedigree2 <- function(..., row.names=NULL, check.names=TRUE){
-##	df <- DataFrame(..., row.names=row.names, check.names=check.names)
-##	pdf <- as(df, "Pedigree2")
-##}
-##setClass("TrioSE", contains="SummarizedExperiment",
-##	 representation(pedigree="Pedigree2"))#,
-##	 prototype(
-##		   assays=SimpleList(logRRatio=array(),
-##		   BAF=array()),
-##		   pedigree=Pedigree2()))
 
 
+#' @importClassesFrom VanillaICE SnpArrayExperiment SnpGRanges
+setClass("TrioExperiment",
+         representation(pedigree="Pedigree"),
+         contains="SnpArrayExperiment")
 
+
+##setGeneric("TrioExperiment",
+##           function(..., pedigree=Pedigree()))
+setMethod("initialize", "TrioExperiment", function(.Object, ..., pedigree=Pedigree()){
+  .Object <-  callNextMethod(.Object, ...)
+  .Object@pedigree <- pedigree
+  .Object
+})
+
+TrioExperiment <- function(..., pedigree=Pedigree()){
+  new("TrioExperiment", ..., pedigree=pedigree)
+}

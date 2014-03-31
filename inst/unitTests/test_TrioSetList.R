@@ -12,6 +12,19 @@ test_TrioSetListdataExamples <- function(){
   checkTrue(storageMode(MinimumDistance:::AssayDataList("lockedEnvironment")) == "lockedEnvironment")
 }
 
+test_TrioSet <- function(){
+  path <- system.file("extdata", package="MinimumDistance")
+  load(file.path(path, "logRratio.rda"))
+  load(file.path(path, "baf.rda"))
+  load(file.path(path, "pedigreeInfo.rda"))
+  ped <- Pedigree(pedigreeInfo)
+  trioSet <- TrioSet(lrr=logRratio,
+                     baf=baf,
+                     pedigree=ped,
+                     cdfname="human610quadv1bCrlmm",
+                     genome="hg18")
+}
+
 test_TrioSetList_construction <- function(){
 	library(oligoClasses)
 	checkTrue(validObject(new("TrioSetList")))

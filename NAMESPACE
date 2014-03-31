@@ -42,6 +42,7 @@ importFrom(stats, mad)
 ##	   findOverlaps, countOverlaps,
 ##	   ranges, values,
 ##	   matchMatrix, queryHits, subjectHits)
+importMethodsFrom(IRanges, nrow, ncol, unlist, split, dim, width, length)
 import(GenomicRanges, IRanges)
 
 ## oligoClasses
@@ -62,7 +63,10 @@ importFrom(msm, qtnorm, dtnorm)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 
 ## VanillaICE
-importFrom(VanillaICE, read.bsfiles, copyNumberLimits, viterbi2Wrapper, rowMAD, rescale)
+importFrom(VanillaICE, read_beadstudio, copyNumberLimits, rowMAD, rescale)
+
+importMethodsFrom(VanillaICE, SnpGRanges, SnpArrayExperiment)
+importClassesFrom(VanillaICE, SnpArrayExperiment, SnpGRanges)
 
 ## SNPchip
 ##importMethodsFrom(SNPchip, xyplot, xyplot2)

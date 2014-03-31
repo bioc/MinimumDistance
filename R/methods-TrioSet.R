@@ -667,102 +667,119 @@ setMethod("gcSubtract", signature(object="TrioSet"),
 ##	return(gcbins)
 ##}
 
+#' @importMethodsFrom VanillaICE TransitionParam EmissionParam
 setMethod(MAP, c("TrioSet", "GRanges"), function(object,
-						 ranges, id,
-						 TAUP=1e10,
-						 tauMAX,
-						 cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
-						 pr.nonmendelian=1.5e-6,
+						 ranges,
+                                                 ##id,
+                                                 transition_param=TransitionParam(),
+                                                 emission_param=EmissionParam(),
 						 mdThr=0.9, ...){
 	.map_trioSet(object=object,
 		     ranges=ranges,
-		     id=id,
-		     TAUP=TAUP,
-		     tauMAX=tauMAX,
-		     cnStates=cnStates,
-		     pr.nonmendelian=pr.nonmendelian,
+                     ##id,
+                     transition_param=transition_param,
+                     emission_param=emission_param,
 		     mdThr=mdThr,...)
 })
 
+
 .map_trioSet <- function(object,
-			 ranges, id,
-			 TAUP=1e10,
-			 tauMAX,
-			 cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
-			 pr.nonmendelian=1.5e-6,
+			 ranges,
+                         ##id,
+                         transition_param,
+                         emission_param,
 			 mdThr=0.9,...){
-	pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
-	if(isPackageLoaded("ff")) pkgs <- c("ff", pkgs)
-	if(missing(id)) id <- sampleNames(object)
-	build <- genomeBuild(object)
-	index.trios <- match(id, sampleNames(object))
-	if(!all(sampleNames(ranges) %in% id))
-		ranges <- ranges[sampleNames(ranges) %in% id, ]
-	if(!all(id %in% sampleNames(ranges))){
-		object <- object[, match(unique(sampleNames(ranges)), id)]
-		id <- id[id %in% sampleNames(ranges)]
-	}
-	id <- id[id %in% sampleNames(ranges)]
-	chrom.ranges <- unique(chromosome(ranges))
-	chrom.object <- paste("chr", chromosome(object), sep="")
-	object <- object[chrom.object %in% chrom.ranges, ]
-	ranges <- ranges[chrom.ranges %in% chrom.object, ]
-	## only call segs that are "nonzero"
-	if("mindist.mad" %in% colnames(elementMetadata(ranges))){
-		mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
-		abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
-	} else{
-		## call all segments
-		abs.thr <- rep(TRUE, length(ranges))
-	}
-	elementMetadata(ranges)$exceeds.md.thr <- abs.thr
-	ocSamples(1) ## has to be 1. This will process 3 samples per alotted CPU
-	chunks <- splitIndicesByLength(index.trios, ocSamples())
-	r <- lrr(object)
-	b <- baf(object)
-	pos <- position(object)
-	chr <- chromosome(object)
-	sl <- setSequenceLengths(build,
-                                 paste("chr", unique(chr), sep=""))
-	feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
-				   seqlengths=sl)
-	grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
-	is.snp <- isSnp(object)
-	snp.index <- which(is.snp)
-	anyNP <- any(!is.snp)
-	center <- TRUE
-	pkgs <- c("oligoClasses", "VanillaICE")
-	isff <- is(r, "ff")
-	if(isff) pkgs <- c("ff", pkgs)
-	matrixFun <- generatorMatrix2(r, b, chr, center=TRUE,
-				      snp.index=snp.index,
-				      anyNP=anyNP,
-				      ped=pedigree(object))
-	overlapFun <- generatorOverlapFeatures(feature.granges)
-	grl <- split(ranges, sampleNames(ranges))
-	grl <- grl[match(sampleNames(object), names(grl))]
-	rm(pos, chr, b, r); gc()
-        i <- NULL
-	results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
-		emit <- viterbi2Wrapper(index.samples=i,
-					snp.index=snp.index,
-					anyNP=anyNP,
-					is.log=TRUE,
-					limits=c(-4, 3),
-					cnStates=cnStates,
-					grFun=grFun,
-					matrixFun=matrixFun,
-					returnEmission=TRUE, ...)
-		granges <- sort(granges)
-		ranges <- loglik(emit=emit,
-				 ranges=granges,
-				 pr.nonmendelian=pr.nonmendelian,
-				 overlapFun=overlapFun)
-		chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
-		ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
-		ranges
-	}
-	results <- unlist(GRangesList(results))
-	metadata(results) <- metadata(ranges)
-	return(results)
+  browser()
+  se <- as(object, "SnpArrayExperiment")
+  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+  build <- genomeBuild(object)
+  ranges <- ranges[ranges$sample %in% colnames(se)]
+  chrom.ranges <- unique(chromosome(ranges))
+  seqlevels(ranges, force=TRUE) <- chrom.ranges
+  ##id <- trios(pedigree(object))[1, ]
+  ##object <- object[, match(unique(sampleNames(ranges)), id)]
+  ##chrom.object <- paste0("chr", chromosome(object))
+  ##object <- object[chrom.object %in% chrom.ranges, ]
+  ##ranges <- ranges[chrom.ranges %in% chrom.object, ]
+  ## only call segs that are "nonzero"
+##  if("mindist.mad" %in% colnames(elementMetadata(ranges))){
+##    mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
+##    abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
+##  } else{
+##    ## call all segments
+##    abs.thr <- rep(TRUE, length(ranges))
+##  }
+  ## Assume mindist.mad is always in mcols.
+  mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
+  ranges$exceeds.md.thr <- abs(ranges$seg.mean/mads) > mdThr
+  ##ocSamples(1) ## has to be 1. This will process 3 samples per alotted CPU
+  ##chunks <- splitIndicesByLength(index.trios, ocSamples())
+  ## coerce to Experiment class
+##  r <- lrr(object)
+##  b <- baf(object)
+##  pos <- position(object)
+##  chr <- chromosome(object)
+##  sl <- setSequenceLengths(build,
+##                           paste("chr", unique(chr), sep=""))
+##  feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
+##                             seqlengths=sl)
+  ##grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
+##  is.snp <- isSnp(object)
+##  snp.index <- which(is.snp)
+##  anyNP <- any(!is.snp)
+##  center <- TRUE
+##  pkgs <- c("oligoClasses", "VanillaICE")
+##  isff <- is(r, "ff")
+##  if(isff) pkgs <- c("ff", pkgs)
+##  matrixFun <- generatorMatrix2(r, b, chr, center=TRUE,
+##                                snp.index=snp.index,
+##                                anyNP=anyNP,
+##                                ped=pedigree(object))
+##  overlapFun <- generatorOverlapFeatures(feature.granges)
+  grl <- split(ranges, sampleNames(ranges))
+  ##offsrping is the 3rd index
+  grl <- grl[match(colnames(se)[3], names(grl))]
+  fit <- hmm2(se,
+              emisson_param=emission_param,
+              transition_param=transition_param)
+##
+##  rm(pos, chr, b, r); gc()
+##  i <- NULL
+##  results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
+##    emit <- viterbi2Wrapper(index.samples=i,
+##                            snp.index=snp.index,
+##                            anyNP=anyNP,
+##                            is.log=TRUE,
+##                            limits=c(-4, 3),
+##                            cnStates=cnStates,
+##                            grFun=grFun,
+##                            matrixFun=matrixFun,
+##                            returnEmission=TRUE, ...)
+    granges <- sort(granges)
+    ranges <- loglik(emit=emit,
+                     ranges=granges,
+                     pr.nonmendelian=pr.nonmendelian,
+                     overlapFun=overlapFun)
+    chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
+    ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
+    ranges
+##  }
+  results <- unlist(GRangesList(results))
+  metadata(results) <- metadata(ranges)
+  return(results)
 }
+
+
+#' @export
+setAs("TrioSet", "SnpArrayExperiment", function(from, to){
+  ped <- pedigree(from)
+  cn <- lrr(from)[, 1, ]/100
+  b <- baf(from)[, 1, ]/1000
+  colnames(b) <- colnames(cn) <- trios(ped)[1, ]
+  gd <- GRanges(paste0("chr", chromosome(from)), IRanges(position(from),
+                                                         width=1),
+                isSnp=isSnp(from))
+  rowdata <- SnpGRanges(gd)
+  se <- SnpArrayExperiment(cn=cn, baf=b, rowData=rowdata)
+  se
+})

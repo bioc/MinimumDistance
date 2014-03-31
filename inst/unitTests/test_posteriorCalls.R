@@ -1,15 +1,44 @@
 test_pipeline <- function(){
   library(oligoClasses)
-  library(MinimumDistance); library(RUnit)
+  library(GenomicRanges)
+  foreach::registerDoSEQ()
   data(trioSetListExample)
   md <- calculateMindist(lrr(trioSetList))
-  md.segs <- segment2(trioSetList, md=md)
+  path <- tryCatch(system.file("unitTests", package="MinimumDistance", mustWork=TRUE),
+                   error=function(e) "~/Software/bridge/MinimumDistance/inst/unitTests")
+  if(FALSE){
+    md.segs <- segment2(trioSetList, md=md, verbose=0)
+    saveRDS(md.segs, file=file.path(path, "md_segs.rds"))
+  } else md.segs <- readRDS(file.path(path, "md_segs.rds"))
   metadata(md.segs)
-  lrr.segs <- segment2(trioSetList, segmentParents=TRUE)
+  if(FALSE){
+    lrr.segs <- segment2(trioSetList, segmentParents=TRUE, verbose=0)
+    saveRDS(lrr.segs, file=file.path(path,"lrr_segs.rds"))
+  } else lrr.segs <- readRDS(file.path(path, "lrr_segs.rds"))
   metadata(lrr.segs)
   mads.md <- mad2(md, byrow=FALSE)
-  md.segs2 <- narrowRanges(md.segs, lrr.segs, thr=0.75, mad.minimumdistance=mads.md, fD=featureData(trioSetList))
-  map.segs <- MAP(trioSetList, md.segs2, prOutlierBAF=list(initial=1e-4, max=1e-2, maxROH=1e-3))
+  md.segs2 <- narrowRanges(md.segs, lrr.segs, thr=0.75,
+                           mad.minimumdistance=mads.md,
+                           fD=featureData(trioSetList))
+  trioSet <- stack(trioSetList)
+  se <- as(trioSet, "SnpArrayExperiment")
+  fit <- hmm2(se)
+  ##
+  ## 1. Make MAP work with new VI interface by coercing TrioSet to a SnpArrayExperiment
+  ## 2. Repeat for TrioSetList
+  ## 3. Replace TrioSets with TrioExperiment classes
+  ## 4. Deprecate old classes
+  map.segs <- MAP(trioSet, md.segs2)
+  ##
+  ## coerce to SnpArrayExperiment
+  ##
+  library(VanillaICE)
+  trioSet <- stack(trioSetList)
+
+  ped <- pedigree(trioSet)
+
+  library(VanillaICE)
+  fit <- hmm2(se)
 }
 
 test_posteriorCalls <- function(){
