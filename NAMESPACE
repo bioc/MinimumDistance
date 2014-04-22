@@ -42,7 +42,7 @@ importFrom(stats, mad)
 ##	   findOverlaps, countOverlaps,
 ##	   ranges, values,
 ##	   matchMatrix, queryHits, subjectHits)
-import(GenomicRanges, IRanges)
+import(S4Vectors, IRanges, GenomicRanges)
 
 ## oligoClasses
 importClassesFrom(oligoClasses, RangedDataCNV, RangedDataCBS, RangedDataHMM, gSet, gSetList)
