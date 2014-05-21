@@ -22,13 +22,21 @@ test_pipeline <- function(){
                            fD=featureData(trioSetList))
   trioSet <- stack(trioSetList)
   se <- as(trioSet, "SnpArrayExperiment")
+  genome(se) <- "hg19"
+  library(devtools)
+  load_all("~/Software/bridge/VanillaICE")
+  load_all("../..")
   fit <- hmm2(se)
+  MAP(se, fit)
+
   ##
   ## 1. Make MAP work with new VI interface by coercing TrioSet to a SnpArrayExperiment
   ## 2. Repeat for TrioSetList
   ## 3. Replace TrioSets with TrioExperiment classes
   ## 4. Deprecate old classes
-  map.segs <- MAP(trioSet, md.segs2)
+  ## map.segs <- MAP(trioSet, md.segs2)
+
+
   ##
   ## coerce to SnpArrayExperiment
   ##

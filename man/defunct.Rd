@@ -1,5 +1,4 @@
-\name{Deprecated}
-\title{MinimumDistance Deprecated}
+\name{MinimumDistance-Defunct}
 \alias{xyplotTrioLrrBaf}
 \alias{computeBayesFactor}
 \alias{computeBayesFactor,TrioSet-method}
@@ -7,6 +6,14 @@
 \alias{gcSubtract,TrioSet-method}
 \alias{gcSubtract,TrioSetList-method}
 \alias{narrow}
-\description{ The function, class, or data object you asked for has been
-  deprecated.}
+
+\title{Defunct functions in package \sQuote{MinimumDistance}}
+
+\description{ These functions are defunct and no longer available.}
+
+\details{
+  Defunct functions are: \code{xyplotTrioLrrBaf},
+  \code{computeBayesFactor},
+  \code{gcSubtract}, \code{narrow}.
+}
 \keyword{internal}

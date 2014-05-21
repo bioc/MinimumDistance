@@ -63,7 +63,7 @@ importFrom(msm, qtnorm, dtnorm)
 importFrom(DNAcopy, CNA, segment, smooth.CNA, getbdry)
 
 ## VanillaICE
-importFrom(VanillaICE, read_beadstudio, copyNumberLimits, rowMAD, rescale)
+importFrom(VanillaICE, read.bsfiles, copyNumberLimits, rowMAD, rescale)
 
 importMethodsFrom(VanillaICE, SnpGRanges, SnpArrayExperiment)
 importClassesFrom(VanillaICE, SnpArrayExperiment, SnpGRanges)

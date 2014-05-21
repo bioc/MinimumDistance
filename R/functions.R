@@ -872,106 +872,106 @@ xypanelMD2 <- function(x, y,
 narrow <- function(object, lrr.segs, thr=0.9,
 		   mad.minimumdistance, verbose=TRUE,
 		   fD, genome) .Defunct("The 'narrow' function is defunct in MinimumDistance. Use narrowRanges instead.")
+
 narrowRanges <- function(object, lrr.segs, thr=0.9,
 		   mad.minimumdistance, verbose=TRUE,
 		   fD, genome){
-	if(missing(fD)) stop("fD not specified. fD must be a list of GenomeAnnotatedDataFrames (if multiple chromosomes are in 'object'), or a single GenomeAnnotatedDataFrame (one chromosome represented in 'object')")
-	if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
-	if(!missing(genome)) metadata(lrr.segs) <- list(genome=genome)
-	ix <- match(sampleNames(object), names(mad.minimumdistance))
-	elementMetadata(object)$mindist.mad <- mad.minimumdistance[ix]
-	lrr.segs <- lrr.segs[sampleNames(lrr.segs) %in% sampleNames(object), ]
-	if(length(unique(chromosome(object))) > 1){
-		if(verbose)
-			message("narrowing the ranges by chromosome")
-		if(!is(fD, "list")) stop("when object contains multiple chromosomes, fD should be a list of GenomeAnnotatedDataFrames")
-		chromsInFD <- paste("chr", sapply(fD, function(x) chromosome(x)[1]), sep="")
-		indexList <- split(seq_len(length(object)), as.character(chromosome(object)))
-		indexList2 <- split(seq_len(length(lrr.segs)), as.character(chromosome(lrr.segs)))
-		if(!all.equal(names(indexList), names(indexList2))){
-			stop("the chromosomes represented in the minimum distance genomic intervals (object) must be the same as the chromosomes represented in the offspring genomic intervals (lrr.segs)")
-		}
-		fD <- fD[match(names(indexList), as.character(chromsInFD))]
-		if(length(fD) != length(indexList)){
-			stop("The list of GenomeAnnotatedDataFrames (argument fD) must be the same length as the number of chromosomes represented in the minimum distange genomic intervals (object)")
-		}
-		if(verbose)  pb <- txtProgressBar(min=0, max=length(indexList), style=3)
-		segList <- vector("list", length(indexList))
-		pkgs <- neededPkgs()
-		j <- k <- NULL
-		segList <- foreach(j=indexList, k=indexList2, featureData=fD, .packages=pkgs) %dopar%{
-                  narrowRangeForChromosome(object[j, ],
-                                           lrr.segs[k, ],
-                                           thr=thr,
-                                           verbose=FALSE,
-                                           fD=featureData)
-		}
-		if(verbose) close(pb)
-		segs <- unlist(GRangesList(segList))
-	} else {
-		if(is(fD, "list")) {
-			chroms <- paste("chr", sapply(fD, function(x) chromosome(x)[1]), sep="")
-			fD <- fD[[match(as.character(chromosome(object))[1], chroms)]]
-			chr <- as.character(chromosome(object)[1])
-			if(paste("chr", chromosome(fD)[1], sep="") != chr) stop("The supplied GenomeAnnotatedDataFrame (fD) does not have the same chromosome as object")
-		}
-		segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose, fD=fD)
-	}
-	metadata(segs) <- metadata(lrr.segs)
-	return(segs)
+  if(missing(fD)) stop("fD not specified. fD must be a list of GenomeAnnotatedDataFrames (if multiple chromosomes are in 'object'), or a single GenomeAnnotatedDataFrame (one chromosome represented in 'object')")
+  if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
+  if(!missing(genome)) metadata(lrr.segs) <- list(genome=genome)
+  ix <- match(sampleNames(object), names(mad.minimumdistance))
+  elementMetadata(object)$mindist.mad <- mad.minimumdistance[ix]
+  lrr.segs <- lrr.segs[sampleNames(lrr.segs) %in% sampleNames(object), ]
+  if(length(unique(chromosome(object))) > 1){
+    if(verbose)
+      message("narrowing the ranges by chromosome")
+    if(!is(fD, "list")) stop("when object contains multiple chromosomes, fD should be a list of GenomeAnnotatedDataFrames")
+    chromsInFD <- paste("chr", sapply(fD, function(x) chromosome(x)[1]), sep="")
+    indexList <- split(seq_len(length(object)), as.character(chromosome(object)))
+    indexList2 <- split(seq_len(length(lrr.segs)), as.character(chromosome(lrr.segs)))
+    if(!all.equal(names(indexList), names(indexList2))){
+      stop("the chromosomes represented in the minimum distance genomic intervals (object) must be the same as the chromosomes represented in the offspring genomic intervals (lrr.segs)")
+    }
+    fD <- fD[match(names(indexList), as.character(chromsInFD))]
+    if(length(fD) != length(indexList)){
+      stop("The list of GenomeAnnotatedDataFrames (argument fD) must be the same length as the number of chromosomes represented in the minimum distange genomic intervals (object)")
+    }
+    if(verbose)  pb <- txtProgressBar(min=0, max=length(indexList), style=3)
+    segList <- vector("list", length(indexList))
+    pkgs <- neededPkgs()
+    j <- k <- NULL
+    segList <- foreach(j=indexList, k=indexList2, featureData=fD, .packages=pkgs) %dopar%{
+      narrowRangeForChromosome(object[j, ],
+                               lrr.segs[k, ],
+                               thr=thr,
+                               verbose=FALSE,
+                               fD=featureData)
+    }
+    if(verbose) close(pb)
+    segs <- unlist(GRangesList(segList))
+  } else {
+    if(is(fD, "list")) {
+      chroms <- paste("chr", sapply(fD, function(x) chromosome(x)[1]), sep="")
+      fD <- fD[[match(as.character(chromosome(object))[1], chroms)]]
+      chr <- as.character(chromosome(object)[1])
+      if(paste("chr", chromosome(fD)[1], sep="") != chr) stop("The supplied GenomeAnnotatedDataFrame (fD) does not have the same chromosome as object")
+    }
+    segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose, fD=fD)
+  }
+  metadata(segs) <- metadata(lrr.segs)
+  return(segs)
 }
 
 
 narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, fD){
-	md.range <- md.range[order(sampleNames(md.range), start(md.range)), ]
-	mads <- pmax(values(md.range)$mindist.mad, .1)
-	abs.thr <- abs(values(md.range)$seg.mean)/mads
-	md.range2 <- md.range[abs.thr > thr, ]
-	if(length(md.range2) < 1){
-		return(md.range)
-	}
-	cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs)), ]
-	o <- findOverlaps(md.range2, cbs.segs)
-	j <- subjectHits(o)
-	## only consider the cbs segments that have an overlap
-	if(!is.na(match("sample", colnames(cbs.segs)))) cbs.segs <- cbs.segs[, -match("sample", colnames(cbs.segs))]
-	offspring.segs <- cbs.segs[j, ]
-	sns <- unique(sampleNames(md.range2))
-	chr <- chromosome(md.range)[1]
-	rdlist <- list()
-	for(j in seq_along(sns)){
-		md <- md.range2[sampleNames(md.range2) == sns[j], ]
-		of <- offspring.segs[sampleNames(offspring.segs)==sns[j], ]
-		md.mad <- values(md)$mindist.mad
-		md <- md[, match(colnames(values(of)), colnames(values(md)))]
-		## stack the ranges of the minimum distance segments and the offspring segments
-		un <- stackRangedDataList(list(md, of))
-		## find the disjoint ranges
-		disj <- disjoin(un)
-		o <- findOverlaps(md, disj)
-		## which minimumdistance intervals are spanned by a disjoint interval
-		r <- subjectHits(o)
-		s <- queryHits(o)
-		## only keep the disjoint intervals for which a minimum distance segment is overlapping
-		##  (filters intervals that have a minimum distance of approx. zero)
-		disj <- disj[r, ]
-		elementMetadata(disj)$sample <- sampleNames(md)[s]
-		elementMetadata(disj)$numberProbes <- 0L ## update later
-		elementMetadata(disj)$seg.mean <- values(md)$seg.mean[s]
-		elementMetadata(disj)$mindist.mad <- md.mad[s]
-		rdlist[[j]] <- disj
-	}
-	rd <- unlist(GRangesList(rdlist))
-	metadata(rd) <- metadata(md.range)
-	frange <- makeFeatureGRanges(fD, metadata(rd)[["genome"]])
-	cnt <- countOverlaps(rd, frange)
-	elementMetadata(rd)$numberProbes <- cnt
-	rd <- rd[numberProbes(rd) > 0L, ]
-	mrd <- md.range[abs.thr <= thr, ]
-	mrd <- mrd[, match(colnames(values(rd)), colnames(values(mrd)))]
-	rd2 <- c(rd, mrd)
-	rd2 <- rd2[order(sampleNames(rd2), start(rd2)), ]
-	return(rd2)
+  md.range <- md.range[order(sampleNames(md.range), start(md.range)), ]
+  mads <- pmax(values(md.range)$mindist.mad, .1)
+  abs.thr <- abs(values(md.range)$seg.mean)/mads
+  md.range2 <- md.range[abs.thr > thr, ]
+  if(length(md.range2) < 1) return(md.range)
+
+  cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs)), ]
+  o <- findOverlaps(md.range2, cbs.segs)
+  j <- subjectHits(o)
+  ## only consider the cbs segments that have an overlap
+  if(!is.na(match("sample", colnames(cbs.segs)))) cbs.segs <- cbs.segs[, -match("sample", colnames(cbs.segs))]
+  offspring.segs <- cbs.segs[j, ]
+  sns <- unique(sampleNames(md.range2))
+  chr <- chromosome(md.range)[1]
+  rdlist <- list()
+  for(j in seq_along(sns)){
+    md <- md.range2[sampleNames(md.range2) == sns[j], ]
+    of <- offspring.segs[sampleNames(offspring.segs)==sns[j], ]
+    md.mad <- values(md)$mindist.mad
+    md <- md[, match(colnames(values(of)), colnames(values(md)))]
+    ## stack the ranges of the minimum distance segments and the offspring segments
+    un <- stackRangedDataList(list(md, of))
+    ## find the disjoint ranges
+    disj <- disjoin(un)
+    o <- findOverlaps(md, disj)
+    ## which minimumdistance intervals are spanned by a disjoint interval
+    r <- subjectHits(o)
+    s <- queryHits(o)
+    ## only keep the disjoint intervals for which a minimum distance segment is overlapping
+    ##  (filters intervals that have a minimum distance of approx. zero)
+    disj <- disj[r, ]
+    elementMetadata(disj)$sample <- sampleNames(md)[s]
+    elementMetadata(disj)$numberProbes <- 0L ## update later
+    elementMetadata(disj)$seg.mean <- values(md)$seg.mean[s]
+    elementMetadata(disj)$mindist.mad <- md.mad[s]
+    rdlist[[j]] <- disj
+  }
+  rd <- unlist(GRangesList(rdlist))
+  metadata(rd) <- metadata(md.range)
+  frange <- makeFeatureGRanges(fD, metadata(rd)[["genome"]])
+  cnt <- countOverlaps(rd, frange)
+  elementMetadata(rd)$numberProbes <- cnt
+  rd <- rd[numberProbes(rd) > 0L, ]
+  mrd <- md.range[abs.thr <= thr, ]
+  mrd <- mrd[, match(colnames(values(rd)), colnames(values(mrd)))]
+  rd2 <- c(rd, mrd)
+  rd2 <- rd2[order(sampleNames(rd2), start(rd2)), ]
+  return(rd2)
 }
 
 
@@ -1157,6 +1157,7 @@ stackListByColIndex <- function(object, i, j){
 	return(X)
 }
 
+
 callDenovoSegments <- function(path="",
 			       pedigreeData,
 			       ext="",
@@ -1172,14 +1173,16 @@ callDenovoSegments <- function(path="",
   if(!is(pedigreeData, "Pedigree")) stop("pedigreeData must be an object of class Pedigree")
   filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
   ##obj <- read.bsfiles(filenames=filenames, path="", ext="")
-  keep <- c("SNP.Name", "Allele1...AB", "Allele2...AB",
-            "Log.R.Ratio", "B.Allele.Freq")
-  labels <- setNames(c("Allele1", "Allele2", "LRR", "BAF"), keep[-1])
-  classes <- c(rep("character", 3), rep("numeric", 2))
-  header_info <- headerInfo(file, skip=10, sep=",",
-                            keep=keep, labels=labels,
-                            classes=classes)
-  obj <- read_beadstudio(filenames=filenames)
+  headers <- names(read.bsfiles(filenames[1], nrows=0))
+  select <- match(c("SNP Name", "Allele1 - AB", "Allele2 - AB",
+                    "Log R Ratio", "B Allele Freq"), headers)
+##  ##labels <- setNames(c("Allele1", "Allele2", "LRR", "BAF"), keep[-1])
+##  classes <- c(rep("character", 3), rep("numeric", 2))
+##  header_info <- VanillaICE:::headerInfo(filenames[1], skip=10, sep=",",
+##                                         keep=keep, labels=labels,
+##                                         classes=classes)
+##  obj <- read_beadstudio(filenames=filenames)
+  obj <- read.bsfiles(filenames, select=select)
   if(missing(featureData)){
     trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
                                baf=integerMatrix(obj[, "baf",], 1000),
@@ -1514,7 +1517,7 @@ trioSet2data.frame <- function(from){
 	return(df)
 }
 
-loglik <- function(emit, ranges, pr.nonmendelian,
+loglik2 <- function(emit, ranges, pr.nonmendelian,
 		   overlapFun){
 	lemit <- log(emit)
 	trio.states <- trioStates(0:4)

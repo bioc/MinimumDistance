@@ -5,6 +5,7 @@ test_callDenovoSegments <- function(){
   fnames <- list.files(path, pattern=".txt")
   ped <- Pedigree(fatherIds=fnames[1], motherIds=fnames[2],
                   offspringIds=fnames[3])
+  trace(callDenovoSegments, browser)
   map.segs <- callDenovoSegments(path=path,
                                  ext="",
                                  pedigreeData=ped,

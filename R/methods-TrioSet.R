@@ -667,6 +667,18 @@ setMethod("gcSubtract", signature(object="TrioSet"),
 ##	return(gcbins)
 ##}
 
+setMethod(MAP, c("SnpArrayExperiment", "GRanges"), function(object,
+                                                            ranges,
+                                                            transition_param=TransitionParam(),
+                                                            emission_param=EmissionParam(),
+                                                            mdThr=0.9, ...){
+  .map_snpexp(object=object,
+              ranges=ranges,
+              transition_param=transition_param,
+              emission_param=emission_param,
+              mdThr=mdThr,...)
+})
+
 #' @importMethodsFrom VanillaICE TransitionParam EmissionParam
 setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 						 ranges,
@@ -682,6 +694,63 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 		     mdThr=mdThr,...)
 })
 
+.emission_one_sample <- function(object){
+  browser()
+  if(ncol(object) > 1) stop()
+  obj <- NA_filter(object)
+  r <- drop(lrr(obj))
+  b <- drop(baf(obj))
+  e_param <- EmissionParam()
+  rb <- list(r, b)
+  emissions <- calculateEmission(rb, e_param)
+  t_param <- TransitionParam(taup=1e10, taumax=1)
+  transition_prob <- calculateTransitionProbability(obj, t_param)
+  hmm_param<- HmmParam(emission=emissions, transition=transition_prob)
+  LL <- rep(NA, 10)
+  delta <- 1
+  i <- 1
+  while(delta > 0.05){
+    fit <- viterbi(hmm_param)
+    LL[i] <- loglik(fit)
+    e_param <- updateParam(rb, e_param, fit)
+    emission(hmm_param) <- calculateEmission(rb, e_param)
+    if(i > 1) delta <- LL[i]-LL[i-1]
+    if(i == 10) break()
+    i <- i+1
+  }
+  emission
+}
+
+updateEmission <- function(object){
+  object <- NA_filter(object)
+  emitF <- .emission_one_sample(object[, 1])
+  emitM <- .emission_one_sample(object[, 2])
+  emitO <- .emission_one_sample(object[, 3])
+}
+
+.map_snpexp <- function(object,
+			 ranges,
+                         transition_param,
+                         emission_param,
+			 mdThr=0.9,...){
+  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+  build <- genome(object)[1]
+  ranges <- ranges[ranges$sample %in% colnames(se)]
+  mads <- pmax(ranges$mindist.mad, .1)
+  ranges$exceeds.md.thr <- abs(ranges$seg.mean/mads) > mdThr
+  fit <- hmm2(se) ## A GRangesList
+  granges <- sort(granges)
+  emit <- updateEmission(object)
+  ranges <- loglik2(emit=emit,
+                    ranges=granges,
+                    pr.nonmendelian=pr.nonmendelian,
+                    overlapFun=overlapFun)
+  chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
+  ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
+  ranges
+  results <- unlist(GRangesList(results))
+  metadata(results) <- metadata(ranges)
+}
 
 .map_trioSet <- function(object,
 			 ranges,
@@ -692,10 +761,11 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
   browser()
   se <- as(object, "SnpArrayExperiment")
   pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
-  build <- genomeBuild(object)
+  ##build <- genomeBuild(object)
+  build <- genome(object)[1]
   ranges <- ranges[ranges$sample %in% colnames(se)]
-  chrom.ranges <- unique(chromosome(ranges))
-  seqlevels(ranges, force=TRUE) <- chrom.ranges
+  ##chrom.ranges <- unique(chromosome(ranges))
+  ##seqlevels(ranges, force=TRUE) <- chrom.ranges
   ##id <- trios(pedigree(object))[1, ]
   ##object <- object[, match(unique(sampleNames(ranges)), id)]
   ##chrom.object <- paste0("chr", chromosome(object))
@@ -710,7 +780,7 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 ##    abs.thr <- rep(TRUE, length(ranges))
 ##  }
   ## Assume mindist.mad is always in mcols.
-  mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
+  mads <- pmax(ranges$mindist.mad, .1)
   ranges$exceeds.md.thr <- abs(ranges$seg.mean/mads) > mdThr
   ##ocSamples(1) ## has to be 1. This will process 3 samples per alotted CPU
   ##chunks <- splitIndicesByLength(index.trios, ocSamples())
@@ -736,12 +806,11 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 ##                                anyNP=anyNP,
 ##                                ped=pedigree(object))
 ##  overlapFun <- generatorOverlapFeatures(feature.granges)
-  grl <- split(ranges, sampleNames(ranges))
+  grl <- split(ranges, ranges$sample)
   ##offsrping is the 3rd index
   grl <- grl[match(colnames(se)[3], names(grl))]
-  fit <- hmm2(se,
-              emisson_param=emission_param,
-              transition_param=transition_param)
+
+  fit <- hmm2(se) ## A GRangesList
 ##
 ##  rm(pos, chr, b, r); gc()
 ##  i <- NULL
@@ -756,10 +825,10 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 ##                            matrixFun=matrixFun,
 ##                            returnEmission=TRUE, ...)
     granges <- sort(granges)
-    ranges <- loglik(emit=emit,
-                     ranges=granges,
-                     pr.nonmendelian=pr.nonmendelian,
-                     overlapFun=overlapFun)
+    ranges <- loglik2(emit=emit,
+                      ranges=granges,
+                      pr.nonmendelian=pr.nonmendelian,
+                      overlapFun=overlapFun)
     chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
     ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
     ranges
