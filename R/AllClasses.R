@@ -20,6 +20,9 @@ setClass("Pedigree", representation(trios="data.frame",
 ###~~~~ TrioSet Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' @rdname TrioSet-class
+#' @docType class
+#' @title TrioSet-class and methods
+#' @importClassesFrom oligoClasses gSet
 #' @export
 setClass("TrioSet", contains="gSet",
 	 representation(fatherPhenoData="AnnotatedDataFrame",
@@ -30,6 +33,7 @@ setClass("TrioSet", contains="gSet",
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~ TrioSetList Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' @importClassesFrom oligoClasses gSetList
 #' @export
 setClass("TrioSetList", contains="gSetList",
 	 representation(pedigree="Pedigree",
@@ -39,7 +43,8 @@ setClass("TrioSetList", contains="gSetList",
 setClass("Pedigree2", contains="DataFrame")
 
 
-#' @importClassesFrom VanillaICE SnpArrayExperiment SnpGRanges
+
+#' @importClassesFrom VanillaICE SnpArrayExperiment
 #' @export
 setClass("TrioExperiment",
          representation(pedigree="Pedigree"),

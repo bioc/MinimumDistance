@@ -19,7 +19,6 @@ setMethod("annotatedDataFrameFrom", signature(object="ff_array"),
 setMethod("annotatedDataFrameFrom", signature(object="array"),
           annotatedDataFrameFromArray)
 
-
 setMethod("GenomeAnnotatedDataFrameFrom", signature(object="character"),
 	  function(object, annotationPkg, genome, ...){
 		  ##check if object is a file

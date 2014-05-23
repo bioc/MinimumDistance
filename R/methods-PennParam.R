@@ -31,6 +31,15 @@ PennParam <- function(states, referenceState="222", prLessLikelyCN=0.0009,
       minimum_emission=minimum_emission)
 }
 
+setValidity("PennParam", function(object){
+  msg <- TRUE
+  x <- state(object)
+  if(nrow(x) != 121){
+    return("There should be 121 trio states")
+  }
+  msg
+})
+
 .initialStateProbs <- function(nstates, normal.index=3, epsilon=0.01){
   initial.state.probs <- rep(epsilon/(nstates-1), nstates)
   initial.state.probs[normal.index] <- 1-epsilon

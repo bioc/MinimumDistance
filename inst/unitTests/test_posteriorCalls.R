@@ -3,7 +3,6 @@ test_pennParam <- function(){
 }
 test_pipeline <- function(){
   library(oligoClasses)
-##  library(GenomicRanges)
   library(foreach)
   foreach::registerDoSEQ()
   data(trioSetListExample)
@@ -14,7 +13,6 @@ test_pipeline <- function(){
     md.segs <- segment2(trioSetList, md=md, verbose=0)
     saveRDS(md.segs, file=file.path(path, "md_segs.rds"))
   } else md.segs <- readRDS(file.path(path, "md_segs.rds"))
-  metadata(md.segs)
   if(FALSE){
     lrr.segs <- segment2(trioSetList, segmentParents=TRUE, verbose=0)
     saveRDS(lrr.segs, file=file.path(path,"lrr_segs.rds"))
@@ -29,7 +27,7 @@ test_pipeline <- function(){
   rownames(se) <- featureNames(trioSet)
   genome(se) <- "hg19"
   ##  library(devtools)
-  load_all("~/Software/bridge/VanillaICE")
+  ##load_all("~/Software/bridge/VanillaICE")
   ##trace(computeEmissionProbs, browser)
   E <- computeEmissionProbs(se)
   param <- PennParam()

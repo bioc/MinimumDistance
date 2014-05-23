@@ -589,10 +589,10 @@ setAs("TrioSet", "data.frame",
 	      return(df)
       })
 
-setMethod("order", signature(...="TrioSet"),
-	  function(..., na.last=TRUE,decreasing=FALSE){
-		  x <- list(...)[[1]]
-		  chromosomePositionOrder(x)
+setMethod("order", "TrioSet", ##signature(...="TrioSet"),
+	  function(..., na.last=TRUE, decreasing=FALSE){
+            x <- list(...)[[1]]
+            chromosomePositionOrder(x)
 	  })
 
 
@@ -685,34 +685,7 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 		     mdThr=mdThr,...)
 })
 
-.emission_one_sample <- function(object){
-  if(ncol(object) > 1) stop()
-  obj <- NA_filter(object)
-  r <- drop(lrr(obj))
-  b <- drop(baf(obj))
-  e_param <- EmissionParam()
-  rb <- list(r, b)
-  emissions <- calculateEmission(rb, e_param)
-  t_param <- TransitionParam(taup=1e10, taumax=1)
-  transition_prob <- calculateTransitionProbability(obj, t_param)
-  hmm_param<- HmmParam(emission=emissions, transition=transition_prob)
-  LL <- rep(NA, 10)
-  delta <- 1
-  i <- 1
-  while(delta > 0.05){
-    fit <- viterbi(hmm_param)
-    LL[i] <- loglik(fit)
-    e_param <- updateParam(rb, e_param, fit)
-    emission(hmm_param) <- calculateEmission(rb, e_param)
-    if(i > 1) delta <- LL[i]-LL[i-1]
-    if(i == 10) {
-      warning("Log lik ratio never less than 0.05")
-      break()
-    }
-    i <- i+1
-  }
-  emission(hmm_param)
-}
+
 
 .map_trioSet <- function(object,
 			 ranges,

@@ -2,4 +2,8 @@
 \docType{class}
 \name{TrioSet-class}
 \alias{TrioSet-class}
+\title{TrioSet-class and methods}
+\description{
+TrioSet-class and methods
+}
 
