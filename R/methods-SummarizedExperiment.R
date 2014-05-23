@@ -43,37 +43,20 @@ computeEmissionProbs <- function(object){
 }
 
 .map_snpexp <- function(object,
-			 ranges,
-                         transition_param,
-                         emission_param,
-			 mdThr=0.9,...){
-  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
-  build <- genome(object)[1]
-  mads <- pmax(ranges$mindist.mad, .1)
-  ranges$exceeds.md.thr <- abs(ranges$seg.mean/mads) > mdThr
-  ##fit <- hmm2(se) ## A GRangesList
-  emitlist <- updateEmission(object)
-  browser()
-  granges <- sort(ranges)
-  ranges <- loglik2(emit=emit,
-                    ranges=granges,
-                    pr.nonmendelian=pr.nonmendelian,
-                    overlapFun=overlapFun)
-  chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
-  ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
+                        ranges,
+                        param){
+  ranges <- ranges[ranges$sample %in% colnames(object)[3]]
+  object2 <- computeEmissionProbs(object)
+  ranges <- compute_loglik(object2,
+                           ranges,
+                           param)
   ranges
-  results <- unlist(GRangesList(results))
-  metadata(results) <- metadata(ranges)
 }
 
-setMethod(MAP, c("SnpArrayExperiment", "GRanges"), function(object,
-                                                            ranges,
-                                                            transition_param=TransitionParam(),
-                                                            emission_param=EmissionParam(),
-                                                            mdThr=0.9, ...){
-  .map_snpexp(object=object,
-              ranges=ranges,
-              transition_param=transition_param,
-              emission_param=emission_param,
-              mdThr=mdThr,...)
+setGeneric("MAP2", function(object, md_ranges, param, ...) standardGeneric("MAP2"))
+setMethod(MAP2, c("SnpArrayExperiment", "GRanges"),
+          function(object,
+                   md_ranges,
+                   param, ...){
+            .map_snpexp(object=object, ranges=md_ranges, param,...)
 })

@@ -1,7 +1,9 @@
 test_pennParam <- function(){
   penn <- PennParam()
+  checkTrue(validObject(penn))
 }
-test_pipeline <- function(){
+
+test_MAP2 <- function(){
   library(oligoClasses)
   library(foreach)
   foreach::registerDoSEQ()
@@ -17,11 +19,12 @@ test_pipeline <- function(){
     lrr.segs <- segment2(trioSetList, segmentParents=TRUE, verbose=0)
     saveRDS(lrr.segs, file=file.path(path,"lrr_segs.rds"))
   } else lrr.segs <- readRDS(file.path(path, "lrr_segs.rds"))
-  metadata(lrr.segs)
+  ##metadata(lrr.segs)
   mads.md <- mad2(md, byrow=FALSE)
-  md.segs2 <- narrowRanges(md.segs, lrr.segs, thr=0.75,
-                           mad.minimumdistance=mads.md,
-                           fD=featureData(trioSetList))
+  ##trace(narrowRanges, browser)
+  md.segs2 <- sort(narrowRanges(md.segs, lrr.segs, thr=0.75,
+                                mad.minimumdistance=mads.md,
+                                fD=featureData(trioSetList)))
   trioSet <- stack(trioSetList)
   se <- as(trioSet, "SnpArrayExperiment")
   rownames(se) <- featureNames(trioSet)
@@ -29,35 +32,20 @@ test_pipeline <- function(){
   ##  library(devtools)
   ##load_all("~/Software/bridge/VanillaICE")
   ##trace(computeEmissionProbs, browser)
-  E <- computeEmissionProbs(se)
-  param <- PennParam()
-  checkException(compute_loglik(E, md_ranges=md.segs2, param=penn))
-  md_ranges <- md.segs2[md.segs2$sample %in% colnames(se)[3]]
-  df.loglik <- compute_loglik(E, md_ranges=md_ranges, param=param)
-
-
-  fit <- hmm2(se)
-  load_all("../..")
-  MAP(se, md.segs2)
-
-  ##
-  ## 1. Make MAP work with new VI interface by coercing TrioSet to a SnpArrayExperiment
-  ## 2. Repeat for TrioSetList
-  ## 3. Replace TrioSets with TrioExperiment classes
-  ## 4. Deprecate old classes
-  ## map.segs <- MAP(trioSet, md.segs2)
-
-
-  ##
-  ## coerce to SnpArrayExperiment
-  ##
-  library(VanillaICE)
-  trioSet <- stack(trioSetList)
-
-  ped <- pedigree(trioSet)
-
-  library(VanillaICE)
-  fit <- hmm2(se)
+##  E <- computeEmissionProbs(se)
+##  param <- PennParam()
+##  checkException(compute_loglik(E, md_ranges=md.segs2, param=penn))
+##  md_ranges <- sort(md.segs2[md.segs2$sample %in% colnames(se)[3]])
+##  untrace(compute_loglik, browser)
+##  md_ranges <- compute_loglik(E, md_ranges=md_ranges, param=param)
+  md_ranges <- MAP2(se, md.segs2, param)
+##
+##  ##
+##  ## 1. Make MAP work with new VI interface by coercing TrioSet to a SnpArrayExperiment
+##  ## 2. Repeat for TrioSetList
+##  ## 3. Replace TrioSets with TrioExperiment classes
+##  ## 4. Deprecate old classes
+##  ## map.segs <- MAP(trioSet, md.segs2)
 }
 
 test_posteriorCalls <- function(){

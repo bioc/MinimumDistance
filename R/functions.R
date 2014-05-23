@@ -830,8 +830,8 @@ narrow <- function(object, lrr.segs, thr=0.9,
 		   fD, genome) .Defunct("The 'narrow' function is defunct in MinimumDistance. Use narrowRanges instead.")
 
 narrowRanges <- function(object, lrr.segs, thr=0.9,
-		   mad.minimumdistance, verbose=TRUE,
-		   fD, genome){
+                         mad.minimumdistance, verbose=TRUE,
+                         fD, genome){
   if(missing(fD)) stop("fD not specified. fD must be a list of GenomeAnnotatedDataFrames (if multiple chromosomes are in 'object'), or a single GenomeAnnotatedDataFrame (one chromosome represented in 'object')")
   if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
   if(!missing(genome)) metadata(lrr.segs) <- list(genome=genome)
@@ -880,26 +880,26 @@ narrowRanges <- function(object, lrr.segs, thr=0.9,
 
 
 narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, fD){
-  md.range <- md.range[order(sampleNames(md.range), start(md.range)), ]
-  mads <- pmax(values(md.range)$mindist.mad, .1)
-  abs.thr <- abs(values(md.range)$seg.mean)/mads
-  md.range2 <- md.range[abs.thr > thr, ]
+  md.range <- md.range[order(md.range$sample, start(md.range))]
+  mads <- pmax(md.range$mindist.mad, .1)
+  abs.thr <- abs(md.range$seg.mean)/mads
+  md.range2 <- md.range[abs.thr > thr]
   if(length(md.range2) < 1) return(md.range)
 
-  cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs)), ]
+  cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs))]
   o <- findOverlaps(md.range2, cbs.segs)
   j <- subjectHits(o)
   ## only consider the cbs segments that have an overlap
-  if(!is.na(match("sample", colnames(cbs.segs)))) cbs.segs <- cbs.segs[, -match("sample", colnames(cbs.segs))]
-  offspring.segs <- cbs.segs[j, ]
+  if(!is.na(match("sample", colnames(cbs.segs)))) cbs.segs <- cbs.segs[-match("sample", colnames(cbs.segs))]
+  offspring.segs <- cbs.segs[j]
   sns <- unique(sampleNames(md.range2))
   chr <- chromosome(md.range)[1]
   rdlist <- list()
   for(j in seq_along(sns)){
-    md <- md.range2[sampleNames(md.range2) == sns[j], ]
-    of <- offspring.segs[sampleNames(offspring.segs)==sns[j], ]
-    md.mad <- values(md)$mindist.mad
-    md <- md[, match(colnames(values(of)), colnames(values(md)))]
+    md <- md.range2[md.range2$sample == sns[j]]
+    of <- offspring.segs[offspring.segs$sample==sns[j]]
+    md.mad <- md$mindist.mad
+    mcols(md) <- mcols(md)[, match(colnames(mcols(of)), colnames(mcols(md)))]
     ## stack the ranges of the minimum distance segments and the offspring segments
     un <- unlist(GRangesList(list(md, of)))
     ## find the disjoint ranges
@@ -911,22 +911,22 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, 
     ## only keep the disjoint intervals for which a minimum distance segment is overlapping
     ##  (filters intervals that have a minimum distance of approx. zero)
     disj <- disj[r, ]
-    elementMetadata(disj)$sample <- sampleNames(md)[s]
-    elementMetadata(disj)$numberProbes <- 0L ## update later
-    elementMetadata(disj)$seg.mean <- values(md)$seg.mean[s]
-    elementMetadata(disj)$mindist.mad <- md.mad[s]
+    disj$sample <- md$sample[s]
+    disj$numberProbes <- 0L ## update later
+    disj$seg.mean <- md$seg.mean[s]
+    disj$mindist.mad <- md.mad[s]
     rdlist[[j]] <- disj
   }
   rd <- unlist(GRangesList(rdlist))
   metadata(rd) <- metadata(md.range)
   frange <- makeFeatureGRanges(fD, metadata(rd)[["genome"]])
   cnt <- countOverlaps(rd, frange)
-  elementMetadata(rd)$numberProbes <- cnt
-  rd <- rd[numberProbes(rd) > 0L, ]
-  mrd <- md.range[abs.thr <= thr, ]
-  mrd <- mrd[, match(colnames(values(rd)), colnames(values(mrd)))]
+  rd$numberProbes <- cnt
+  rd <- rd[numberProbes(rd) > 0L]
+  mrd <- md.range[abs.thr <= thr]
+  mcols(mrd) <- mcols(mrd)[, match(colnames(mcols(rd)), colnames(mcols(mrd)))]
   rd2 <- c(rd, mrd)
-  rd2 <- rd2[order(sampleNames(rd2), start(rd2)), ]
+  rd2 <- rd2[order(rd2$sample, start(rd2))]
   return(rd2)
 }
 
@@ -1533,7 +1533,8 @@ statesToEvaluate <- function(param, above_thr){
 
 compute_loglik <- function(object, md_ranges, param){##, pr.nonmendelian,
   ##denovo.prev <- NULL
-  g <- sort(md_ranges[numberProbes(md_ranges) > 2])
+  ##g <- sort(md_ranges[numberProbes(md_ranges) > 2])
+  g <- sort(md_ranges)
   uid <- unique(md_ranges$sample)
   if(length(uid) > 1) stop("md_ranges should contain only the offspring segments")
   hits <- findOverlaps(g, rowData(object))
@@ -1564,7 +1565,8 @@ compute_loglik <- function(object, md_ranges, param){##, pr.nonmendelian,
   }
   results$call[!above_thr] <- NA
   results$LLR <- round(results$loglik-results$reference, 2)
-  results
+  mcols(g) <- cbind(mcols(g), results)
+  g
 }
 
 setSequenceLengths <- function(build, names){ ## names are unique(seqnames(object))
