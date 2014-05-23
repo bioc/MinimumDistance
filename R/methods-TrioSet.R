@@ -499,15 +499,17 @@ setMethod("motherNames", signature(object="TrioSet"), function(object){
 ##	return(tmp)
 ##}
 
-setMethod("xyplot", signature(x="formula", data="TrioSet"),
-	  function(x, data, ...){
-		  if("range" %in% names(list(...))){
-			  ##xyplotTrioSet(x, data, ...)
-			  res <- xyplot2(x, data, ...)
-		  } else {
-			  callNextMethod()
-		  }
-	  })
+
+
+# #' @importFrom lattice xyplot
+# setMethod("xyplot", signature(x="formula", data="TrioSet"),
+# 	  function(x, data, ...){
+#             if("range" %in% names(list(...))){
+#               res <- xyplot2(x, data, ...)
+#             } else {
+#               callNextMethod()
+#             }
+# 	  })
 
 setMethod("trioplot", signature(formula="formula", object="TrioSet", range="RangedDataCNV"),
 	  function(formula, object, range, ...){
@@ -667,17 +669,6 @@ setMethod("gcSubtract", signature(object="TrioSet"),
 ##	return(gcbins)
 ##}
 
-setMethod(MAP, c("SnpArrayExperiment", "GRanges"), function(object,
-                                                            ranges,
-                                                            transition_param=TransitionParam(),
-                                                            emission_param=EmissionParam(),
-                                                            mdThr=0.9, ...){
-  .map_snpexp(object=object,
-              ranges=ranges,
-              transition_param=transition_param,
-              emission_param=emission_param,
-              mdThr=mdThr,...)
-})
 
 #' @importMethodsFrom VanillaICE TransitionParam EmissionParam
 setMethod(MAP, c("TrioSet", "GRanges"), function(object,
@@ -695,7 +686,6 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 })
 
 .emission_one_sample <- function(object){
-  browser()
   if(ncol(object) > 1) stop()
   obj <- NA_filter(object)
   r <- drop(lrr(obj))
@@ -715,41 +705,13 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
     e_param <- updateParam(rb, e_param, fit)
     emission(hmm_param) <- calculateEmission(rb, e_param)
     if(i > 1) delta <- LL[i]-LL[i-1]
-    if(i == 10) break()
+    if(i == 10) {
+      warning("Log lik ratio never less than 0.05")
+      break()
+    }
     i <- i+1
   }
-  emission
-}
-
-updateEmission <- function(object){
-  object <- NA_filter(object)
-  emitF <- .emission_one_sample(object[, 1])
-  emitM <- .emission_one_sample(object[, 2])
-  emitO <- .emission_one_sample(object[, 3])
-}
-
-.map_snpexp <- function(object,
-			 ranges,
-                         transition_param,
-                         emission_param,
-			 mdThr=0.9,...){
-  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
-  build <- genome(object)[1]
-  ranges <- ranges[ranges$sample %in% colnames(se)]
-  mads <- pmax(ranges$mindist.mad, .1)
-  ranges$exceeds.md.thr <- abs(ranges$seg.mean/mads) > mdThr
-  fit <- hmm2(se) ## A GRangesList
-  granges <- sort(granges)
-  emit <- updateEmission(object)
-  ranges <- loglik2(emit=emit,
-                    ranges=granges,
-                    pr.nonmendelian=pr.nonmendelian,
-                    overlapFun=overlapFun)
-  chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
-  ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
-  ranges
-  results <- unlist(GRangesList(results))
-  metadata(results) <- metadata(ranges)
+  emission(hmm_param)
 }
 
 .map_trioSet <- function(object,
@@ -838,8 +800,8 @@ updateEmission <- function(object){
   return(results)
 }
 
-
-#' @export
+## how to you export a coercion from TrioSet to SnpArrayExperiment?
+##  export
 setAs("TrioSet", "SnpArrayExperiment", function(from, to){
   ped <- pedigree(from)
   cn <- lrr(from)[, 1, ]/100

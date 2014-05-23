@@ -1,12 +1,16 @@
+#' @include help.R
+NULL
+
 setOldClass("ff_array")
 setOldClass("ff_matrix")
-##setClass("LogRratioSet", contains="eSet")
 setClassUnion("matrixOrNULL", c("matrix", "NULL"))
 setClassUnion("arrayORff_array", c("array", "ff_array"))
+
 ##
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~ Pedigree Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' @export
 setClass("Pedigree", representation(trios="data.frame",
 				    trioIndex="data.frame"))
 
@@ -15,6 +19,8 @@ setClass("Pedigree", representation(trios="data.frame",
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~ TrioSet Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' @rdname TrioSet-class
+#' @export
 setClass("TrioSet", contains="gSet",
 	 representation(fatherPhenoData="AnnotatedDataFrame",
 			motherPhenoData="AnnotatedDataFrame",
@@ -24,6 +30,7 @@ setClass("TrioSet", contains="gSet",
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~ TrioSetList Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' @export
 setClass("TrioSetList", contains="gSetList",
 	 representation(pedigree="Pedigree",
 			fatherPhenoData="AnnotatedDataFrame",
@@ -33,6 +40,7 @@ setClass("Pedigree2", contains="DataFrame")
 
 
 #' @importClassesFrom VanillaICE SnpArrayExperiment SnpGRanges
+#' @export
 setClass("TrioExperiment",
          representation(pedigree="Pedigree"),
          contains="SnpArrayExperiment")
@@ -49,3 +57,20 @@ setMethod("initialize", "TrioExperiment", function(.Object, ..., pedigree=Pedigr
 TrioExperiment <- function(..., pedigree=Pedigree()){
   new("TrioExperiment", ..., pedigree=pedigree)
 }
+
+
+## HmmTrioParam
+setClass("PennParam", representation(transitionProb="matrix",
+                                     initialStateProb="numeric",
+                                     table1="numeric",
+                                     table3="array",
+                                     states="matrix",
+                                     names="character",
+                                     referenceState="character",
+                                     prNonMendelian="numeric",
+                                     minimum_distance_threshold="numeric",
+                                     minimum_MAD="numeric",
+                                     minimum_emission="numeric"))
+
+## MDParam
+##setClass("MDParam", representation(

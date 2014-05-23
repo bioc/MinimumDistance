@@ -1,6 +1,10 @@
+test_pennParam <- function(){
+  penn <- PennParam()
+}
 test_pipeline <- function(){
   library(oligoClasses)
-  library(GenomicRanges)
+##  library(GenomicRanges)
+  library(foreach)
   foreach::registerDoSEQ()
   data(trioSetListExample)
   md <- calculateMindist(lrr(trioSetList))
@@ -22,12 +26,21 @@ test_pipeline <- function(){
                            fD=featureData(trioSetList))
   trioSet <- stack(trioSetList)
   se <- as(trioSet, "SnpArrayExperiment")
+  rownames(se) <- featureNames(trioSet)
   genome(se) <- "hg19"
-  library(devtools)
+  ##  library(devtools)
   load_all("~/Software/bridge/VanillaICE")
-  load_all("../..")
+  ##trace(computeEmissionProbs, browser)
+  E <- computeEmissionProbs(se)
+  param <- PennParam()
+  checkException(compute_loglik(E, md_ranges=md.segs2, param=penn))
+  md_ranges <- md.segs2[md.segs2$sample %in% colnames(se)[3]]
+  df.loglik <- compute_loglik(E, md_ranges=md_ranges, param=param)
+
+
   fit <- hmm2(se)
-  MAP(se, fit)
+  load_all("../..")
+  MAP(se, md.segs2)
 
   ##
   ## 1. Make MAP work with new VI interface by coercing TrioSet to a SnpArrayExperiment

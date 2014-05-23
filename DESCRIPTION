@@ -1,51 +1,55 @@
 Package: MinimumDistance
 Type: Package
 Title: A package for de novo CNV detection in case-parent trios
-Version: 1.9.02
-Date: Wed May 21 16:06:06 EDT 2014
+Version: 1.9.03
+Date: Fri May 23 08:05:44 EDT 2014
 Author: Robert B Scharpf and Ingo Ruczinski
 Maintainer: Robert B Scharpf <rscharpf@jhsph.edu>
 Description: Analysis of de novo copy number variants in trios from
     high-dimensional genotyping platforms
 License: Artistic-2.0
 Depends:
-    R (>= 3.01), GenomicRanges
+    R (>= 3.01),
+    IRanges,
+    GenomicRanges,
+    oligoClasses (>= 1.26.0),
+    Biobase,
+    VanillaICE,
+    lattice
 Imports:
     methods,
     DNAcopy,
     utils,
     msm,
-    lattice,
     BiocGenerics,
-    VanillaICE (>= 1.25.4),
     ff,
-    Biobase (>= 2.23.6),
     foreach,
-    oligoClasses (>= 1.25.8),
-    IRanges,
-    GenomicRanges,
     matrixStats
 Suggests:
     human610quadv1bCrlmm (>= 1.0.3),
     SNPchip,
     RUnit
-collate: AllGenerics.R, AllClasses.R,
-    help.R,
-    functions.R,
-    generator-funs.R,
-    lattice-methods.R,
-    mad-methods.R,
-    methods-AnnotatedDataFrame.R,
-    methods-AssayData.R,
-    methods-ff_array.R,
-    methods-list.R,
-    methods-matrix.R,
-    methods-Pedigree.R,
-    methods-TrioSet.R,
-    methods-TrioSetList.R,
-    segment2-methods.R,
-    utils.R,
-    zzz.R
+Collate:
+    'help.R'
+    'AllClasses.R'
+    'AllGenerics.R'
+    'functions.R'
+    'generator-funs.R'
+    'lattice-methods.R'
+    'mad-methods.R'
+    'methods-AnnotatedDataFrame.R'
+    'methods-AssayData.R'
+    'methods-Pedigree.R'
+    'methods-PennParam.R'
+    'methods-RangedData.R'
+    'methods-TrioSet.R'
+    'methods-TrioSetList.R'
+    'methods-ff_array.R'
+    'methods-list.R'
+    'methods-matrix.R'
+    'segment2-methods.R'
+    'utils.R'
+    'zzz.R'
 Enhances: snow, doSNOW
 LazyLoad: yes
 Packaged: 2012-03-23 14:08:50 UTC; rscharpf

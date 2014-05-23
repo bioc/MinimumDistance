@@ -606,7 +606,6 @@ trioStates <- function(states=0:4){
 }
 
 trioStateNames <- function(trio.states){
-	if(missing(trio.states)) trio.states <- trioStates(0:4)
 	paste(paste(trio.states[,1], trio.states[,2], sep=""), trio.states[,3], sep="")
 }
 
@@ -618,11 +617,7 @@ transitionProbability <- function(nstates=5, epsilon=1-0.999){
 	tpm
 }
 
-initialStateProbs <- function(nstates, normal.index=3, epsilon=0.01){
-	initial.state.probs <- rep(epsilon/(nstates-1), nstates)
-	initial.state.probs[normal.index] <- 1-epsilon
-	initial.state.probs
-}
+
 
 readTable1 <- function(states=0:4, a=0.0009){
 	S <- length(states)
@@ -655,12 +650,17 @@ readTable1 <- function(states=0:4, a=0.0009){
 	return(tmp)
 }
 
-lookUpTable1 <- function(table1, state){
-	if(is.na(table1[state[1], state[2], state[3]])){
-		return(table1[state[2], state[1], state[3]])
-	} else {
-		return(table1[state[1], state[2], state[3]])
-	}
+lookUpTable1 <- function(state, table1){
+  index <- state+1
+  p <- table1[index[1], index[2], index[3]]
+  if(is.na(p)){
+    p <- table1[index[2], index[1], index[3]]
+  }
+  p
+}
+
+vectorizeTable1 <- function(table1, stateMatrix){
+  setNames(apply(stateMatrix, 1, lookUpTable1, table1=table1), rownames(stateMatrix))
 }
 
 lookUpTable3 <- function(table3, state.prev, state.curr){
@@ -673,88 +673,44 @@ lookUpTable3 <- function(table3, state.prev, state.curr){
 	return(table3[f1, f2, m1, m2, o1, o2])
 }
 
-jointProb <- function(segment.index, ## so that we can insert a browser for a specific segment
-		      state,
+jointProb <- function(state,
+                      param,
 		      state.prev,
-		      prob.nonMendelian,
-		      log.pi,
-		      tau,
-		      table1,
-		      table3,
 		      log.lik){
-	pi.f <- exp(log.pi[state[1]])
-	pi.m <- exp(log.pi[state[2]])
-	tau.o <- tau[state.prev[3], state[3]]
-	tau.m <- tau[state.prev[2], state[2]]
-	tau.f <- tau[state.prev[1], state[1]]
-	p.00 <- lookUpTable3(table3, state.prev, state.curr=state) ## both Mendelian
-	p.10 <- 1/5*lookUpTable1(table1, state) ## previous non-Mendelian * current Mendelian
-	p.01 <- lookUpTable1(table1, state.prev) * 1/5 ## previous Mendlian * current non-mendelian
-	p.11 <- 1/5*tau.o
-	piI0 <- 1-prob.nonMendelian
-	p.NM <- piI1 <- prob.nonMendelian
-	## setting this to a small value will favor '2,2,1' versus '3,3,1' (for example)
-	## setting prob.nonMendelian smaller would not have an effect
-	tauI.11 <- tauI.00 <- 1-.01
-	tauI.10 <- tauI.01 <- 1-tauI.11
-	pr.off <- p.NM*(p.11*tauI.11 + p.10*tauI.10) + (1-p.NM)*(p.00*tauI.00+p.01*tauI.01)
-	log.lik <- sum(log.lik) + log(pr.off*tau.m*pi.m*tau.f*pi.f)
-}
-
-joint1 <- function(LLT, ##object,
-		   trio.states,
-		   tau,
-		   log.pi,
-		   normal.index=3,
-		   segment.index,
-		   state.index,
-		   table1,
-		   table3,
-		   is.denovo=FALSE,
-		   prob.nonMendelian=1.5e-6,
-		   denovo.prev=FALSE,
-		   state.prev) {
-	if(missing(tau))
-		tau <- transitionProbability(ncol(LLT), epsilon=0.5)
-	if(missing(log.pi))
-		log.pi <- log(initialStateProbs(ncol(LLT), epsilon=0.5))
-	Prob.DN <- prob.nonMendelian
-	state <- trio.states[state.index, ] + 1L
-	state.prev <- state.prev+1L
-	fmo <- c(LLT[1, state[1]], LLT[2, state[2]], LLT[3, state[3]])
-	if(segment.index == 1 | is.null(state.prev)){
-		## assume Pr(z_1,f | lambda) = Pr(z_2,m | lambda) = pi
-		## For offspring, we have Pr(z_1,o | z_1,f, z_1,m, DN=0, 1)
-		##    or 1/5 if DN=1
-		##
-		## if DN is 0 (not devovo), then many of the hidden
-		##  states should have essentially an epsilon
-		##  probability of occurring.
-		##log.Prob.DN <- ifelse(is.denovo, log(Prob.DN), log(1-Prob.DN))
-		pi.offspring <- c(lookUpTable1(table1, state),  1/5)
-		lpr.offspring <- log(pi.offspring[1] * (1-Prob.DN) + pi.offspring[2]+Prob.DN)
-		##pi.offspring <- pi.offspring[[is.denovo+1]]
-		log.pi2 <- c(log.pi[state[1]], ## father
-			     log.pi[state[2]], ## mother
-			     lpr.offspring)
-			    ##log(pi.offspring))## offspring
-		##fmo <- apply(fmo, 2, sum, na.rm=TRUE)
-		fmo <- fmo + log.pi2
-		log.emit <- fmo
-	} else{
-		log.emit <- jointProb(segment.index=segment.index,
-				      state=state,
-				      state.prev=state.prev,
-				      prob.nonMendelian=prob.nonMendelian,
-				      log.pi=log.pi,
-				      tau=tau,
-				      table1=table1,
-				      table3=table3,
-				      log.lik=fmo)
-	}
-	res <- sum(log.emit)
-	stopifnot(!is.na(res))
-	return(res)
+  if(is.null(state.prev)){
+    result <- setNames(loglik222(param, LLT=log.lik), "222")
+    return(result)
+  }
+  ##browser()
+  state_name <- state
+  state_index <- state(param)[state_name, ] + 1L
+  prev_index <- state.prev + 1L
+  log.pi <- log(initialStateProb(param))
+  tau <- transitionProb(param)
+  pi.f <- exp(log.pi[state_index[1]])
+  pi.m <- exp(log.pi[state_index[2]])
+  tau.o <- tau[prev_index[3], state_index[3]]
+  tau.m <- tau[prev_index[2], state_index[2]]
+  tau.f <- tau[prev_index[1], state_index[1]]
+  p.00 <- lookUpTable3(table3(param), prev_index, state.curr=state_index) ## both Mendelian
+  p.10 <- 1/5*table1(param)[state_name]
+  ##p.10 <- 1/5*lookUpTable1(table1, state) ## previous non-Mendelian * current Mendelian
+  prev_name <- paste0(state.prev, collapse="")
+  p.01 <- table1(param)[prev_name]*1/5 ## previous Mendlian * current non-mendelian
+  ##p.01 <- lookUpTable1(table1, state.prev) * 1/5 ## previous Mendlian * current non-mendelian
+  p.11 <- 1/5*tau.o
+  prNM <- prNonMendelian(param)
+  piI0 <- 1-prNM ##prob.nonMendelian
+  p.NM <- piI1 <- prNM
+  ## setting this to a small value will favor '2,2,1' versus '3,3,1' (for example)
+  ## setting prob.nonMendelian smaller would not have an effect
+  tauI.11 <- tauI.00 <- 1-.01
+  tauI.10 <- tauI.01 <- 1-tauI.11
+  pr.off <- p.NM*(p.11*tauI.11 + p.10*tauI.10) + (1-p.NM)*(p.00*tauI.00+p.01*tauI.01)
+  LL <- diag(log.lik[, state_index])
+  log.lik <- setNames(sum(LL) + log(pr.off*tau.m*pi.m*tau.f*pi.f),
+                      state_name)
+  log.lik
 }
 
 xypanelMD <- function(x, y,
@@ -880,7 +836,7 @@ narrowRanges <- function(object, lrr.segs, thr=0.9,
   if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
   if(!missing(genome)) metadata(lrr.segs) <- list(genome=genome)
   ix <- match(sampleNames(object), names(mad.minimumdistance))
-  elementMetadata(object)$mindist.mad <- mad.minimumdistance[ix]
+  object$mindist.mad <- mad.minimumdistance[ix]
   lrr.segs <- lrr.segs[sampleNames(lrr.segs) %in% sampleNames(object), ]
   if(length(unique(chromosome(object))) > 1){
     if(verbose)
@@ -945,7 +901,7 @@ narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, 
     md.mad <- values(md)$mindist.mad
     md <- md[, match(colnames(values(of)), colnames(values(md)))]
     ## stack the ranges of the minimum distance segments and the offspring segments
-    un <- stackRangedDataList(list(md, of))
+    un <- unlist(GRangesList(list(md, of)))
     ## find the disjoint ranges
     disj <- disjoin(un)
     o <- findOverlaps(md, disj)
@@ -1517,90 +1473,98 @@ trioSet2data.frame <- function(from){
 	return(df)
 }
 
-loglik2 <- function(emit, ranges, pr.nonmendelian,
-		   overlapFun){
-	lemit <- log(emit)
-	trio.states <- trioStates(0:4)
-	##result <- rep(NA, nrow(trio.states))
-	state.prev <- NULL
-	denovo.prev <- NULL
-	table1 <- readTable1(a=0.0009)
-	loader("pennCNV_MendelianProb.rda")
-	table3 <- getVarInEnv("pennCNV_MendelianProb")
-	state.names <- trioStateNames()
-	norm.index <- which(state.names=="222")
-	lik.norm <- argmax <- lik.state <- rep(NA, length(ranges))
-	hits <- overlapFun(ranges)
-	counts <- queryHits(hits)
-	cnt <- structure(tabulate(counts, NROW(ranges)), names=names(ranges))
-	Index <- which(cnt >= 2)
-	range.index <- queryHits(hits)[queryHits(hits) %in% Index]
-	abs.thr <- values(ranges)$exceeds.md.thr
- 	for(i in Index){
-		index <- which(range.index==i)
-		k <- subjectHits(hits)[index]
-		if(length(k) < 2) next()
-		LL <- lemit[k, , , drop=FALSE]
-		LLT <- matrix(NA, 3, 6)
-		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
-		rownames(LLT) <- c("F", "M", "O")
-		colnames(LLT) <- paste("CN_", c(0, 1, 2, 2, 3, 4), sep="")
-		LLT[, 3] <- pmax(LLT[, 3], LLT[, 4])
-		LLT <- LLT[, -4]
-		callrange <- abs.thr[i]
-		J <- if(callrange) seq_len(nrow(trio.states)) else 1
-		result <- rep(NA, length(J))
-		if(!is.null(state.prev)) state.prev <- state.prev+1L
-		for(j in J){
-			k <- if(callrange) j else norm.index
-			tau <- transitionProbability(ncol(LLT), epsilon=0.5)
-			log.pi <- log(initialStateProbs(ncol(LLT), epsilon=0.5))
-			state <- trio.states[j, ] + 1L
-			fmo <- c(LLT[1, state[1]], LLT[2, state[2]], LLT[3, state[3]])
-			if(j == 1 | is.null(state.prev)){
-				## assume Pr(state_1,f | lambda) = Pr(state_2,m | lambda) = pi
-				## For offspring, we have Pr(state_1,o | state_1,f, state_1,m, DN=0, 1)
-				##    or 1/5 if DN=1
-				## if DN is 0 (not devovo), then many of the hidden
-				##  states should have essentially an epsilon
-				##  probability of occurring.
-				pi.offspring <- c(lookUpTable1(table1, state),  1/5)
-				lpr.offspring <- log(pi.offspring[1] * (1-pr.nonmendelian) + pi.offspring[2]+pr.nonmendelian)
-				log.pi2 <- c(log.pi[state[1]], ## father
-					     log.pi[state[2]], ## mother
-					     lpr.offspring)
-				fmo <- fmo + log.pi2
-				##log.emit <- fmo
-				result[j] <- sum(fmo)
-			} else{
-				result[j] <- jointProb(segment.index=i,
-						    state=state,
-						    state.prev=state.prev,
-						    prob.nonMendelian=pr.nonmendelian,
-						    log.pi=log.pi,
-						    tau=tau,
-						    table1=table1,
-						    table3=table3,
-						    log.lik=fmo)
-			}
-		}
-		if(callrange){
-			lik.norm[i] <- result[norm.index]
-			argmax[i] <- which.max(result)
-			lik.state[i] <- result[argmax[i]]
-			state.prev <- trio.states[argmax[i], ]
-		} else {
-			lik.norm[i] <- result
-			lik.state[i] <- result
-			argmax[i] <- norm.index
-			state.prev <- trio.states[norm.index, ]
-		}
-	}
-	elementMetadata(ranges)$state <- trioStateNames()[argmax]
-	elementMetadata(ranges)$argmax <- argmax
-	elementMetadata(ranges)$lik.state <- lik.state
-	elementMetadata(ranges)$lik.norm <- lik.norm
-	ranges
+
+
+segMeanAboveThr <- function(x, param){
+  mads <- pmax(x$mindist.mad, minimum_MAD(param))
+  abs(x$seg.mean/mads) > minimum_distance_threshold(param)
+}
+
+referenceIndex <- function(param) which(stateNames(param) == referenceState(param))
+segmentLogLik <- function(log_emit){
+  LLT <- apply(log_emit, c(2, 3), sum, na.rm=TRUE)
+  ## copy number 2 prob is max(diploid not ROH, diploid ROH)
+  LLT[, 3] <- pmax(LLT[, 3], LLT[, 4])
+  ## remove diploid ROH state
+  LLT <- LLT[, -4]
+  LLT
+}
+
+loglik222 <- function(param, LLT){
+  ## assume Pr(state_1,f | lambda) = Pr(state_2,m | lambda) = pi
+  ## For offspring, we have Pr(state_1,o | state_1,f, state_1,m, DN=0, 1)
+  ##    or 1/5 if DN=1
+  ## if DN is 0 (not denovo), then many of the hidden
+  ##  states should have  an epsilon probability of occurring.
+  ##pi.offspring <- c(lookUpTable1(table1(penn), trio_state),  1/5)
+  tau <- transitionProb(param)
+  log.pi <- log(initialStateProb(param))
+  state_index <- state(param)["222", ] + 1L
+  lik <- diag(LLT[, state_index])
+
+  prob_diploid <- log.pi[3]
+  pr.nonmendelian <- prNonMendelian(param)
+  pi.offspring <- c(table1(param)["222"], 1/5)
+  lpr.offspring <- log(pi.offspring[1] * (1-pr.nonmendelian) + pi.offspring[2]*pr.nonmendelian)
+  log.pi2 <- c(rep(prob_diploid, 2), lpr.offspring)
+  sum(lik + log.pi2)
+}
+
+statesToEvaluate <- function(param, above_thr){
+  nms <- stateNames(param)
+  if(above_thr){
+    x <- setNames(rep(TRUE, length(nms)), nms)
+  } else {
+    x <- setNames(rep(FALSE, length(nms)), nms)
+    x[referenceIndex(param)] <- TRUE
+  }
+  x
+}
+
+.data_frame_loglik <- function(g){
+  L <- length(g)
+  data.frame(call=character(L),
+             loglik=numeric(L),
+             reference=numeric(L),
+             LLR=numeric(L),
+             row.names=names(g),
+             stringsAsFactors=FALSE)
+}
+
+compute_loglik <- function(object, md_ranges, param){##, pr.nonmendelian,
+  ##denovo.prev <- NULL
+  g <- sort(md_ranges[numberProbes(md_ranges) > 2])
+  uid <- unique(md_ranges$sample)
+  if(length(uid) > 1) stop("md_ranges should contain only the offspring segments")
+  hits <- findOverlaps(g, rowData(object))
+  feature_index <- subjectHits(hits)
+  results <- .data_frame_loglik(g)
+  above_thr <- segMeanAboveThr(g, param)
+  log_emit <- emissionArray(object, log_transform=TRUE,
+                            epsilon=minimum_emission(param))
+  trio_states <- state(param)
+  state.prev <- NULL
+  for(i in seq_along(g)){
+    index <- feature_index[queryHits(hits) == i]
+    LLT <- tryCatch(segmentLogLik(log_emit[index, , , drop=FALSE]),
+                    error=function(e) NULL)
+    if(is.null(LLT)) browser()
+    evaluate <- statesToEvaluate(param, above_thr[i])
+    states <- stateNames(param)[evaluate]
+    result <- sapply(states, jointProb,
+                     param=param,
+                     state.prev=state.prev,
+                     log.lik=LLT, USE.NAMES=FALSE)
+    reference <- result[["222"]]
+    loglik <- result[which.max(result)]
+    results$loglik[i] <- round(loglik, 2)
+    results$call[i] <- names(loglik)
+    results$reference[i] <- reference
+    state.prev <- trio_states[names(loglik), ]
+  }
+  results$call[!above_thr] <- NA
+  results$LLR <- round(results$loglik-results$reference, 2)
+  results
 }
 
 setSequenceLengths <- function(build, names){ ## names are unique(seqnames(object))
@@ -1641,4 +1605,17 @@ setSequenceLengths <- function(build, names){ ## names are unique(seqnames(objec
 isFF <- function(object){
   names <- ls(assayData(object))
   is(assayData(object)[[names[[1]]]], "ff") | is(assayData(object)[[names[[1]]]], "ffdf")
+}
+
+
+emissionArray <- function(object, log_transform=TRUE, epsilon=0.01){
+  emitlist <- assays(object)
+  if(log_transform){
+    emitlist <- lapply(emitlist, function(x, epsilon) log(x+epsilon), epsilon=epsilon)
+  }
+  lemit_array <- array(NA, dim=c(nrow(object), 3, 6))
+  lemit_array[, 1, ] <- emitlist[[1]]
+  lemit_array[, 2, ] <- emitlist[[2]]
+  lemit_array[, 3, ] <- emitlist[[3]]
+  lemit_array
 }
