@@ -3,14 +3,20 @@
 setGeneric("mindist", function(object) standardGeneric("mindist"))
 setGeneric("mindist<-", function(object,value) standardGeneric("mindist<-"))
 setGeneric("range.index", function(object) standardGeneric("range.index"))
+
+#' @export
 setGeneric("calculateMindist", function(object, ...) standardGeneric("calculateMindist"))
+
 setGeneric("mad")
 ## setGeneric("ncol")
 setGeneric("stack")
 setGeneric("prune", function(object,  ranges, ...) standardGeneric("prune"))
 setGeneric("computeBayesFactor", function(object, ranges, ...) standardGeneric("computeBayesFactor"))
 setGeneric("todf", function(object, rangeData, frame, ...) standardGeneric("todf"))
+
+#' @export
 setGeneric("offspringNames", function(object) standardGeneric("offspringNames"))
+
 setGeneric("offspringNames<-", function(object,value) standardGeneric("offspringNames<-"))
 setGeneric("fatherNames", function(object) standardGeneric("fatherNames"))
 setGeneric("fatherNames<-", function(object,value) standardGeneric("fatherNames<-"))
@@ -18,21 +24,30 @@ setGeneric("motherNames", function(object) standardGeneric("motherNames"))
 setGeneric("motherNames<-", function(object,value) standardGeneric("motherNames<-"))
 setGeneric("pedigree", function(object) standardGeneric("pedigree"))
 setGeneric("allNames", function(object) standardGeneric("allNames"))
+
+#' @export
 setGeneric("trios", function(object) standardGeneric("trios"))
+
 setGeneric("minimumDistance", function(object, ...) standardGeneric("minimumDistance"))
 setGeneric("trioplot", function(formula, object, range, ...) standardGeneric("trioplot"))
 setGeneric("segment2", function(object, ...) standardGeneric("segment2"))
+
+#' @export
 setGeneric("mad2", function(object, byrow=FALSE, ...) standardGeneric("mad2"))
+
 setGeneric("assayDataList", function(object) standardGeneric("assayDataList"))
 setGeneric("fatherPhenoData", function(object) standardGeneric("fatherPhenoData"))
 setGeneric("motherPhenoData", function(object) standardGeneric("motherPhenoData"))
 setGeneric("offspringPhenoData", function(object) standardGeneric("offspringPhenoData"))
 setGeneric("featureDataList", function(object) standardGeneric("featureDataList"))
-setGeneric("trios", function(object) standardGeneric("trios"))
 setGeneric("trioIndex", function(object) standardGeneric("trioIndex"))
 setGeneric("chromosomeList", function(object) standardGeneric("chromosomeList"))
 setGeneric("sampleNames2", function(object) standardGeneric("sampleNames2"))
+
+## defunct
 setGeneric("gcSubtract", function(object, ...) setGeneric("gcSubtract"))
+
+#' @export
 setGeneric("MAP", function(object, ranges, id,
 			   TAUP=1e10, tauMAX=1-5e-8,
 			   cnStates=c(-2, -0.4, 0, 0, 0.4, 1),

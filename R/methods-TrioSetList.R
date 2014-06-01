@@ -104,7 +104,7 @@ GenomeAnnotatedDataFrameFromList <- function(object, annotationPkg){
 }
 
 
-
+#' @export
 TrioSetList <- function(chromosome=integer(),
 			pedigreeData=Pedigree(),
 			sample.sheet,
@@ -114,207 +114,208 @@ TrioSetList <- function(chromosome=integer(),
 			cdfname,
 			ffname="",
 			genome){
-	if(!missing(lrr)){
-		if(!is(lrr[1,1], "integer")){
-			stop("lrr should be a matrix of integers. Use integerMatrix(x, scale=100) for the transformation")
-		}
-		if(!is(baf[1,1], "integer")){
-			stop("baf should be a matrix of integers.  Use integerMatrix(x, scale=1000) for the transformation")
-		}
-		if(missing(genome)) stop("Argument genome is missing.  Must specify UCSC genome build genome ('hg18' or 'hg19').")
-		if(!missing(pedigreeData)){
-			if(!all(fatherNames(pedigreeData) %in% colnames(lrr))) stop("column names of lrr and baf matrices must match names the pedigree file")
-			if(!all(motherNames(pedigreeData) %in% colnames(lrr))) stop("column names of lrr and baf matrices must match names the pedigree file")
-			if(!all(offspringNames(pedigreeData) %in% colnames(lrr))) stop("column names of lrr and baf matrices must match names the pedigree file")
-		}
-	}
-	if(nrow(pedigreeData) > 0 & !(missing(lrr) | missing(baf))){
-		if(!missing(sample.sheet)){
-			if(is.null(row.names)){
-				row.names <- rownames(sample.sheet)
-			}
-			index <- row.names %in% allNames(pedigreeData)
-			sample.sheet <- sample.sheet[index, ]
-			row.names <- row.names[index]
-			if(!all(row.names %in% allNames(pedigreeData))){
-				stop("There are row.names for sample.sheet not in the pedigree object")
-			}
-			phenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-							    sample.sheet=sample.sheet,
-							    which="offspring",
-							    row.names=row.names)
-			fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-								  sample.sheet=sample.sheet,
-								  which="father",
-								  row.names=row.names)
-			motherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-								  sample.sheet=sample.sheet,
-								  which="mother",
-								  row.names=row.names)
-		}  else {
-			phenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE, which="offspring")
-			fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="father")
-			motherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="mother")
-		}
-	}
-	if(length(chromosome) > 0){
-		if(!all(chromosome %in% 1:22)){
-			stop("Only autosomal chromosomes (1, 2, ... , 22) allowed")
-		}
-		if(any(duplicated(chromosome)))
-			stop("duplicated chromosomes present")
-	} else {
-		if(missing(lrr) & missing(baf))
-			return(new("TrioSetList"))
-	}
-	if(missing(lrr) | missing(baf)){
-		lrrlist <- baflist <- lapply(chromosome, function(x) array(NA, dim=c(0,0,3)))
-		ad <- AssayDataList(BAF=baflist, logRRatio=lrrlist)
-		object <- new("TrioSetList",
-			      assayDataList=ad,
-			      chromosome=chromosome)
-		return(object)
-	}
-	if(!identical(rownames(lrr), rownames(baf))) stop("rownames of lrr and baf must be identical")
-	if(missing(featureData)){
-		if(missing(cdfname)) stop("if featureData is not supplied, a valid cdfname must be provided for annotating the markers")
-		if(any(is.na(rownames(lrr)))){
-			message("Removing rows with NA identifiers from lrr & baf matrices")
-			lrr <- lrr[!is.na(rownames(lrr)), ]
-			baf <- baf[!is.na(rownames(baf)), ]
-		}
-		##featureData <- oligoClasses:::featureDataFrom(cdfname)
-		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname, genome=genome)
-		fD <- featureData[order(chromosome(featureData), position(featureData)), ]
-		rm(featureData); gc()
-	} else {
-		if(!is(featureData, "GenomeAnnotatedDataFrame")) stop("featureData must be a GenomeAnnotatedDataFrame")
-		fD <- featureData
-	}
-	if(length(chromosome) > 0){
-		fD <- fD[fD$chromosome%in%chromosome, ]
-	}
-	if(!is.null(rownames(lrr))){
-		is.present <- featureNames(fD) %in% rownames(lrr)
-		if(!all(is.present)) fD <- fD[is.present, ]
-		index <- match(featureNames(fD), rownames(lrr))
-		lrr <- lrr[index, ]
-		baf <- baf[index, ]
-		if(!all(identical(rownames(lrr), sampleNames(fD))))
-			stop("rownames of lrr must be the same as the featureNames for the featureData")
-	}
-	marker.list <- split(seq_along(sampleNames(fD)), fD$chromosome)
-	np <- nrow(trios(pedigreeData))
-	trio.names <- array(NA, dim=c(length(offspringNames(pedigreeData)), 1, 3))
-	dimnames(trio.names) <- list(offspringNames(pedigreeData), "sampleNames", c("F", "M", "O"))
-	trio.names[, "sampleNames", ] <- as.matrix(trios(pedigreeData))
-	father.names <- originalNames(fatherNames(pedigreeData))
-	mother.names <- originalNames(motherNames(pedigreeData))
-	offspring.names <- offspringNames(pedigreeData)
-	father.index <- match(father.names, colnames(lrr))
-	mother.index <- match(mother.names, colnames(lrr))
-	offspring.index <- match(offspring.names, colnames(lrr))
-	chromosome <- unique(chromosome(fD))
-	fdlist <- baflist <- lrrlist <- vector("list", length(chromosome))
-	if(isPackageLoaded("ff")){
-		if(ffname!=""){
-			bafname <- paste(ffname, "baf", sep="_")
-		} else bafname <- "baf"
-		if(ffname!=""){
-			lrrname <- paste(ffname, "lrr", sep="_")
-		} else lrrname <- "lrr"
-	}
-	dns <- list(sampleNames(pedigreeData), c("F", "M", "O"))
-	for(i in seq_along(marker.list)){
-		## Use the name of the offspring as the name for the trio:
-		j <- marker.list[[i]]
-		nr <- length(j)
-		bafArray <- initializeBigArray(bafname, dim=c(nr, np, 3), vmode="integer")
-		logRArray <- initializeBigArray(lrrname, dim=c(nr, np, 3), vmode="integer")
-		dimnames(logRArray)[c(2,3)] <- dimnames(bafArray)[c(2,3)] <- dns
-		logRArray[,,"F"] <- lrr[j, father.index]
-		logRArray[,,"M"] <- lrr[j, mother.index]
-		logRArray[,,"O"] <- lrr[j, offspring.index]
-		bafArray[,,"F"] <- baf[j, father.index]
-		bafArray[,,"M"] <- baf[j, mother.index]
-		bafArray[,,"O"] <- baf[j, offspring.index]
-		## For each chromosome, create a TrioSet
-		lrrlist[[i]] <- logRArray
-		baflist[[i]] <- bafArray
-		fdlist[[i]] <- fD[j, ]
-	}
-	ad <- AssayDataList(logRRatio=lrrlist,
-			    BAF=baflist)
-	object <- new("TrioSetList",
-		      assayDataList=ad,
-		      featureDataList=fdlist,
-		      chromosome=chromosome,
-		      pedigree=pedigreeData,
-		      fatherPhenoData=fatherPhenoData,
-		      motherPhenoData=motherPhenoData,
-		      phenoData=phenoData,
-		      genome=genome)
-	return(object)
+  if(!missing(lrr)){
+    if(!is(lrr[1,1], "integer")){
+      stop("lrr should be a matrix of integers. Use integerMatrix(x, scale=100) for the transformation")
+    }
+    if(!is(baf[1,1], "integer")){
+      stop("baf should be a matrix of integers.  Use integerMatrix(x, scale=1000) for the transformation")
+    }
+    if(missing(genome)) stop("Argument genome is missing.  Must specify UCSC genome build genome ('hg18' or 'hg19').")
+    if(!missing(pedigreeData)){
+      if(!all(fatherNames(pedigreeData) %in% colnames(lrr))) stop("column names of lrr and baf matrices must match names the pedigree file")
+      if(!all(motherNames(pedigreeData) %in% colnames(lrr))) stop("column names of lrr and baf matrices must match names the pedigree file")
+      if(!all(offspringNames(pedigreeData) %in% colnames(lrr))) stop("column names of lrr and baf matrices must match names the pedigree file")
+    }
+  }
+  if(nrow(pedigreeData) > 0 & !(missing(lrr) | missing(baf))){
+    if(!missing(sample.sheet)){
+      if(is.null(row.names)){
+        row.names <- rownames(sample.sheet)
+      }
+      index <- row.names %in% allNames(pedigreeData)
+      sample.sheet <- sample.sheet[index, ]
+      row.names <- row.names[index]
+      if(!all(row.names %in% allNames(pedigreeData))){
+        stop("There are row.names for sample.sheet not in the pedigree object")
+      }
+      phenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
+                                          sample.sheet=sample.sheet,
+                                          which="offspring",
+                                          row.names=row.names)
+      fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
+                                                sample.sheet=sample.sheet,
+                                                which="father",
+                                                row.names=row.names)
+      motherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
+                                                sample.sheet=sample.sheet,
+                                                which="mother",
+                                                row.names=row.names)
+    }  else {
+      phenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE, which="offspring")
+      fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="father")
+      motherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="mother")
+    }
+  }
+  if(length(chromosome) > 0){
+    if(!all(chromosome %in% 1:22)){
+      stop("Only autosomal chromosomes (1, 2, ... , 22) allowed")
+    }
+    if(any(duplicated(chromosome)))
+      stop("duplicated chromosomes present")
+  } else {
+    if(missing(lrr) & missing(baf))
+      return(new("TrioSetList"))
+  }
+  if(missing(lrr) | missing(baf)){
+    lrrlist <- baflist <- lapply(chromosome, function(x) array(NA, dim=c(0,0,3)))
+    ad <- AssayDataList(BAF=baflist, logRRatio=lrrlist)
+    object <- new("TrioSetList",
+                  assayDataList=ad,
+                  chromosome=chromosome)
+    return(object)
+  }
+  if(!identical(rownames(lrr), rownames(baf))) stop("rownames of lrr and baf must be identical")
+  if(missing(featureData)){
+    if(missing(cdfname)) stop("if featureData is not supplied, a valid cdfname must be provided for annotating the markers")
+    if(any(is.na(rownames(lrr)))){
+      message("Removing rows with NA identifiers from lrr & baf matrices")
+      lrr <- lrr[!is.na(rownames(lrr)), ]
+      baf <- baf[!is.na(rownames(baf)), ]
+    }
+    ##featureData <- oligoClasses:::featureDataFrom(cdfname)
+    featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname, genome=genome)
+    fD <- featureData[order(chromosome(featureData), position(featureData)), ]
+    rm(featureData); gc()
+  } else {
+    if(!is(featureData, "GenomeAnnotatedDataFrame")) stop("featureData must be a GenomeAnnotatedDataFrame")
+    fD <- featureData
+  }
+  if(length(chromosome) > 0){
+    fD <- fD[fD$chromosome%in%chromosome, ]
+  }
+  if(!is.null(rownames(lrr))){
+    is.present <- featureNames(fD) %in% rownames(lrr)
+    if(!all(is.present)) fD <- fD[is.present, ]
+    index <- match(featureNames(fD), rownames(lrr))
+    lrr <- lrr[index, ]
+    baf <- baf[index, ]
+    if(!all(identical(rownames(lrr), sampleNames(fD))))
+      stop("rownames of lrr must be the same as the featureNames for the featureData")
+  }
+  marker.list <- split(seq_along(sampleNames(fD)), fD$chromosome)
+  np <- nrow(trios(pedigreeData))
+  trio.names <- array(NA, dim=c(length(offspringNames(pedigreeData)), 1, 3))
+  dimnames(trio.names) <- list(offspringNames(pedigreeData), "sampleNames", c("F", "M", "O"))
+  trio.names[, "sampleNames", ] <- as.matrix(trios(pedigreeData))
+  father.names <- originalNames(fatherNames(pedigreeData))
+  mother.names <- originalNames(motherNames(pedigreeData))
+  offspring.names <- offspringNames(pedigreeData)
+  father.index <- match(father.names, colnames(lrr))
+  mother.index <- match(mother.names, colnames(lrr))
+  offspring.index <- match(offspring.names, colnames(lrr))
+  chromosome <- unique(chromosome(fD))
+  fdlist <- baflist <- lrrlist <- vector("list", length(chromosome))
+  if(isPackageLoaded("ff")){
+    if(ffname!=""){
+      bafname <- paste(ffname, "baf", sep="_")
+    } else bafname <- "baf"
+    if(ffname!=""){
+      lrrname <- paste(ffname, "lrr", sep="_")
+    } else lrrname <- "lrr"
+  }
+  dns <- list(sampleNames(pedigreeData), c("F", "M", "O"))
+  for(i in seq_along(marker.list)){
+    ## Use the name of the offspring as the name for the trio:
+    j <- marker.list[[i]]
+    nr <- length(j)
+    bafArray <- initializeBigArray(bafname, dim=c(nr, np, 3), vmode="integer")
+    logRArray <- initializeBigArray(lrrname, dim=c(nr, np, 3), vmode="integer")
+    dimnames(logRArray)[c(2,3)] <- dimnames(bafArray)[c(2,3)] <- dns
+    logRArray[,,"F"] <- lrr[j, father.index]
+    logRArray[,,"M"] <- lrr[j, mother.index]
+    logRArray[,,"O"] <- lrr[j, offspring.index]
+    bafArray[,,"F"] <- baf[j, father.index]
+    bafArray[,,"M"] <- baf[j, mother.index]
+    bafArray[,,"O"] <- baf[j, offspring.index]
+    ## For each chromosome, create a TrioSet
+    lrrlist[[i]] <- logRArray
+    baflist[[i]] <- bafArray
+    fdlist[[i]] <- fD[j, ]
+  }
+  ad <- AssayDataList(logRRatio=lrrlist,
+                      BAF=baflist)
+  object <- new("TrioSetList",
+                assayDataList=ad,
+                featureDataList=fdlist,
+                chromosome=chromosome,
+                pedigree=pedigreeData,
+                fatherPhenoData=fatherPhenoData,
+                motherPhenoData=motherPhenoData,
+                phenoData=phenoData,
+                genome=genome)
+  return(object)
 }
 
+#' @export
 TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names,
 			  pedigreeData,
 			  featureData,
 			  annotationPkg, outdir=ldPath(),
 			  ffprefix="",
 			  genome=c("hg19", "hg18")){
-	if(!is(pedigreeData, "Pedigree")) stop()
-	if(missing(featureData)){
-		fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg, genome=match.arg(genome))
-		fD <- fD[chromosome(fD) < 23 & !is.na(chromosome(fD)), ]
-	} else {
-		fD <- featureData
-		rm(featureData); gc()
-	}
-	ad <- assayDataListLD(path=path,
-			      pedigree=pedigreeData,
-			      ext=ext,
-			      featureData=fD,
-			      ffprefix=ffprefix)
-	if(!missing(samplesheet)){
-		if(missing(row.names)) stop("if samplesheet is provided, row.names can not be missing.")
-		index <- row.names %in% allNames(pedigreeData)
-		sample.sheet <- samplesheet[index, ]
-		row.names <- row.names[index]
-		offsprPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-							  sample.sheet=sample.sheet,
-							  which="offspring",
-							  row.names=row.names)
-		fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-							  sample.sheet=sample.sheet,
-							  which="father",
-							  row.names=row.names)
-		motherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-							  sample.sheet=sample.sheet,
-							  which="mother",
-							  row.names=row.names)
-	} else {
-		offsprPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE, which="offspring")
-		fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="father")
-		motherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="mother")
-	}
-	uchrom <- unique(chromosome(fD))
-	uchrom <- uchrom[order(uchrom)]
-	featureDataList <- vector("list", length(uchrom))
-	for(i in seq_along(uchrom)) {
-		tmp <- fD[chromosome(fD) == uchrom[i], ]
-		featureDataList[[i]] <- tmp[order(position(tmp)), ]
-	}
-	object <- new("TrioSetList",
-		      assayDataList=ad,
-		      featureDataList=featureDataList,
-		      chromosome=uchrom,
-		      pedigree=pedigreeData,
-		      fatherPhenoData=fatherPhenoData,
-		      motherPhenoData=motherPhenoData,
-		      phenoData=offsprPhenoData,
-		      genome=match.arg(genome))
-	return(object)
+  if(!is(pedigreeData, "Pedigree")) stop()
+  if(missing(featureData)){
+    fD <- GenomeAnnotatedDataFrameFrom(file.path(path, paste(fnames[1], ext, sep="")), annotationPkg, genome=match.arg(genome))
+    fD <- fD[chromosome(fD) < 23 & !is.na(chromosome(fD)), ]
+  } else {
+    fD <- featureData
+    rm(featureData); gc()
+  }
+  ad <- assayDataListLD(path=path,
+                        pedigree=pedigreeData,
+                        ext=ext,
+                        featureData=fD,
+                        ffprefix=ffprefix)
+  if(!missing(samplesheet)){
+    if(missing(row.names)) stop("if samplesheet is provided, row.names can not be missing.")
+    index <- row.names %in% allNames(pedigreeData)
+    sample.sheet <- samplesheet[index, ]
+    row.names <- row.names[index]
+    offsprPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
+                                              sample.sheet=sample.sheet,
+                                              which="offspring",
+                                              row.names=row.names)
+    fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
+                                              sample.sheet=sample.sheet,
+                                              which="father",
+                                              row.names=row.names)
+    motherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
+                                              sample.sheet=sample.sheet,
+                                              which="mother",
+                                              row.names=row.names)
+  } else {
+    offsprPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE, which="offspring")
+    fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="father")
+    motherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="mother")
+  }
+  uchrom <- unique(chromosome(fD))
+  uchrom <- uchrom[order(uchrom)]
+  featureDataList <- vector("list", length(uchrom))
+  for(i in seq_along(uchrom)) {
+    tmp <- fD[chromosome(fD) == uchrom[i], ]
+    featureDataList[[i]] <- tmp[order(position(tmp)), ]
+  }
+  object <- new("TrioSetList",
+                assayDataList=ad,
+                featureDataList=featureDataList,
+                chromosome=uchrom,
+                pedigree=pedigreeData,
+                fatherPhenoData=fatherPhenoData,
+                motherPhenoData=motherPhenoData,
+                phenoData=offsprPhenoData,
+                genome=match.arg(genome))
+  return(object)
 }
 
 
@@ -532,7 +533,7 @@ setMethod("calculateMindist", signature(object="TrioSetList"),
 		  AssayDataList(calculateMindist(lrr(object)))
 	  })
 
-
+#' @export
 setMethod("stack", signature(x="TrioSetList"),
 	  function(x, ...){
 		  b <- baf(x)

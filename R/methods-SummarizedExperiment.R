@@ -53,6 +53,7 @@ computeEmissionProbs <- function(object){
   ranges
 }
 
+#' @export
 setGeneric("MAP2", function(object, md_ranges, param, ...) standardGeneric("MAP2"))
 setMethod(MAP2, c("SnpArrayExperiment", "GRanges"),
           function(object,

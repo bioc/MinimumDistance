@@ -26,8 +26,11 @@ release: # Run unit tests
 	R_LIBS_USER=~/Library/R/3.1-bioc-release/library R-3.1 --vanilla --slave < ${SUITE}
 
 devel:
-	R_LIBS_USER=~/Library/R/3.1-bioc-devel/library R-3.1 CMD INSTALL --no-lock ${PKG}
+	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 CMD INSTALL --no-lock ${PKG}
 	export RCMDCHECK=FALSE;\
 	export RUNITFILEPATTERN="$(file)";\
 	cd ${TOP}/tests;\
-	R_LIBS_USER=~/Library/R/3.1-bioc-devel/library R-3.1 --vanilla --slave < ${SUITE}
+	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 --vanilla --slave < ${SUITE}
+
+install:
+	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 CMD INSTALL --no-lock ${PKG}

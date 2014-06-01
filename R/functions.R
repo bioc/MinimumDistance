@@ -829,6 +829,7 @@ narrow <- function(object, lrr.segs, thr=0.9,
 		   mad.minimumdistance, verbose=TRUE,
 		   fD, genome) .Defunct("The 'narrow' function is defunct in MinimumDistance. Use narrowRanges instead.")
 
+#' @export
 narrowRanges <- function(object, lrr.segs, thr=0.9,
                          mad.minimumdistance, verbose=TRUE,
                          fD, genome){
