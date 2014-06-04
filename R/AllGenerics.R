@@ -69,3 +69,8 @@ setGeneric("minimum_emission", function(object) standardGeneric("minimum_emissio
 ## #' @export
 ## #' @importFrom lattice xyplot
 ## setGeneric("xyplot") ##, signature=c("x", "data"))
+
+setGeneric("alpha", function(object) standardGeneric("alpha"))
+setGeneric("min.width", function(object) standardGeneric("min.width"))
+setGeneric("undo.splits", function(object) standardGeneric("undo.splits"))
+setGeneric("undo.SD", function(object) standardGeneric("undo.SD"))

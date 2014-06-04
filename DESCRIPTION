@@ -1,8 +1,8 @@
 Package: MinimumDistance
 Type: Package
 Title: A package for de novo CNV detection in case-parent trios
-Version: 1.9.08
-Date: Sat May 31 21:04:52 EDT 2014
+Version: 1.9.09
+Date: Tue Jun  3 22:41:33 EDT 2014
 Author: Robert B Scharpf and Ingo Ruczinski
 Maintainer: Robert B Scharpf <rscharpf@jhsph.edu>
 Description: Analysis of de novo copy number variants in trios from
@@ -40,6 +40,7 @@ Collate:
     'mad-methods.R'
     'methods-AnnotatedDataFrame.R'
     'methods-AssayData.R'
+    'methods-DNAcopyParam.R'
     'methods-Pedigree.R'
     'methods-PennParam.R'
     'methods-SummarizedExperiment.R'

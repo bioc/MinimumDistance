@@ -3,6 +3,18 @@ test_pennParam <- function(){
   checkTrue(validObject(penn))
 }
 
+test_map2_pipeline <- function(){
+  ##library(oligoClasses)
+  path <- system.file("extdata", package="MinimumDistance")
+  fnames <- list.files(path, pattern=".txt")
+  ##allow duplicated father and mother names
+  ped <- Pedigree(data.frame(F=c("F.txt", "F.txt"),
+                             M=c("M.txt", "M.txt"),
+                             O=c("O.txt", "O1.txt")))
+
+
+}
+
 test_MAP2 <- function(){
   library(oligoClasses)
   library(foreach)

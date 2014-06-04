@@ -79,3 +79,9 @@ setClass("PennParam", representation(transitionProb="matrix",
 
 ## MDParam
 ##setClass("MDParam", representation(
+
+
+setClass("DNAcopyParam", representation(alpha="numeric",
+                                        min.width="integer",
+                                        undo.splits="character",
+                                        undo.SD="numeric"))

@@ -5,6 +5,8 @@
 #' @import ff
 #' @import Biobase
 #' @importFrom lattice xyplot
+#' @importFrom foreach foreach %do% %dopar%
+#' @importMethodsFrom oligoClasses genomeBuild
 #' @importMethodsFrom oligoClasses state lrr "lrr<-" baf "baf<-" position checkOrder isSnp chromosome GenomeAnnotatedDataFrameFrom
 #' @importMethodsFrom IRanges  nrow ncol unlist split dim width length order elementLengths start end
 #' @importMethodsFrom IRanges  findOverlaps subjectHits queryHits disjoin countOverlaps

@@ -1218,37 +1218,57 @@ originalNames <- function(names){
 
 read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
 			  lrrlist, baflist, featureNames){
-	i <- seq_along(sampleNames)
-	## this is simply to avoid having a large 'dat' object below.
-	if(isPackageLoaded("ff")){
-		NN <- min(length(sampleNames), 2)
-		ilist <- splitIndicesByLength(i, NN)
-		for(k in seq_along(ilist)){
-			j <- ilist[[k]]
-			sns <- sampleNames[j]
-			dat <- read.bsfiles(path=path, filenames=filenames[j])
-			dat <- dat[match(featureNames, rownames(dat)), , , drop=FALSE]
-			l <- match(sns, colnames(baflist[[1]]))
-			for(m in seq_along(marker.index)){
-				M <- marker.index[[m]]
-				baflist[[m]][, l, z] <- integerMatrix(as.matrix(dat[M, 2, ]), scale=1000)
-				lrrlist[[m]][, l, z] <- integerMatrix(as.matrix(dat[M, 1, ]), scale=100)
-			}
-		}
-		return(TRUE)
-	} else {
-		dat <- read.bsfiles(path=path, filenames=filenames)
-	}
-	return(dat)
+  i <- seq_along(sampleNames)
+  ## this is simply to avoid having a large 'dat' object below.
+  if(isPackageLoaded("ff")){
+    NN <- min(length(sampleNames), 2)
+    ilist <- splitIndicesByLength(i, NN)
+    for(k in seq_along(ilist)){
+      j <- ilist[[k]]
+      sns <- sampleNames[j]
+      datlist <- lapply(file.path(path, filenames[j]), read.bsfiles)
+      id <- datlist[[1]][[1]]
+      datlist <- lapply(datlist, "[", c(2,3))
+      r <- do.call(cbind, lapply(datlist, "[[", 1))
+      b <- do.call(cbind, lapply(datlist, "[[", 2))
+      dimnames(r) <- dimnames(b) <- list(id, filenames)
+      if(!identical(id, featureNames)){
+        r <- r[featureNames, , drop=FALSE]
+        b <- b[featureNames, , drop=FALSE]
+      }
+      l <- match(sns, colnames(baflist[[1]]))
+      for(m in seq_along(marker.index)){
+        M <- marker.index[[m]]
+        baflist[[m]][, l, z] <- integerMatrix(b, scale=1000)
+        lrrlist[[m]][, l, z] <- integerMatrix(r, scale=100)
+      }
+    }
+    return(TRUE)
+  } else {
+    ##dat <- read.bsfiles(path=path, filenames=filenames)
+    fnames <- file.path(path, filenames)
+    datlist <- lapply(fnames, read.bsfiles)
+    id <- datlist[[1]][[1]]
+    datlist <- lapply(datlist, "[", c(2,3))
+    r <- do.call(cbind, lapply(datlist, "[[", 1))
+    b <- do.call(cbind, lapply(datlist, "[[", 2))
+    tmp <- array(NA, dim=c(nrow(r), 2, length(fnames)))
+    tmp[, 1, ] <- integerMatrix(r, 100)
+    tmp[, 2, ] <- integerMatrix(b, 1000)
+    dat <- tmp
+    dimnames(dat) <- list(id, c("lrr", "baf"), basename(fnames))
+  }
+  return(dat)
 }
 
 stackRangedDataList <- function(...) {
-	##object <- stack(RangedDataList(...))
-	object <- GRangesList(list(...)[[1]])
-	unlist(object)
-	##j <- match("sample", colnames(object))
-	##if(is.na(j))  object else object[, -j]
+  ##object <- stack(RangedDataList(...))
+  object <- GRangesList(list(...)[[1]])
+  unlist(object)
+  ##j <- match("sample", colnames(object))
+  ##if(is.na(j))  object else object[, -j]
 }
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~ The rest is old code that has been commented out.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1621,4 +1641,12 @@ emissionArray <- function(object, log_transform=TRUE, epsilon=0.01){
   lemit_array[, 2, ] <- emitlist[[2]]
   lemit_array[, 3, ] <- emitlist[[3]]
   lemit_array
+}
+
+.dnacopy2granges <- function(x, id){ ## x is a summarized experiment
+  GRanges(x$chrom,
+          IRanges(x$loc.start, x$loc.end),
+          sample=id,
+          numberProbes=x$num.mark,
+          seg.mean=x$seg.mean)
 }

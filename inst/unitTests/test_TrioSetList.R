@@ -162,34 +162,37 @@ test_TrioSetList_construction <- function(){
 
 
 test_TrioSetListLD <- function(){
-	## constructor for large data
-	library(MinimumDistance);library(RUnit)
-	library(oligoClasses)
-	path <- system.file("extdata", package="MinimumDistance")
-	fnames <- list.files(path, pattern=".txt")
-	##allow duplicated father and mother names
+  ## constructor for large data
+  library(oligoClasses)
+  path <- system.file("extdata", package="MinimumDistance")
+  fnames <- list.files(path, pattern=".txt")
+  ##allow duplicated father and mother names
+  ped <- Pedigree(data.frame(F=c("F.txt", "F.txt"),
+                             M=c("M.txt", "M.txt"),
+                             O=c("O.txt", "O1.txt")))
 
-	ped <- Pedigree(data.frame(F=c("F.txt", "F.txt"),
-				   M=c("M.txt", "M.txt"),
-				   O=c("O.txt", "O1.txt")))
-	trioSetList <- TrioSetListLD(path=path,
-				     fnames=fnames,
-				     pedigreeData=ped,
-				     annotationPkg="human610quadv1bCrlmm",
-				     genome="hg18")
-	checkTrue(validObject(trioSetList))
-	checkTrue(is(lrr(trioSetList)[[1]], "array"))
+  ##datlist <- lapply(fnames, VanillaICE::read.bsfiles)
 
-	library2(ff)
-	library2(foreach)
-	ldPath(tempdir())
-	registerDoSEQ()
-	trioSetListff <- TrioSetListLD(path=path,
-				       fnames=fnames,
-				       pedigreeData=ped,
-				       annotationPkg="human610quadv1bCrlmm",
-				       genome="hg18")
-	checkTrue(validObject(trioSetListff))
-	checkTrue(is(lrr(trioSetListff)[[1]], "ff_array"))
-	checkTrue(identical(lrr(trioSetListff)[[1]][,,], lrr(trioSetList)[[1]]))
+  ##dat <- VanillaICE::read.bsfiles(file.path(path, fnames))
+  ##trace(TrioSetListLD, browser)
+  trioSetList <- TrioSetListLD(path=path,
+                               fnames=fnames,
+                               pedigreeData=ped,
+                               annotationPkg="human610quadv1bCrlmm",
+                               genome="hg18")
+  checkTrue(validObject(trioSetList))
+  checkTrue(is(lrr(trioSetList)[[1]], "array"))
+
+  library2(ff)
+  library2(foreach)
+  ldPath(tempdir())
+  registerDoSEQ()
+  trioSetListff <- TrioSetListLD(path=path,
+                                 fnames=fnames,
+                                 pedigreeData=ped,
+                                 annotationPkg="human610quadv1bCrlmm",
+                                 genome="hg18")
+  checkTrue(validObject(trioSetListff))
+  checkTrue(is(lrr(trioSetListff)[[1]], "ff_array"))
+  checkTrue(identical(lrr(trioSetListff)[[1]][,,], lrr(trioSetList)[[1]]))
 }
