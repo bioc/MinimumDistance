@@ -318,3 +318,87 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames,
   }
   return(ranges)
 }
+
+
+
+
+.dnacopy2granges <- function(x, seq_info){##, object){ ## x is a summarized experiment
+  ##L <- elementLengths(split(x$ID, factor(x$ID, levels=unique(x$ID))))
+  g <- GRanges(x$chrom,
+               IRanges(x$loc.start, x$loc.end),
+               sample=x$ID,
+               numberProbes=x$num.mark,
+               seg.mean=x$seg.mean)
+  seqlevels(g) <- seqlevels(seq_info)
+  seqinfo(g) <- seq_info
+  g
+}
+
+
+.smoothAndSegment <- function(x, rowdata, param){
+  CNA.object <- CNA(genomdat=x,
+                    chrom=as.character(seqnames(rowdata)),
+                    maploc=start(rowdata), ##pos[j],
+                    data.type="logratio",
+                    sampleid=colnames(x))
+  smu.object <- smooth.CNA(CNA.object)
+  segment(smu.object, alpha=alpha(param),
+          min.width=min.width(param),
+          undo.splits=undo.splits(param))$output
+}
+
+.setFilename <- function(granges, se){
+  files <- se$filename
+  mdfiles <- setNames(files[offspring(se)], .mindistnames(offspring(se)))
+  files <- c(files, mdfiles)
+  files[granges$sample]
+}
+
+.validNames <- function(g, id){
+  if(!all(g$sample %in% id)){
+    warning("appears that names were mangled by dnacopy. Attempting to unmangle")
+    g$sample <- gsub("\\.", "-", g$sample)
+    if(!all(g$sample %in% id)){
+      message("unmangling not successful. Use _ instead of symbols like '-' to avoid name mangling")
+      return(FALSE)
+    }
+  }
+  TRUE
+}
+
+.constructGRanges <- function(g, id) {
+  g <- g[g$sample%in% id]
+  sort(g)
+}
+.constructGRangesList <- function(g, id){
+  g <- .constructGRanges(g, id)
+  setNames(split(g, g$sample), id)
+}
+
+
+.pedigreeId <- function(object) paste(colData(object)$filename["father"],
+                                      colData(object)$filename["mother"], sep="_")
+
+#' @export
+#' @importFrom matrixStats colMads
+setMethod("segment2", "MinDistExperiment", function(object, param=MinDistParam()){
+  x <- cbind(lrr(object), mindist(object))
+  segs <- .smoothAndSegment(x, rowData(object), dnacopy(param))
+  g <- .dnacopy2granges(segs, seqinfo(object))
+  is_valid_names <- .validNames(g, colnames(x))
+  if(!is_valid_names) browser()
+  g$filename <- .setFilename(g, object)
+  mads <- setNames(colMads(x, na.rm=TRUE), colnames(x))
+  autocors <- setNames(colAcfs(x), colnames(x))
+  md_grl <- .constructGRangesList(g, .mindistnames(offspring(object)))
+  offspring_grl <- .constructGRangesList(g, offspring(object))
+  mdgr <- MinDistGRanges(mindist=md_grl,
+                         offspring=offspring_grl,
+                         father=.constructGRanges(g, "father"),
+                         mother=.constructGRanges(g, "mother"),
+                         mad=mads,
+                         acf=autocors,
+                         pedigree_id=.pedigreeId(object))
+  ##mindist(mdgr) <- .narrowGRangesList(mdgr, param)
+  mdgr
+})

@@ -3,69 +3,28 @@ test_pennParam <- function(){
   checkTrue(validObject(penn))
 }
 
-test_map2_pipeline <- function(){
-  ##library(oligoClasses)
-  path <- system.file("extdata", package="MinimumDistance")
-  fnames <- list.files(path, pattern=".txt")
-  ##allow duplicated father and mother names
-  ped <- Pedigree(data.frame(F=c("F.txt", "F.txt"),
-                             M=c("M.txt", "M.txt"),
-                             O=c("O.txt", "O1.txt")))
-
-
-}
-
 test_MAP2 <- function(){
   library(oligoClasses)
   library(foreach)
+  library(BSgenome.Hsapiens.UCSC.hg19)
   foreach::registerDoSEQ()
   data(trioSetListExample)
-  md <- calculateMindist(lrr(trioSetList))
-  path <- tryCatch(system.file("unitTests", package="MinimumDistance", mustWork=TRUE),
-                   error=function(e) "~/Software/bridge/MinimumDistance/inst/unitTests")
-  if(FALSE){
-    md.segs <- segment2(trioSetList, md=md, verbose=0)
-    saveRDS(md.segs, file=file.path(path, "md_segs.rds"))
-  } else md.segs <- readRDS(file.path(path, "md_segs.rds"))
-  if(FALSE){
-    lrr.segs <- segment2(trioSetList, segmentParents=TRUE, verbose=0)
-    saveRDS(lrr.segs, file=file.path(path,"lrr_segs.rds"))
-  } else lrr.segs <- readRDS(file.path(path, "lrr_segs.rds"))
-  ##metadata(lrr.segs)
-  mads.md <- mad2(md, byrow=FALSE)
-  ##trace(narrowRanges, browser)
-  md.segs2 <- sort(narrowRanges(md.segs, lrr.segs, thr=0.75,
-                                mad.minimumdistance=mads.md,
-                                fD=featureData(trioSetList)))
-  trioSet <- stack(trioSetList)
-  se <- as(trioSet, "SnpArrayExperiment")
-  rownames(se) <- featureNames(trioSet)
-  genome(se) <- "hg19"
-  ##  library(devtools)
-  ##load_all("~/Software/bridge/VanillaICE")
-  ##trace(computeEmissionProbs, browser)
-##  E <- computeEmissionProbs(se)
-  param <- PennParam()
-##  checkException(compute_loglik(E, md_ranges=md.segs2, param=penn))
-##  md_ranges <- sort(md.segs2[md.segs2$sample %in% colnames(se)[3]])
-##  untrace(compute_loglik, browser)
-##  md_ranges <- compute_loglik(E, md_ranges=md_ranges, param=param)
-  md_ranges <- MAP2(se, md.segs2, param)
-  checkTrue(sum(md_ranges$call=="221", na.rm=TRUE)==3)
-##
-##  ##
-##  ## 1. Make MAP work with new VI interface by coercing TrioSet to a SnpArrayExperiment
-##  ## 2. Repeat for TrioSetList
-##  ## 3. Replace TrioSets with TrioExperiment classes
-##  ## 4. Deprecate old classes
-##  ## map.segs <- MAP(trioSet, md.segs2)
+  me <- as(trioSetList, "MinDistExperiment")
+  checkIdentical(me$filename, setNames(c("NA12891", "NA12892", "NA12878"), c("father", "mother", "offspring")))
+
+  seqinfo(me) <- seqinfo(BSgenome.Hsapiens.UCSC.hg19)[seqlevels(me), ]
+  checkTrue(validObject(me))
+  me <- subsetAndSort(me, seqlevels(me))
+  param <- MinDistParam()
+  mdgr <- segment2(me, param)
+  mindist(mdgr) <- narrow2(mdgr, param)
+  md_g <- unlist(MAP2(me, mdgr, param))
+  checkIdentical(sum(md_g$call=="221", na.rm=TRUE),2L)
 }
 
 test_posteriorCalls <- function(){
   library(oligoClasses)
-  ##library2(foreach)
   registerDoSEQ()
-  ##library2(Biobase)
   gr <- GRanges("chr12", IRanges(21208619, 21520058),
                 seg.mean=-0.25,
                 mindist.mad=0.19,
@@ -74,12 +33,9 @@ test_posteriorCalls <- function(){
   seqlengths(gr) <- getSequenceLengths("hg18")[["chr12"]]
   path <- system.file("extdata", package="MinimumDistance")
   load(file.path(path, "trioSet12023chr12.rda"))
-  tSet <- trioSet12023chr12
-  ##res <- MAP(tSet, gr, prOutlierBAF=list(initial=1e-4, max=1e-2, maxROH=1e-3))
-  se <- as(tSet, "SnpArrayExperiment")
-  param <- PennParam(minimum_distance_threshold=0.1)
-  gr$sample <- colnames(se)[3]
-  res <- MAP2(se, gr, param)
+  me <- as(trioSet12023chr12, "MinDistExperiment")
+  param <- MinDistParam()
+  res <- MAP2(me, gr, param)
   checkTrue(res$call=="222")
   ##checkTrue(as.character(unlist(state(res), use.names=FALSE)) %in% c("334", "333"))
 ##  if(FALSE){

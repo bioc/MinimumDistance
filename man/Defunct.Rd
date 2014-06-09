@@ -2,7 +2,7 @@
 \name{coerce}
 \alias{coerce}
 \alias{coerce,RangedDataCNV,GRanges-class}
-\title{Defunct functions/classes/methods in the VanillaICE package}
+\title{Defunct functions/classes/methods in the MinimumDistance package}
 \description{
 The function, class, or data object you asked is defunct.
 }

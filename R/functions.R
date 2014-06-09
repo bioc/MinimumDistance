@@ -299,13 +299,11 @@ offspring.homozygous <- function(){
 	dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
 	dels
 }
-##offspring.homozygous <- function() c("220", "210", "120", "320", "230", "330", "110", "310")
 deletionStates <- function(){
 	st1 <- offspring.hemizygous()
 	st2 <- offspring.homozygous()
 	as.integer(c(st1,st2))
 }
-##duplicationStates <- function() as.integer(c("224", "223", "113", "114", "013", "014", "103", "104", "213", "214", "123", "124", "013", "014", "103", "104", "203", "204", "023", "024"))
 duplicationStates <- function(){
 	tmp <- expand.grid(c(0,1,2,4), c(0,1,2,4), 3)
 	sdups <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
@@ -315,7 +313,6 @@ duplicationStates <- function(){
 	ddups <- ddups[-1]
 	c(sdups, ddups)
 }
-##duplicationStatesPenn <- function() as.integer(c("335", "336", "225", "226", "115", "116", "125", "215", "325", "235", "125", "215", "315", "135"))
 duplicationStatesPenn <- function() {
 	tmp <- expand.grid(c(1,2,3,6), c(1,2,3,6), 5)
 	sdups <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
@@ -324,16 +321,8 @@ duplicationStatesPenn <- function() {
 	ddups <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
 	ddups <- ddups[-1]
 	c(sdups, ddups)
-##	dups.penn <- expand.grid(c(1,2,3,5,6), c(1,2,3,5,6), c(5,6))
-##	paste(dups.penn$Var1, dups.penn$Var2, dups.penn$Var3)
 }
-isDenovo <- function(states) states %in% c(duplicationStates(), deletionStates())
-
-##offspring.hemizygous <- function() c("332", "532", "352", "552")
-##offspring.homozygous <- function() c("331", "321", "231", "531", "351", "551", "221", "521")
-##duplicationStates <- function() as.integer(c("336", "335", "225", "226", "116", "115", "125", "126", "215", "216", "325", "326", "235", "236", "125", "126", "215", "216", "315", "316", "135", "136"))
-####duplicationStatesPenn <- function() as.integer(c("335", "225", "115", "125", "215", "325", "235", "125", "215", "315", "135"))
-##isDenovo <- function(states) states %in% c(duplicationStates(), deletionStates())
+isDenovo <- function(states) (states %in% c(duplicationStates(), deletionStates())) & !is.na(states)
 
 calculateChangeSd <- function(coverage=1:500, lambda=0.05, a=0.2, b=0.025)
 	a + lambda*exp(-lambda*coverage)/b
@@ -825,13 +814,16 @@ xypanelMD2 <- function(x, y,
 	}
 }
 
-narrow <- function(object, lrr.segs, thr=0.9,
-		   mad.minimumdistance, verbose=TRUE,
-		   fD, genome) .Defunct("The 'narrow' function is defunct in MinimumDistance. Use narrowRanges instead.")
+##narrow <- function(object, lrr.segs, thr=0.9,
+##		   mad.minimumdistance, verbose=TRUE,
+##		   fD, genome) .Defunct("The 'narrow' function is defunct in MinimumDistance. Use narrowRanges instead.")
 
 #' @export
-narrowRanges <- function(object, lrr.segs, thr=0.9,
-                         mad.minimumdistance, verbose=TRUE,
+narrowRanges <- function(object,
+                         lrr.segs,
+                         thr=0.9,
+                         mad.minimumdistance,
+                         verbose=TRUE,
                          fD, genome){
   if(missing(fD)) stop("fD not specified. fD must be a list of GenomeAnnotatedDataFrames (if multiple chromosomes are in 'object'), or a single GenomeAnnotatedDataFrame (one chromosome represented in 'object')")
   if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
@@ -1496,10 +1488,7 @@ trioSet2data.frame <- function(from){
 
 
 
-segMeanAboveThr <- function(x, param){
-  mads <- pmax(x$mindist.mad, minimum_MAD(param))
-  abs(x$seg.mean/mads) > minimum_distance_threshold(param)
-}
+
 
 referenceIndex <- function(param) which(stateNames(param) == referenceState(param))
 segmentLogLik <- function(log_emit){
@@ -1550,44 +1539,6 @@ statesToEvaluate <- function(param, above_thr){
              LLR=numeric(L),
              row.names=names(g),
              stringsAsFactors=FALSE)
-}
-
-compute_loglik <- function(object, md_ranges, param){##, pr.nonmendelian,
-  ##denovo.prev <- NULL
-  ##g <- sort(md_ranges[numberProbes(md_ranges) > 2])
-  g <- sort(md_ranges)
-  uid <- unique(md_ranges$sample)
-  if(length(uid) > 1) stop("md_ranges should contain only the offspring segments")
-  hits <- findOverlaps(g, rowData(object))
-  feature_index <- subjectHits(hits)
-  results <- .data_frame_loglik(g)
-  above_thr <- segMeanAboveThr(g, param)
-  log_emit <- emissionArray(object, log_transform=TRUE,
-                            epsilon=minimum_emission(param))
-  trio_states <- state(param)
-  state.prev <- NULL
-  for(i in seq_along(g)){
-    index <- feature_index[queryHits(hits) == i]
-    LLT <- tryCatch(segmentLogLik(log_emit[index, , , drop=FALSE]),
-                    error=function(e) NULL)
-    if(is.null(LLT)) browser()
-    evaluate <- statesToEvaluate(param, above_thr[i])
-    states <- stateNames(param)[evaluate]
-    result <- sapply(states, jointProb,
-                     param=param,
-                     state.prev=state.prev,
-                     log.lik=LLT, USE.NAMES=FALSE)
-    reference <- result[["222"]]
-    loglik <- result[which.max(result)]
-    results$loglik[i] <- round(loglik, 2)
-    results$call[i] <- names(loglik)
-    results$reference[i] <- reference
-    state.prev <- trio_states[names(loglik), ]
-  }
-  results$call[!above_thr] <- NA
-  results$LLR <- round(results$loglik-results$reference, 2)
-  mcols(g) <- cbind(mcols(g), results)
-  g
 }
 
 setSequenceLengths <- function(build, names){ ## names are unique(seqnames(object))
@@ -1643,10 +1594,18 @@ emissionArray <- function(object, log_transform=TRUE, epsilon=0.01){
   lemit_array
 }
 
-.dnacopy2granges <- function(x, id){ ## x is a summarized experiment
-  GRanges(x$chrom,
-          IRanges(x$loc.start, x$loc.end),
-          sample=id,
-          numberProbes=x$num.mark,
-          seg.mean=x$seg.mean)
+
+#' @export
+acf2 <- function(x, lag.max=10, type = c("correlation", "covariance", "partial"),
+                 plot = FALSE, na.action = na.omit, demean = TRUE,
+                 ...){
+  x <- x[!is.na(x)]
+  y <- acf(x, lag.max=lag.max, type=type, plot=plot,
+           na.action=na.action, demean=demean, ...)
+  y <- y[[1]][lag.max+1, , 1]
+}
+
+colAcfs <- function(X, lag.max=10, plot=FALSE) {
+  res <- rep(NA, ncol(X))
+  apply(X, 2, acf2, lag.max=lag.max)
 }

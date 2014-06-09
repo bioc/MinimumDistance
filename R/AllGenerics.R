@@ -1,6 +1,8 @@
 #' @include help.R
 
+#' @export
 setGeneric("mindist", function(object) standardGeneric("mindist"))
+#' @export
 setGeneric("mindist<-", function(object,value) standardGeneric("mindist<-"))
 setGeneric("range.index", function(object) standardGeneric("range.index"))
 
@@ -22,6 +24,8 @@ setGeneric("fatherNames", function(object) standardGeneric("fatherNames"))
 setGeneric("fatherNames<-", function(object,value) standardGeneric("fatherNames<-"))
 setGeneric("motherNames", function(object) standardGeneric("motherNames"))
 setGeneric("motherNames<-", function(object,value) standardGeneric("motherNames<-"))
+
+#' @export
 setGeneric("pedigree", function(object) standardGeneric("pedigree"))
 setGeneric("allNames", function(object) standardGeneric("allNames"))
 
@@ -66,11 +70,27 @@ setGeneric("transitionProb", function(object) standardGeneric("transitionProb"))
 setGeneric("minimum_MAD", function(object) standardGeneric("minimum_MAD"))
 setGeneric("minimum_emission", function(object) standardGeneric("minimum_emission"))
 
-## #' @export
-## #' @importFrom lattice xyplot
+#' @export
+setGeneric("nMAD", function(object) standardGeneric("nMAD"))
+#' @export
+setGeneric("nMAD<-", function(object,value) standardGeneric("nMAD<-"))
+
+## export
+## importFrom lattice xyplot
 ## setGeneric("xyplot") ##, signature=c("x", "data"))
 
 setGeneric("alpha", function(object) standardGeneric("alpha"))
 setGeneric("min.width", function(object) standardGeneric("min.width"))
 setGeneric("undo.splits", function(object) standardGeneric("undo.splits"))
 setGeneric("undo.SD", function(object) standardGeneric("undo.SD"))
+
+#' @export
+setGeneric("subsetAndSort", function(object, autosomes) standardGeneric("subsetAndSort"))
+setGeneric("offspring", function(object) standardGeneric("offspring"))
+setGeneric("mother", function(object) standardGeneric("mother"))
+setGeneric("father", function(object) standardGeneric("father"))
+setGeneric("acfs", function(x) standardGeneric("acfs"))
+setGeneric("penncnv", function(object) standardGeneric("penncnv"))
+
+#' @export
+setGeneric("MAP2", function(object, mdgr, param, ...) standardGeneric("MAP2"))

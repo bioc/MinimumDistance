@@ -14,14 +14,14 @@
 #' @importClassesFrom S4Vectors DataTable DataTableORNULL Vector Annotated
 #' @importMethodsFrom S4Vectors mcols "mcols<-" values metadata "metadata<-"
 #' @importClassesFrom GenomicRanges SummarizedExperiment
-#' @importMethodsFrom GenomicRanges rowData colData assays "rowData<-"
+#' @importMethodsFrom GenomicRanges rowData colData assays "rowData<-" sort
+#' @importFrom DNAcopy CNA segment smooth.CNA
 #' @import VanillaICE
 #' @importFrom GenomicRanges GRangesList GRanges
 NULL
 
-# @importClassesFrom Biobase eSet Versioned VersionedBiobase
-# @impotMethodsFrom Biobase featureNames
-#  @import Biobase
-#  @import VanillaICE
-#  @importClassesFrom VanillaICE SnpArrayExperiment SnpGRanges
-#  @importMethodsFrom VanillaICE SnpGRanges SnpArrayExperiment NA_filter NA_index calculateEmission calculateTransitionProbability
+# importClassesFrom Biobase eSet Versioned VersionedBiobase
+# importMethodsFrom Biobase featureNames
+#  import Biobase
+#  importClassesFrom VanillaICE SnpArrayExperiment SnpGRanges
+#  importMethodsFrom VanillaICE SnpGRanges SnpArrayExperiment NA_filter NA_index calculateEmission calculateTransitionProbability

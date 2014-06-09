@@ -770,18 +770,3 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
   metadata(results) <- metadata(ranges)
   return(results)
 }
-
-## how to you export a coercion from TrioSet to SnpArrayExperiment?
-##  export
-setAs("TrioSet", "SnpArrayExperiment", function(from, to){
-  ped <- pedigree(from)
-  cn <- lrr(from)[, 1, ]/100
-  b <- baf(from)[, 1, ]/1000
-  colnames(b) <- colnames(cn) <- trios(ped)[1, ]
-  gd <- GRanges(paste0("chr", chromosome(from)), IRanges(position(from),
-                                                         width=1),
-                isSnp=isSnp(from))
-  rowdata <- SnpGRanges(gd)
-  se <- SnpArrayExperiment(cn=cn, baf=b, rowData=rowdata)
-  se
-})

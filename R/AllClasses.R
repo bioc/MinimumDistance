@@ -44,24 +44,24 @@ setClass("Pedigree2", contains="DataFrame")
 
 
 
-#' @importClassesFrom VanillaICE SnpArrayExperiment
-#' @export
-setClass("TrioExperiment",
-         representation(pedigree="Pedigree"),
-         contains="SnpArrayExperiment")
+## importClassesFrom VanillaICE SnpArrayExperiment
+## export
+## setClass("TrioExperiment",
+##          representation(pedigree="Pedigree"),
+##          contains="SnpArrayExperiment")
 
 
 ##setGeneric("TrioExperiment",
 ##           function(..., pedigree=Pedigree()))
-setMethod("initialize", "TrioExperiment", function(.Object, ..., pedigree=Pedigree()){
-  .Object <-  callNextMethod(.Object, ...)
-  .Object@pedigree <- pedigree
-  .Object
-})
-
-TrioExperiment <- function(..., pedigree=Pedigree()){
-  new("TrioExperiment", ..., pedigree=pedigree)
-}
+##setMethod("initialize", "TrioExperiment", function(.Object, ..., pedigree=Pedigree()){
+##  .Object <-  callNextMethod(.Object, ...)
+##  .Object@pedigree <- pedigree
+##  .Object
+##})
+##
+##TrioExperiment <- function(..., pedigree=Pedigree()){
+##  new("TrioExperiment", ..., pedigree=pedigree)
+##}
 
 
 ## HmmTrioParam
@@ -85,3 +85,29 @@ setClass("DNAcopyParam", representation(alpha="numeric",
                                         min.width="integer",
                                         undo.splits="character",
                                         undo.SD="numeric"))
+
+setClass("MinDistParam", representation(nMAD="numeric",
+                                        dnacopy="DNAcopyParam",
+                                        penncnv="PennParam"))
+
+
+setClass("MinDistGRanges", representation(mindist="GRangesList",
+                                          offspring="GRangesList",
+                                          father="GRanges",
+                                          mother="GRanges",
+                                          mad="numeric",
+                                          acf="numeric",
+                                          pedigree_id="character"))
+
+##setClass("MinDistExperiment", contains="SummarizedExperiment",
+setClass("MinDistExperiment", contains="SnpArrayExperiment",
+         representation(mindist="matrix"))
+
+#' @export
+setClass("FileViews", representation(path="character",
+                                     pedigree="list",
+                                     cnvar="character",
+                                     bafvar="character",
+                                     fid="character",
+                                     importfun="function",
+                                     annot_pkg="character"))

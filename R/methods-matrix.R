@@ -17,6 +17,7 @@ calculateMindistFromMatrix <- function(object){
   I*d1 + (1-I)*d2
 }
 
+
 calculateMindistFromArray <- function(object, outdir=ldPath(), ffprefix="", center=FALSE, ...){
   isff <- is(object, "ff")
   if(!parStatus()) registerDoSEQ()

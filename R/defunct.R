@@ -1,4 +1,4 @@
-#' Defunct functions/classes/methods in the VanillaICE package
+#' Defunct functions/classes/methods in the MinimumDistance package
 #'
 #' The function, class, or data object you asked is defunct.
 #'
