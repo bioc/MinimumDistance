@@ -666,10 +666,14 @@ jointProb <- function(state,
                       param,
 		      state.prev,
 		      log.lik){
-  if(is.null(state.prev)){
-    result <- setNames(loglik222(param, LLT=log.lik), "222")
+  if(is.null(state.prev)) {
+    ##state.prev <- c(2,2,2)
+    result <- setNames(loglikInitial(param, LLT=log.lik, state), state)
     return(result)
   }
+##    result <- setNames(loglik222(param, LLT=log.lik), "222")
+##    return(result)
+##  }
   ##browser()
   state_name <- state
   state_index <- state(param)[state_name, ] + 1L
@@ -1500,23 +1504,29 @@ segmentLogLik <- function(log_emit){
   LLT
 }
 
-loglik222 <- function(param, LLT){
-  ## assume Pr(state_1,f | lambda) = Pr(state_2,m | lambda) = pi
-  ## For offspring, we have Pr(state_1,o | state_1,f, state_1,m, DN=0, 1)
+##loglik222 <- function(param, LLT){
+loglikInitial <- function(param, LLT, state){
+  ## assume Pr(state_1,father | lambda) = Pr(state_2,mother | lambda) = pi
+  ## For offspring, we have Pr(state_1,offspr | state_{1,father}, state_{1,mother}, DN=0, 1)
   ##    or 1/5 if DN=1
-  ## if DN is 0 (not denovo), then many of the hidden
-  ##  states should have  an epsilon probability of occurring.
-  ##pi.offspring <- c(lookUpTable1(table1(penn), trio_state),  1/5)
-  tau <- transitionProb(param)
+  ## if DN is 0 (not denovo), then many of the hidden states should have  an epsilon probability of occurring.
+  ## pi.offspring <- c(lookUpTable1(table1(penn), trio_state),  1/5)
+  ##browser()
+  ## tau <- transitionProb(param)
+
   log.pi <- log(initialStateProb(param))
-  state_index <- state(param)["222", ] + 1L
+  ##state_index <- state(param)["222", ] + 1L
+  state_index <- state(param)[state, ] + 1L
   lik <- diag(LLT[, state_index])
 
-  prob_diploid <- log.pi[3]
+  ##prob_diploid <- log.pi[3]
+  prob_parents <- log.pi[state_index[1:2]]
   pr.nonmendelian <- prNonMendelian(param)
-  pi.offspring <- c(table1(param)["222"], 1/5)
+  ##pi.offspring <- c(table1(param)["222"], 1/5)
+  pi.offspring <- c(table1(param)[state], 1/5)
   lpr.offspring <- log(pi.offspring[1] * (1-pr.nonmendelian) + pi.offspring[2]*pr.nonmendelian)
-  log.pi2 <- c(rep(prob_diploid, 2), lpr.offspring)
+  log.pi2 <- c(prob_parents, lpr.offspring)
+  names(log.pi2) <- c("father", "mother", "offspr")
   sum(lik + log.pi2)
 }
 
@@ -1587,10 +1597,8 @@ emissionArray <- function(object, log_transform=TRUE, epsilon=0.01){
   if(log_transform){
     emitlist <- lapply(emitlist, function(x, epsilon) log(x+epsilon), epsilon=epsilon)
   }
-  lemit_array <- array(NA, dim=c(nrow(object), 3, 6))
-  lemit_array[, 1, ] <- emitlist[[1]]
-  lemit_array[, 2, ] <- emitlist[[2]]
-  lemit_array[, 3, ] <- emitlist[[3]]
+  lemit_array <- array(NA, dim=c(nrow(object), length(emitlist), 6))
+  for(i in 1:4) lemit_array[, i, ] <- emitlist[[i]]
   lemit_array
 }
 
