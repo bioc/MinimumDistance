@@ -139,7 +139,7 @@ removeDuplicateMapLoc <- function(object){
   transition_prob <- calculateTransitionProbability(obj, t_param)
   hmm_param <- HmmParam(emission=emissions, transition=transition_prob)
   LL <- rep(NA, 10)
-  delta <- 1
+  delta <- 2 ## no updates
   i <- 1
   while(delta > 1){
     fit <- viterbi(hmm_param)
@@ -147,8 +147,8 @@ removeDuplicateMapLoc <- function(object){
     e_param <- updateParam(rb, e_param, fit)
     emission(hmm_param) <- calculateEmission(rb, e_param)
     if(i > 1) delta <- LL[i]-LL[i-1]
-    if(i == 10) {
-      warning("Log lik ratio never less than 0.05")
+    if(i == 3) {
+      warning("Likelihood still increasing after 3 updates of mean/sd ")
       break()
     }
     i <- i+1
@@ -199,15 +199,16 @@ compute_loglik <- function(object, md_gr, param, md.mad){
   feature_index <- subjectHits(hits)
   results <- .data_frame_loglik(md_gr)
   above_thr <- segMeanAboveThr(mean=md_gr$seg.mean, mad=md.mad, nmad=nMAD(param))
-  log_emit <- emissionArray(object, log_transform=TRUE, epsilon=minimum_emission(pennparam))
+  log_emit <- emissionArray(object, epsilon=minimum_emission(pennparam))
   which.offspring <- which(names(assays(object))==gsub("mindist_", "", md_gr$sample[1]))
   log_emit <- log_emit[, c(1, 2, which.offspring), ]
   trio_states <- state(pennparam)
   state.prev <- NULL
   for(i in seq_along(md_gr)){
+    ##if(i==24) browser()
     index <- feature_index[queryHits(hits) == i]
     if(length(index) < 1) next()
-    LLT <- segmentLogLik(log_emit[index, , , drop=FALSE])
+    LLT <- cumulativeLogLik(log_emit[index, , , drop=FALSE])
     evaluate <- tryCatch(statesToEvaluate(pennparam, above_thr[i]), error=function(e) NULL)
     if(is.null(evaluate)) browser()
     states <- stateNames(pennparam)[evaluate]

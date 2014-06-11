@@ -667,14 +667,9 @@ jointProb <- function(state,
 		      state.prev,
 		      log.lik){
   if(is.null(state.prev)) {
-    ##state.prev <- c(2,2,2)
     result <- setNames(loglikInitial(param, LLT=log.lik, state), state)
     return(result)
   }
-##    result <- setNames(loglik222(param, LLT=log.lik), "222")
-##    return(result)
-##  }
-  ##browser()
   state_name <- state
   state_index <- state(param)[state_name, ] + 1L
   prev_index <- state.prev + 1L
@@ -685,23 +680,24 @@ jointProb <- function(state,
   tau.o <- tau[prev_index[3], state_index[3]]
   tau.m <- tau[prev_index[2], state_index[2]]
   tau.f <- tau[prev_index[1], state_index[1]]
-  p.00 <- lookUpTable3(table3(param), prev_index, state.curr=state_index) ## both Mendelian
+  ## both Mendelian
+  p.00 <- lookUpTable3(table3(param), prev_index, state.curr=state_index)
   p.10 <- 1/5*table1(param)[state_name]
-  ##p.10 <- 1/5*lookUpTable1(table1, state) ## previous non-Mendelian * current Mendelian
   prev_name <- paste0(state.prev, collapse="")
-  p.01 <- table1(param)[prev_name]*1/5 ## previous Mendlian * current non-mendelian
-  ##p.01 <- lookUpTable1(table1, state.prev) * 1/5 ## previous Mendlian * current non-mendelian
+  ## previous Mendlian * current non-mendelian
+  p.01 <- table1(param)[prev_name] * 1/5
+  ## previous and current non-mendelian
   p.11 <- 1/5*tau.o
   prNM <- prNonMendelian(param)
   piI0 <- 1-prNM ##prob.nonMendelian
-  p.NM <- piI1 <- prNM
+  ##p.NM <- piI1 <- prNM
   ## setting this to a small value will favor '2,2,1' versus '3,3,1' (for example)
   ## setting prob.nonMendelian smaller would not have an effect
   tauI.11 <- tauI.00 <- 1-.01
   tauI.10 <- tauI.01 <- 1-tauI.11
-  pr.off <- p.NM*(p.11*tauI.11 + p.10*tauI.10) + (1-p.NM)*(p.00*tauI.00+p.01*tauI.01)
+  pr.off <- prNM*(p.11*tauI.11 + p.10*tauI.10) + (1-prNM)*(p.00*tauI.00+p.01*tauI.01)
   LL <- diag(log.lik[, state_index])
-  log.lik <- setNames(sum(LL) + log(pr.off*tau.m*pi.m*tau.f*pi.f),
+  log.lik <- setNames(sum(LL) + log(pr.off * tau.m * pi.m * tau.f * pi.f),
                       state_name)
   log.lik
 }
@@ -1495,7 +1491,8 @@ trioSet2data.frame <- function(from){
 
 
 referenceIndex <- function(param) which(stateNames(param) == referenceState(param))
-segmentLogLik <- function(log_emit){
+
+cumulativeLogLik <- function(log_emit){
   LLT <- apply(log_emit, c(2, 3), sum, na.rm=TRUE)
   ## copy number 2 prob is max(diploid not ROH, diploid ROH)
   LLT[, 3] <- pmax(LLT[, 3], LLT[, 4])
@@ -1592,13 +1589,11 @@ isFF <- function(object){
 }
 
 
-emissionArray <- function(object, log_transform=TRUE, epsilon=0.01){
+emissionArray <- function(object, epsilon=0){
   emitlist <- assays(object)
-  if(log_transform){
-    emitlist <- lapply(emitlist, function(x, epsilon) log(x+epsilon), epsilon=epsilon)
-  }
+  emitlist <- lapply(emitlist, function(x, epsilon) log(x+epsilon), epsilon=epsilon)
   lemit_array <- array(NA, dim=c(nrow(object), length(emitlist), 6))
-  for(i in 1:4) lemit_array[, i, ] <- emitlist[[i]]
+  for(i in seq_len(length(emitlist))) lemit_array[, i, ] <- emitlist[[i]]
   lemit_array
 }
 

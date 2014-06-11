@@ -3,10 +3,10 @@
 PennParam <- function(states, referenceState="222", prLessLikelyCN=0.0009,
                       prNonMendelian=1.5e-6,
                       minimum_distance_threshold=0.9,
-                      prInitialStateNotDiploid=1-0.999,
+                      prInitialStateNotDiploid=4/5, ## uniform
                       prTransitionToNewState=0.5,
                       minimum_MAD=0.1,
-                      minimum_emission=1e-5){
+                      minimum_emission=1e-10){
   if(missing(states)) states <- trioStates(0:4)
   state_names <- trioStateNames(states)
   rownames(states) <- state_names
@@ -54,6 +54,12 @@ setMethod("referenceState", "PennParam", function(object) object@referenceState)
 setMethod("prNonMendelian", "PennParam", function(object) object@prNonMendelian)
 setMethod("minimum_distance_threshold", "PennParam", function(object) object@minimum_distance_threshold)
 setMethod("initialStateProb", "PennParam", function(object) object@initialStateProb)
+
+setReplaceMethod("initialStateProb", "PennParam", function(object, value) {
+  object@initialStateProb <- value
+  object
+})
+
 setMethod("transitionProb", "PennParam", function(object) object@transitionProb)
 setMethod("minimum_MAD", "PennParam", function(object) object@minimum_MAD)
 setMethod("minimum_emission", "PennParam", function(object) object@minimum_emission)

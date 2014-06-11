@@ -65,6 +65,7 @@ setGeneric("prNonMendelian", function(object) standardGeneric("prNonMendelian"))
 setGeneric("minimum_distance_threshold", function(object) standardGeneric("minimum_distance_threshold"))
 
 setGeneric("initialStateProb", function(object) standardGeneric("initialStateProb"))
+setGeneric("initialStateProb<-", function(object,value) standardGeneric("initialStateProb<-"))
 setGeneric("transitionProb", function(object) standardGeneric("transitionProb"))
 
 setGeneric("minimum_MAD", function(object) standardGeneric("minimum_MAD"))
