@@ -5,6 +5,7 @@ PennParam <- function(states, referenceState="222", prLessLikelyCN=0.0009,
                       minimum_distance_threshold=0.9,
                       prInitialStateNotDiploid=4/5, ## uniform
                       prTransitionToNewState=0.5,
+                      tauNM=0.01,
                       minimum_MAD=0.1,
                       minimum_emission=1e-10){
   if(missing(states)) states <- trioStates(0:4)
@@ -17,9 +18,17 @@ PennParam <- function(states, referenceState="222", prLessLikelyCN=0.0009,
   initial_probs <- setNames(.initialStateProbs(5L, normal.index=3, prInitialStateNotDiploid),
                             paste0("CN:", 0:4))
   transition_probs <- transitionProbability(5L, epsilon=prTransitionToNewState) ## 5 states
+
+  trNM <- setNames(rep(NA, 4), c("NM=0,0", "NM=0,1", "NM=1,0", "NM=1,1"))
+  trNM["NM=0,0"] <- (1-tauNM)*(1-prNonMendelian)
+  trNM["NM=0,1"] <- (tauNM)*(1-prNonMendelian)
+  trNM["NM=1,0"] <- (tauNM)*(prNonMendelian)
+  trNM["NM=1,1"] <- (1-tauNM)*(prNonMendelian)
+
   new("PennParam",
       table1=table1v,
       table3=pennCNV_MendelianProb,
+      transitionNM=trNM,
       states=states,
       names=state_names,
       referenceState=referenceState,
@@ -30,6 +39,10 @@ PennParam <- function(states, referenceState="222", prLessLikelyCN=0.0009,
       minimum_MAD=minimum_MAD,
       minimum_emission=minimum_emission)
 }
+
+setGeneric("transitionNM", function(object) standardGeneric("transitionNM"))
+setMethod("transitionNM", "PennParam", function(object) object@transitionNM)
+setMethod("transitionNM", "MinDistParam", function(object) penncnv(object)@transitionNM)
 
 setValidity("PennParam", function(object){
   msg <- TRUE

@@ -123,51 +123,50 @@ removeDuplicateMapLoc <- function(object){
   object
 }
 
-.emission_one_sample <- function(object){
-  if(ncol(object) > 1) stop()
-  obj <- NA_filter(object)
-  r <- drop(lrr(obj))
-  b <- drop(baf(obj))
-  rb <- list(r, b)
-  ##
-  ## should we expose these parameters?
-  t_param <- TransitionParam(taup=1e10, taumax=1)
-  e_param <- EmissionParam()
-  ##
-  ##
-  emissions <- calculateEmission(rb, e_param)
-  transition_prob <- calculateTransitionProbability(obj, t_param)
-  hmm_param <- HmmParam(emission=emissions, transition=transition_prob)
-  LL <- rep(NA, 10)
-  delta <- 2 ## no updates
-  i <- 1
-  while(delta > 1){
-    fit <- viterbi(hmm_param)
-    LL[i] <- loglik(fit)
-    e_param <- updateParam(rb, e_param, fit)
-    emission(hmm_param) <- calculateEmission(rb, e_param)
-    if(i > 1) delta <- LL[i]-LL[i-1]
-    if(i == 3) {
-      warning("Likelihood still increasing after 3 updates of mean/sd ")
-      break()
-    }
-    i <- i+1
-  }
-  emission(hmm_param)
-}
+##.emission_one_sample <- function(object, param=MinDistParam()){
+##  hmm_param <- updateHmmParams(object, emisson_param=emission(param),
+##                               transition_param=TransitionParam())
+##}
+  ##obj <- NA_filter(object)
+  ##t_param <- TransitionParam()
+  ##transition_probs <- calculateTransitionProbability(obj, t_param)
+##  hmm_param <- updateHmmParams(object, emisson_param=emission(param),
+##                               transition_prob)
+##  if(ncol(object) > 1) stop()
+##  r <- drop(lrr(obj))
+##  b <- drop(baf(obj))
+##  names(r) <- names(b) <- NULL
+##  rb <- list(r, b)
+##  ##
+##  ## should we expose these parameters?
+##  ##t_param <- TransitionParam(taup=1e10, taumax=1)
+##
+##  e_param <- emission(param)
+##  ##
+##  ##
+##  emissions <- calculateEmission(rb, e_param)
+##
+##  hmm_param <- HmmParam(emission=emissions,
+##                        emission_param=e_param,
+##                        transition=transition_prob,
+##                        chrom=chromosome(object))
+##  while(doUpdate(hmm_param)){
+##    hmm_param <- baumWelchUpdate(hmm_param, rb)
+##  }
+##  hmm_param
+##}
 
 
 # #' @importMethodsFrom GenomicRanges SummarizedExperiment
-computeEmissionProbs <- function(object){
+computeEmissionProbs <- function(object, param=MinDistParam()){
   object <- NA_filter(object)
-  cn_states <- paste0("CN", c(0:2, "2-ROH", 3, 4))
-  emitF <- .setColnames(.emission_one_sample(object[, "father"]), cn_states)
-  emitM <- .setColnames(.emission_one_sample(object[, "mother"]), cn_states)
-  emitO <- lapply(offspring(object), function(id, x, cn_states){
-    obj <- x[, id]
-    .setColnames(.emission_one_sample(obj), cn_states)
-  }, cn_states=cn_states, x=object)
-  tmp <- SimpleList(father=emitF, mother=emitM)
+  transition_param <- TransitionParam()
+  F <- updateHmmParams(object[, "father"], emission(param), transition_param=transition_param)
+  M <- updateHmmParams(object[, "mother"], emission(param), transition_param=transition_param)
+  objList <- lapply(offspring(object), function(id, x) x[, id], x=object)
+  Olist <- lapply(objList, updateHmmParams, param=emission(param), transition_param=transition_param)
+  emitO <- lapply(Olist, emission)
+  tmp <- SimpleList(father=emission(F), mother=emission(M))
   tmp2 <- SimpleList(emitO)
   tmp2@listData <- setNames(tmp2@listData, offspring(object))
   SummarizedExperiment(assays=c(tmp, tmp2), rowData=rowData(object))
@@ -193,40 +192,64 @@ setMethod(MAP2, c("MinDistExperiment", "GRanges"), function(object, mdgr, param,
 
 segMeanAboveThr <- function(mean, mad, nmad) abs(mean)/max(mad, 0.1) > nmad
 
+posteriorSummaries <- function(log_prior.lik){
+  reference <- log_prior.lik[["222"]]
+  probs <- exp(log_prior.lik)
+  probs <- probs[!is.na(probs)]
+  loglik <- log_prior.lik[which.max(log_prior.lik)]
+  posterior_log_odds <- posteriorLogOdds(probs)
+  ##results$loglik[i] <- round(loglik, 2)
+  x <- list(call=names(loglik),
+            posterior_log_RR=round(loglik - reference, 2),
+            posterior_log_odds=round(posterior_log_odds, 2),
+            log_posterior_MAP=round(loglik, 2),
+            log_posterior_222=round(log(exp(reference)/(sum(probs))), 2))
+  return(x)
+}
+
+
+
 compute_loglik <- function(object, md_gr, param, md.mad){
   pennparam <- penncnv(param)
   hits <- findOverlaps(md_gr, rowData(object))
   feature_index <- subjectHits(hits)
-  results <- .data_frame_loglik(md_gr)
+  results <- .data_frame_posteriorSummaries(md_gr)
   above_thr <- segMeanAboveThr(mean=md_gr$seg.mean, mad=md.mad, nmad=nMAD(param))
   log_emit <- emissionArray(object, epsilon=minimum_emission(pennparam))
   which.offspring <- which(names(assays(object))==gsub("mindist_", "", md_gr$sample[1]))
   log_emit <- log_emit[, c(1, 2, which.offspring), ]
   trio_states <- state(pennparam)
   state.prev <- NULL
-  for(i in seq_along(md_gr)){
-    ##if(i==24) browser()
-    index <- feature_index[queryHits(hits) == i]
-    if(length(index) < 1) next()
+  states <- stateNames(pennparam)
+  qhits <- queryHits(hits)
+  nmarkers <- table(qhits)
+  Index <- intersect(as.integer(names(nmarkers)), which(above_thr))
+  for(k in seq_along(Index)){
+    i <- Index[k]
+    index <- feature_index[qhits == i]
+    ##  likelihood of the observed data given the model
     LLT <- cumulativeLogLik(log_emit[index, , , drop=FALSE])
-    evaluate <- tryCatch(statesToEvaluate(pennparam, above_thr[i]), error=function(e) NULL)
-    if(is.null(evaluate)) browser()
-    states <- stateNames(pennparam)[evaluate]
-    result <- sapply(states, jointProb,
-                     param=pennparam,
-                     state.prev=state.prev,
-                     log.lik=LLT, USE.NAMES=FALSE)
-    reference <- result[["222"]]
-    loglik <- result[which.max(result)]
-    results$loglik[i] <- round(loglik, 2)
-    results$call[i] <- names(loglik)
-    results$reference[i] <- reference
-    state.prev <- trio_states[names(loglik), ]
+    ##  log(likelihood * prior models):
+    log_prior.lik <- setNames(sapply(states, posterior,
+                                     param=pennparam,
+                                     state.prev=state.prev,
+                                     log.lik=LLT), states)
+    post <- posteriorSummaries(log_prior.lik)
+    results$call[i] <- post[["call"]]
+    results$log_posterior_MAP[i] <- post[["log_posterior_MAP"]]
+    results$log_posterior_222[i] <- post[["log_posterior_222"]]
+    results$posterior_log_RR[i] <- post[["posterior_log_RR"]]
+    results$posterior_log_odds[i] <- post[["posterior_log_odds"]]
+    state.prev <- post[["call"]]
   }
-  results$call[!above_thr] <- NA
-  results$LLR <- round(results$loglik-results$reference, 2)
   mcols(md_gr) <- cbind(mcols(md_gr), results)
-  md_gr
+  md_gr[!is.na(md_gr$call)]
+}
+
+posteriorLogOdds <- function(x){
+  ## posterior odds that state is denovo
+  p <- sum(x[c("220", "221")])/sum(x)
+  log(p) - log(1-p)
 }
 
 

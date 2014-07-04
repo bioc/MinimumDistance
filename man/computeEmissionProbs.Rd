@@ -3,7 +3,7 @@
 \alias{computeEmissionProbs}
 \title{#}
 \usage{
-computeEmissionProbs(object)
+computeEmissionProbs(object, param = MinDistParam())
 }
 \description{
 #

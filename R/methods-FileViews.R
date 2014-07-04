@@ -74,3 +74,36 @@ setMethod(MAP2, "FileViews", function(object, mdgr, param, rowData, ...){
   mindist(mdgr) <- narrow2(mdgr, param)
   mindist(mdgr) <- MAP2(me, mdgr, param)
 })
+
+#' @export
+FileViews <- function(path=character(), pedigree=list(),
+                      cnvar=character(), bafvar=character(),
+                      fid=character(),
+                      importfun=function(){},
+                      annot_pkg=character()){
+  new("FileViews", path=path, pedigree=pedigree, cnvar=cnvar, bafvar=bafvar,
+      fid=fid, importfun=importfun, annot_pkg=character())
+}
+
+##.path <- function(object) object@path
+##filenames <- function(object)
+##
+##setMethod("nrow", "FileViews", function(x) length(x@pedigree))
+##setMethod("length", "FileViews", function(x) length(x@pedigree))
+##setMethod("pedigree", "FileViews", function(object) object@pedigree)
+##cnvar <- function(object) object@cnvar
+##bafvar <- function(object) object@bafvar
+##fid <- function(object) object@fid
+##
+##setMethod("show", "FileViews", function(object){
+##  cat("class 'FileViews'\n")
+##  cat("   No. pedigrees:", length(object), "\n")
+##  cat("   path to RDS files:", .path(object), "\n")
+##})
+##
+##setMethod("[", "FileViews", function(x, i, j, ..., drop=FALSE){
+##  if(!missing(i)){
+##    x@pedigree <- pedigree(x)[i]
+##  }
+##  x
+##})

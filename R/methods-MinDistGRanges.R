@@ -43,6 +43,11 @@ narrow2 <- function(object, param){
   .narrowGRangesList(object, param)
 }
 
+
+setMethod("offspring", "GRangesList", function(object) {
+  object <- object[grep("offspring", names(object))]
+})
+
 .narrowGRangesList <- function(object, param){
   offspring_grl <- offspring(object)
   mindist_grl <- mindist(object)

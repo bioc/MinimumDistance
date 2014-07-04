@@ -322,7 +322,11 @@ duplicationStatesPenn <- function() {
 	ddups <- ddups[-1]
 	c(sdups, ddups)
 }
+
+#' @export
 isDenovo <- function(states) (states %in% c(duplicationStates(), deletionStates())) & !is.na(states)
+#' @export
+is221 <- function(g) g$call=="221" & !is.na(g$call)
 
 calculateChangeSd <- function(coverage=1:500, lambda=0.05, a=0.2, b=0.025)
 	a + lambda*exp(-lambda*coverage)/b
@@ -653,16 +657,144 @@ vectorizeTable1 <- function(table1, stateMatrix){
 }
 
 lookUpTable3 <- function(table3, state.prev, state.curr){
-	f1 <- state.prev[1]
-	f2 <- state.curr[1]
-	m1 <- state.prev[2]
-	m2 <- state.curr[2]
-	o1 <- state.prev[3]
-	o2 <- state.curr[3]
-	return(table3[f1, f2, m1, m2, o1, o2])
+  f1 <- state.prev[1]
+  m1 <- state.prev[2]
+  o1 <- state.prev[3]
+  f2 <- state.curr[1]
+  m2 <- state.curr[2]
+  ## Each element in the result is for a specific offspring state
+  result <- table3[f1, f2, m1, m2, o1, ]
 }
 
-jointProb <- function(state,
+stateIndex <- function(param, state) state(param)[state, ] + 1L
+
+##bothMendelian <- function(param, prev_index, state_index, transitionNM){
+##  ## Pr(cTS, pNM, cNM | pTS) =
+##  ## Pr(cO | cTS[-O], pTS, cNM, pNM) * Pr(cTS[-O] | pTS, cNM=0, pNM=0) * Pr(cNM=0 | pNM=0) * Pr(pNM=0)
+##  ## A = term1 * term2 * term3 * term4
+##  term1 <- lookUpTable3(table3(param), prev_index, state.curr=state_index)
+##  ## Pr(cTS[-O] | pTS, cNM=0, pNM=0) = Pr(cF, cM | pF, pM)
+##  ##                                 = Pr(cF | pF) * Pr(cM | pM) *
+##  term2 <- tau.f * tau.m
+##  term3 <- transitionNM
+##  term4 <- 1-probNM
+##  term1*term2*term3*term4
+##}
+##
+##bothNonMendelian <- function(param, prev_index, state_index, transitionNM){
+##  ## Pr(cTS, pNM, cNM | pTS) =
+##  ## Pr(cO | cTS[-O], pTS, cNM, pNM) * Pr(cTS[-O] | pTS, cNM=1, pNM=1) * Pr(cNM=1 | pNM=1) * Pr(pNM=1)
+##  ## = Pr(cO | pO, cNM, pNM) * Pr(cF | ...) * Pr(cM | ...) * Pr(cNM=1|pNM=1) * Pr(pNM=1)
+##  ## = term1 * term2 * term3 * term4 * term5
+##  term1 <- 1/5
+##  term2 <- tau.f
+##  term3 <- tau.m
+##  term4 <- transitionNM
+##  term5 <- probNM
+####  tau <- transitionProb(param)
+####  probNM <- prNonMendelian(param)
+####  tau.o <- tau[prev_index[3], state_index[3]]
+##  ## check below
+##  ##  p.11 <- 1/5*tau.o * transitionNM * probNM
+##  term1*term2*term3*term4*term5
+##}
+
+currentNonMendelian <- function(param, prev_index, state_index, transitionNM){
+  ## Pr(cTS, pNM, cNM | pTS) =
+  ## Pr(cO | cTS[-O], pTS, cNM, pNM) * Pr(cTS[-O] | pTS, cNM=1, pNM=1) * Pr(cNM=1 | pNM=1) * Pr(pNM=1)
+  ## = Pr(cO | pO, cNM, pNM) * Pr(cF | ...) * Pr(cM | ...) * Pr(cNM=1|pNM=1) * Pr(pNM=1)
+  prev_name <- rownames(state(param))[prev_index]
+  1/5 * table1(param)[prev_name] * transitionNM * probNM
+}
+
+computeB <- function(param, current_state, previous_state){
+    ## B = Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
+  B <- setNames(vector("list", 4), c("NM=0,0","NM=0,1", "NM=1,0", "NM=1,1"))
+  ## For each pair of mendelian indicators, return a vector of length <#CN STATES>
+  ##    - element i of the vector is the probability for S_i0 = CN[i], CN = [0,1,2,3,4]
+  nms <- paste0("CN_offspring=", 0:4)
+  ## NM = 0, 0
+  current_index <- stateIndex(param, current_state)
+  previous_index <- stateIndex(param, previous_state)
+  B[[1]] <- lookUpTable3(table3(param), previous_index, state.curr=current_index[1:2])
+  B[[1]] <- setNames(B[[1]], nms)
+  ## NM = 0, 1 denotes [previous NM, current Mendelian]
+  ## Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
+  ##  assume offspring states are independent
+  ## = Pr(S_iO | S_iF, S_iM, NM_i)*Pr(S_{i-1,O} | S_{i-1,F}, S_{i-1,M} NM_{i-1})
+  ## = Pr(S_iO | NM_i=1) * Tabled probability
+  ## = 1/5 * tabled probability
+  prev_name <- paste0(previous_state, collapse="")
+  B[[2]] <- rep(1/5, 5) * table1(param)[prev_name]  ## previous state is Mendelian
+  B[[2]] <- setNames(B[[2]], nms)
+  ## NM = 1, 0  Similar to above, but current state is Mendelian
+  states <- paste0(substr(current_state, 1, 2), 0:4)
+  B[[3]] <- 1/5*table1(param)[states]
+  B[[3]] <- setNames(B[[3]], nms)
+  ## NM = 1, 1  Both non-Mendelian
+  ## Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
+  ## = Pr(S_iO | S_{i-1}, NM_i=1) Pr(S_{i-1} | NM_{i-1}=1)
+  ## = transition probability between offspring states * 1/5
+  tau <- transitionProb(param)
+  tau.o <- tau[previous_index[3], current_index[3]]
+  B[[4]] <- rep(1/5, 5) * tau.o
+  B[[4]] <- setNames(B[[4]], nms)
+  B
+}
+
+computeC <- function(param, current_state, previous_state){
+  ## C = Pr(S_iF, S_iM, S_{i-1,F}, S_{i-1,M} | NM)
+  ##   = Pr(S_iF | S_{i-1,F}) * Pr(S_iM | S_{i-1,M})
+  ##     transition prob mom * transition prob father
+  previous_state <- paste0(previous_state, collapse="")
+  current_index <- stateIndex(param, current_state)[c("F", "M")]
+  previous_index <- stateIndex(param, previous_state)[c("F", "M")]
+  tau <- transitionProb(param)
+  tau.m <- tau[previous_index["M"], current_index["M"]]
+  tau.f <- tau[previous_index["F"], current_index["F"]]
+  tau.m*tau.f
+}
+
+## Function for computing posterior probabilities
+  ##
+  ## Let S_i = [S_iO, S_iF, S_iO]
+  ##
+  ## The posterior probability if the trio state is given by
+  ##
+  ## Pr(S_i | S_{i-1}, data) \propto Pr(data | S_i, S_{i-1}) Pr(S_i | S_{i-1})/ Pr(S_i)
+  ##                             =   Likelihood x "Prior Model"
+  ##
+  ## Tedious calculations with the Prior Model show
+  ##
+  ## Pr(S_i | S_{i-1}) = sum_{NM_i} sum_{NM_{i-1}}  Pr(S_i, NM_i, NM_{i-1} | S_{i-1})
+  ##                   = sum_{NM_i} sum_{NM_{i-1}}  Pr(S_i | S_{i-1}, NM_i, NM_{i-1}) * Pr(NM_i, NM_{i-1} | S_{i-1})
+  ## Denote sum_{NM_i} sum_{NM_{i-1}} by SUM, let Pr(NM_i, NM_{i-1} | S_{i-1}) = A, and denote [NM_i, NM_{i-1}] by NM. Then,
+  ##                   = SUM Pr(S_i, S_{i-1} | NM) / Pr(S_{i-1} | NM) * A
+  ##                   = SUM (B*C)/D * A, where
+  ## B = Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
+  ## C = Pr(S_iF, S_iM, S_{i-1,F}, S_{i-1,M} | NM)
+  ## D = Pr(S_{i-1} | NM)
+  ##
+  ## Rewriting D, we have
+  ## Pr(S_{i-1} | NM ) = sum_{S_{i}} Pr(S_i, S_{i-1} | NM)
+  ##                   = sum_{S_{i}} Pr(S_iO, S_{i-1,O} | NM, S_iF, S_iM, S_{i-1,F}, S_{i-1,M}) * C
+  ##                   = sum_{S_{i}} B
+  ##
+  ## =>
+  ##
+  ## Pr(S_i | S_{i-1}) = SUM[ (B*C*A)/(sum_{S_{i}} B) ]
+  ## since term C does not depend on the non-Mendelian indicators, we have
+  ##                   = C * SUM [ (B*A)/(sum_{S_{i} B)]
+  ##
+  ## For offspring state index i, we have
+  ##
+  ## Pr(S_i | S_{i-1}) = C * ( B[["NM=0,0"]][i]/sum(B[["NM=0,0"]]) * A[["NM=0,0"]]  + B[["NM=0,1"]][i]/sum(B[["NM=0,1"]]) * A[["NM=0,1"]] ...)
+  ##                   =
+  ##
+  ## The numerator sums over the non-mendelian indicator and involves 4 terms
+  ## The denominator sums over all possible offspring states at segment i and therefore involves 5 terms
+  ##
+posterior <- function(state,
                       param,
 		      state.prev,
 		      log.lik){
@@ -670,36 +802,18 @@ jointProb <- function(state,
     result <- setNames(loglikInitial(param, LLT=log.lik, state), state)
     return(result)
   }
-  state_name <- state
-  state_index <- state(param)[state_name, ] + 1L
-  prev_index <- state.prev + 1L
-  log.pi <- log(initialStateProb(param))
-  tau <- transitionProb(param)
-  pi.f <- exp(log.pi[state_index[1]])
-  pi.m <- exp(log.pi[state_index[2]])
-  tau.o <- tau[prev_index[3], state_index[3]]
-  tau.m <- tau[prev_index[2], state_index[2]]
-  tau.f <- tau[prev_index[1], state_index[1]]
-  ## both Mendelian
-  p.00 <- lookUpTable3(table3(param), prev_index, state.curr=state_index)
-  p.10 <- 1/5*table1(param)[state_name]
-  prev_name <- paste0(state.prev, collapse="")
-  ## previous Mendlian * current non-mendelian
-  p.01 <- table1(param)[prev_name] * 1/5
-  ## previous and current non-mendelian
-  p.11 <- 1/5*tau.o
-  prNM <- prNonMendelian(param)
-  piI0 <- 1-prNM ##prob.nonMendelian
-  ##p.NM <- piI1 <- prNM
-  ## setting this to a small value will favor '2,2,1' versus '3,3,1' (for example)
-  ## setting prob.nonMendelian smaller would not have an effect
-  tauI.11 <- tauI.00 <- 1-.01
-  tauI.10 <- tauI.01 <- 1-tauI.11
-  pr.off <- prNM*(p.11*tauI.11 + p.10*tauI.10) + (1-prNM)*(p.00*tauI.00+p.01*tauI.01)
-  LL <- diag(log.lik[, state_index])
-  log.lik <- setNames(sum(LL) + log(pr.off * tau.m * pi.m * tau.f * pi.f),
-                      state_name)
-  log.lik
+  A <- transitionNM(param) ## precomputed, length 4
+  B <- computeB(param, state, state.prev) ## length 4 list
+  C <- computeC(param, state, state.prev)
+  i <- stateIndex(param, state)
+  ## sum over the mendelian indicators for the offspring state indexed by i
+  ## sum over all possible offspring states
+  totalB <- sapply(B, sum)
+  prior <- mapply(function(B, A, totalB) (B*A)/totalB, B=B, A=A, totalB=totalB)
+  prior <- sum(prior[i["O"], ])
+  loglik <- sum(diag(log.lik[, i]))
+  posterior <- loglik + log(prior)
+  posterior
 }
 
 xypanelMD <- function(x, y,
@@ -1501,30 +1615,45 @@ cumulativeLogLik <- function(log_emit){
   LLT
 }
 
-##loglik222 <- function(param, LLT){
+prTrioState <- function(param, state){
+  ## We need to compute Pr(trio state | model)
+  ##
+  ## See Additional File 1, p6 (Scharpf et al., 2012)
+  ##
+  ## Pr(trio state | model )      =  Pr(trio state, nonmendelian | model) + Pr (trio state, Mendlianl | model)
+  ##                              =  Pr( offspring | parents, nonmendelian) * Pr(parents | nonmendelian) * Pr(nonmendelian) + Pr (offspring | parents, mendelian) * Pr(parents | mendelian) * Pr (mendelian)
+  ##                              =  Pr( offspring | nonmendelian) * Pr(parents) * Pr(nonmendelian) + Pr(offspring | mendelian, parents) * pr(parents)* Pr(mendelian)
+  ##                              =  Term 1  *  Term2  * Term 3  +  Term4 * Term2 * (1-Term3)
+  ##                              =  Term 2 [Term1 * Term3 + Term4*(1-Term3)]
+  ## we assume a priori that any of the states are equally likely for the parents
+  Term2 <- 1/5^2
+  Term3 <- prNonMendelian(param)
+  ##
+  ## Term 4, or Pr(offspring | parents, mendelian), is given by tabled values in Wang et al. (Suppl Table 1)
+  ##
+  Term4 <- table1(param)[state]
+  Term1 <- 1/5
+  Term2 * (Term1 * Term3 + Term4 * (1-Term3))
+}
+
+
 loglikInitial <- function(param, LLT, state){
   ## assume Pr(state_1,father | lambda) = Pr(state_2,mother | lambda) = pi
-  ## For offspring, we have Pr(state_1,offspr | state_{1,father}, state_{1,mother}, DN=0, 1)
-  ##    or 1/5 if DN=1
-  ## if DN is 0 (not denovo), then many of the hidden states should have  an epsilon probability of occurring.
-  ## pi.offspring <- c(lookUpTable1(table1(penn), trio_state),  1/5)
-  ##browser()
-  ## tau <- transitionProb(param)
-
-  log.pi <- log(initialStateProb(param))
-  ##state_index <- state(param)["222", ] + 1L
+  ##
+  ## Equation 3: Scharpf et al., 2012
+  ##
+  ## We need to compute the posterior probability of the trio states, or
+  ## Pr(trio state | B, R, model)  propto  Likelihood * prior
+  ##                               = likelihood * Pr(trio state | model)
+  ## Taking logarithms, we have
+  ## log lik + log Pr(trio state | model)
   state_index <- state(param)[state, ] + 1L
-  lik <- diag(LLT[, state_index])
-
-  ##prob_diploid <- log.pi[3]
-  prob_parents <- log.pi[state_index[1:2]]
-  pr.nonmendelian <- prNonMendelian(param)
-  ##pi.offspring <- c(table1(param)["222"], 1/5)
-  pi.offspring <- c(table1(param)[state], 1/5)
-  lpr.offspring <- log(pi.offspring[1] * (1-pr.nonmendelian) + pi.offspring[2]*pr.nonmendelian)
-  log.pi2 <- c(prob_parents, lpr.offspring)
-  names(log.pi2) <- c("father", "mother", "offspr")
-  sum(lik + log.pi2)
+  ##
+  loglik <- sum(diag(LLT[, state_index]))
+  ##
+  pr_triostate <- prTrioState(param, state)
+  ##
+  loglik + log(pr_triostate)
 }
 
 statesToEvaluate <- function(param, above_thr){
@@ -1538,14 +1667,16 @@ statesToEvaluate <- function(param, above_thr){
   x
 }
 
-.data_frame_loglik <- function(g){
+.data_frame_posteriorSummaries <- function(g){
   L <- length(g)
-  data.frame(call=character(L),
-             loglik=numeric(L),
-             reference=numeric(L),
-             LLR=numeric(L),
-             row.names=names(g),
-             stringsAsFactors=FALSE)
+  x <- matrix(NA, L, 5)
+  colnames(x) <- c("call",
+                   "log_posterior_MAP",
+                   "log_posterior_222",
+                   "posterior_log_RR",
+                   "posterior_log_odds")
+  rownames(x) <- names(g)
+  as.data.frame(x)
 }
 
 setSequenceLengths <- function(build, names){ ## names are unique(seqnames(object))

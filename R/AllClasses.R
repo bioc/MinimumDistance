@@ -66,6 +66,7 @@ setClass("Pedigree2", contains="DataFrame")
 
 ## HmmTrioParam
 setClass("PennParam", representation(transitionProb="matrix",
+                                     transitionNM="numeric",
                                      initialStateProb="numeric",
                                      table1="numeric",
                                      table3="array",
@@ -88,7 +89,8 @@ setClass("DNAcopyParam", representation(alpha="numeric",
 
 setClass("MinDistParam", representation(nMAD="numeric",
                                         dnacopy="DNAcopyParam",
-                                        penncnv="PennParam"))
+                                        penncnv="PennParam",
+                                        emission="EmissionParam"))
 
 
 setClass("MinDistGRanges", representation(mindist="GRangesList",
@@ -99,7 +101,6 @@ setClass("MinDistGRanges", representation(mindist="GRangesList",
                                           acf="numeric",
                                           pedigree_id="character"))
 
-##setClass("MinDistExperiment", contains="SummarizedExperiment",
 setClass("MinDistExperiment", contains="SnpArrayExperiment",
          representation(mindist="matrix"))
 
@@ -111,3 +112,6 @@ setClass("FileViews", representation(path="character",
                                      fid="character",
                                      importfun="function",
                                      annot_pkg="character"))
+
+
+##setClass("ILimit", contains="IRanges")
