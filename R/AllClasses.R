@@ -122,6 +122,7 @@ setClass("MinDistExperiment", contains="SnpArrayExperiment",
 ##                                     importfun="function",
 ##                                     annot_pkg="character"))
 
+#' @export
 setClass("MDRanges", contains="GRanges")
 
 
