@@ -255,10 +255,11 @@ posteriorSummaries <- function(log_prior.lik){
   p <- sum(probs[c("220", "221")])/sum(probs)
   posterior_log_odds <- log(p) - log(1-p)
   x <- list(call=names(map),
-            posteriors=c(log(prMAP/pr222),
-              posterior_log_odds,
-              prMAP,
-              pr222, pr221))
+            posteriors=c(round(log(prMAP/pr222), 3),
+              round(posterior_log_odds, 3),
+              round(prMAP, 3),
+              round(pr222, 3),
+              round(pr221, 3)))
   return(x)
 }
 
