@@ -3,7 +3,6 @@
 ## by read.bsfiles.  This should be a function and not a method for
 ## class character.
 
-#' @importMethodsFrom Biobase annotatedDataFrameFrom
 annotatedDataFrameFromArray <- function(object, byrow=FALSE, ...){
   if(dim(object)[[3]] > 0){
     object <- object[, , 1, drop=TRUE]

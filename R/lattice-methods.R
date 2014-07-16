@@ -1,7 +1,6 @@
 xyplotTrioLrrBaf <- function(rd, object, frame=200e3, lrr.segments=NULL, md.segments=NULL, nchar_sampleid=15L, ...)
 	.Defunct("The function xyplotTrioLrrBaf has been deprecated. Please use xyplotTrio instead.")
 
-#' @importFrom lattice xyplot
 xyplotTrio <- function(rd, object, frame=200e3, lrr.segments=NULL, md.segments=NULL, nchar_sampleid=15L, ...){
 	##if(!is(rd, "RangedDataCNV")) stop("rd is not a RangedDataCNV-derived class")
 	if(!is(object, "TrioSet")) stop("object is not a TrioSet")

@@ -283,11 +283,12 @@ combine.data.frames <- function(dist.df, penn.df){
 
 ##offspring.hemizygousPenn <- function() c("332", "432", "342", "442")
 offspring.hemizygousPenn <- function(){
-	tmp <- expand.grid(c(1,3,5,6), c(1,3,5,6), 1)
-	dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
-	dels <- dels[-1]
+  tmp <- expand.grid(c(1,3,5,6), c(1,3,5,6), 1)
+  dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
+  dels <- dels[-1]
 }
 ##offspring.hemizygous <- function() c("221", "321", "231", "441", "341", "431")
+
 offspring.hemizygous <- function() {
 	tmp <- expand.grid(c(0,2,3,4), c(0,2,3,4), 1)
 	dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
@@ -323,10 +324,7 @@ duplicationStatesPenn <- function() {
 	c(sdups, ddups)
 }
 
-#' @export
-isDenovo <- function(states) (states %in% c(duplicationStates(), deletionStates())) & !is.na(states)
-#' @export
-is221 <- function(g) g$call=="221" & !is.na(g$call)
+
 
 calculateChangeSd <- function(coverage=1:500, lambda=0.05, a=0.2, b=0.025)
 	a + lambda*exp(-lambda*coverage)/b
@@ -712,7 +710,7 @@ computeB <- function(param, current_state, previous_state){
   B <- setNames(vector("list", 4), c("NM=0,0","NM=0,1", "NM=1,0", "NM=1,1"))
   ## For each pair of mendelian indicators, return a vector of length <#CN STATES>
   ##    - element i of the vector is the probability for S_i0 = CN[i], CN = [0,1,2,3,4]
-  nms <- paste0("CN_offspring=", 0:4)
+  nms <- paste0("CN (offspr):", 0:4)
   ## NM = 0, 0
   current_index <- stateIndex(param, current_state)
   previous_index <- stateIndex(param, previous_state)
@@ -739,6 +737,8 @@ computeB <- function(param, current_state, previous_state){
   tau.o <- tau[previous_index[3], current_index[3]]
   B[[4]] <- rep(1/5, 5) * tau.o
   B[[4]] <- setNames(B[[4]], nms)
+  ## Assign Pr=0 to states that can not occur (instead of NA)
+  B <- lapply(B, function(x) ifelse(is.na(x), 0, x))
   B
 }
 
@@ -774,6 +774,7 @@ computeC <- function(param, current_state, previous_state){
   ## B = Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
   ## C = Pr(S_iF, S_iM, S_{i-1,F}, S_{i-1,M} | NM)
   ## D = Pr(S_{i-1} | NM)
+  ## A = Pr(NM_i , NM_{i-1} | S_{i-1})
   ##
   ## Rewriting D, we have
   ## Pr(S_{i-1} | NM ) = sum_{S_{i}} Pr(S_i, S_{i-1} | NM)
@@ -789,7 +790,6 @@ computeC <- function(param, current_state, previous_state){
   ## For offspring state index i, we have
   ##
   ## Pr(S_i | S_{i-1}) = C * ( B[["NM=0,0"]][i]/sum(B[["NM=0,0"]]) * A[["NM=0,0"]]  + B[["NM=0,1"]][i]/sum(B[["NM=0,1"]]) * A[["NM=0,1"]] ...)
-  ##                   =
   ##
   ## The numerator sums over the non-mendelian indicator and involves 4 terms
   ## The denominator sums over all possible offspring states at segment i and therefore involves 5 terms
@@ -810,9 +810,12 @@ posterior <- function(state,
   ## sum over all possible offspring states
   totalB <- sapply(B, sum)
   prior <- mapply(function(B, A, totalB) (B*A)/totalB, B=B, A=A, totalB=totalB)
+  ## Set 0/0 to 0
+  prior[is.nan(prior)] <- 1e-5
   prior <- sum(prior[i["O"], ])
   loglik <- sum(diag(log.lik[, i]))
   posterior <- loglik + log(prior)
+  if(all(is.na(posterior))) browser()
   posterior
 }
 
@@ -1667,17 +1670,7 @@ statesToEvaluate <- function(param, above_thr){
   x
 }
 
-.data_frame_posteriorSummaries <- function(g){
-  L <- length(g)
-  x <- matrix(NA, L, 5)
-  colnames(x) <- c("call",
-                   "log_posterior_MAP",
-                   "log_posterior_222",
-                   "posterior_log_RR",
-                   "posterior_log_odds")
-  rownames(x) <- names(g)
-  as.data.frame(x)
-}
+
 
 setSequenceLengths <- function(build, names){ ## names are unique(seqnames(object))
   sl <- getSequenceLengths(build)
@@ -1720,11 +1713,11 @@ isFF <- function(object){
 }
 
 
-emissionArray <- function(object, epsilon=0){
+logEmissionArray <- function(object){
   emitlist <- assays(object)
-  emitlist <- lapply(emitlist, function(x, epsilon) log(x+epsilon), epsilon=epsilon)
+  ##emitlist <- lapply(emitlist, function(x, epsilon) log(x+epsilon), epsilon=epsilon)
   lemit_array <- array(NA, dim=c(nrow(object), length(emitlist), 6))
-  for(i in seq_len(length(emitlist))) lemit_array[, i, ] <- emitlist[[i]]
+  for(i in seq_len(length(emitlist))) lemit_array[, i, ] <- log(emitlist[[i]])
   lemit_array
 }
 

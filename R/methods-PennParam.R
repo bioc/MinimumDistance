@@ -6,8 +6,7 @@ PennParam <- function(states, referenceState="222", prLessLikelyCN=0.0009,
                       prInitialStateNotDiploid=4/5, ## uniform
                       prTransitionToNewState=0.5,
                       tauNM=0.01,
-                      minimum_MAD=0.1,
-                      minimum_emission=1e-10){
+                      minimum_MAD=0.1){
   if(missing(states)) states <- trioStates(0:4)
   state_names <- trioStateNames(states)
   rownames(states) <- state_names
@@ -36,8 +35,7 @@ PennParam <- function(states, referenceState="222", prLessLikelyCN=0.0009,
       prNonMendelian=prNonMendelian,
       initialStateProb=initial_probs,
       transitionProb=transition_probs,
-      minimum_MAD=minimum_MAD,
-      minimum_emission=minimum_emission)
+      minimum_MAD=minimum_MAD)
 }
 
 setGeneric("transitionNM", function(object) standardGeneric("transitionNM"))
@@ -75,7 +73,6 @@ setReplaceMethod("initialStateProb", "PennParam", function(object, value) {
 
 setMethod("transitionProb", "PennParam", function(object) object@transitionProb)
 setMethod("minimum_MAD", "PennParam", function(object) object@minimum_MAD)
-setMethod("minimum_emission", "PennParam", function(object) object@minimum_emission)
 
 setMethod("show", "PennParam", function(object){
   cat("Object of class `PennParam'\n")

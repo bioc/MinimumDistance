@@ -499,7 +499,6 @@ setMethod("motherNames", signature(object="TrioSet"), function(object){
 
 
 
-# #' @importFrom lattice xyplot
 # setMethod("xyplot", signature(x="formula", data="TrioSet"),
 # 	  function(x, data, ...){
 #             if("range" %in% names(list(...))){
@@ -668,7 +667,6 @@ setMethod("gcSubtract", signature(object="TrioSet"),
 ##}
 
 
-#' @importMethodsFrom VanillaICE TransitionParam EmissionParam
 setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 						 ranges,
                                                  ##id,

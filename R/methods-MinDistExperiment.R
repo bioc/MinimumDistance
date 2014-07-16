@@ -10,9 +10,10 @@ offspringIndex <- function(x) grep("offspring", x)
 .mindist <- function(object){
   ## assumes FMO ordering
   cn <- object$data[["cn"]]
-  F <- cn[, "father"]
-  M <- cn[, "mother"]
-  O <- cn[, offspringIndex(colnames(cn)), drop=FALSE]
+  F <- cn[, 1]
+  M <- cn[, 2]
+  ##O <- cn[, offspringIndex(colnames(cn)), drop=FALSE]
+  O <- cn[, -(1:2), drop=FALSE]
   apply(O, 2, .calculate_mindist, father=F, mother=M)
 }
 
@@ -21,77 +22,113 @@ offspringIndex <- function(x) grep("offspring", x)
   object
 }
 
-.mindistnames <- function(x) paste0("mindist_", x[offspringIndex(x)])
+##.mindistnames <- function(x) paste0("mindist_", x[offspringIndex(x)])
 
-#' @importMethodsFrom BiocGenerics colnames
+
 setMethod("colnames", "ShallowSimpleListAssays",
           function (x, do.NULL = TRUE, prefix = "col") {
             colnames(x$data[["cn"]])
           })
 
-setGeneric("MinDistExperiment", function(object, rowData, cn, baf, colData, ...)
-           standardGeneric("MinDistExperiment"))
-
 ## do nothing
 setMethod(SnpGRanges, "SnpGRanges", function(object, isSnp) return(object))
 
-.constructMDE <- function(assays, rowData, colData){
-   md <- .setColnames(.mindist(assays), .mindistnames(colnames(assays)))
-   se <- new("MinDistExperiment", assays=assays,
-             rowData=SnpGRanges(rowData), colData=colData,
-             mindist=md)
+.set_md_names <- function(id) paste0("md_", id)
+.get_md_names <- function(object) .set_md_names(offspring(object))
+
+.constructMDE <- function(assays, rowData, colData, pedigree){
+  md <- .setColnames(.mindist(assays), .set_md_names(offspring(pedigree)))
+  new("MinDistExperiment",
+      assays=assays,
+      rowData=SnpGRanges(rowData),
+      colData=colData,
+      mindist=md,
+      pedigree=pedigree)
 }
 
-setMethod("MinDistExperiment", c("missing", "GRanges", "matrix", "matrix"),
-          function(object, rowData, cn, baf, colData){
-            filenames <- colData$filename
-            if(!all(colnames(cn) %in% filenames)) stop("colnames of cn matrix are not in the pedigree vector.")
-            cn <- cn[, filenames]
-            baf <- baf[, filenames]
-            colnames(cn) <- colnames(baf) <- rownames(colData)
-            assays <- snpArrayAssays(cn=cn, baf=baf)
-            .constructMDE(assays, rowData, colData)
-          })
+##setMethod("MinDistExperiment", c("missing", "GRanges", "matrix", "matrix"),
+##          function(object, rowData, cn, baf, colData){
+##            filenames <- colData$filename
+##            if(!all(colnames(cn) %in% filenames)) stop("colnames of cn matrix are not in the pedigree vector.")
+##            cn <- cn[, filenames]
+##            baf <- baf[, filenames]
+##            colnames(cn) <- colnames(baf) <- rownames(colData)
+##            assays <- snpArrayAssays(cn=cn, baf=baf)
+##            .constructMDE(assays, rowData, colData)
+##          })
+##
+##setMethod("MinDistExperiment", c("missing", "missing", "missing", "missing"),
+##          function(object, rowData, cn, baf, colData){
+##            new("MinDistExperiment")
+##          })
+##
+###' @export
+##setMethod("MinDistExperiment", c("ShallowSimpleListAssays", "GRanges"),
+##          function(object, rowData, cn, baf, colData){
+##            .constructMDE(object, rowData, colData)
+##          })
+##
+##setMethod("MinDistExperiment", c("FileViews", "missing"),
+##          function(object, rowData, cn, baf, colData){
+##            al <- assays(object)
+##            extdata <- system.file("extdata", package=object@annot_pkg)
+##            load(file.path(extdata, paste0("cnProbes_", build, ".rda")))
+##            load(file.path(extdata, paste0("snpProbes_", build, ".rda")))
+##            annot <- rbind(snpProbes, cnProbes)
+##            fid <- rownames(al$data[["cn"]])
+##            annot <- annot[fid, ]
+##            is_snp <- fid %in% rownames(snpProbes)
+##            rowdata <- GRanges(paste0("chr", annot[, "chr"]), IRanges(annot[, "position"], width=1))
+##            coldata <- setNames(DataFrame(filenames(object)), "filename")
+##            .constructMDE(al, rowData=SnpGRanges(rowdata, is_snp), coldata)
+##          })
 
-#' @export
-setMethod("MinDistExperiment", c("ShallowSimpleListAssays", "GRanges"),
-          function(object, rowData, cn, baf, colData){
-            .constructMDE(object, rowData, colData)
-          })
 
-setMethod("MinDistExperiment", c("FileViews", "missing"),
-          function(object, rowData, cn, baf, colData){
+setMethod("MinDistExperiment", c("ArrayViews", "ParentOffspring"),
+          function(object=ArrayViews(),
+                   pedigree=ParentOffspring(), ...){
+            object <- dropSexChrom(object)
+            object <- sort(object)
+            object <- dropDuplicatedMapLocs(object)
             al <- assays(object)
-            extdata <- system.file("extdata", package=object@annot_pkg)
-            load(file.path(extdata, paste0("cnProbes_", build, ".rda")))
-            load(file.path(extdata, paste0("snpProbes_", build, ".rda")))
-            annot <- rbind(snpProbes, cnProbes)
-            fid <- rownames(al$data[["cn"]])
-            annot <- annot[fid, ]
-            is_snp <- fid %in% rownames(snpProbes)
-            rowdata <- GRanges(paste0("chr", annot[, "chr"]), IRanges(annot[, "position"], width=1))
-            coldata <- setNames(DataFrame(filenames(object)), "filename")
-            .constructMDE(al, rowData=SnpGRanges(rowdata, is_snp), coldata)
+            .constructMDE(al, rowData=SnpGRanges(rowData(object)), colData=colData(object),
+                          pedigree=pedigree)
           })
 
+setMethod("assays", "ArrayViews", function(x, ...){
+  ##if(nrow(x) > 1) stop("object contains several trios. Use [i, ] to subset the ith trio prior to calling assays")
+  r <- lrr(x)
+  b <- baf(x)
+  colnames(r) <- colnames(b) <- colnames(x)
+  snpArrayAssays(cn=r, baf=b)
+})
 
 setMethod("show", "MinDistExperiment", function(object){
   callNextMethod(object)
   ##cat("MAD(minimum distance): ", round(mad(mindist(object),na.rm=TRUE),2),  "\n")
 })
 
-##setMethod("pedigree", "MinDistExperiment", function(object) object$pedigree)
+setMethod("pedigree", "MinDistExperiment", function(object) object@pedigree)
+setReplaceMethod("pedigree", "MinDistExperiment", function(object,value) {
+  object@pedigree <- value
+  object
+})
 
 setMethod("mindist", "MinDistExperiment", function(object) object@mindist)
 
-setValidity("MinDistExperiment", function(object){
-  msg <- TRUE
-  if(!"filename" %in% names(colData(object))){
-    msg <- "filename must be in colData"
-    return(msg)
-  }
-  msg
+setReplaceMethod("mindist", "MinDistExperiment", function(object, value) {
+  object@mindist <- value
+  object
 })
+
+##setValidity("MinDistExperiment", function(object){
+##  msg <- TRUE
+##  if(!"filename" %in% names(colData(object))){
+##    msg <- "filename must be in colData"
+##    return(msg)
+##  }
+##  msg
+##})
 
 setMethod("[", "MinDistExperiment", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
@@ -99,12 +136,25 @@ setMethod("[", "MinDistExperiment", function(x, i, j, ..., drop=FALSE){
     if(is(i, "character")) i <- match(i, rownames(x))
     x@mindist <- x@mindist[i, , drop=FALSE]
   }
+  if(!missing(j)){
+    ## special operations when selecting offspring
+    ids <- colnames(x)[j]
+    if(any(ids %in% offspring(x))){
+      offspr <- offspring(x)[offspring(x) %in% ids]
+      ped <- pedigree(x)
+      ped@offspring <- offspr
+      pedigree(x) <- ped
+      mindist(x) <- mindist(x)[, .set_md_names(offspr), drop=FALSE]
+    }
+  }
   callNextMethod(x, i, j, ..., drop=drop)
 })
 
-setMethod("offspring", "MinDistExperiment", function(object) colnames(object)[offspringIndex(colnames(object))])
-##setMethod("father", "MinDistExperiment", function(object) colnames(object)["father"])
-##setMethod("mother", "MinDistExperiment", function(object) pedigree(object)["mother"])
+setMethod("offspring", "MinDistExperiment", function(object) offspring(pedigree(object)))
+
+
+setMethod("father", "MinDistExperiment", function(object) father(pedigree(object)))
+setMethod("mother", "MinDistExperiment", function(object) mother(pedigree(object)))
 
 
 setMethod("subsetAndSort", "MinDistExperiment",
@@ -157,139 +207,257 @@ removeDuplicateMapLoc <- function(object){
 ##}
 
 
-# #' @importMethodsFrom GenomicRanges SummarizedExperiment
 computeEmissionProbs <- function(object, param=MinDistParam()){
-  object <- NA_filter(object)
+  ##object <- NA_filter(object)
   transition_param <- TransitionParam()
-  F <- updateHmmParams(object[, "father"], emission(param), transition_param=transition_param)
-  M <- updateHmmParams(object[, "mother"], emission(param), transition_param=transition_param)
-  objList <- lapply(offspring(object), function(id, x) x[, id], x=object)
-  Olist <- lapply(objList, updateHmmParams, param=emission(param), transition_param=transition_param)
+  F <- updateHmmParams(object[, father(object)], emission(param), transition_param=transition_param)
+  ## use emission parameters (updated by Baum Welch) as initial values for Mother
+  emission(param) <- emissionParam(F)
+  M <- updateHmmParams(object[, mother(object)], emission(param), transition_param=transition_param)
+  ## Again, update initial values from Mother
+  emission(param) <- emissionParam(M)
+  Olist <- list()
+  offspr <- offspring(object)
+  for(j in seq_along(offspr)){
+    id <- offspr[j]
+    Olist[[j]] <- updateHmmParams(object[, id], emission(param), transition_param=transition_param)
+  }
   emitO <- lapply(Olist, emission)
   tmp <- SimpleList(father=emission(F), mother=emission(M))
   tmp2 <- SimpleList(emitO)
   tmp2@listData <- setNames(tmp2@listData, offspring(object))
+  tmp@listData <- setNames(tmp@listData, c(father(object), mother(object)))
   SummarizedExperiment(assays=c(tmp, tmp2), rowData=rowData(object))
 }
 
+setGeneric("colMads", function(x, centers=colMedians(x, ...), constant=1.4826, ...)
+           standardGeneric("colMads"))
 
 
-setMethod(MAP2, c("MinDistExperiment", "MinDistGRanges"), function(object, mdgr, param, ...){
-  emissions_SE <- computeEmissionProbs(object)
-  grl <- mindist(mdgr)  ## will be a GRangesList with length equal to the number of offspring
-  mads <- mad(mdgr)[names(grl)]
-  grl <- foreach(g=grl, md.mad=mads) %do% {
-    compute_loglik(emissions_SE, md_gr=g, param=param, md.mad=md.mad)
-  }
-  GRangesList(grl)
-})
-
-setMethod(MAP2, c("MinDistExperiment", "GRanges"), function(object, mdgr, param, ...){
-  object2 <- computeEmissionProbs(object)
-  md.mad <- mad(as.numeric(mindist(object)), na.rm=TRUE)
-  g <- compute_loglik(object2, md_gr=mdgr, param=param, md.mad=md.mad)
-})
+setMethod("colMads", signature(x="MinDistExperiment"),
+          function(x, centers=colMedians(x, ...), constant=1.4826, ...){
+            colMads(mindist(x), na.rm=TRUE)
+          })
 
 segMeanAboveThr <- function(mean, mad, nmad) abs(mean)/max(mad, 0.1) > nmad
 
 posteriorSummaries <- function(log_prior.lik){
-  reference <- log_prior.lik[["222"]]
-  probs <- exp(log_prior.lik)
+  ## avoid numerical issues
+  loglik <- log_prior.lik-max(log_prior.lik, na.rm=TRUE)
+  map <- loglik[which.max(loglik)]## or which one is zero
+  ##range(log_prior.lik)
+  reference <- loglik[["222"]]
+  probs <- exp(loglik)/sum(exp(loglik), na.rm=TRUE)
   probs <- probs[!is.na(probs)]
-  loglik <- log_prior.lik[which.max(log_prior.lik)]
-  posterior_log_odds <- posteriorLogOdds(probs)
-  ##results$loglik[i] <- round(loglik, 2)
-  x <- list(call=names(loglik),
-            posterior_log_RR=round(loglik - reference, 2),
-            posterior_log_odds=round(posterior_log_odds, 2),
-            log_posterior_MAP=round(loglik, 2),
-            log_posterior_222=round(log(exp(reference)/(sum(probs))), 2))
+  pr222 <- probs["222"]
+  pr221 <- probs["221"]
+  prMAP <- probs[names(map)]
+  p <- sum(probs[c("220", "221")])/sum(probs)
+  posterior_log_odds <- log(p) - log(1-p)
+  x <- list(call=names(map),
+            posteriors=c(log(prMAP/pr222),
+              posterior_log_odds,
+              prMAP,
+              pr222, pr221))
   return(x)
 }
 
+setMethod(MAP2, c("MinDistExperiment", "MinDistGRanges"), function(object, mdgr, param, ...){
+  obj <- computePosterior(object, granges=mindist(mdgr), param=param)
+  GRangesList(obj)
+})
+
+setMethod(MAP2, c("MinDistExperiment", "GRangesList"), function(object, mdgr, param, ...){
+  obj <- computePosterior(object, granges=mdgr, param=param)
+  GRangesList(obj)
+})
+
+setMethod(MAP2, c("MinDistExperiment", "GRanges"), function(object, mdgr, param, ...){
+  obj <- computePosterior(object, granges=mdgr, param=param)
+  GRangesList(obj)
+})
 
 
-compute_loglik <- function(object, md_gr, param, md.mad){
-  pennparam <- penncnv(param)
-  hits <- findOverlaps(md_gr, rowData(object))
-  feature_index <- subjectHits(hits)
-  results <- .data_frame_posteriorSummaries(md_gr)
-  above_thr <- segMeanAboveThr(mean=md_gr$seg.mean, mad=md.mad, nmad=nMAD(param))
-  log_emit <- emissionArray(object, epsilon=minimum_emission(pennparam))
-  which.offspring <- which(names(assays(object))==gsub("mindist_", "", md_gr$sample[1]))
-  log_emit <- log_emit[, c(1, 2, which.offspring), ]
-  trio_states <- state(pennparam)
-  state.prev <- NULL
-  states <- stateNames(pennparam)
+filterIndexForGRanges <- function(object, granges, param){
+  mads <- setNames(colMads(object), .get_md_names(object))
+  m <- mads[granges$sample[1]]
+  above_thr <- segMeanAboveThr(mean=granges$seg.mean, mad=m, nmad=nMAD(param))
+  which(above_thr)
+}
+
+.compute_trio_posterior <- function(object, granges, param, lemit){
+  states <- stateNames(param)
+  Index <- filterIndexForGRanges(object, granges, param)
+  hits <- findOverlaps(granges, object)
   qhits <- queryHits(hits)
-  nmarkers <- table(qhits)
-  Index <- intersect(as.integer(names(nmarkers)), which(above_thr))
+  feature_index <- subjectHits(hits)
+  chrom <- chromosome(granges)
+  POST <- as.matrix(.mcols_posteriors(granges[Index]))
+  calls <- rep(NA, length(Index))
+  state.prev <- NULL
+  ## This is a nested for loop.  Port to C.
   for(k in seq_along(Index)){
     i <- Index[k]
     index <- feature_index[qhits == i]
     ##  likelihood of the observed data given the model
-    LLT <- cumulativeLogLik(log_emit[index, , , drop=FALSE])
+    LLT <- cumulativeLogLik(lemit[index, , , drop=FALSE])
     ##  log(likelihood * prior models):
     log_prior.lik <- setNames(sapply(states, posterior,
-                                     param=pennparam,
+                                     param=penncnv(param),
                                      state.prev=state.prev,
                                      log.lik=LLT), states)
-    post <- posteriorSummaries(log_prior.lik)
-    results$call[i] <- post[["call"]]
-    results$log_posterior_MAP[i] <- post[["log_posterior_MAP"]]
-    results$log_posterior_222[i] <- post[["log_posterior_222"]]
-    results$posterior_log_RR[i] <- post[["posterior_log_RR"]]
-    results$posterior_log_odds[i] <- post[["posterior_log_odds"]]
-    state.prev <- post[["call"]]
+    tmp <- posteriorSummaries(log_prior.lik)
+    POST[k, ] <- tmp$posteriors
+    calls[k] <- tmp$call
+    state.prev <- previousState(Index, k, i, tmp$call, chrom)
   }
-  mcols(md_gr) <- cbind(mcols(md_gr), results)
-  md_gr[!is.na(md_gr$call)]
+  post <- DataFrame(POST)
+  granges <- granges[Index]
+  mcols(granges) <- c(mcols(granges), post)
+  granges$calls <- calls
+  mg <- as(granges, "MDRanges")
+  versions <- c(packageVersion("VanillaICE"),
+                packageVersion("MinimumDistance"))
+  metadata(mg) <- list(versions=setNames(versions, c("VanillaICE", "MinimumDistance")))
+  mg
 }
 
-posteriorLogOdds <- function(x){
-  ## posterior odds that state is denovo
-  p <- sum(x[c("220", "221")])/sum(x)
-  log(p) - log(1-p)
+##setMethod("computePosterior", c("MinDistExperiment", "GRanges"), function(object, granges, param){
+##  if(nrow(object) == 0) return(MDRanges())
+##  emissions_object <- computeEmissionProbs(object, param)
+##  log_emit <- logEmissionArray(emissions_object)
+##
+##}
+
+setMethod("computePosterior", c("MinDistExperiment", "GRanges"), function(object, granges, param){
+  if(nrow(object) == 0) return(MDRanges())
+  ns <- unique(granges$sample)
+  if(length(ns) > 1) stop("granges$sample must be unique.")
+  if(ncol(object) > 3){
+    j <- match(gsub("md_", "", granges$sample[1]), colnames(object))
+    object <- object[, c(1,2,j)]
+  }
+  emissions_object <- computeEmissionProbs(object, param)
+  log_emit <- logEmissionArray(emissions_object)
+  .compute_trio_posterior(object=object, granges=granges,
+                          param=param, lemit=log_emit)
+})
+
+setMethod("computePosterior", c("MinDistExperiment", "GRangesList"), function(object, granges, param){
+  if(nrow(object) == 0) return(MDRanges())
+  ## compute emission probabilities
+  emissions_object <- computeEmissionProbs(object, param)
+  log_emit <- logEmissionArray(emissions_object)
+  offspr <- offspring(object)
+  J <- foreach(id=offspr) %do% c(1:2, match(id, colnames(object)))
+  md_rangesList <- foreach(j = J, g=granges) %do% {
+    .compute_trio_posterior(object=object[, j],
+                            granges=g,
+                            param=param,
+                            lemit=log_emit[, j, ])
+  }
+  md_rangesList
+ })
+
+
+
+
+ previousState <- function(Index, k, i, call, chrom){
+   if(i == max(Index)) return(call)
+   state.prev <- call
+   i.next <- Index[k+1]
+   if(i.next - i > 1 || chrom[i] != chrom[i.next]) state.prev <- NULL
+   state.prev
+ }
+
+
+
+ ##setMethod("posteriorLogOdds", "numeric", function(object){
+ ##  ## posterior odds that state is denovo
+ ##  p <- sum(object[c("220", "221")])/sum(object)
+ ##  log(p) - log(1-p)
+ ##})
+
+
+
+ ## how to you export a coercion from TrioSet to SnpArrayExperiment?
+ ##  export
+ ##setAs("TrioSet", "SnpArrayExperiment", function(from, to){
+ ##  ped <- pedigree(from)
+ ##  cn <- lrr(from)[, 1, ]/100
+ ##  b <- baf(from)[, 1, ]/1000
+ ##  colnames(b) <- colnames(cn) <- trios(ped)[1, ]
+ ##  gd <- GRanges(paste0("chr", chromosome(from)), IRanges(position(from),
+ ##                                                         width=1),
+ ##                isSnp=isSnp(from))
+ ##  rowdata <- SnpGRanges(gd)
+ ##  se <- SnpArrayExperiment(cn=cn, baf=b, rowData=rowdata)
+ ##  se
+ ##})
+
+
+
+
+ setAs("TrioSetList", "MinDistExperiment", function(from, to){
+   trioSet <- stack(from)
+   as(trioSet, "MinDistExperiment")
+ })
+
+ setAs("TrioSet", "MinDistExperiment", function(from, to){
+   if(ncol(from) > 1) warning("only coercing first trio in TrioSet to MinDistExperiment")
+   ##trioSet <- stack(trioSetList)[, 1]
+   from <- from[, 1]
+   ped <- trios(pedigree(from))
+   trios <- setNames(as.character(ped), c("father", "mother", "offspring"))
+   gd <- GRanges(paste0("chr", chromosome(from)),
+                 IRanges(position(from),
+                         width=1),
+                 isSnp=isSnp(from))
+   r <- .setColnames(lrr(from)[, 1, ], trios)/100
+   b <- .setColnames(baf(from)[, 1, ], trios)/1000
+   me <- MinDistExperiment(cn=r,
+                           baf=b,
+                           rowData=gd,
+                           colData=setNames(DataFrame(trios), "filename"))
+   me
+ })
+
+
+
+setMethod("filterExperiment", c("MinDistExperiment", "GRanges"),
+          function(object, granges, param){
+            .filter_mdexperiment(object, granges, param)
+          })
+
+setMethod("filterExperiment", c("MinDistExperiment", "GRangesList"),
+          function(object, granges, param){
+            g <- unlist(granges)
+            .filter_mdexperiment(object, g, param)
+          })
+
+setMethod("filterExperiment", c("MinDistExperiment", "MinDistGRanges"),
+          function(object, granges, param){
+            g <- unlist(mindist(granges))
+            .filter_mdexperiment(object, g, param)
+          })
+
+
+.filter_mdexperiment <- function(object, granges, param){
+  object <- NA_filter(object)
+  mads <- setNames(colMads(object), .get_md_names(object))
+  mads <- mads[granges$sample]
+  ##mads <- mad(mdgr)[names(mindist(mdgr))]
+  above_thr <- segMeanAboveThr(mean=granges$seg.mean, mad=mads, nmad=nMAD(param))
+  ##g <- mindist(mdgr)[[1]]
+  index <- unique(subjectHits(findOverlaps(granges[above_thr], rowData(object), maxgap=50e3)))
+  if(length(index) > 0){
+    index2 <- seq_along(rowData(object))[-index]
+    ## add a thin argument to the parameter class
+    index2 <- index2[seq(1, length(index2), by=thin(param))]
+    indices <- sort(c(index, index2))
+    object <- object[indices,]
+  } else {
+    object <- new("MinDistExperiment")
+  }
+  object
 }
-
-
-
-## how to you export a coercion from TrioSet to SnpArrayExperiment?
-##  export
-##setAs("TrioSet", "SnpArrayExperiment", function(from, to){
-##  ped <- pedigree(from)
-##  cn <- lrr(from)[, 1, ]/100
-##  b <- baf(from)[, 1, ]/1000
-##  colnames(b) <- colnames(cn) <- trios(ped)[1, ]
-##  gd <- GRanges(paste0("chr", chromosome(from)), IRanges(position(from),
-##                                                         width=1),
-##                isSnp=isSnp(from))
-##  rowdata <- SnpGRanges(gd)
-##  se <- SnpArrayExperiment(cn=cn, baf=b, rowData=rowdata)
-##  se
-##})
-
-
-setAs("TrioSetList", "MinDistExperiment", function(from, to){
-  trioSet <- stack(from)
-  as(trioSet, "MinDistExperiment")
-})
-
-setAs("TrioSet", "MinDistExperiment", function(from, to){
-  if(ncol(from) > 1) warning("only coercing first trio in TrioSet to MinDistExperiment")
-  ##trioSet <- stack(trioSetList)[, 1]
-  from <- from[, 1]
-  ped <- trios(pedigree(from))
-  trios <- setNames(as.character(ped), c("father", "mother", "offspring"))
-  gd <- GRanges(paste0("chr", chromosome(from)),
-                IRanges(position(from),
-                        width=1),
-                isSnp=isSnp(from))
-  r <- .setColnames(lrr(from)[, 1, ], trios)/100
-  b <- .setColnames(baf(from)[, 1, ], trios)/1000
-  me <- MinDistExperiment(cn=r,
-                          baf=b,
-                          rowData=gd,
-                          colData=setNames(DataFrame(trios), "filename"))
-  me
-})

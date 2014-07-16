@@ -22,7 +22,6 @@ setClass("Pedigree", representation(trios="data.frame",
 #' @rdname TrioSet-class
 #' @docType class
 #' @title TrioSet-class and methods
-#' @importClassesFrom oligoClasses gSet
 #' @export
 setClass("TrioSet", contains="gSet",
 	 representation(fatherPhenoData="AnnotatedDataFrame",
@@ -33,7 +32,6 @@ setClass("TrioSet", contains="gSet",
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~ TrioSetList Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' @importClassesFrom oligoClasses gSetList
 #' @export
 setClass("TrioSetList", contains="gSetList",
 	 representation(pedigree="Pedigree",
@@ -44,7 +42,6 @@ setClass("Pedigree2", contains="DataFrame")
 
 
 
-## importClassesFrom VanillaICE SnpArrayExperiment
 ## export
 ## setClass("TrioExperiment",
 ##          representation(pedigree="Pedigree"),
@@ -90,28 +87,43 @@ setClass("DNAcopyParam", representation(alpha="numeric",
 setClass("MinDistParam", representation(nMAD="numeric",
                                         dnacopy="DNAcopyParam",
                                         penncnv="PennParam",
-                                        emission="EmissionParam"))
+                                        emission="EmissionParam",
+                                        thin="integer"))
 
+#' @export
+setClass("ParentOffspring", representation(id="character", ## id for pedigree
+                                           father="character",
+                                           mother="character",
+                                           offspring="character",
+                                           filePaths="character"))
+#' @export
+setClass("ParentOffspringList", representation(id="character", pedigrees="list"))
 
+#' @export
 setClass("MinDistGRanges", representation(mindist="GRangesList",
                                           offspring="GRangesList",
                                           father="GRanges",
                                           mother="GRanges",
-                                          mad="numeric",
-                                          acf="numeric",
-                                          pedigree_id="character"))
+                                          pedigree="ParentOffspring"))
+##                                          mad="numeric",
+##                                          acf="numeric",
+##                                          pedigree_id="character"))
+
+
 
 setClass("MinDistExperiment", contains="SnpArrayExperiment",
-         representation(mindist="matrix"))
+         representation(mindist="matrix", pedigree="ParentOffspring"))
 
-#' @export
-setClass("FileViews", representation(path="character",
-                                     pedigree="list",
-                                     cnvar="character",
-                                     bafvar="character",
-                                     fid="character",
-                                     importfun="function",
-                                     annot_pkg="character"))
+##setClass("FileViews", representation(path="character",
+##                                     pedigree="list",
+##                                     cnvar="character",
+##                                     bafvar="character",
+##                                     fid="character",
+##                                     importfun="function",
+##                                     annot_pkg="character"))
+
+setClass("MDRanges", contains="GRanges")
 
 
-##setClass("ILimit", contains="IRanges")
+
+setClass("ILimit", contains="IRanges")

@@ -1,9 +1,9 @@
 #' @export
-MinDistParam <- function(nMAD=0.75, dnacopy=DNAcopyParam(), penncnv=PennParam(), emission=EmissionParam()){
-  new("MinDistParam", nMAD=nMAD, dnacopy=dnacopy, penncnv=penncnv, emission=emission)
+MinDistParam <- function(nMAD=0.75, dnacopy=DNAcopyParam(), penncnv=PennParam(), emission=EmissionParam(), thin=10L){
+  new("MinDistParam", nMAD=nMAD, dnacopy=dnacopy, penncnv=penncnv, emission=emission, thin=thin)
 }
 
-
+setMethod("thin", "MinDistParam", function(object) object@thin)
 setMethod("nMAD", "MinDistParam", function(object) object@nMAD)
 
 setReplaceMethod("nMAD", c("MinDistParam", "numeric"), function(object, value){
@@ -11,8 +11,15 @@ setReplaceMethod("nMAD", c("MinDistParam", "numeric"), function(object, value){
   object
 })
 
+setMethod("stateNames", "MinDistParam", function(object) stateNames(penncnv(object)))
+
 setMethod("penncnv", "MinDistParam", function(object) object@penncnv)
 setMethod("emission", "MinDistParam", function(object) object@emission)
+setReplaceMethod("emission", c("MinDistParam", "EmissionParam"),
+                 function(object, value) {
+                   object@emission <- value
+                   object
+                 })
 setMethod("EMupdates", "MinDistParam", function(object) EMupdates(object))
 
 ##setGeneric("penncnv", function(object) standardGeneric("penncnv"))

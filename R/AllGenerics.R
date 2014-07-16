@@ -25,8 +25,6 @@ setGeneric("fatherNames<-", function(object,value) standardGeneric("fatherNames<
 setGeneric("motherNames", function(object) standardGeneric("motherNames"))
 setGeneric("motherNames<-", function(object,value) standardGeneric("motherNames<-"))
 
-#' @export
-setGeneric("pedigree", function(object) standardGeneric("pedigree"))
 setGeneric("allNames", function(object) standardGeneric("allNames"))
 
 #' @export
@@ -69,7 +67,6 @@ setGeneric("initialStateProb<-", function(object,value) standardGeneric("initial
 setGeneric("transitionProb", function(object) standardGeneric("transitionProb"))
 
 setGeneric("minimum_MAD", function(object) standardGeneric("minimum_MAD"))
-setGeneric("minimum_emission", function(object) standardGeneric("minimum_emission"))
 
 #' @export
 setGeneric("nMAD", function(object) standardGeneric("nMAD"))
@@ -77,7 +74,6 @@ setGeneric("nMAD", function(object) standardGeneric("nMAD"))
 setGeneric("nMAD<-", function(object,value) standardGeneric("nMAD<-"))
 
 ## export
-## importFrom lattice xyplot
 ## setGeneric("xyplot") ##, signature=c("x", "data"))
 
 setGeneric("alpha", function(object) standardGeneric("alpha"))
@@ -87,11 +83,40 @@ setGeneric("undo.SD", function(object) standardGeneric("undo.SD"))
 
 #' @export
 setGeneric("subsetAndSort", function(object, autosomes) standardGeneric("subsetAndSort"))
+#' @export
 setGeneric("offspring", function(object) standardGeneric("offspring"))
+#' @export
 setGeneric("mother", function(object) standardGeneric("mother"))
+#' @export
 setGeneric("father", function(object) standardGeneric("father"))
 setGeneric("acfs", function(x) standardGeneric("acfs"))
 setGeneric("penncnv", function(object) standardGeneric("penncnv"))
 
 #' @export
+setGeneric("pedigree", function(object) standardGeneric("pedigree"))
+#' @export
+setGeneric("pedigree<-", function(object,value) standardGeneric("pedigree<-"))
+#' @export
+setGeneric("pedigreeName", function(object) standardGeneric("pedigreeName"))
+
+#' @export
 setGeneric("MAP2", function(object, mdgr, param, ...) standardGeneric("MAP2"))
+
+setGeneric("posteriorLogOdds", function(object) standardGeneric("posteriorLogOdds"))
+setGeneric("posteriorLogRR", function(object) standardGeneric("posteriorLogRR"))
+setGeneric("thin", function(object) standardGeneric("thin"))
+
+#' @export
+setGeneric("MinDistExperiment", function(object, pedigree, ...) standardGeneric("MinDistExperiment"))
+
+#' @export
+setGeneric("is221", function(object) standardGeneric("is221"))
+
+
+setGeneric("mdgrFile", function(object, label="mdgr") standardGeneric("mdgrFile"))
+setGeneric("mapFile", function(object, label="mdgr") standardGeneric("mapFile"))
+setGeneric("seq_along2", function(along.with) standardGeneric("seq_along2"))
+
+setGeneric("computePosterior", function(object, granges, param) standardGeneric("computePosterior"))
+#' @export
+setGeneric("filterExperiment", function(object, granges, param) standardGeneric("filterExperiment"))

@@ -49,7 +49,6 @@ test_RdsViews <- function(){
 ##  me2 <- me
 ##  seqlevels(me2, force=TRUE) <- "chr10"
 ##  md_grl <- MAP2(me2, mdgr, param)
-##
   md_grl <- MAP2(me, mdgr, param)
 ##  md_ranges <- md_grl[[1]]
 ##  md221 <- md_ranges[is221(md_ranges)]

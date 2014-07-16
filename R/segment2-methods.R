@@ -320,13 +320,17 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames,
 }
 
 
+.unmake.names <- function(id, original_id){
+  mapping <- setNames(original_id, make.names(original_id))
+  as.character(mapping[as.character(id)])
+}
 
-
-.dnacopy2granges <- function(x, seq_info){##, object){ ## x is a summarized experiment
-  ##L <- elementLengths(split(x$ID, factor(x$ID, levels=unique(x$ID))))
+.dnacopy2granges <- function(x, seq_info, original_id){
+  ## The names in x$ID might not be the same as the original because of make.names.
+  ids <- .unmake.names(x$ID, original_id)
   g <- GRanges(x$chrom,
                IRanges(x$loc.start, x$loc.end),
-               sample=x$ID,
+               sample=ids,
                numberProbes=x$num.mark,
                seg.mean=x$seg.mean)
   seqlevels(g) <- seqlevels(seq_info)
@@ -366,39 +370,63 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames,
   TRUE
 }
 
-.constructGRanges <- function(g, id) {
-  g <- g[g$sample%in% id]
-  sort(g)
-}
-.constructGRangesList <- function(g, id){
-  g <- .constructGRanges(g, id)
-  setNames(split(g, g$sample), id)
-}
-
 
 .pedigreeId <- function(object) paste(colData(object)$filename["father"],
                                       colData(object)$filename["mother"], sep="_")
 
+subsetGRangesById <- function(g, id) g[g$sample %in% id]
+
 #' @export
-#' @importFrom matrixStats colMads
 setMethod("segment2", "MinDistExperiment", function(object, param=MinDistParam()){
   x <- cbind(lrr(object), mindist(object))
-  segs <- .smoothAndSegment(x, rowData(object), dnacopy(param))
-  g <- .dnacopy2granges(segs, seqinfo(object))
-  is_valid_names <- .validNames(g, colnames(x))
-  if(!is_valid_names) browser()
-  g$filename <- .setFilename(g, object)
-  mads <- setNames(colMads(x, na.rm=TRUE), colnames(x))
-  autocors <- setNames(colAcfs(x), colnames(x))
-  md_grl <- .constructGRangesList(g, .mindistnames(offspring(object)))
-  offspring_grl <- .constructGRangesList(g, offspring(object))
-  mdgr <- MinDistGRanges(mindist=md_grl,
+  segs <- .smoothAndSegment(x, rowData(object), dnacopy(param)) ## segments the log r ratios and minimum distance for each trio
+  g <- .dnacopy2granges(segs, seqinfo(object), original_id=colnames(x))
+  MD_granges <- g[g$sample %in% .get_md_names(object)]
+  MD_grl <- split(MD_granges, MD_granges$sample)
+  offspring_granges <- g[g$sample %in% offspring(object)]
+  offspring_grl <- split(offspring_granges, offspring_granges$sample)
+  mads <- colMads(x[, match(names(MD_grl), colnames(x)), drop=FALSE], na.rm=TRUE)
+  MD_grl <- narrow2(offspring_grl, MD_grl, mads, param)
+  mdgr <- MinDistGRanges(mindist=MD_grl,
                          offspring=offspring_grl,
-                         father=.constructGRanges(g, "father"),
-                         mother=.constructGRanges(g, "mother"),
-                         mad=mads,
-                         acf=autocors,
-                         pedigree_id=.pedigreeId(object))
-  ##mindist(mdgr) <- .narrowGRangesList(mdgr, param)
+                         father=g[g$sample == father(object)],
+                         mother=g[g$sample == mother(object)],
+                         pedigree=pedigree(object))
   mdgr
 })
+
+#' @export
+narrow2 <- function(offspring_grl, mindist_grl, mads, param){
+  mindist_grl2 <- foreach(md_gr=mindist_grl, offspr_gr=offspring_grl, md.mad=mads) %do%{
+    .narrowMinDistGRanges(md_gr=md_gr, offspr_gr=offspr_gr, md.mad=md.mad, param=param)
+  }
+  setNames(GRangesList(mindist_grl2), names(mindist_grl))
+}
+
+.narrowMinDistGRanges <- function(md_gr, offspr_gr, md.mad, param){
+  ## threshold is the number of mads
+  object <- md_gr
+  keep <- segMeanAboveThr(mean=md_gr$seg.mean, mad=md.mad, nmad=nMAD(param))
+  md.below.thr <- md_gr[!keep]
+  md_gr <- md_gr[keep]
+  if(length(md_gr) < 1) return(object)
+  offspr_gr <- subsetByOverlaps(offspr_gr, md_gr)
+  disj <- disjoin(c(md_gr, offspr_gr))
+  disj <- subsetByOverlaps(disj, md_gr)
+  hits <- findOverlaps(md_gr, disj)
+  ## which minimumdistance intervals are spanned by a disjoint interval
+  j <- subjectHits(hits) ##r
+  i <- queryHits(hits)   ##s
+  ##disj$sample <- names(object)
+  disj$sample <- md_gr$sample[1]
+  disj$seg.mean <- NA
+  disj$seg.mean[j] <- md_gr$seg.mean[i]
+  disj$filename <- md_gr$filename[1]
+  ##
+  ## filtered minimum distance ranges (md < thr) will only be in the
+  ## offspring segments
+  ##
+  mcols(md.below.thr) <- mcols(md.below.thr)[, -grep("numberProbes", colnames(mcols(md.below.thr)))]
+  disj <- sort(c(disj, md.below.thr))
+  return(disj)
+}

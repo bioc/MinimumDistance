@@ -4,26 +4,29 @@ test_callDenovoSegments <- function(){
   path <- system.file("extdata", package="MinimumDistance", mustWork=TRUE)
   fnames <- setNames(list.files(path, pattern=".txt", full.names=TRUE), c("father", "mother", "offspring1", "offspring2"))
   library(data.table)
-  annot_pkg <- "human610quadv1bCrlmm"
   build <- "hg18"
   library("human610quadv1bCrlmm")
 
-  setClass("FileParam", representation(importfun="function", labels="character"))
-  ImportParam <- function(importfun=fread, labels=c("Name", "Log.R.Ratio", "B.Allele.Freq")){
-    new("FileParam", importfun=importfun, labels=labels)
-  }
-  setClass("AnnotationParam", representation(package="character", build="character"))
-  AnnotationParam <- function(package=character(), build="hg19"){
-    new("AnnotationParam", package=package, build=build)
-  }
-  setClass("FileViews", representation(path="character", pedigree="list"))
-  PedigreeList <- function(path="./", pedigree=list()){
-    new("FileViews", path=path, pedigree=pedigree)
-  }
-  FileViews <- function(import=ImportParam(), annotation=AnnotationParam(),
-                        pedigree=PedigreeList()){
 
-  }
+
+##
+##  setClass("FileParam", representation(importfun="function", labels="character"))
+##  ImportParam <- function(importfun=fread, labels=c("Name", "Log.R.Ratio", "B.Allele.Freq")){
+##    new("FileParam", importfun=importfun, labels=labels)
+##  }
+##  setClass("AnnotationParam", representation(package="character", build="character"))
+##  AnnotationParam <- function(package=character(), build="hg19"){
+##    new("AnnotationParam", package=package, build=build)
+##  }
+##  setClass("FileViews", representation(path="character", pedigree="list"))
+##  PedigreeList <- function(path="./", pedigree=list()){
+##    new("FileViews", path=path, pedigree=pedigree)
+##  }
+##  FileViews <- function(import=ImportParam(), annotation=AnnotationParam(),
+##                        pedigree=PedigreeList()){
+##
+##  }
+
 
   views <- FileViews(annotation=AnnotationParam(build="hg18", package="human610quadv1bCrlmm"),
                      pedigree=PedigreeList(path=path, pedigree=list(fnames)))
