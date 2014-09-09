@@ -1,3 +1,12 @@
+#' Constructor for ParentOffspring class
+#'
+#' @param id length-one character vector providing a family-level id
+#' @param father length-one character vector providing sample ids for father
+#' @param mother length-one character vector providing sample ids for mother
+#' @param offspring offspring character vector providing sample ids for offspring (can have length greater than one if there is more than one offspring)
+#' @param filePaths filePaths character vector providing path to low-level data
+#' @rdname ParentOffspring-class
+#' @export
 ParentOffspring <- function(id=character(),
                             father=character(),
                             mother=character(),
@@ -32,10 +41,23 @@ setMethod("show", "ParentOffspring", function(object){
   cat("offspring  :", paste(offspring(object), collapse=", "), "\n")
 })
 
+setAs("Pedigree", "ParentOffspring", function(from,to){
+  ParentOffspring(id=paste0("trio", nrow(from)),
+                  father=fatherNames(from),
+                  mother=motherNames(from),
+                  offspring=offspringNames(from))
+})
+
+#' Constructor for ParentOffspringList class
+#'
+#' @param pedigrees a list of \code{ParentOffspring} objects
+#' @rdname ParentOffspringList-class
+#' @export
 ParentOffspringList <- function(pedigrees=list()){
   ids <- as.character(sapply(pedigrees, pedigreeName))
   new("ParentOffspringList", id=ids, pedigrees=pedigrees)
 }
+
 
 setMethod("pedigreeName", "ParentOffspringList", function(object) object@id)
 

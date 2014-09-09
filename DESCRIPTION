@@ -1,35 +1,39 @@
 Package: MinimumDistance
 Type: Package
 Title: A package for de novo CNV detection in case-parent trios
-Version: 1.9.17
-Date: Wed Jul 16 10:33:11 EDT 2014
+Version: 1.9.18
+Date: Tue Sep  9 18:25:47 EDT 2014
 Author: Robert B Scharpf and Ingo Ruczinski
-Maintainer: Robert B Scharpf <rscharpf@jhsph.edu>
+Maintainer: Robert B Scharpf <rscharpf@jhu.edu>
 Description: Analysis of de novo copy number variants in trios from
     high-dimensional genotyping platforms
 License: Artistic-2.0
 Depends:
-    R (>= 3.01),
-    GenomicRanges (>= 1.17.16)
+    R (>= 3.01)
 Imports:
+    oligoClasses,
     S4Vectors,
     VanillaICE,
     Biobase,
     DNAcopy,
-    msm,
     BiocGenerics,
     ff,
     foreach,
-    matrixStats
+    matrixStats,
+    IRanges,
+    lattice,
+    GenomicRanges (>= 1.17.16),
+    GenomeInfoDb,
+    data.table
 Suggests:
     human610quadv1bCrlmm (>= 1.0.3),
     SNPchip,
-    RUnit,
-    lattice
+    RUnit
 Collate:
     'help.R'
     'AllClasses.R'
     'AllGenerics.R'
+    'datasets.R'
     'defunct.R'
     'functions.R'
     'generator-funs.R'
@@ -37,12 +41,14 @@ Collate:
     'mad-methods.R'
     'methods-AnnotatedDataFrame.R'
     'methods-AssayData.R'
-    'methods-DNAcopyParam.R'
     'methods-FileViews.R'
+    'methods-FilterParamMD.R'
     'methods-ILimit.R'
     'methods-MDRanges.R'
     'methods-MinDistExperiment.R'
     'methods-MinDistGRanges.R'
+    'methods-MinDistParam.R'
+    'methods-MinDistPosterior.R'
     'methods-ParentOffspring.R'
     'methods-Pedigree.R'
     'methods-PennParam.R'

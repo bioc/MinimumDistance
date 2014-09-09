@@ -7,19 +7,30 @@ test_MAP2 <- function(){
   library(oligoClasses)
   library(foreach)
   library(BSgenome.Hsapiens.UCSC.hg19)
+  library(VanillaICE)
   foreach::registerDoSEQ()
   data(trioSetListExample)
-  me <- as(trioSetList, "MinDistExperiment")
-  checkIdentical(me$filename, setNames(c("NA12891", "NA12892", "NA12878"), c("father", "mother", "offspring")))
-
+  me <- as(trioSetList[,1], "MinDistExperiment")
   seqinfo(me) <- seqinfo(BSgenome.Hsapiens.UCSC.hg19)[seqlevels(me), ]
+  if(FALSE) {
+    md_exp <- me
+    save(md_exp, file="~/Software/bridge/MinimumDistance/data/md_exp.rda")
+  }
   checkTrue(validObject(me))
-  me <- subsetAndSort(me, seqlevels(me))
-  param <- MinDistParam()
+  ##me <- subsetAndSort(me, seqlevels(me))
+  e_param <- EmissionParam(temper=1, p_outlier=1/100)
+  penn_param <- PennParam(prNonMendelian=1.5e-6)
+  param <- MinDistParam(thin=1L, emission=e_param, penncnv=penn_param)
   mdgr <- segment2(me, param)
-  mindist(mdgr) <- narrow2(mdgr, param)
-  md_g <- unlist(MAP2(me, mdgr, param))
-  checkIdentical(sum(md_g$call=="221", na.rm=TRUE),2L)
+  if(FALSE){
+    md_gr <- mdgr
+    save(md_gr, file="~/Software/bridge/MinimumDistance/data/md_gr.rda")
+  }
+  md_g <- MAP2(me, mdgr, param)
+  checkTrue(length(denovoHemizygous(md_g))==1)
+
+##  findOverlaps(GRanges("chr22", IRanges(20.8e6, 21.4e6)), segs(md_g))
+  ##checkIdentical(sum(md_g$call=="221", na.rm=TRUE),2L)
 }
 
 test_posteriorCalls <- function(){
@@ -36,7 +47,8 @@ test_posteriorCalls <- function(){
   me <- as(trioSet12023chr12, "MinDistExperiment")
   param <- MinDistParam()
   res <- MAP2(me, gr, param)
-  checkTrue(res$call=="222")
+  checkTrue(length(denovo(res))==0)
+  ##checkTrue(res$call=="222")
   ##checkTrue(as.character(unlist(state(res), use.names=FALSE)) %in% c("334", "333"))
 ##  if(FALSE){
 ##    ylab <- expression(log[2]("R ratios"))

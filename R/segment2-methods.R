@@ -371,12 +371,14 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames,
 }
 
 
-.pedigreeId <- function(object) paste(colData(object)$filename["father"],
-                                      colData(object)$filename["mother"], sep="_")
+.pedigreeId <- function(object) {
+  paste(colData(object)$filename["father"],
+        colData(object)$filename["mother"], sep="_")
+}
 
-subsetGRangesById <- function(g, id) g[g$sample %in% id]
+subsetGRangesById <- function(g, id){ g[g$sample %in% id]}
 
-#' @export
+
 setMethod("segment2", "MinDistExperiment", function(object, param=MinDistParam()){
   x <- cbind(lrr(object), mindist(object))
   segs <- .smoothAndSegment(x, rowData(object), dnacopy(param)) ## segments the log r ratios and minimum distance for each trio
@@ -385,6 +387,9 @@ setMethod("segment2", "MinDistExperiment", function(object, param=MinDistParam()
   MD_grl <- split(MD_granges, MD_granges$sample)
   offspring_granges <- g[g$sample %in% offspring(object)]
   offspring_grl <- split(offspring_granges, offspring_granges$sample)
+  if(length(offspring_grl)==1){
+    offspring_grl <- setNames(GRangesList(offspring_grl[[1]]), names(offspring_grl))
+  } else offspring_grl <- GRangesList(offspring_grl)
   mads <- colMads(x[, match(names(MD_grl), colnames(x)), drop=FALSE], na.rm=TRUE)
   MD_grl <- narrow2(offspring_grl, MD_grl, mads, param)
   mdgr <- MinDistGRanges(mindist=MD_grl,
@@ -395,7 +400,16 @@ setMethod("segment2", "MinDistExperiment", function(object, param=MinDistParam()
   mdgr
 })
 
-#' @export
+## Narrow the minimum distance segmentation breakpoints
+##
+## Narrow the minimum distance segmentation interval if breakpoints in
+## the offspring occur within the interval.
+##
+## @param offspring_grl a \code{GRangesList} object of the offspring segmentation
+## @param mindist_grl  a \code{GRangesList} object of the minimum distance segmentation
+## @param mads a numeric vector containing the minimum distance median absolute deviations
+## @param param
+## @export
 narrow2 <- function(offspring_grl, mindist_grl, mads, param){
   mindist_grl2 <- foreach(md_gr=mindist_grl, offspr_gr=offspring_grl, md.mad=mads) %do%{
     .narrowMinDistGRanges(md_gr=md_gr, offspr_gr=offspr_gr, md.mad=md.mad, param=param)

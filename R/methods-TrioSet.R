@@ -110,6 +110,34 @@ setMethod("motherPhenoData", signature(object="TrioSet"),
 setMethod("offspringPhenoData", signature(object="TrioSet"),
 	  function(object) phenoData(object))
 
+#' Deprecated constructor for \code{TrioSet} class
+#'
+#' The \code{TrioSet} class has been deprecated and may be removed in
+#' a future release.
+#'
+#' @param pedigreeData an object of class \code{Pedigree}
+#' @param sample.sheet a \code{data.frame} containing metadata on the trios
+#' @param row.names a character vector providing row identifiers for
+#' the \code{sample.sheet} argument that match the names of the
+#' trios in the \code{pedigreeData} argument.
+#' @param lrr a matrix of log R ratios
+#' @param baf a matrix of B allele frequencies
+#' @param featureData a \code{GenomeAnnotatedDataFrame} object for the SNPs/nonpolymorphic markers
+#' @param cdfname character string indicating the annotation package used to extract physical position and chromosome of markers
+#' @param drop logical.  When FALSE, the dimnames on the log R ratio and BAF arrays is set to NULL
+#' @param mindist  can be either NULL or a matrix of the minimum distance
+#' @param genome character string providing the UCSC genome build
+#' @return \code{TrioSet}
+#' @examples
+#' 	path <- system.file("extdata", package="MinimumDistance")
+#' 	load(file.path(path, "logRratio.rda"))
+#' 	load(file.path(path, "baf.rda"))
+#' 	load(file.path(path, "pedigreeInfo.rda"))
+#' 	trioSet <- TrioSet(lrr=logRratio,
+#' 			   baf=baf,
+#' 			   pedigree=Pedigree(pedigreeInfo),
+#' 			   cdfname="human610quadv1bCrlmm",
+#' 			   genome="hg18")
 #' @export
 TrioSet <- function(pedigreeData=Pedigree(),
 		    sample.sheet,
@@ -673,12 +701,13 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
                                                  transition_param=TransitionParam(),
                                                  emission_param=EmissionParam(),
 						 mdThr=0.9, ...){
-	.map_trioSet(object=object,
-		     ranges=ranges,
-                     ##id,
-                     transition_param=transition_param,
-                     emission_param=emission_param,
-		     mdThr=mdThr,...)
+  .Deprecated("MAP2", msg="This function is deprecated and will be defunct in a future release. See MAP2 instead.")
+  .map_trioSet(object=object,
+               ranges=ranges,
+               ##id,
+               transition_param=transition_param,
+               emission_param=emission_param,
+               mdThr=mdThr,...)
 })
 
 

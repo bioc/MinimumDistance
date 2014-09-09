@@ -1,3 +1,26 @@
+#' Constructor for \code{MinDistParam} class
+#'
+#' The \code{MinDistParam} class contains parameters used for the
+#' segmentation implemented in the \code{DNAcopy} package, parameters
+#' extracted from the \code{PennCNV} HMM such as parent-offspring
+#' transmission parobabilities (see citation below), and initial
+#' values / parameters for computing emission probabilities.
+#'
+#' @param nMAD a length-one numeric vector indicating the minimal
+#' number of median absolute deviations of the mean segmented minimum
+#' distance from zero.  For non-zero segments (# median absolute
+#' deviations > nMAD), maximum a posteriori estimates of the
+#' parent-offspring copy number states are computed.  Segments with
+#' minimum distance values near zero are not called as they are less
+#' likely to correspond to regions with de novo copy number
+#' alterations.
+#' @param dnacopy an object of class \code{DNAcopyParam}.
+#' @param penncnv probabilities/parameters of the PennCNV hidden
+#' Markov model
+#' @param emission an object of class \code{EmissionParam}
+#' @param thin a length-one vector indicating whether to thin the
+#' data. This is primarily for internal use in conjunction with the
+#' \code{filterExperiment} function.
 #' @export
 MinDistParam <- function(nMAD=0.75, dnacopy=DNAcopyParam(), penncnv=PennParam(), emission=EmissionParam(), thin=10L){
   new("MinDistParam", nMAD=nMAD, dnacopy=dnacopy, penncnv=penncnv, emission=emission, thin=thin)

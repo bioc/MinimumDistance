@@ -28,16 +28,16 @@ test_callDenovoSegments <- function(){
 ##  }
 
 
-  views <- FileViews(annotation=AnnotationParam(build="hg18", package="human610quadv1bCrlmm"),
-                     pedigree=PedigreeList(path=path, pedigree=list(fnames)))
-
-  views <- FileViews(path=path, pedigree=list(fnames),
-                     fid="Name", cnvar="Log.R.Ratio", bafvar="B.Allele.Freq",
-                     headers=varLabels(),
-                     importfun=fread,
-                     annot_pkg=annot_pkg,
-                     build="hg18")
-  me <- MinDistExperiment(views)
+##  views <- FileViews(annotation=AnnotationParam(build="hg18", package="human610quadv1bCrlmm"),
+##                     pedigree=PedigreeList(path=path, pedigree=list(fnames)))
+##
+##  views <- FileViews(path=path, pedigree=list(fnames),
+##                     fid="Name", cnvar="Log.R.Ratio", bafvar="B.Allele.Freq",
+##                     headers=varLabels(),
+##                     importfun=fread,
+##                     annot_pkg=annot_pkg,
+##                     build="hg18")
+##  me <- MinDistExperiment(views)
   ##  map.segs <- callDenovoSegments(path=path,
 ##                                 ext="",
 ##                                 pedigreeData=ped,

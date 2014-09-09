@@ -30,6 +30,10 @@
                   prob_221=numeric(L))
 }
 
+#' @inheritParams GRanges
+#' @param posteriors a \code{DataFrame}
+#' @export
+#' @rdname MDRanges-class
 MDRanges <- function(..., posteriors){
   g <- GRanges(...)
   if(missing(posteriors)) posteriors <- .mdranges_mcols(g)
@@ -55,3 +59,23 @@ isDenovo <- function(states) (states %in% c(duplicationStates(), deletionStates(
 setMethod("is221", "MDRanges", function(object)  object$calls=="221" & !is.na(object$calls))
 
 setMethod("is221", "GRangesList", function(object) lapply(object, is221))
+
+setMethod("numberFeatures", "MDRanges", function(object) object$number_probes)
+
+setMethod("state", "MDRanges", function(object) object$calls)
+
+
+.apply_ped_filters <- function(g, filters){
+  if(length(g)==0) return(g)
+  keep <- width(g) > width(filters)
+  keep <- keep & state(g) %in% state(filters)
+  keep <- keep & numberFeatures(g) >= numberFeatures(filters)
+  keep <- keep & seqnames(g) %in% seqnames(filters)
+  keep <- keep & g$prob_MAP>= probability(filters)
+  g[keep]
+}
+
+
+setMethod("cnvFilter", "MDRanges", function(object, filters=FilterParam()){
+  .apply_ped_filters(object, filters)
+})

@@ -56,13 +56,19 @@ setMethod(SnpGRanges, "SnpGRanges", function(object, isSnp) return(object))
 ##            assays <- snpArrayAssays(cn=cn, baf=baf)
 ##            .constructMDE(assays, rowData, colData)
 ##          })
-##
-##setMethod("MinDistExperiment", c("missing", "missing", "missing", "missing"),
-##          function(object, rowData, cn, baf, colData){
-##            new("MinDistExperiment")
+
+.MinDistExperiment <- function(cn, baf, rowData, colData){
+  assays <- snpArrayAssays(cn=cn, baf=baf)
+
+}
+
+##setMethod("MinDistExperiment", c("missing", "missing"),
+##          function(object=ArrayViews(), pedigree=ParentOffspring(), ...){
+##            al <- assays(object)
+##            .constructMDE(al, rowData=SnpGRanges(rowData(object)), colData=colData(object),
+##                          pedigree=pedigree)
 ##          })
 ##
-###' @export
 ##setMethod("MinDistExperiment", c("ShallowSimpleListAssays", "GRanges"),
 ##          function(object, rowData, cn, baf, colData){
 ##            .constructMDE(object, rowData, colData)
@@ -208,7 +214,7 @@ removeDuplicateMapLoc <- function(object){
 
 
 computeEmissionProbs <- function(object, param=MinDistParam()){
-  ##object <- NA_filter(object)
+  object <- NA_filter(object)
   transition_param <- TransitionParam()
   F <- updateHmmParams(object[, father(object)], emission(param), transition_param=transition_param)
   ## use emission parameters (updated by Baum Welch) as initial values for Mother
@@ -227,7 +233,10 @@ computeEmissionProbs <- function(object, param=MinDistParam()){
   tmp2 <- SimpleList(emitO)
   tmp2@listData <- setNames(tmp2@listData, offspring(object))
   tmp@listData <- setNames(tmp@listData, c(father(object), mother(object)))
-  SummarizedExperiment(assays=c(tmp, tmp2), rowData=rowData(object))
+  se <- SummarizedExperiment(assays=c(tmp, tmp2), rowData=rowData(object))
+  ##e <- assays(se)[[4]][37390:37394, ]
+  ##pr2 <- e[, "cn2"]/rowSums(e)
+  se
 }
 
 setGeneric("colMads", function(x, centers=colMedians(x, ...), constant=1.4826, ...)
@@ -265,17 +274,19 @@ posteriorSummaries <- function(log_prior.lik){
 
 setMethod(MAP2, c("MinDistExperiment", "MinDistGRanges"), function(object, mdgr, param, ...){
   obj <- computePosterior(object, granges=mindist(mdgr), param=param)
-  GRangesList(obj)
+  ##GRangesList(obj)
+  MinDistPosterior(granges=GRangesList(obj))
 })
 
 setMethod(MAP2, c("MinDistExperiment", "GRangesList"), function(object, mdgr, param, ...){
   obj <- computePosterior(object, granges=mdgr, param=param)
-  GRangesList(obj)
+  ##GRangesList(obj)
+  MinDistPosterior(granges=GRangesList(obj))
 })
 
 setMethod(MAP2, c("MinDistExperiment", "GRanges"), function(object, mdgr, param, ...){
   obj <- computePosterior(object, granges=mdgr, param=param)
-  GRangesList(obj)
+  MinDistPosterior(granges=GRangesList(obj))
 })
 
 
@@ -287,6 +298,7 @@ filterIndexForGRanges <- function(object, granges, param){
 }
 
 .compute_trio_posterior <- function(object, granges, param, lemit){
+  granges <- subsetByOverlaps(granges, object)
   states <- stateNames(param)
   Index <- filterIndexForGRanges(object, granges, param)
   hits <- findOverlaps(granges, object)
@@ -303,7 +315,8 @@ filterIndexForGRanges <- function(object, granges, param){
     ##  likelihood of the observed data given the model
     LLT <- cumulativeLogLik(lemit[index, , , drop=FALSE])
     ##  log(likelihood * prior models):
-    log_prior.lik <- setNames(sapply(states, posterior,
+    log_prior.lik <- setNames(sapply(states,
+                                     posterior,
                                      param=penncnv(param),
                                      state.prev=state.prev,
                                      log.lik=LLT), states)
@@ -316,6 +329,7 @@ filterIndexForGRanges <- function(object, granges, param){
   granges <- granges[Index]
   mcols(granges) <- c(mcols(granges), post)
   granges$calls <- calls
+  granges$number_probes <- countOverlaps(granges, rowData(object))
   mg <- as(granges, "MDRanges")
   versions <- c(packageVersion("VanillaICE"),
                 packageVersion("MinimumDistance"))
@@ -339,6 +353,8 @@ setMethod("computePosterior", c("MinDistExperiment", "GRanges"), function(object
     object <- object[, c(1,2,j)]
   }
   emissions_object <- computeEmissionProbs(object, param)
+  if(!identical(rownames(emissions_object), rownames(object)))
+    object <- object[rownames(emissions_object), ]
   log_emit <- logEmissionArray(emissions_object)
   .compute_trio_posterior(object=object, granges=granges,
                           param=param, lemit=log_emit)
@@ -348,7 +364,12 @@ setMethod("computePosterior", c("MinDistExperiment", "GRangesList"), function(ob
   if(nrow(object) == 0) return(MDRanges())
   ## compute emission probabilities
   emissions_object <- computeEmissionProbs(object, param)
+  if(!identical(rownames(emissions_object), rownames(object)))
+    object <- object[rownames(emissions_object), ]
   log_emit <- logEmissionArray(emissions_object)
+  if(FALSE){
+    i=subjectHits(findOverlaps(granges[[1]][41], object))
+  }
   offspr <- offspring(object)
   J <- foreach(id=offspr) %do% c(1:2, match(id, colnames(object)))
   md_rangesList <- foreach(j = J, g=granges) %do% {
@@ -405,21 +426,21 @@ setMethod("computePosterior", c("MinDistExperiment", "GRangesList"), function(ob
  })
 
  setAs("TrioSet", "MinDistExperiment", function(from, to){
-   if(ncol(from) > 1) warning("only coercing first trio in TrioSet to MinDistExperiment")
+   if(ncol(from) > 1) message("only coercing first trio in TrioSet to MinDistExperiment")
    ##trioSet <- stack(trioSetList)[, 1]
    from <- from[, 1]
-   ped <- trios(pedigree(from))
-   trios <- setNames(as.character(ped), c("father", "mother", "offspring"))
+   ped <- as(pedigree(from), "ParentOffspring")
+   ##trios <- setNames(as.character(ped), c("father", "mother", "offspring"))
    gd <- GRanges(paste0("chr", chromosome(from)),
                  IRanges(position(from),
                          width=1),
                  isSnp=isSnp(from))
-   r <- .setColnames(lrr(from)[, 1, ], trios)/100
-   b <- .setColnames(baf(from)[, 1, ], trios)/1000
-   me <- MinDistExperiment(cn=r,
-                           baf=b,
-                           rowData=gd,
-                           colData=setNames(DataFrame(trios), "filename"))
+   r <- .setColnames(lrr(from)[, 1, ], names(ped))/100
+   b <- .setColnames(baf(from)[, 1, ], names(ped))/1000
+   assays <- VanillaICE:::snpArrayAssays(cn=r, baf=b)
+   me <- .constructMDE(assays, rowData=gd,
+                       colData=DataFrame(row.names=names(ped)),
+                       ped)
    me
  })
 

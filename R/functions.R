@@ -597,7 +597,8 @@ trioStates <- function(states=0:4){
 }
 
 trioStateNames <- function(trio.states){
-	paste(paste(trio.states[,1], trio.states[,2], sep=""), trio.states[,3], sep="")
+  if(missing(trio.states)) strio.states <- trioStates()
+  paste(paste(trio.states[,1], trio.states[,2], sep=""), trio.states[,3], sep="")
 }
 
 
@@ -706,7 +707,7 @@ currentNonMendelian <- function(param, prev_index, state_index, transitionNM){
 }
 
 computeB <- function(param, current_state, previous_state){
-    ## B = Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
+  ## B = Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
   B <- setNames(vector("list", 4), c("NM=0,0","NM=0,1", "NM=1,0", "NM=1,1"))
   ## For each pair of mendelian indicators, return a vector of length <#CN STATES>
   ##    - element i of the vector is the probability for S_i0 = CN[i], CN = [0,1,2,3,4]
@@ -935,7 +936,6 @@ xypanelMD2 <- function(x, y,
 ##		   mad.minimumdistance, verbose=TRUE,
 ##		   fD, genome) .Defunct("The 'narrow' function is defunct in MinimumDistance. Use narrowRanges instead.")
 
-#' @export
 narrowRanges <- function(object,
                          lrr.segs,
                          thr=0.9,
@@ -1248,7 +1248,7 @@ callDenovoSegments <- function(path="",
 ##                                         keep=keep, labels=labels,
 ##                                         classes=classes)
 ##  obj <- read_beadstudio(filenames=filenames)
-  obj <- read.bsfiles(filenames, select=select)
+  obj <- fread(filenames, select=select)
   if(missing(featureData)){
     trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
                                baf=integerMatrix(obj[, "baf",], 1000),
@@ -1721,7 +1721,16 @@ logEmissionArray <- function(object){
   lemit_array
 }
 
-
+#' Function for computing autocorrelations
+#'
+#' By default, this function returns the lag-10 autocorrelations of a
+#' numeric vector and omits missing values.
+#'
+#' @inheritParams acf
+#' @examples
+#' x <- rnorm(100)
+#' x[5] <- NA
+#' acf2(x)
 #' @export
 acf2 <- function(x, lag.max=10, type = c("correlation", "covariance", "partial"),
                  plot = FALSE, na.action = na.omit, demean = TRUE,

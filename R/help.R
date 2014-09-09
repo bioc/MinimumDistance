@@ -4,15 +4,17 @@
 #' @name MinimumDistance
 #' @import ff
 #' @import Biobase
-#' @import oligoClasses
-#' @import VanillaICE
-#' @import ff
-#' @import IRanges
 #' @import S4Vectors
+#' @import IRanges
+#' @import GenomicRanges
+#' @importFrom utils packageDescription
 #' @import DNAcopy
 #' @import foreach
-#' @import lattice
-#' @import matrixStats
+#' @importFrom matrixStats colMads colMedians
+#' @importMethodsFrom GenomeInfoDb seqlengths seqlengths<-
 #' @import BiocGenerics
+#' @import oligoClasses
 #' @import VanillaICE
+#' @import lattice
+#' @importFrom data.table fread
 NULL

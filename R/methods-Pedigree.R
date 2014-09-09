@@ -55,6 +55,16 @@ setMethod("initialize", signature(.Object="Pedigree"),
 		  callNextMethod(.Object, trios=trios, trioIndex=trioIndex, ...)
 	  })
 
+#' Deprecated function for constructing an instance of class Pedigree
+#'
+#' This function is deprecated and will be removed in a future release.
+#'
+#' @param pedigreeInfo a \code{data.frame} with column names 'F' (father), 'M' (mother), and 'O' (offspring). Elements of the \code{data.frame} are the sample names.
+#' @param fatherIds character vector of identifiers for the father
+#' @param motherIds character vector of identifiers for the mother
+#' @param offspringIds character vector of identifiers for the offspring
+#' @examples
+#' Pedigree()
 #' @export
 Pedigree <- function(pedigreeInfo,
 		     fatherIds=character(),
@@ -91,7 +101,10 @@ Pedigree <- function(pedigreeInfo,
 
 
 setMethod("trios", signature(object="Pedigree"),
-	  function(object) object@trios)
+	  function(object) {
+            .Deprecated()
+            object@trios
+        })
 setMethod("trioIndex", signature(object="Pedigree"),
 	  function(object) object@trioIndex)
 setMethod("offspringNames", signature(object="Pedigree"), function(object) trios(object)$O)

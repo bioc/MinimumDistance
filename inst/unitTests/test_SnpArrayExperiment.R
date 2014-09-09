@@ -1,27 +1,30 @@
-test_SnpArrayExperiment_pipeline <- function(){
+.test_SnpArrayExperiment_pipeline <- function(){
+  ##
+  ## Uses data not included in package
+  ##
   library(data.table)
   library(VanillaICE)
   library(Maher)
   datdir <- "/dcs01/oncbio/rscharpf/maher"
+  data(pedlist, package="Maher")
   atv.files <- list.files(datdir, full.names=TRUE, pattern="arraytv")
-  ped <- fread("/dcs01/oncbio/rscharpf/maher/triosh.txt", header=FALSE)
+  ##ped <- fread("/dcs01/oncbio/rscharpf/maher/triosh.txt", header=FALSE)
   ##ped <- formatPedigree(ped)
   fgr2 <- readRDS(file.path(datdir, "feature_granges_hg19.rds"))
-
-  views <- RdsViews(path=datdir, pedigree=ped, cnvar="lrr", bafvar="baf")
-  assayList <- assays(views[1, ])
-  me <- MinDistExperiment(assays=assayList,
-                          rowData=fgr2,
-                          pedigree=pedigree(views[1,]))
-  me <- subsetAndSort(me, seqlevels(me)[1:22])
+  views <- ArrayViews(rowData=fgr2,
+                      filePaths=atv.files,
+                      sample_ids=names(pedlist[[1]]))
+  ##pedigree=ped, cnvar="lrr", bafvar="baf")
+  ##assayList <- assays(views[1, ])
+##  me <- MinDistExperiment(assays=assayList,
+##                          rowData=fgr2,
+  ##                          pedigree=pedigree(views[1,]))
+  me <- MinDistExperiment(views, pedigree=pedlist[[1]])
+  mdgr <- segment2(me, param=param)
   param <- MinDistParam()
-  path <- system.file("extdata", package="MinimumDistance")
-  if(FALSE){
-    md_granges <- segment2(me, param=DNAcopyParam())
-    saveRDS(md_granges, file=file.path(path, "md_granges.rds"))
-  } else md_granges <- readRDS(file.path(path, "md_granges.rds"))
-  param <- PennParam()
-  md_ranges <- MAP2(me, md_granges, param)
+  ##path <- system.file("extdata", package="MinimumDistance")
+  ##param <- PennParam()
+  md_ranges <- MAP2(me, mdgr, param)
   table(md_ranges$call)
 
   if(FALSE){

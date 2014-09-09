@@ -1,3 +1,20 @@
+#' Constructor for \code{MinDistGRanges} class
+#'
+#' The \code{MinDistGRanges} class contains the segmentation of the
+#' father, mother, offspring, and the minimum distance for each
+#' possible parent-offspring trio.  For the parents, the segmentation
+#' results are expected to be in \code{GRanges} format.  To accomodate
+#' multiple-offspring families, both the offspring segments and
+#' minimum distance segments should be of class \code{GRangesList}
+#' where the length of the list corresponds to the number of
+#' offspring.
+#'
+#' @param mindist a \code{GRangesList} object
+#' @param offspring  a \code{GRangesList} object
+#' @param father a \code{GRanges} object
+#' @param mother a \code{GRanges} object
+#' @examples
+#' MinDistGRanges()
 #' @export
 MinDistGRanges <- function(mindist=GRangesList(),
                            offspring=GRangesList(),

@@ -10,6 +10,14 @@ setClassUnion("arrayORff_array", c("array", "ff_array"))
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~ Pedigree Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#' Deprecated class for storing pedigree data
+#'
+#' @slot trios a \code{data.frame} with colnames 'F', 'M', and 'O'
+#' containing sample identifiers for the father (F), mother (M), and
+#' offspring (O).
+#' @slot trioIndex a \code{data.frame}
+#' @rdname Deprecated
 #' @export
 setClass("Pedigree", representation(trios="data.frame",
 				    trioIndex="data.frame"))
@@ -19,9 +27,16 @@ setClass("Pedigree", representation(trios="data.frame",
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~ TrioSet Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Deprecated class for storing low-level genomic data for trios
+#'
+#' This class is deprecated and will be defunct in a future release.
+#'
+#' @slot fatherPhenoData \code{AnnotatedDataFrame} containing covariates for the father
+#' @slot motherPhenoData \code{AnnotatedDataFrame} containing covariates for the mother
+#' @slot Pedigree an object of class \code{Pedigree}
+#' @slot mindist a numeric matrix of the minimum distance for each trio, or NULL
 #' @rdname TrioSet-class
 #' @docType class
-#' @title TrioSet-class and methods
 #' @export
 setClass("TrioSet", contains="gSet",
 	 representation(fatherPhenoData="AnnotatedDataFrame",
@@ -32,6 +47,15 @@ setClass("TrioSet", contains="gSet",
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~ TrioSetList Class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#' Deprecated class for storing low-level genomic data for trios
+#'
+#' This class is deprecated and will be defunct in a future release.
+#'
+#' @slot fatherPhenoData \code{AnnotatedDataFrame} containing covariates for the father
+#' @slot motherPhenoData \code{AnnotatedDataFrame} containing covariates for the mother
+#' @slot Pedigree an object of class \code{Pedigree}
+#' @rdname TrioSetList-class
 #' @export
 setClass("TrioSetList", contains="gSetList",
 	 representation(pedigree="Pedigree",
@@ -39,27 +63,6 @@ setClass("TrioSetList", contains="gSetList",
 			motherPhenoData="AnnotatedDataFrame"))
 
 setClass("Pedigree2", contains="DataFrame")
-
-
-
-## export
-## setClass("TrioExperiment",
-##          representation(pedigree="Pedigree"),
-##          contains="SnpArrayExperiment")
-
-
-##setGeneric("TrioExperiment",
-##           function(..., pedigree=Pedigree()))
-##setMethod("initialize", "TrioExperiment", function(.Object, ..., pedigree=Pedigree()){
-##  .Object <-  callNextMethod(.Object, ...)
-##  .Object@pedigree <- pedigree
-##  .Object
-##})
-##
-##TrioExperiment <- function(..., pedigree=Pedigree()){
-##  new("TrioExperiment", ..., pedigree=pedigree)
-##}
-
 
 ## HmmTrioParam
 setClass("PennParam", representation(transitionProb="matrix",
@@ -70,10 +73,10 @@ setClass("PennParam", representation(transitionProb="matrix",
                                      states="matrix",
                                      names="character",
                                      referenceState="character",
-                                     prNonMendelian="numeric",
-                                     minimum_distance_threshold="numeric",
-                                     minimum_MAD="numeric",
-                                     minimum_emission="numeric"))
+                                     prNonMendelian="numeric"))
+                                     ##minimum_distance_threshold="numeric",
+                                     ##minimum_MAD="numeric",
+                                     ##minimum_emission="numeric"))
 
 ## MDParam
 ##setClass("MDParam", representation(
@@ -90,25 +93,63 @@ setClass("MinDistParam", representation(nMAD="numeric",
                                         emission="EmissionParam",
                                         thin="integer"))
 
+#' Object containing the sample identifiers for members in a pedigree
+#'
+#' Container for registering sample identifiers with membership in a
+#' pedigree.  For representing multiple pedigrees, see
+#' \code{\linkS4class{ParentOffspringList}}.
+#'
+#' @slot id length-one character vector providing a family-level id
+#' @slot father length-one character vector providing sample ids for father
+#' @slot mother length-one character vector providing sample ids for mother
+#' @slot offspring character vector providing sample ids for offspring (can have length greater than one if there is more than one offspring)
+#' @slot filePaths character vector providing path to low-level data
+#' @rdname ParentOffspring-class
 #' @export
+#' @examples
+#' ParentOffspring()
+#' @seealso ParentOffspringList-class
 setClass("ParentOffspring", representation(id="character", ## id for pedigree
                                            father="character",
                                            mother="character",
                                            offspring="character",
                                            filePaths="character"))
+
+#' A list of \code{ParentOffspring} objects
+#'
+#' Each element of the list is an element of class
+#' \code{\linkS4class{ParentOffspring}}.
+#'
+#' @slot id a character vector of identifiers for the
+#' pedigrees. \code{id} must have the same length as \code{pedigrees}
+#' @slot pedigrees  A list of ParentOffspring objects.
+#' @examples
+#' ParentOffspringList()
 #' @export
+#' @rdname ParentOffspringList-class
 setClass("ParentOffspringList", representation(id="character", pedigrees="list"))
 
+#' A container for storing segmentation data for members in a
+#' \code{ParentOffspring} family
+#'
+#' @slot mindist a \code{GRangesList} object
+#' @slot offspring a \code{GRangesList} object
+#' @slot father a \code{GRanges} object
+#' @slot mother a \code{GRanges} object
+#' @slot pedigree a \code{ParentOffspring} object
+#' @examples
+#' data(md_gr)
+#' offspring(md_gr)
+#' father(md_gr)
+#' mother(md_gr)
+#' mindist(md_gr)
+#' @rdname MinDistGRanges-class
 #' @export
 setClass("MinDistGRanges", representation(mindist="GRangesList",
                                           offspring="GRangesList",
                                           father="GRanges",
                                           mother="GRanges",
                                           pedigree="ParentOffspring"))
-##                                          mad="numeric",
-##                                          acf="numeric",
-##                                          pedigree_id="character"))
-
 
 
 setClass("MinDistExperiment", contains="SnpArrayExperiment",
@@ -122,9 +163,28 @@ setClass("MinDistExperiment", contains="SnpArrayExperiment",
 ##                                     importfun="function",
 ##                                     annot_pkg="character"))
 
+#' A \code{GRanges}-derived class
+#'
+#' Contains maximum a posteriori estimates for each genomic interval
+#' @examples
+#' MDRanges()
+#' @rdname MDRanges-class
 #' @export
 setClass("MDRanges", contains="GRanges")
 
 
-
 setClass("ILimit", contains="IRanges")
+
+setClass("MinDistPosterior", representation(granges="GRangesList"))
+
+#' A class for filtering genomic intervals called by MinimumDistance
+#'
+#' Options for filtering include the number of markers spanned by a
+#' segment, the posterior probability of the maximum a posteriori
+#' estimate of the trio copy number state, and the trio copy number
+#' state.
+#'
+#' @seealso denovo
+#' @export
+#' @rdname FilterParamMD-class
+setClass("FilterParamMD", contains="FilterParam")

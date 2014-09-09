@@ -1,12 +1,23 @@
-# constructor
+#' Constructor for class \code{PennParam}
+#'
+#' Parameters for the PennCNV Hidden Markov model
+#'
+#' @param states character vector of possible trio states
+#' @param referenceState the reference (normal) trio copy number state (typically '222')
+#' @param prLessLikelyCN as defined in Wang et al. 2007, this is the probability of the less likely allele-specific copy numbers for the trio
+#' @param prNonMendelian the prior probability of a non-Mendelian copy number alteration
+#' @param prInitialStateNotDiploid initial probability for non-diploid states
+#' @param prTransitionToNewState probability of transitioning to a new state
+#' @param tauNM probability of transitioning from a Mendelian given previous event was non-Mendelian (and vice versa).
+#' @references Wang et al., Genome Res. 2007 Nov;17(11):1665-74.  PMID: 17921354
 #' @export
 PennParam <- function(states, referenceState="222", prLessLikelyCN=0.0009,
                       prNonMendelian=1.5e-6,
-                      minimum_distance_threshold=0.9,
+                      ##minimum_distance_threshold=0.9,
                       prInitialStateNotDiploid=4/5, ## uniform
                       prTransitionToNewState=0.5,
-                      tauNM=0.01,
-                      minimum_MAD=0.1){
+                      tauNM=0.01){
+                      ##minimum_MAD=0.1){
   if(missing(states)) states <- trioStates(0:4)
   state_names <- trioStateNames(states)
   rownames(states) <- state_names
@@ -31,11 +42,11 @@ PennParam <- function(states, referenceState="222", prLessLikelyCN=0.0009,
       states=states,
       names=state_names,
       referenceState=referenceState,
-      minimum_distance_threshold=minimum_distance_threshold,
+      ##minimum_distance_threshold=minimum_distance_threshold,
       prNonMendelian=prNonMendelian,
       initialStateProb=initial_probs,
-      transitionProb=transition_probs,
-      minimum_MAD=minimum_MAD)
+      transitionProb=transition_probs)
+      ##minimum_MAD=minimum_MAD)
 }
 
 setGeneric("transitionNM", function(object) standardGeneric("transitionNM"))
