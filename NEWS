@@ -1,0 +1,5 @@
+CHANGES IN VERSION 1.10.0
+-------------------------
+
+  o Call is <NA> for segments having an |mean minimum distance| less
+    than a user-specified threshold (default is 0.9)

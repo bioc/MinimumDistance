@@ -71,19 +71,13 @@ setMethod("updateObject", signature(object="TrioSet"),
 		  return(object)
 	  })
 
-## TrioSet() function fails when this method is uncommented??
-##setMethod("dims", signature(object="TrioSet"),
-##	  function(object){
-##		  nr <- nrow(object)
-##		  nchr <- 1
-##		  ntrios <- ncol(baf(object))
-##		  dm <- c(nchr, ntrios, nr)
-##		  names(dm) <- c("chromosomes", "trios", "features")
-##		  return(dm)
-##	  })
+
+#' @param object a \code{TrioSet} object
+#' @aliases pedigree,TrioSet-method
+#' @rdname TrioSet-class
 setMethod("pedigree", signature(object="TrioSet"), function(object) object@pedigree)
-##setMethod("sampleSheet", signature(object="TrioSet"), function(object) object@sampleSheet)
-##setReplaceMethod("sampleSheet", signature(object="TrioSet"), function(object) {object@sampleSheet)
+
+
 setMethod("lrr", "TrioSet", function(object) assayDataElement(object, "logRRatio"))
 setReplaceMethod("lrr", c("TrioSet", "ANY"),
 		 function(object, value) {
@@ -110,6 +104,35 @@ setMethod("motherPhenoData", signature(object="TrioSet"),
 setMethod("offspringPhenoData", signature(object="TrioSet"),
 	  function(object) phenoData(object))
 
+#' Deprecated constructor for \code{TrioSet} class
+#'
+#' The \code{TrioSet} class has been deprecated and may be removed in
+#' a future release.
+#'
+#' @param pedigreeData an object of class \code{Pedigree}
+#' @param sample.sheet a \code{data.frame} containing metadata on the trios
+#' @param row.names a character vector providing row identifiers for
+#' the \code{sample.sheet} argument that match the names of the
+#' trios in the \code{pedigreeData} argument.
+#' @param lrr a matrix of log R ratios
+#' @param baf a matrix of B allele frequencies
+#' @param featureData a \code{GenomeAnnotatedDataFrame} object for the SNPs/nonpolymorphic markers
+#' @param cdfname character string indicating the annotation package used to extract physical position and chromosome of markers
+#' @param drop logical.  When FALSE, the dimnames on the log R ratio and BAF arrays is set to NULL
+#' @param mindist  can be either NULL or a matrix of the minimum distance
+#' @param genome character string providing the UCSC genome build
+#' @return \code{TrioSet}
+#' @examples
+#' 	path <- system.file("extdata", package="MinimumDistance")
+#' 	load(file.path(path, "logRratio.rda"))
+#' 	load(file.path(path, "baf.rda"))
+#' 	load(file.path(path, "pedigreeInfo.rda"))
+#' 	trioSet <- TrioSet(lrr=logRratio,
+#' 			   baf=baf,
+#' 			   pedigree=Pedigree(pedigreeInfo),
+#' 			   cdfname="human610quadv1bCrlmm",
+#' 			   genome="hg18")
+#' @export
 TrioSet <- function(pedigreeData=Pedigree(),
 		    sample.sheet,
 		    row.names=NULL,
@@ -119,112 +142,109 @@ TrioSet <- function(pedigreeData=Pedigree(),
 		    cdfname,
 		    drop=TRUE,
 		    mindist=NULL, genome=c("hg19", "hg18")){
-	if(missing(lrr) | missing(baf)){
-		object <- new("TrioSet",
-			      pedigree=pedigreeData)
-		return(object)
-	} else{
-		if(ncol(lrr) > 0 & nrow(pedigreeData)==0)
-			stop("pedigreeData has zero rows")
-	}
-	if(!missing(lrr) & !missing(baf)){
-		if(!identical(rownames(lrr), rownames(baf)))
-			stop("rownames of lrr and baf are not identical")
-		if(!identical(dim(lrr), dim(baf)))
-			stop("lrr and baf must have the same dimension")
-		if(!(is(lrr[1,1], "integer") & is(baf[1,1], "integer"))){
-			stop("rr and baf must be integers. Use integerMatrix(x, scale=100) to transform log R ratios and integerMatrix(x, scale=1000) for B allele frequencies")
-		}
-	}
-	if(missing(featureData)){
-		if(missing(cdfname)) stop("If featureData is not supplied, a valid cdfname must be provided for feature annotation")
-		featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname, genome=match.arg(genome))
-		fD <- featureData[order(chromosome(featureData), position(featureData)), ]
-		rm(featureData); gc()
-	} else {
-		if(!is(featureData, "AnnotatedDataFrame")) stop("featureData must be an AnnotatedDataFrame or a GenomeAnnotatedDataFrame")
-		fD <- featureData
-	}
-	is.present <- sampleNames(fD) %in% rownames(lrr)
-	if(!all(is.present)) fD <- fD[is.present, ]
-	if(!is.null(rownames(lrr))){
-		index <- match(sampleNames(fD), rownames(lrr))
-		if(length(index) == 0) {
-			if(!missing(cdfname)){
-				msg <- paste("rownames for log R ratios do not match feature ids with annotation package ", cdfname)
-				stop(msg)
-			}
-		}
-		lrr <- lrr[index, ]
-		baf <- baf[index, ]
-		stopifnot(all(identical(rownames(lrr), sampleNames(fD))))
-	}
-	np <- nrow(trios(pedigreeData))
-	trio.names <- array(NA, dim=c(length(offspringNames(pedigreeData)), 1, 3))
-	dimnames(trio.names) <- list(offspringNames(pedigreeData), "sampleNames", c("F", "M", "O"))
-	trio.names[, "sampleNames", ] <- as.matrix(trios(pedigreeData))
-	father.names <- fatherNames(pedigreeData)
-	mother.names <- motherNames(pedigreeData)
-	offspring.names <- offspringNames(pedigreeData)
-	father.index <- match(father.names,
-			      colnames(lrr))
-	if(length(father.index) == 0) stop("father ids in pedigree do not match any of the column names of the lrr matrix")
-	mother.index <- match(mother.names,
-			      colnames(lrr))
-	if(length(mother.index) == 0) stop("mother ids in pedigree do not match any of the column names of the lrr matrix")
-	offspring.index <- match(offspring.names,
-				 colnames(lrr))
-	if(length(offspring.index) == 0) stop("offspring ids in pedigree do not match any of the column names of the lrr matrix")
-	nr <- nrow(lrr)
-	np <- length(offspring.names)
-	bafArray <- initializeBigArray("baf", dim=c(nr, np, 3), vmode="integer")
-	logRArray <- initializeBigArray("lrr", dim=c(nr, np, 3), vmode="integer")
-	dimnames(bafArray)[[3]] <- dimnames(logRArray)[[3]] <- c("F", "M", "O")
-	logRArray[,,"F"] <- lrr[, father.index]
-	logRArray[,,"M"] <- lrr[, mother.index]
-	logRArray[,,"O"] <- lrr[, offspring.index]
-	bafArray[,,"F"] <- baf[, father.index]
-	bafArray[,,"M"] <- baf[, mother.index]
-	bafArray[,,"O"] <- baf[, offspring.index]
-	if(!drop){
-		dimnames(bafArray)[c(1,2)] <- dimnames(logRArray)[c(1,2)] <- list(sampleNames(fD), colnames(lrr)[offspring.index])
-	}
-	if(nrow(pedigreeData) > 0){
-		if(!missing(sample.sheet)){
-			if(is.null(row.names)){
-				row.names <- rownames(sample.sheet)
-			}
-			if(!all(row.names %in% allNames(pedigreeData))){
-				stop("There are row.names for sample.sheet not in the pedigree object")
-			}
-			phenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-							    sample.sheet=sample.sheet,
-							    which="offspring",
-							    row.names=row.names)
-			fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-								  sample.sheet=sample.sheet,
-								  which="father",
-								  row.names=row.names)
-			motherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
-								  sample.sheet=sample.sheet,
-								  which="mother",
-								  row.names=row.names)
-		}  else {
-			phenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE, which="offspring")
-			fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="father")
-			motherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="mother")
-		}
-	}
-	object <- new("TrioSet",
-		      BAF=bafArray,
-		      logRRatio=logRArray,
-		      phenoData=phenoData,
-		      fatherPhenoData=fatherPhenoData,
-		      motherPhenoData=motherPhenoData,
-		      pedigree=pedigreeData,
-		      featureData=fD,
-		      mindist=mindist,
-		      genome=match.arg(genome))
+  if(missing(lrr) | missing(baf)){
+    object <- new("TrioSet",
+                  pedigree=pedigreeData)
+    return(object)
+  } else{
+    if(ncol(lrr) > 0 & nrow(pedigreeData)==0)
+      stop("pedigreeData has zero rows")
+  }
+  if(!missing(lrr) & !missing(baf)){
+    if(!identical(rownames(lrr), rownames(baf)))
+      stop("rownames of lrr and baf are not identical")
+    if(!identical(dim(lrr), dim(baf)))
+      stop("lrr and baf must have the same dimension")
+    if(!(is(lrr[1,1], "integer") & is(baf[1,1], "integer"))){
+      stop("rr and baf must be integers. Use integerMatrix(x, scale=100) to transform log R ratios and integerMatrix(x, scale=1000) for B allele frequencies")
+    }
+  }
+  if(missing(featureData)){
+    if(missing(cdfname)) stop("If featureData is not supplied, a valid cdfname must be provided for feature annotation")
+    featureData <- GenomeAnnotatedDataFrameFrom(lrr, cdfname, genome=match.arg(genome))
+    fD <- featureData[order(chromosome(featureData), position(featureData)), ]
+    rm(featureData); gc()
+  } else {
+    if(!is(featureData, "AnnotatedDataFrame")) stop("featureData must be an AnnotatedDataFrame or a GenomeAnnotatedDataFrame")
+    fD <- featureData
+  }
+  is.present <- sampleNames(fD) %in% rownames(lrr)
+  if(!all(is.present)) fD <- fD[is.present, ]
+  if(!is.null(rownames(lrr))){
+    index <- match(sampleNames(fD), rownames(lrr))
+    if(length(index) == 0) {
+      if(!missing(cdfname)){
+        msg <- paste("rownames for log R ratios do not match feature ids with annotation package ", cdfname)
+        stop(msg)
+      }
+    }
+    lrr <- lrr[index, ]
+    baf <- baf[index, ]
+    stopifnot(all(identical(rownames(lrr), sampleNames(fD))))
+  }
+  np <- nrow(trios(pedigreeData))
+  trio.names <- array(NA, dim=c(length(offspringNames(pedigreeData)), 1, 3))
+  dimnames(trio.names) <- list(offspringNames(pedigreeData), "sampleNames", c("F", "M", "O"))
+  trio.names[, "sampleNames", ] <- as.matrix(trios(pedigreeData))
+  father.names <- fatherNames(pedigreeData)
+  mother.names <- motherNames(pedigreeData)
+  offspring.names <- offspringNames(pedigreeData)
+  father.index <- match(father.names, colnames(lrr))
+  if(length(father.index) == 0) stop("father ids in pedigree do not match any of the column names of the lrr matrix")
+  mother.index <- match(mother.names, colnames(lrr))
+  if(length(mother.index) == 0) stop("mother ids in pedigree do not match any of the column names of the lrr matrix")
+  offspring.index <- match(offspring.names, colnames(lrr))
+  if(length(offspring.index) == 0) stop("offspring ids in pedigree do not match any of the column names of the lrr matrix")
+  nr <- nrow(lrr)
+  np <- length(offspring.names)
+  bafArray <- initializeBigArray("baf", dim=c(nr, np, 3), vmode="integer")
+  logRArray <- initializeBigArray("lrr", dim=c(nr, np, 3), vmode="integer")
+  dimnames(bafArray)[[3]] <- dimnames(logRArray)[[3]] <- c("F", "M", "O")
+  logRArray[,,"F"] <- lrr[, father.index]
+  logRArray[,,"M"] <- lrr[, mother.index]
+  logRArray[,,"O"] <- lrr[, offspring.index]
+  bafArray[,,"F"] <- baf[, father.index]
+  bafArray[,,"M"] <- baf[, mother.index]
+  bafArray[,,"O"] <- baf[, offspring.index]
+  if(!drop){
+    dimnames(bafArray)[c(1,2)] <- dimnames(logRArray)[c(1,2)] <- list(sampleNames(fD), colnames(lrr)[offspring.index])
+  }
+  if(nrow(pedigreeData) > 0){
+    if(!missing(sample.sheet)){
+      if(is.null(row.names)){
+        row.names <- rownames(sample.sheet)
+      }
+      if(!all(row.names %in% allNames(pedigreeData))){
+        stop("There are row.names for sample.sheet not in the pedigree object")
+      }
+      phenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
+                                          sample.sheet=sample.sheet,
+                                          which="offspring",
+                                          row.names=row.names)
+      fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
+                                                sample.sheet=sample.sheet,
+                                                which="father",
+                                                row.names=row.names)
+      motherPhenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE,
+                                                sample.sheet=sample.sheet,
+                                                which="mother",
+                                                row.names=row.names)
+    }  else {
+      phenoData <- annotatedDataFrameFrom(pedigreeData, byrow=FALSE, which="offspring")
+      fatherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="father")
+      motherPhenoData <- annotatedDataFrameFrom(pedigreeData, FALSE, which="mother")
+    }
+  }
+  object <- new("TrioSet",
+                BAF=bafArray,
+                logRRatio=logRArray,
+                phenoData=phenoData,
+                fatherPhenoData=fatherPhenoData,
+                motherPhenoData=motherPhenoData,
+                pedigree=pedigreeData,
+                featureData=fD,
+                mindist=mindist,
+                genome=match.arg(genome))
 }
 
 
@@ -275,32 +295,22 @@ setReplaceMethod("sampleNames", signature(object="TrioSet"), function(object, va
 	callNextMethod(object, value)
 })
 
+#' @aliases mindist,TrioSet-method
+#' @rdname TrioSet-class
 setMethod("mindist", "TrioSet", function(object) object@mindist)
+
+#' @param value a \code{matrix}
+#' @aliases mindist<-,TrioSet,matrix-method
+#' @rdname TrioSet-class
 setReplaceMethod("mindist", signature(object="TrioSet", value="matrix"),
 		 function(object, value){
 			 object@mindist <- value
 			 return(object)
 		 })
 
-##setReplaceMethod("mindist", signature(object="TrioSet", value="ff_matrix"),
-##		 function(object, value){
-##			 object@mindist <- value
-##			 return(object)
-##		 })
-##setReplaceMethod("mindist", signature(object="TrioSet", value="NULL"),
-##		 function(object, value){
-##			 object@mindist <- value
-##			 return(object)
-##		 })
-
-
-##setReplaceMethod("trioNames", signature(object="TrioSet"),
-##		 function(object,value){
-##			 object <- callNextMethod(object, value)
-##			 row.names(object@phenoData2) <- value
-##			 object
-##		 })
-
+#' @param x a \code{TrioSet} object
+#' @aliases dim,TrioSet-method
+#' @rdname TrioSet-class
 setMethod("dim", "TrioSet", function(x) {
   adim <- callNextMethod(x)
   names(adim) <- c("Features", "Trios", "Members")
@@ -309,12 +319,20 @@ setMethod("dim", "TrioSet", function(x) {
 
 setMethod("ncol", signature(x="TrioSet"), function(x) dim(x)[[2]])
 
+#' @aliases trios,TrioSet-method
+#' @rdname TrioSet-class
 setMethod("trios", signature(object="TrioSet"),
 	  function(object){
 		  trios(pedigree(object))
-	  })
+                })
 
-
+#' @param i a numeric vector for subsetting rows  (optional)
+#' @param j a numeric vector for subsetting trios (optional)
+#' @param ... additional arguments passed to subsetting methods for matrices and data frames
+#' @param drop logical. Whether to simplify matrices to numeric
+#' vectors.  This should be left as FALSE.
+#' @aliases "[",TrioSet,ANY-method
+#' @rdname TrioSet-class
 setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 	if (missing(drop))
 		drop <- FALSE
@@ -499,15 +517,16 @@ setMethod("motherNames", signature(object="TrioSet"), function(object){
 ##	return(tmp)
 ##}
 
-setMethod("xyplot", signature(x="formula", data="TrioSet"),
-	  function(x, data, ...){
-		  if("range" %in% names(list(...))){
-			  ##xyplotTrioSet(x, data, ...)
-			  res <- xyplot2(x, data, ...)
-		  } else {
-			  callNextMethod()
-		  }
-	  })
+
+
+# setMethod("xyplot", signature(x="formula", data="TrioSet"),
+# 	  function(x, data, ...){
+#             if("range" %in% names(list(...))){
+#               res <- xyplot2(x, data, ...)
+#             } else {
+#               callNextMethod()
+#             }
+# 	  })
 
 setMethod("trioplot", signature(formula="formula", object="TrioSet", range="RangedDataCNV"),
 	  function(formula, object, range, ...){
@@ -519,81 +538,17 @@ setMethod("trioplot", signature(formula="formula", object="TrioSet", range="Rang
 ##	  function(object) object@phenoData2)
 setMethod("allNames", signature(object="TrioSet"), function(object) allNames(pedigree(object)))
 
-setAs("TrioSet", "TrioSetList",
-      function(from, to){
-	      b <- cbind(baf(from)[, , 1], baf(from)[, , 2], baf(from)[,,3])
-	      colnames(b) <- c(fatherNames(from),
-			       motherNames(from),
-			       sampleNames(from))
-	      r <- cbind(lrr(from)[, , 1], lrr(from)[, , 2], lrr(from)[,,3])
-	      colnames(r) <- colnames(b)
-	      TrioSetList(lrr=r,
-			  baf=b,
-			  pedigreeData=pedigree(from),
-			  featureData=featureData(from))
-      })
 
-setAs("TrioSet", "data.frame",
-      function(from, to){
-	      ##cn <- copyNumber(from)
-	      stopifnot(ncol(from) == 1)
-	      cn <- lrr(from)[, 1, ]
-	      md <- as.numeric(mindist(from))
-	      if(length(md) == 0) stop("minimum distance is not available")
-	      ##sns <- paste(sampleNames(from), c("F", "M", "O"), sep="_")
-	      ##sns <- phenoData2(from)[, "sampleNames", ]
-	      sns <- allNames(from)
-	      sns <- matrix(sns, nrow(cn), length(sns), byrow=TRUE)
-	      sns <- as.character(sns)
-	      ##gt <- calls(from)
-	      cn <- as.numeric(cn)
-	      is.lrr <- c(rep(1L, length(cn)), rep(0L, length(md)))
-
-	      cn <- c(cn, md)
-	      sns <- c(sns, rep("min dist", length(md)))
-	      ##gt <- as.integer(gt)
-	      bf <- as.numeric(baf(from)[, 1, ])
-	      bf <- c(bf, rep(NA, length(md)))
-	      ##baf.present <- "baf" %in% ls(assayData(from))
-	      gt.present <- "call" %in% ls(assayData(from))
-	      if(gt.present){
-		      gt <- as.numeric(assayDataElement(from, "call"))
-		      gt <- c(gt, rep(NA, length(md)))
-	      }
-	      x <- rep(position(from)/1e6, 4)
-	      ##x <- c(x, position(from)/1e6)
-	      ##x <- rep(position(object)[marker.index], 4)/1e6
-	      is.snp <- rep(isSnp(from), 4)
-	      ##is.snp <- c(is.snp, isSnp(from))
-	      ##id <- rep(sampleNames(from), each=nrow(from))
-	      if(!gt.present){
-		      df <- data.frame(x=x,
-				       lrr=cn,
-				       baf=bf,
-				       id=sns,
-				       is.snp=is.snp,
-				       stringsAsFactors=FALSE,
-				       is.lrr=is.lrr)
-	      } else {
-		      df <- data.frame(x=x,
-				       lrr=cn,
-				       gt=gt,
-				       baf=bf,
-				       id=sns,
-				       is.snp=is.snp,
-				       stringsAsFactors=FALSE,
-				       is.lrr=is.lrr)
-	      }
-	      return(df)
-      })
-
-setMethod("order", signature(...="TrioSet"),
-	  function(..., na.last=TRUE,decreasing=FALSE){
-		  x <- list(...)[[1]]
-		  chromosomePositionOrder(x)
+setMethod("order", "TrioSet", ##signature(...="TrioSet"),
+	  function(..., na.last=TRUE, decreasing=FALSE){
+            x <- list(...)[[1]]
+            chromosomePositionOrder(x)
 	  })
 
 
+#' @param verbose logical. Whether to display messages indicating progress.
+#' @aliases calculateMindist,TrioSet-method
+#' @rdname calculateMindist
 setMethod("calculateMindist", signature(object="TrioSet"),
 	  function(object, verbose=TRUE, ...){
 		  calculateMindist(lrr(object))
@@ -602,167 +557,155 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 setMethod("gcSubtract", signature(object="TrioSet"),
 	  function(object, method=c("speed", "lowess"), trio.index, ...){
 		  .Defunct("methods for GC correction have been moved to the ArrayTV package available from GitHub")
-##		  method <- match.arg(method)
-##		  gcSubtractTrioSet(object, method=method, trio.index, ...)
 	  })
 
-##gcSubtractTrioSet <- function(object, method, trio.index, ...){
-##	if(missing(trio.index)) J <- seq_len(ncol(object)) else J <- trio.index
-##	if(!"gc" %in% fvarLabels(object)) stop("gc not in fvarLabels")
-##	if(method=="lowess"){
-##		for(j in J){
-##			r <- gcSubtractMatrix(lrr(object)[,j,], gc=fData(object)$gc, pos=position(object), ...)
-##			lrr(object)[,j,] <- integerMatrix(r, 1)
-##		}
-##	} else {
-##		gcbins <- getGcBin(fData(object)$gc)
-##		for(j in J){
-##			r <- gcSubtractSpeed(lrr(object)[, j, ], gcbins=gcbins)
-##			lrr(object)[, j, ] <- integerMatrix(r, 1)
-##		}
-##	}
-##	object
-##}
-##
-##gcSubtractSpeed <- function(r, gcbins){
-##	r.adj <- r
-##	nc <- ncol(r)
-##	for(i in seq_along(gcbins)){
-##		j <- gcbins[[i]]
-##		mus <- apply(r[j, , drop=FALSE], 2, mean, na.rm=TRUE)
-##		mus <- matrix(mus, nrow=length(j), ncol=nc, byrow=TRUE)
-##		r.adj[j, ] <- r[j, , drop=FALSE] - mus
-##	}
-##	return(r.adj)
-##}
-##
-##getGcBin <- function(gc){
-##	cuts <- seq(0, 100, by=1)
-##	bins <- cut(gc, breaks=cuts)
-##	gcbins <- split(seq_len(length(gc)), bins)  ## contains indices
-##	L <- sapply(gcbins, length)
-##	gcbins <- gcbins[L > 0]
-##	L <- L[L > 0]
-##	minL <- 50
-##	while(any(L < minL)){
-##		index <- which(L < minL)
-##		if(any(index == 1)){
-##			gcbins[[2]] <- c(gcbins[[1]], gcbins[[2]])
-##			gcbins <- gcbins[-1]
-##			dropFirst <- TRUE
-##		} else dropFirst <- FALSE
-##		if(any(index == length(gcbins))){
-##			LL <- length(gcbins)
-##			gcbins[[LL-1]] <- c(gcbins[[LL-1]], gcbins[[LL]])
-##			gcbins <- gcbins[-LL]
-##			dropLast <- TRUE
-##		} else dropLast <- FALSE
-##		if(!(dropFirst | dropLast)){
-##			index.mid <- index[index > 1 & index < length(gcbins)]
-##			gcbins[[min(index.mid)-1]] <- c(gcbins[[min(index.mid)-1]], gcbins[[min(index.mid)]])
-##			gcbins <- gcbins[-min(index.mid)]
-##		}
-##		L <- sapply(gcbins, length)
-##	}
-##	return(gcbins)
-##}
 
+#' @param ranges a \code{GRanges} object
+#' @param transition_param an object of class \code{TransitionParam}
+#' @param emission_param an object of class \code{EmissionParam}
+#' @param mdThr the minimum absolute value of the minimum distance
+#' segment mean. Segments with means below \code{mdThr} in absolute
+#' value will not be called as they are unlikely to be de novo.
+#' @aliases MAP,TrioSet,GRanges-method
+#' @rdname TrioSet-class
 setMethod(MAP, c("TrioSet", "GRanges"), function(object,
-						 ranges, id,
-						 TAUP=1e10,
-						 tauMAX,
-						 cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
-						 pr.nonmendelian=1.5e-6,
+						 ranges,
+                                                 ##id,
+                                                 transition_param=TransitionParam(),
+                                                 emission_param=EmissionParam(),
 						 mdThr=0.9, ...){
-	.map_trioSet(object=object,
-		     ranges=ranges,
-		     id=id,
-		     TAUP=TAUP,
-		     tauMAX=tauMAX,
-		     cnStates=cnStates,
-		     pr.nonmendelian=pr.nonmendelian,
-		     mdThr=mdThr,...)
+  .Deprecated("MAP2", msg="This function is deprecated and will be defunct in a future release. See MAP2 instead.")
+  .map_trioSet(object=object,
+               ranges=ranges,
+               transition_param=transition_param,
+               emission_param=emission_param,
+               mdThr=mdThr,...)
 })
 
+
+
 .map_trioSet <- function(object,
-			 ranges, id,
-			 TAUP=1e10,
-			 tauMAX,
-			 cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
-			 pr.nonmendelian=1.5e-6,
+			 ranges,
+                         ##id,
+                         transition_param,
+                         emission_param,
 			 mdThr=0.9,...){
-	pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
-	if(isPackageLoaded("ff")) pkgs <- c("ff", pkgs)
-	if(missing(id)) id <- sampleNames(object)
-	build <- genomeBuild(object)
-	index.trios <- match(id, sampleNames(object))
-	if(!all(sampleNames(ranges) %in% id))
-		ranges <- ranges[sampleNames(ranges) %in% id, ]
-	if(!all(id %in% sampleNames(ranges))){
-		object <- object[, match(unique(sampleNames(ranges)), id)]
-		id <- id[id %in% sampleNames(ranges)]
-	}
-	id <- id[id %in% sampleNames(ranges)]
-	chrom.ranges <- unique(chromosome(ranges))
-	chrom.object <- paste("chr", chromosome(object), sep="")
-	object <- object[chrom.object %in% chrom.ranges, ]
-	ranges <- ranges[chrom.ranges %in% chrom.object, ]
-	## only call segs that are "nonzero"
-	if("mindist.mad" %in% colnames(elementMetadata(ranges))){
-		mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
-		abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
-	} else{
-		## call all segments
-		abs.thr <- rep(TRUE, length(ranges))
-	}
-	elementMetadata(ranges)$exceeds.md.thr <- abs.thr
-	ocSamples(1) ## has to be 1. This will process 3 samples per alotted CPU
-	chunks <- splitIndicesByLength(index.trios, ocSamples())
-	r <- lrr(object)
-	b <- baf(object)
-	pos <- position(object)
-	chr <- chromosome(object)
-	sl <- setSequenceLengths(build,
-                                 paste("chr", unique(chr), sep=""))
-	feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
-				   seqlengths=sl)
-	grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
-	is.snp <- isSnp(object)
-	snp.index <- which(is.snp)
-	anyNP <- any(!is.snp)
-	center <- TRUE
-	pkgs <- c("oligoClasses", "VanillaICE")
-	isff <- is(r, "ff")
-	if(isff) pkgs <- c("ff", pkgs)
-	matrixFun <- generatorMatrix2(r, b, chr, center=TRUE,
-				      snp.index=snp.index,
-				      anyNP=anyNP,
-				      ped=pedigree(object))
-	overlapFun <- generatorOverlapFeatures(feature.granges)
-	grl <- split(ranges, sampleNames(ranges))
-	grl <- grl[match(sampleNames(object), names(grl))]
-	rm(pos, chr, b, r); gc()
-        i <- NULL
-	results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
-		emit <- viterbi2Wrapper(index.samples=i,
-					snp.index=snp.index,
-					anyNP=anyNP,
-					is.log=TRUE,
-					limits=c(-4, 3),
-					cnStates=cnStates,
-					grFun=grFun,
-					matrixFun=matrixFun,
-					returnEmission=TRUE, ...)
-		granges <- sort(granges)
-		ranges <- loglik(emit=emit,
-				 ranges=granges,
-				 pr.nonmendelian=pr.nonmendelian,
-				 overlapFun=overlapFun)
-		chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
-		ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
-		ranges
-	}
-	results <- unlist(GRangesList(results))
-	metadata(results) <- metadata(ranges)
-	return(results)
+  browser()
+  se <- as(object, "SnpArrayExperiment")
+  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+  ##build <- genomeBuild(object)
+  build <- genome(object)[1]
+  ranges <- ranges[ranges$sample %in% colnames(se)]
+  ##chrom.ranges <- unique(chromosome(ranges))
+  ##seqlevels(ranges, force=TRUE) <- chrom.ranges
+  ##id <- trios(pedigree(object))[1, ]
+  ##object <- object[, match(unique(sampleNames(ranges)), id)]
+  ##chrom.object <- paste0("chr", chromosome(object))
+  ##object <- object[chrom.object %in% chrom.ranges, ]
+  ##ranges <- ranges[chrom.ranges %in% chrom.object, ]
+  ## only call segs that are "nonzero"
+##  if("mindist.mad" %in% colnames(elementMetadata(ranges))){
+##    mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
+##    abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
+##  } else{
+##    ## call all segments
+##    abs.thr <- rep(TRUE, length(ranges))
+##  }
+  ## Assume mindist.mad is always in mcols.
+  mads <- pmax(ranges$mindist.mad, .1)
+  ranges$exceeds.md.thr <- abs(ranges$seg.mean/mads) > mdThr
+  ##ocSamples(1) ## has to be 1. This will process 3 samples per alotted CPU
+  ##chunks <- splitIndicesByLength(index.trios, ocSamples())
+  ## coerce to Experiment class
+##  r <- lrr(object)
+##  b <- baf(object)
+##  pos <- position(object)
+##  chr <- chromosome(object)
+##  sl <- setSequenceLengths(build,
+##                           paste("chr", unique(chr), sep=""))
+##  feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
+##                             seqlengths=sl)
+  ##grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
+##  is.snp <- isSnp(object)
+##  snp.index <- which(is.snp)
+##  anyNP <- any(!is.snp)
+##  center <- TRUE
+##  pkgs <- c("oligoClasses", "VanillaICE")
+##  isff <- is(r, "ff")
+##  if(isff) pkgs <- c("ff", pkgs)
+##  matrixFun <- generatorMatrix2(r, b, chr, center=TRUE,
+##                                snp.index=snp.index,
+##                                anyNP=anyNP,
+##                                ped=pedigree(object))
+##  overlapFun <- generatorOverlapFeatures(feature.granges)
+  grl <- split(ranges, ranges$sample)
+  ##offsrping is the 3rd index
+  grl <- grl[match(colnames(se)[3], names(grl))]
+
+  fit <- hmm2(se) ## A GRangesList
+##
+##  rm(pos, chr, b, r); gc()
+##  i <- NULL
+##  results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
+##    emit <- viterbi2Wrapper(index.samples=i,
+##                            snp.index=snp.index,
+##                            anyNP=anyNP,
+##                            is.log=TRUE,
+##                            limits=c(-4, 3),
+##                            cnStates=cnStates,
+##                            grFun=grFun,
+##                            matrixFun=matrixFun,
+##                            returnEmission=TRUE, ...)
+    granges <- sort(granges)
+    ranges <- loglik2(emit=emit,
+                      ranges=granges,
+                      pr.nonmendelian=pr.nonmendelian,
+                      overlapFun=overlapFun)
+    chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
+    ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
+    ranges
+##  }
+  results <- unlist(GRangesList(results))
+  metadata(results) <- metadata(ranges)
+  return(results)
 }
+
+#' @param md a matrix of the minimum distance
+#' @param segmentParents logical.  Whether to segment the log R ratios
+#' of the parents using circular binary segmentation.
+#' @param verbose logical. Whether to display messages that indicate progress.
+#' @aliases segment2,TrioSet-method
+#' @seealso \code{\link[DNAcopy]{segment}}
+#' @rdname segment2
+setMethod("segment2", signature(object="TrioSet"),
+	  function(object, md=NULL, segmentParents=TRUE, verbose=TRUE, ...){
+            segmentTrioSet(object, md=md, segmentParents=segmentParents, verbose=verbose, ...)
+	  })
+
+
+#' @aliases segment2,matrix-method
+#' @rdname segment2
+setMethod("segment2", signature(object="matrix"),
+	  function(object, pos, chrom, id, featureNames, ...){
+            stopifnot(is(id, "character"))
+            segmentMatrix(object, pos, chrom, id, featureNames, ...)
+	  })
+
+#' @aliases segment2,ff_matrix-method
+#' @rdname segment2
+setMethod("segment2", signature(object="ff_matrix"),
+	  function(object, pos, chrom, id, featureNames, ...){
+            segmentff_matrix(object, pos, chrom, id, featureNames, ...)
+            ##segs <- foreach(i=seq_along(ilist), .packages="MinimumDistance") %dopar% segmentMatrix(object[, ilist[[i]]], pos=pos, chrom=chrom, id=id[ilist[[i]]], featureNames, ...)
+	  })
+
+#' @param featureNames character vector specifying marker names for subsetting \code{object}
+#' @param id character vector of trio identifiers for subsetting \code{object}
+#' @param chrom character or integer vector of chromosome names
+#' @param pos integer vector of physical position of markers in the genome
+#' @aliases segment2,arrayORff_array-method
+#' @rdname segment2
+setMethod("segment2", signature(object="arrayORff_array"),
+	  function(object, pos, chrom, id, featureNames, segmentParents=TRUE, verbose=TRUE, ...){
+            segmentArray(object, pos, chrom, id, featureNames, segmentParents=segmentParents, verbose=verbose, ...)
+	  })

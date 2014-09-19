@@ -283,11 +283,12 @@ combine.data.frames <- function(dist.df, penn.df){
 
 ##offspring.hemizygousPenn <- function() c("332", "432", "342", "442")
 offspring.hemizygousPenn <- function(){
-	tmp <- expand.grid(c(1,3,5,6), c(1,3,5,6), 1)
-	dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
-	dels <- dels[-1]
+  tmp <- expand.grid(c(1,3,5,6), c(1,3,5,6), 1)
+  dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
+  dels <- dels[-1]
 }
 ##offspring.hemizygous <- function() c("221", "321", "231", "441", "341", "431")
+
 offspring.hemizygous <- function() {
 	tmp <- expand.grid(c(0,2,3,4), c(0,2,3,4), 1)
 	dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
@@ -299,13 +300,11 @@ offspring.homozygous <- function(){
 	dels <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
 	dels
 }
-##offspring.homozygous <- function() c("220", "210", "120", "320", "230", "330", "110", "310")
 deletionStates <- function(){
 	st1 <- offspring.hemizygous()
 	st2 <- offspring.homozygous()
 	as.integer(c(st1,st2))
 }
-##duplicationStates <- function() as.integer(c("224", "223", "113", "114", "013", "014", "103", "104", "213", "214", "123", "124", "013", "014", "103", "104", "203", "204", "023", "024"))
 duplicationStates <- function(){
 	tmp <- expand.grid(c(0,1,2,4), c(0,1,2,4), 3)
 	sdups <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
@@ -315,7 +314,6 @@ duplicationStates <- function(){
 	ddups <- ddups[-1]
 	c(sdups, ddups)
 }
-##duplicationStatesPenn <- function() as.integer(c("335", "336", "225", "226", "115", "116", "125", "215", "325", "235", "125", "215", "315", "135"))
 duplicationStatesPenn <- function() {
 	tmp <- expand.grid(c(1,2,3,6), c(1,2,3,6), 5)
 	sdups <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
@@ -324,16 +322,9 @@ duplicationStatesPenn <- function() {
 	ddups <- paste(tmp$Var1, tmp$Var2, tmp$Var3, sep="")
 	ddups <- ddups[-1]
 	c(sdups, ddups)
-##	dups.penn <- expand.grid(c(1,2,3,5,6), c(1,2,3,5,6), c(5,6))
-##	paste(dups.penn$Var1, dups.penn$Var2, dups.penn$Var3)
 }
-isDenovo <- function(states) states %in% c(duplicationStates(), deletionStates())
 
-##offspring.hemizygous <- function() c("332", "532", "352", "552")
-##offspring.homozygous <- function() c("331", "321", "231", "531", "351", "551", "221", "521")
-##duplicationStates <- function() as.integer(c("336", "335", "225", "226", "116", "115", "125", "126", "215", "216", "325", "326", "235", "236", "125", "126", "215", "216", "315", "316", "135", "136"))
-####duplicationStatesPenn <- function() as.integer(c("335", "225", "115", "125", "215", "325", "235", "125", "215", "315", "135"))
-##isDenovo <- function(states) states %in% c(duplicationStates(), deletionStates())
+
 
 calculateChangeSd <- function(coverage=1:500, lambda=0.05, a=0.2, b=0.025)
 	a + lambda*exp(-lambda*coverage)/b
@@ -606,8 +597,8 @@ trioStates <- function(states=0:4){
 }
 
 trioStateNames <- function(trio.states){
-	if(missing(trio.states)) trio.states <- trioStates(0:4)
-	paste(paste(trio.states[,1], trio.states[,2], sep=""), trio.states[,3], sep="")
+  if(missing(trio.states)) strio.states <- trioStates()
+  paste(paste(trio.states[,1], trio.states[,2], sep=""), trio.states[,3], sep="")
 }
 
 
@@ -618,11 +609,7 @@ transitionProbability <- function(nstates=5, epsilon=1-0.999){
 	tpm
 }
 
-initialStateProbs <- function(nstates, normal.index=3, epsilon=0.01){
-	initial.state.probs <- rep(epsilon/(nstates-1), nstates)
-	initial.state.probs[normal.index] <- 1-epsilon
-	initial.state.probs
-}
+
 
 readTable1 <- function(states=0:4, a=0.0009){
 	S <- length(states)
@@ -655,227 +642,183 @@ readTable1 <- function(states=0:4, a=0.0009){
 	return(tmp)
 }
 
-lookUpTable1 <- function(table1, state){
-	if(is.na(table1[state[1], state[2], state[3]])){
-		return(table1[state[2], state[1], state[3]])
-	} else {
-		return(table1[state[1], state[2], state[3]])
-	}
+lookUpTable1 <- function(state, table1){
+  index <- state+1
+  p <- table1[index[1], index[2], index[3]]
+  if(is.na(p)){
+    p <- table1[index[2], index[1], index[3]]
+  }
+  p
+}
+
+vectorizeTable1 <- function(table1, stateMatrix){
+  setNames(apply(stateMatrix, 1, lookUpTable1, table1=table1), rownames(stateMatrix))
 }
 
 lookUpTable3 <- function(table3, state.prev, state.curr){
-	f1 <- state.prev[1]
-	f2 <- state.curr[1]
-	m1 <- state.prev[2]
-	m2 <- state.curr[2]
-	o1 <- state.prev[3]
-	o2 <- state.curr[3]
-	return(table3[f1, f2, m1, m2, o1, o2])
+  f1 <- state.prev[1]
+  m1 <- state.prev[2]
+  o1 <- state.prev[3]
+  f2 <- state.curr[1]
+  m2 <- state.curr[2]
+  ## Each element in the result is for a specific offspring state
+  result <- table3[f1, f2, m1, m2, o1, ]
 }
 
-jointProb <- function(segment.index, ## so that we can insert a browser for a specific segment
-		      state,
-		      state.prev,
-		      prob.nonMendelian,
-		      log.pi,
-		      tau,
-		      table1,
-		      table3,
-		      log.lik){
-	pi.f <- exp(log.pi[state[1]])
-	pi.m <- exp(log.pi[state[2]])
-	tau.o <- tau[state.prev[3], state[3]]
-	tau.m <- tau[state.prev[2], state[2]]
-	tau.f <- tau[state.prev[1], state[1]]
-	p.00 <- lookUpTable3(table3, state.prev, state.curr=state) ## both Mendelian
-	p.10 <- 1/5*lookUpTable1(table1, state) ## previous non-Mendelian * current Mendelian
-	p.01 <- lookUpTable1(table1, state.prev) * 1/5 ## previous Mendlian * current non-mendelian
-	p.11 <- 1/5*tau.o
-	piI0 <- 1-prob.nonMendelian
-	p.NM <- piI1 <- prob.nonMendelian
-	## setting this to a small value will favor '2,2,1' versus '3,3,1' (for example)
-	## setting prob.nonMendelian smaller would not have an effect
-	tauI.11 <- tauI.00 <- 1-.01
-	tauI.10 <- tauI.01 <- 1-tauI.11
-	pr.off <- p.NM*(p.11*tauI.11 + p.10*tauI.10) + (1-p.NM)*(p.00*tauI.00+p.01*tauI.01)
-	log.lik <- sum(log.lik) + log(pr.off*tau.m*pi.m*tau.f*pi.f)
-}
+stateIndex <- function(param, state) state(param)[state, ] + 1L
 
-joint1 <- function(LLT, ##object,
-		   trio.states,
-		   tau,
-		   log.pi,
-		   normal.index=3,
-		   segment.index,
-		   state.index,
-		   table1,
-		   table3,
-		   is.denovo=FALSE,
-		   prob.nonMendelian=1.5e-6,
-		   denovo.prev=FALSE,
-		   state.prev) {
-	if(missing(tau))
-		tau <- transitionProbability(ncol(LLT), epsilon=0.5)
-	if(missing(log.pi))
-		log.pi <- log(initialStateProbs(ncol(LLT), epsilon=0.5))
-	Prob.DN <- prob.nonMendelian
-	state <- trio.states[state.index, ] + 1L
-	state.prev <- state.prev+1L
-	fmo <- c(LLT[1, state[1]], LLT[2, state[2]], LLT[3, state[3]])
-	if(segment.index == 1 | is.null(state.prev)){
-		## assume Pr(z_1,f | lambda) = Pr(z_2,m | lambda) = pi
-		## For offspring, we have Pr(z_1,o | z_1,f, z_1,m, DN=0, 1)
-		##    or 1/5 if DN=1
-		##
-		## if DN is 0 (not devovo), then many of the hidden
-		##  states should have essentially an epsilon
-		##  probability of occurring.
-		##log.Prob.DN <- ifelse(is.denovo, log(Prob.DN), log(1-Prob.DN))
-		pi.offspring <- c(lookUpTable1(table1, state),  1/5)
-		lpr.offspring <- log(pi.offspring[1] * (1-Prob.DN) + pi.offspring[2]+Prob.DN)
-		##pi.offspring <- pi.offspring[[is.denovo+1]]
-		log.pi2 <- c(log.pi[state[1]], ## father
-			     log.pi[state[2]], ## mother
-			     lpr.offspring)
-			    ##log(pi.offspring))## offspring
-		##fmo <- apply(fmo, 2, sum, na.rm=TRUE)
-		fmo <- fmo + log.pi2
-		log.emit <- fmo
-	} else{
-		log.emit <- jointProb(segment.index=segment.index,
-				      state=state,
-				      state.prev=state.prev,
-				      prob.nonMendelian=prob.nonMendelian,
-				      log.pi=log.pi,
-				      tau=tau,
-				      table1=table1,
-				      table3=table3,
-				      log.lik=fmo)
-	}
-	res <- sum(log.emit)
-	stopifnot(!is.na(res))
-	return(res)
-}
-
-##joint4 <- function(id,
-##		   trioSet,
-##		   ranges,
-##		   cnStates=c(-2, -0.5, 0, 0, 0.5, 1.2),		   a=0.0009,
-##		   prob.nonMendelian=1.5e-6,
-##		   ##returnEmission=FALSE,
-##		   ntrios,
-##		   mdThr=0.9, ...){## all the ranges from one subject , one chromosome
-##	if(missing(id)) id <- sampleNames(trioSet)[1]
-##	ranges <- ranges[sampleNames(ranges) == id, ]
-##	is.snp <- isSnp(trioSet)
-##	stopifnot(ncol(trioSet)==1)
-##	limits <- copyNumberLimits(is.log=TRUE)
-##	##
-##	## transform back to original scale
-##	##
-##	r <- lrr(trioSet)[, 1, ]/100
-##	b <- baf(trioSet)[, 1, ]/1000
-##	colnames(r) <- colnames(b) <- allNames(trioSet)
-##	##
-##	## we estimate the optimal state path using viterbi, but we
-##	## only use the emission probabilities for the MAP
-##	emit <- viterbi2Wrapper(r=r,
-##				b=b,
-##				pos=position(trioSet),
-##				is.snp=isSnp(trioSet),
-##				cnStates=cnStates,
-##				chrom=chromosome(trioSet)[1],
-##				is.log=TRUE,
-##				limits=limits,
-##				returnEmission=TRUE,
-##				...)
-##	lemit <- log(emit)
-##	##lemit <- array(NA, dim=c(nrow(trioSet), 3, length(cnStates)))
-##	##for(i in 1:3) lemit[, i, ] <- log(emission(viterbiObj[[i]]))
-##	trio.states <- trioStates(0:4)
-##	tmp <- rep(NA, nrow(trio.states))
-##	state.prev <- NULL
-##	denovo.prev <- NULL
-##	table1 <- readTable1(a=a)
-##	loader("pennCNV_MendelianProb.rda")
-##	table3 <- getVarInEnv("pennCNV_MendelianProb")
-##	state.names <- trioStateNames()
-##	norm.index <- which(state.names=="222")
-##	ranges <- ranges[order(start(ranges)), ]
-##	##ranges$lik.norm <- ranges$argmax <- ranges$lik.state <- NA
-##	lik.norm <- argmax <- lik.state <- rep(NA, length(ranges))
-##	frange <- makeFeatureGRanges(trioSet)
-##	cnt <- countOverlaps(ranges, frange)
-##	mm <- findOverlaps(frange, ranges)
-##	##mm <- as.matrix()
-##	##tab <- table(subjectHits(mm))
-##	##I <- as.integer(names(tab)[tab >= 2])
-##	I <- which(cnt >= 2)
-##	range.index <- subjectHits(mm)[subjectHits(mm) %in% I]
-##	## only call segs that are "nonzero"
-##	if("mindist.mad" %in% colnames(elementMetadata(ranges))){
-##		mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
-##		abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
-##	} else{
-##		## call all segments
-##		abs.thr <- rep(TRUE, length(ranges))
-##	}
-## 	for(i in I){
-##		index <- which(range.index==i)
-##		queryIndex <- queryHits(mm)[index]
-##		if(length(queryIndex) < 2) next()
-##		LL <- lemit[queryIndex, , , drop=FALSE]
-##		LLT <- matrix(NA, 3, 6)
-##		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
-##		rownames(LLT) <- c("F", "M", "O")
-##		colnames(LLT) <- paste("CN_", c(0, 1, 2, 2, 3, 4), sep="")
-##		LLT[, 3] <- pmax(LLT[, 3], LLT[, 4])
-##		LLT <- LLT[, -4]
-##		callrange <- abs.thr[i]
-##		if(callrange){
-##			for(j in seq_len(nrow(trio.states))){
-##				tmp[j] <- joint1(LLT=LLT,
-##						 trio.states=trio.states,
-##						 segment.index=i,
-##						 state.index=j,
-##						 table1=table1,
-##						 table3=table3,
-##						 state.prev=state.prev,
-##						 prob.nonMendelian=prob.nonMendelian)
+##bothMendelian <- function(param, prev_index, state_index, transitionNM){
+##  ## Pr(cTS, pNM, cNM | pTS) =
+##  ## Pr(cO | cTS[-O], pTS, cNM, pNM) * Pr(cTS[-O] | pTS, cNM=0, pNM=0) * Pr(cNM=0 | pNM=0) * Pr(pNM=0)
+##  ## A = term1 * term2 * term3 * term4
+##  term1 <- lookUpTable3(table3(param), prev_index, state.curr=state_index)
+##  ## Pr(cTS[-O] | pTS, cNM=0, pNM=0) = Pr(cF, cM | pF, pM)
+##  ##                                 = Pr(cF | pF) * Pr(cM | pM) *
+##  term2 <- tau.f * tau.m
+##  term3 <- transitionNM
+##  term4 <- 1-probNM
+##  term1*term2*term3*term4
+##}
 ##
-##			}##j loop
-##			lik.norm[i] <- tmp[norm.index]
-##			argmax[i] <- which.max(tmp)
-##			lik.state[i] <- tmp[argmax[i]]
-##			##stopifnot(!is.na(lik.state[i]))
-##			state.prev <- trio.states[argmax[i], ]
-##		} else {
-##			res <- joint1(LLT=LLT,
-##				      trio.states=trio.states,
-##				      segment.index=i,
-##				      state.index=norm.index,
-##				      table1=table1,
-##				      table3=table3,
-##				      state.prev=state.prev,
-##				      prob.nonMendelian=prob.nonMendelian)
-##			lik.norm[i] <- res
-##			lik.state[i] <- res
-##			argmax[i] <- norm.index
-##			state.prev <- trio.states[norm.index, ]
-##		}
-##	}
-##	elementMetadata(ranges)$state <- trioStateNames()[argmax]
-##	elementMetadata(ranges)$argmax <- argmax
-##	elementMetadata(ranges)$lik.state <- lik.state
-##	elementMetadata(ranges)$lik.norm <- lik.norm
-##	ranges
+##bothNonMendelian <- function(param, prev_index, state_index, transitionNM){
+##  ## Pr(cTS, pNM, cNM | pTS) =
+##  ## Pr(cO | cTS[-O], pTS, cNM, pNM) * Pr(cTS[-O] | pTS, cNM=1, pNM=1) * Pr(cNM=1 | pNM=1) * Pr(pNM=1)
+##  ## = Pr(cO | pO, cNM, pNM) * Pr(cF | ...) * Pr(cM | ...) * Pr(cNM=1|pNM=1) * Pr(pNM=1)
+##  ## = term1 * term2 * term3 * term4 * term5
+##  term1 <- 1/5
+##  term2 <- tau.f
+##  term3 <- tau.m
+##  term4 <- transitionNM
+##  term5 <- probNM
+####  tau <- transitionProb(param)
+####  probNM <- prNonMendelian(param)
+####  tau.o <- tau[prev_index[3], state_index[3]]
+##  ## check below
+##  ##  p.11 <- 1/5*tau.o * transitionNM * probNM
+##  term1*term2*term3*term4*term5
 ##}
 
-##pennTable <- function(a=0.0009, M=array(as.double(0), dim=rep(5,6))){
-##	res <- .C("calculateCHIT", a=as.double(a), M=M)
-##}
+currentNonMendelian <- function(param, prev_index, state_index, transitionNM){
+  ## Pr(cTS, pNM, cNM | pTS) =
+  ## Pr(cO | cTS[-O], pTS, cNM, pNM) * Pr(cTS[-O] | pTS, cNM=1, pNM=1) * Pr(cNM=1 | pNM=1) * Pr(pNM=1)
+  ## = Pr(cO | pO, cNM, pNM) * Pr(cF | ...) * Pr(cM | ...) * Pr(cNM=1|pNM=1) * Pr(pNM=1)
+  prev_name <- rownames(state(param))[prev_index]
+  1/5 * table1(param)[prev_name] * transitionNM * probNM
+}
 
+computeB <- function(param, current_state, previous_state){
+  ## B = Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
+  B <- setNames(vector("list", 4), c("NM=0,0","NM=0,1", "NM=1,0", "NM=1,1"))
+  ## For each pair of mendelian indicators, return a vector of length <#CN STATES>
+  ##    - element i of the vector is the probability for S_i0 = CN[i], CN = [0,1,2,3,4]
+  nms <- paste0("CN (offspr):", 0:4)
+  ## NM = 0, 0
+  current_index <- stateIndex(param, current_state)
+  previous_index <- stateIndex(param, previous_state)
+  B[[1]] <- lookUpTable3(table3(param), previous_index, state.curr=current_index[1:2])
+  B[[1]] <- setNames(B[[1]], nms)
+  ## NM = 0, 1 denotes [previous NM, current Mendelian]
+  ## Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
+  ##  assume offspring states are independent
+  ## = Pr(S_iO | S_iF, S_iM, NM_i)*Pr(S_{i-1,O} | S_{i-1,F}, S_{i-1,M} NM_{i-1})
+  ## = Pr(S_iO | NM_i=1) * Tabled probability
+  ## = 1/5 * tabled probability
+  prev_name <- paste0(previous_state, collapse="")
+  B[[2]] <- rep(1/5, 5) * table1(param)[prev_name]  ## previous state is Mendelian
+  B[[2]] <- setNames(B[[2]], nms)
+  ## NM = 1, 0  Similar to above, but current state is Mendelian
+  states <- paste0(substr(current_state, 1, 2), 0:4)
+  B[[3]] <- 1/5*table1(param)[states]
+  B[[3]] <- setNames(B[[3]], nms)
+  ## NM = 1, 1  Both non-Mendelian
+  ## Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
+  ## = Pr(S_iO | S_{i-1}, NM_i=1) Pr(S_{i-1} | NM_{i-1}=1)
+  ## = transition probability between offspring states * 1/5
+  tau <- transitionProb(param)
+  tau.o <- tau[previous_index[3], current_index[3]]
+  B[[4]] <- rep(1/5, 5) * tau.o
+  B[[4]] <- setNames(B[[4]], nms)
+  ## Assign Pr=0 to states that can not occur (instead of NA)
+  B <- lapply(B, function(x) ifelse(is.na(x), 0, x))
+  B
+}
 
+computeC <- function(param, current_state, previous_state){
+  ## C = Pr(S_iF, S_iM, S_{i-1,F}, S_{i-1,M} | NM)
+  ##   = Pr(S_iF | S_{i-1,F}) * Pr(S_iM | S_{i-1,M})
+  ##     transition prob mom * transition prob father
+  previous_state <- paste0(previous_state, collapse="")
+  current_index <- stateIndex(param, current_state)[c("F", "M")]
+  previous_index <- stateIndex(param, previous_state)[c("F", "M")]
+  tau <- transitionProb(param)
+  tau.m <- tau[previous_index["M"], current_index["M"]]
+  tau.f <- tau[previous_index["F"], current_index["F"]]
+  tau.m*tau.f
+}
+
+## Function for computing posterior probabilities
+  ##
+  ## Let S_i = [S_iO, S_iF, S_iO]
+  ##
+  ## The posterior probability if the trio state is given by
+  ##
+  ## Pr(S_i | S_{i-1}, data) \propto Pr(data | S_i, S_{i-1}) Pr(S_i | S_{i-1})/ Pr(S_i)
+  ##                             =   Likelihood x "Prior Model"
+  ##
+  ## Tedious calculations with the Prior Model show
+  ##
+  ## Pr(S_i | S_{i-1}) = sum_{NM_i} sum_{NM_{i-1}}  Pr(S_i, NM_i, NM_{i-1} | S_{i-1})
+  ##                   = sum_{NM_i} sum_{NM_{i-1}}  Pr(S_i | S_{i-1}, NM_i, NM_{i-1}) * Pr(NM_i, NM_{i-1} | S_{i-1})
+  ## Denote sum_{NM_i} sum_{NM_{i-1}} by SUM, let Pr(NM_i, NM_{i-1} | S_{i-1}) = A, and denote [NM_i, NM_{i-1}] by NM. Then,
+  ##                   = SUM Pr(S_i, S_{i-1} | NM) / Pr(S_{i-1} | NM) * A
+  ##                   = SUM (B*C)/D * A, where
+  ## B = Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
+  ## C = Pr(S_iF, S_iM, S_{i-1,F}, S_{i-1,M} | NM)
+  ## D = Pr(S_{i-1} | NM)
+  ## A = Pr(NM_i , NM_{i-1} | S_{i-1})
+  ##
+  ## Rewriting D, we have
+  ## Pr(S_{i-1} | NM ) = sum_{S_{i}} Pr(S_i, S_{i-1} | NM)
+  ##                   = sum_{S_{i}} Pr(S_iO, S_{i-1,O} | NM, S_iF, S_iM, S_{i-1,F}, S_{i-1,M}) * C
+  ##                   = sum_{S_{i}} B
+  ##
+  ## =>
+  ##
+  ## Pr(S_i | S_{i-1}) = SUM[ (B*C*A)/(sum_{S_{i}} B) ]
+  ## since term C does not depend on the non-Mendelian indicators, we have
+  ##                   = C * SUM [ (B*A)/(sum_{S_{i} B)]
+  ##
+  ## For offspring state index i, we have
+  ##
+  ## Pr(S_i | S_{i-1}) = C * ( B[["NM=0,0"]][i]/sum(B[["NM=0,0"]]) * A[["NM=0,0"]]  + B[["NM=0,1"]][i]/sum(B[["NM=0,1"]]) * A[["NM=0,1"]] ...)
+  ##
+  ## The numerator sums over the non-mendelian indicator and involves 4 terms
+  ## The denominator sums over all possible offspring states at segment i and therefore involves 5 terms
+  ##
+posterior <- function(state,
+                      param,
+		      state.prev,
+		      log.lik){
+  if(is.null(state.prev)) {
+    result <- setNames(loglikInitial(param, LLT=log.lik, state), state)
+    return(result)
+  }
+  A <- transitionNM(param) ## precomputed, length 4
+  B <- computeB(param, state, state.prev) ## length 4 list
+  C <- computeC(param, state, state.prev)
+  i <- stateIndex(param, state)
+  ## sum over the mendelian indicators for the offspring state indexed by i
+  ## sum over all possible offspring states
+  totalB <- sapply(B, sum)
+  prior <- mapply(function(B, A, totalB) (B*A)/totalB, B=B, A=A, totalB=totalB)
+  ## Set 0/0 to 0
+  prior[is.nan(prior)] <- 1e-5
+  prior <- sum(prior[i["O"], ])
+  loglik <- sum(diag(log.lik[, i]))
+  posterior <- loglik + log(prior)
+  if(all(is.na(posterior))) browser()
+  posterior
+}
 
 xypanelMD <- function(x, y,
 		      id,
@@ -989,109 +932,112 @@ xypanelMD2 <- function(x, y,
 	}
 }
 
-narrow <- function(object, lrr.segs, thr=0.9,
-		   mad.minimumdistance, verbose=TRUE,
-		   fD, genome) .Defunct("The 'narrow' function is defunct in MinimumDistance. Use narrowRanges instead.")
-narrowRanges <- function(object, lrr.segs, thr=0.9,
-		   mad.minimumdistance, verbose=TRUE,
-		   fD, genome){
-	if(missing(fD)) stop("fD not specified. fD must be a list of GenomeAnnotatedDataFrames (if multiple chromosomes are in 'object'), or a single GenomeAnnotatedDataFrame (one chromosome represented in 'object')")
-	if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
-	if(!missing(genome)) metadata(lrr.segs) <- list(genome=genome)
-	ix <- match(sampleNames(object), names(mad.minimumdistance))
-	elementMetadata(object)$mindist.mad <- mad.minimumdistance[ix]
-	lrr.segs <- lrr.segs[sampleNames(lrr.segs) %in% sampleNames(object), ]
-	if(length(unique(chromosome(object))) > 1){
-		if(verbose)
-			message("narrowing the ranges by chromosome")
-		if(!is(fD, "list")) stop("when object contains multiple chromosomes, fD should be a list of GenomeAnnotatedDataFrames")
-		chromsInFD <- paste("chr", sapply(fD, function(x) chromosome(x)[1]), sep="")
-		indexList <- split(seq_len(length(object)), as.character(chromosome(object)))
-		indexList2 <- split(seq_len(length(lrr.segs)), as.character(chromosome(lrr.segs)))
-		if(!all.equal(names(indexList), names(indexList2))){
-			stop("the chromosomes represented in the minimum distance genomic intervals (object) must be the same as the chromosomes represented in the offspring genomic intervals (lrr.segs)")
-		}
-		fD <- fD[match(names(indexList), as.character(chromsInFD))]
-		if(length(fD) != length(indexList)){
-			stop("The list of GenomeAnnotatedDataFrames (argument fD) must be the same length as the number of chromosomes represented in the minimum distange genomic intervals (object)")
-		}
-		if(verbose)  pb <- txtProgressBar(min=0, max=length(indexList), style=3)
-		segList <- vector("list", length(indexList))
-		pkgs <- neededPkgs()
-		j <- k <- NULL
-		segList <- foreach(j=indexList, k=indexList2, featureData=fD, .packages=pkgs) %dopar%{
-                  narrowRangeForChromosome(object[j, ],
-                                           lrr.segs[k, ],
-                                           thr=thr,
-                                           verbose=FALSE,
-                                           fD=featureData)
-		}
-		if(verbose) close(pb)
-		segs <- unlist(GRangesList(segList))
-	} else {
-		if(is(fD, "list")) {
-			chroms <- paste("chr", sapply(fD, function(x) chromosome(x)[1]), sep="")
-			fD <- fD[[match(as.character(chromosome(object))[1], chroms)]]
-			chr <- as.character(chromosome(object)[1])
-			if(paste("chr", chromosome(fD)[1], sep="") != chr) stop("The supplied GenomeAnnotatedDataFrame (fD) does not have the same chromosome as object")
-		}
-		segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose, fD=fD)
-	}
-	metadata(segs) <- metadata(lrr.segs)
-	return(segs)
+##narrow <- function(object, lrr.segs, thr=0.9,
+##		   mad.minimumdistance, verbose=TRUE,
+##		   fD, genome) .Defunct("The 'narrow' function is defunct in MinimumDistance. Use narrowRanges instead.")
+
+narrowRanges <- function(object,
+                         lrr.segs,
+                         thr=0.9,
+                         mad.minimumdistance,
+                         verbose=TRUE,
+                         fD, genome){
+  if(missing(fD)) stop("fD not specified. fD must be a list of GenomeAnnotatedDataFrames (if multiple chromosomes are in 'object'), or a single GenomeAnnotatedDataFrame (one chromosome represented in 'object')")
+  if(!is(names(mad.minimumdistance), "character")) stop("mad.minimumdistance must be named")
+  if(!missing(genome)) metadata(lrr.segs) <- list(genome=genome)
+  ix <- match(sampleNames(object), names(mad.minimumdistance))
+  object$mindist.mad <- mad.minimumdistance[ix]
+  lrr.segs <- lrr.segs[sampleNames(lrr.segs) %in% sampleNames(object), ]
+  if(length(unique(chromosome(object))) > 1){
+    if(verbose)
+      message("narrowing the ranges by chromosome")
+    if(!is(fD, "list")) stop("when object contains multiple chromosomes, fD should be a list of GenomeAnnotatedDataFrames")
+    chromsInFD <- paste("chr", sapply(fD, function(x) chromosome(x)[1]), sep="")
+    indexList <- split(seq_len(length(object)), as.character(chromosome(object)))
+    indexList2 <- split(seq_len(length(lrr.segs)), as.character(chromosome(lrr.segs)))
+    if(!all.equal(names(indexList), names(indexList2))){
+      stop("the chromosomes represented in the minimum distance genomic intervals (object) must be the same as the chromosomes represented in the offspring genomic intervals (lrr.segs)")
+    }
+    fD <- fD[match(names(indexList), as.character(chromsInFD))]
+    if(length(fD) != length(indexList)){
+      stop("The list of GenomeAnnotatedDataFrames (argument fD) must be the same length as the number of chromosomes represented in the minimum distange genomic intervals (object)")
+    }
+    if(verbose)  pb <- txtProgressBar(min=0, max=length(indexList), style=3)
+    segList <- vector("list", length(indexList))
+    pkgs <- neededPkgs()
+    j <- k <- NULL
+    segList <- foreach(j=indexList, k=indexList2, featureData=fD, .packages=pkgs) %dopar%{
+      narrowRangeForChromosome(object[j, ],
+                               lrr.segs[k, ],
+                               thr=thr,
+                               verbose=FALSE,
+                               fD=featureData)
+    }
+    if(verbose) close(pb)
+    segs <- unlist(GRangesList(segList))
+  } else {
+    if(is(fD, "list")) {
+      chroms <- paste("chr", sapply(fD, function(x) chromosome(x)[1]), sep="")
+      fD <- fD[[match(as.character(chromosome(object))[1], chroms)]]
+      chr <- as.character(chromosome(object)[1])
+      if(paste("chr", chromosome(fD)[1], sep="") != chr) stop("The supplied GenomeAnnotatedDataFrame (fD) does not have the same chromosome as object")
+    }
+    segs <- narrowRangeForChromosome(object, lrr.segs, thr, verbose, fD=fD)
+  }
+  metadata(segs) <- metadata(lrr.segs)
+  return(segs)
 }
 
 
 narrowRangeForChromosome <- function(md.range, cbs.segs, thr=0.9, verbose=TRUE, fD){
-	md.range <- md.range[order(sampleNames(md.range), start(md.range)), ]
-	mads <- pmax(values(md.range)$mindist.mad, .1)
-	abs.thr <- abs(values(md.range)$seg.mean)/mads
-	md.range2 <- md.range[abs.thr > thr, ]
-	if(length(md.range2) < 1){
-		return(md.range)
-	}
-	cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs)), ]
-	o <- findOverlaps(md.range2, cbs.segs)
-	j <- subjectHits(o)
-	## only consider the cbs segments that have an overlap
-	if(!is.na(match("sample", colnames(cbs.segs)))) cbs.segs <- cbs.segs[, -match("sample", colnames(cbs.segs))]
-	offspring.segs <- cbs.segs[j, ]
-	sns <- unique(sampleNames(md.range2))
-	chr <- chromosome(md.range)[1]
-	rdlist <- list()
-	for(j in seq_along(sns)){
-		md <- md.range2[sampleNames(md.range2) == sns[j], ]
-		of <- offspring.segs[sampleNames(offspring.segs)==sns[j], ]
-		md.mad <- values(md)$mindist.mad
-		md <- md[, match(colnames(values(of)), colnames(values(md)))]
-		## stack the ranges of the minimum distance segments and the offspring segments
-		un <- stackRangedDataList(list(md, of))
-		## find the disjoint ranges
-		disj <- disjoin(un)
-		o <- findOverlaps(md, disj)
-		## which minimumdistance intervals are spanned by a disjoint interval
-		r <- subjectHits(o)
-		s <- queryHits(o)
-		## only keep the disjoint intervals for which a minimum distance segment is overlapping
-		##  (filters intervals that have a minimum distance of approx. zero)
-		disj <- disj[r, ]
-		elementMetadata(disj)$sample <- sampleNames(md)[s]
-		elementMetadata(disj)$numberProbes <- 0L ## update later
-		elementMetadata(disj)$seg.mean <- values(md)$seg.mean[s]
-		elementMetadata(disj)$mindist.mad <- md.mad[s]
-		rdlist[[j]] <- disj
-	}
-	rd <- unlist(GRangesList(rdlist))
-	metadata(rd) <- metadata(md.range)
-	frange <- makeFeatureGRanges(fD, metadata(rd)[["genome"]])
-	cnt <- countOverlaps(rd, frange)
-	elementMetadata(rd)$numberProbes <- cnt
-	rd <- rd[numberProbes(rd) > 0L, ]
-	mrd <- md.range[abs.thr <= thr, ]
-	mrd <- mrd[, match(colnames(values(rd)), colnames(values(mrd)))]
-	rd2 <- c(rd, mrd)
-	rd2 <- rd2[order(sampleNames(rd2), start(rd2)), ]
-	return(rd2)
+  md.range <- md.range[order(md.range$sample, start(md.range))]
+  mads <- pmax(md.range$mindist.mad, .1)
+  abs.thr <- abs(md.range$seg.mean)/mads
+  md.range2 <- md.range[abs.thr > thr]
+  if(length(md.range2) < 1) return(md.range)
+
+  cbs.segs <- cbs.segs[order(sampleNames(cbs.segs), start(cbs.segs))]
+  o <- findOverlaps(md.range2, cbs.segs)
+  j <- subjectHits(o)
+  ## only consider the cbs segments that have an overlap
+  if(!is.na(match("sample", colnames(cbs.segs)))) cbs.segs <- cbs.segs[-match("sample", colnames(cbs.segs))]
+  offspring.segs <- cbs.segs[j]
+  sns <- unique(sampleNames(md.range2))
+  chr <- chromosome(md.range)[1]
+  rdlist <- list()
+  for(j in seq_along(sns)){
+    md <- md.range2[md.range2$sample == sns[j]]
+    of <- offspring.segs[offspring.segs$sample==sns[j]]
+    md.mad <- md$mindist.mad
+    mcols(md) <- mcols(md)[, match(colnames(mcols(of)), colnames(mcols(md)))]
+    ## stack the ranges of the minimum distance segments and the offspring segments
+    un <- unlist(GRangesList(list(md, of)))
+    ## find the disjoint ranges
+    disj <- disjoin(un)
+    o <- findOverlaps(md, disj)
+    ## which minimumdistance intervals are spanned by a disjoint interval
+    r <- subjectHits(o)
+    s <- queryHits(o)
+    ## only keep the disjoint intervals for which a minimum distance segment is overlapping
+    ##  (filters intervals that have a minimum distance of approx. zero)
+    disj <- disj[r, ]
+    disj$sample <- md$sample[s]
+    disj$numberProbes <- 0L ## update later
+    disj$seg.mean <- md$seg.mean[s]
+    disj$mindist.mad <- md.mad[s]
+    rdlist[[j]] <- disj
+  }
+  rd <- unlist(GRangesList(rdlist))
+  metadata(rd) <- metadata(md.range)
+  frange <- makeFeatureGRanges(fD, metadata(rd)[["genome"]])
+  cnt <- countOverlaps(rd, frange)
+  rd$numberProbes <- cnt
+  rd <- rd[numberProbes(rd) > 0L]
+  mrd <- md.range[abs.thr <= thr]
+  mcols(mrd) <- mcols(mrd)[, match(colnames(mcols(rd)), colnames(mcols(mrd)))]
+  rd2 <- c(rd, mrd)
+  rd2 <- rd2[order(rd2$sample, start(rd2))]
+  return(rd2)
 }
 
 
@@ -1277,6 +1223,7 @@ stackListByColIndex <- function(object, i, j){
 	return(X)
 }
 
+
 callDenovoSegments <- function(path="",
 			       pedigreeData,
 			       ext="",
@@ -1287,76 +1234,86 @@ callDenovoSegments <- function(path="",
 			       mdThr=0.9,
 			       prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3),
 			       verbose=FALSE, genome=c("hg19", "hg18"), ...){
-	pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
-	genome <- match.arg(genome)
-	if(!is(pedigreeData, "Pedigree")) stop("pedigreeData must be an object of class Pedigree")
-	filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
-	obj <- read.bsfiles(filenames=filenames, path="", ext="")
-	if(missing(featureData)){
-		trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
-					   baf=integerMatrix(obj[, "baf",], 1000),
-					   pedigreeData=pedigreeData,
-					   chromosome=chromosome,
-					   cdfname=cdfname,
-					   genome=genome)
-	} else {
-		trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
-					   baf=integerMatrix(obj[, "baf",], 1000),
-					   pedigreeData=pedigreeData,
-					   featureData=featureData,
-					   chromosome=chromosome,
-					   genome=genome)
-	}
-	isff <- is(lrr(trioSetList)[[1]], "ff")
-	if(isff) pkgs <- c("ff", pkgs)
-	md <- calculateMindist(lrr(trioSetList), verbose=verbose)
-	mads.md <- mad2(md, byrow=FALSE)
-	fns <- featureNames(trioSetList)
-	md.segs <- segment2(object=md,
-			    pos=position(trioSetList),
-			    chrom=chromosome(trioSetList, as.list=TRUE),
-			    verbose=verbose,
-			    id=offspringNames(trioSetList),
-			    featureNames=fns,
-			    genome=genome,
-			    ...)
-	lrrs <- lrr(trioSetList)
-	if(!segmentParents){
-		## when segmenting only the offspring,
-		## the trio names are the same as the sampleNames
-		lrrs <- lapply(lrrs, function(x){
-			dns <- dimnames(x)
-			x <- x[, , 3, drop=FALSE]
-			dim(x) <- c(nrow(x), ncol(x))
-			dimnames(x) <- list(dns[[1]], dns[[2]])
-			return(x)
-		})
-		id <- offspringNames(trioSetList)
-	} else{
-		id=trios(trioSetList)
-	}
-	pos <- position(trioSetList)
-	lrr.segs <- segment2(object=lrrs,
-			     pos=position(trioSetList),
-			     chrom=chromosome(trioSetList, as.list=TRUE),
-			     id=id, ## NULL if segmentParents is FALSE
-			     verbose=verbose,
-			     featureNames=fns, genome=genome, ...)
-	md.segs2 <- narrowRanges(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md, fD=Biobase::featureData(trioSetList))
-	index <- splitIndicesByLength(seq_len(ncol(trioSetList)), 1)
-	##if(!getDoParRegistered()) registerDoSEQ()
-	outdir <- ldPath()
-	id <- sampleNames(trioSetList)
-	object <- i <- NULL
-	map.segs <- foreach(i=index,
-			    .packages=pkgs, .combine="unlist") %dopar% {
-				    MAP(object=trioSetList,
-					ranges=md.segs2,
-					id=id[i],
-					mdThr=mdThr,
-					prOutlierBAF=prOutlierBAF)
-			    }
-	return(map.segs)
+  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+  genome <- match.arg(genome)
+  if(!is(pedigreeData, "Pedigree")) stop("pedigreeData must be an object of class Pedigree")
+  filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
+  ##obj <- read.bsfiles(filenames=filenames, path="", ext="")
+  headers <- names(read.bsfiles(filenames[1], nrows=0))
+  select <- match(c("SNP Name", "Allele1 - AB", "Allele2 - AB",
+                    "Log R Ratio", "B Allele Freq"), headers)
+##  ##labels <- setNames(c("Allele1", "Allele2", "LRR", "BAF"), keep[-1])
+##  classes <- c(rep("character", 3), rep("numeric", 2))
+##  header_info <- VanillaICE:::headerInfo(filenames[1], skip=10, sep=",",
+##                                         keep=keep, labels=labels,
+##                                         classes=classes)
+##  obj <- read_beadstudio(filenames=filenames)
+  obj <- fread(filenames, select=select)
+  if(missing(featureData)){
+    trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
+                               baf=integerMatrix(obj[, "baf",], 1000),
+                               pedigreeData=pedigreeData,
+                               chromosome=chromosome,
+                               cdfname=cdfname,
+                               genome=genome)
+  } else {
+    trioSetList <- TrioSetList(lrr=integerMatrix(obj[, "lrr",], 100),
+                               baf=integerMatrix(obj[, "baf",], 1000),
+                               pedigreeData=pedigreeData,
+                               featureData=featureData,
+                               chromosome=chromosome,
+                               genome=genome)
+  }
+  isff <- is(lrr(trioSetList)[[1]], "ff")
+  if(isff) pkgs <- c("ff", pkgs)
+  md <- calculateMindist(lrr(trioSetList), verbose=verbose)
+  mads.md <- mad2(md, byrow=FALSE)
+  fns <- featureNames(trioSetList)
+  md.segs <- segment2(object=md,
+                      pos=position(trioSetList),
+                      chrom=chromosome(trioSetList, as.list=TRUE),
+                      verbose=verbose,
+                      id=offspringNames(trioSetList),
+                      featureNames=fns,
+                      genome=genome,
+                      ...)
+  lrrs <- lrr(trioSetList)
+  if(!segmentParents){
+    ## when segmenting only the offspring,
+    ## the trio names are the same as the sampleNames
+    lrrs <- lapply(lrrs, function(x){
+      dns <- dimnames(x)
+      x <- x[, , 3, drop=FALSE]
+      dim(x) <- c(nrow(x), ncol(x))
+      dimnames(x) <- list(dns[[1]], dns[[2]])
+      return(x)
+    })
+    id <- offspringNames(trioSetList)
+  } else{
+    id=trios(trioSetList)
+  }
+  pos <- position(trioSetList)
+  lrr.segs <- segment2(object=lrrs,
+                       pos=position(trioSetList),
+                       chrom=chromosome(trioSetList, as.list=TRUE),
+                       id=id, ## NULL if segmentParents is FALSE
+                       verbose=verbose,
+                       featureNames=fns, genome=genome, ...)
+  md.segs2 <- narrowRanges(md.segs, lrr.segs, 0.9, mad.minimumdistance=mads.md, fD=Biobase::featureData(trioSetList))
+  index <- splitIndicesByLength(seq_len(ncol(trioSetList)), 1)
+  ##if(!getDoParRegistered()) registerDoSEQ()
+  outdir <- ldPath()
+  id <- sampleNames(trioSetList)
+  object <- i <- NULL
+  map.segs <- foreach(i=index,
+                      .packages=pkgs, .combine="unlist") %dopar% {
+                        MAP(object=trioSetList,
+                            ranges=md.segs2,
+                            id=id[i],
+                            mdThr=mdThr,
+                            prOutlierBAF=prOutlierBAF)
+                      }
+  return(map.segs)
 }
 
 make.unique2 <- function(names, sep="___DUP") make.unique(names, sep)
@@ -1370,37 +1327,57 @@ originalNames <- function(names){
 
 read.bsfiles2 <- function(path, filenames, sampleNames, z, marker.index,
 			  lrrlist, baflist, featureNames){
-	i <- seq_along(sampleNames)
-	## this is simply to avoid having a large 'dat' object below.
-	if(isPackageLoaded("ff")){
-		NN <- min(length(sampleNames), 2)
-		ilist <- splitIndicesByLength(i, NN)
-		for(k in seq_along(ilist)){
-			j <- ilist[[k]]
-			sns <- sampleNames[j]
-			dat <- read.bsfiles(path=path, filenames=filenames[j])
-			dat <- dat[match(featureNames, rownames(dat)), , , drop=FALSE]
-			l <- match(sns, colnames(baflist[[1]]))
-			for(m in seq_along(marker.index)){
-				M <- marker.index[[m]]
-				baflist[[m]][, l, z] <- integerMatrix(as.matrix(dat[M, 2, ]), scale=1000)
-				lrrlist[[m]][, l, z] <- integerMatrix(as.matrix(dat[M, 1, ]), scale=100)
-			}
-		}
-		return(TRUE)
-	} else {
-		dat <- read.bsfiles(path=path, filenames=filenames)
-	}
-	return(dat)
+  i <- seq_along(sampleNames)
+  ## this is simply to avoid having a large 'dat' object below.
+  if(isPackageLoaded("ff")){
+    NN <- min(length(sampleNames), 2)
+    ilist <- splitIndicesByLength(i, NN)
+    for(k in seq_along(ilist)){
+      j <- ilist[[k]]
+      sns <- sampleNames[j]
+      datlist <- lapply(file.path(path, filenames[j]), read.bsfiles)
+      id <- datlist[[1]][[1]]
+      datlist <- lapply(datlist, "[", c(2,3))
+      r <- do.call(cbind, lapply(datlist, "[[", 1))
+      b <- do.call(cbind, lapply(datlist, "[[", 2))
+      dimnames(r) <- dimnames(b) <- list(id, filenames)
+      if(!identical(id, featureNames)){
+        r <- r[featureNames, , drop=FALSE]
+        b <- b[featureNames, , drop=FALSE]
+      }
+      l <- match(sns, colnames(baflist[[1]]))
+      for(m in seq_along(marker.index)){
+        M <- marker.index[[m]]
+        baflist[[m]][, l, z] <- integerMatrix(b, scale=1000)
+        lrrlist[[m]][, l, z] <- integerMatrix(r, scale=100)
+      }
+    }
+    return(TRUE)
+  } else {
+    ##dat <- read.bsfiles(path=path, filenames=filenames)
+    fnames <- file.path(path, filenames)
+    datlist <- lapply(fnames, read.bsfiles)
+    id <- datlist[[1]][[1]]
+    datlist <- lapply(datlist, "[", c(2,3))
+    r <- do.call(cbind, lapply(datlist, "[[", 1))
+    b <- do.call(cbind, lapply(datlist, "[[", 2))
+    tmp <- array(NA, dim=c(nrow(r), 2, length(fnames)))
+    tmp[, 1, ] <- integerMatrix(r, 100)
+    tmp[, 2, ] <- integerMatrix(b, 1000)
+    dat <- tmp
+    dimnames(dat) <- list(id, c("lrr", "baf"), basename(fnames))
+  }
+  return(dat)
 }
 
 stackRangedDataList <- function(...) {
-	##object <- stack(RangedDataList(...))
-	object <- GRangesList(list(...)[[1]])
-	unlist(object)
-	##j <- match("sample", colnames(object))
-	##if(is.na(j))  object else object[, -j]
+  ##object <- stack(RangedDataList(...))
+  object <- GRangesList(list(...)[[1]])
+  unlist(object)
+  ##j <- match("sample", colnames(object))
+  ##if(is.na(j))  object else object[, -j]
 }
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~ The rest is old code that has been commented out.~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1626,91 +1603,74 @@ trioSet2data.frame <- function(from){
 	return(df)
 }
 
-loglik <- function(emit, ranges, pr.nonmendelian,
-		   overlapFun){
-	lemit <- log(emit)
-	trio.states <- trioStates(0:4)
-	##result <- rep(NA, nrow(trio.states))
-	state.prev <- NULL
-	denovo.prev <- NULL
-	table1 <- readTable1(a=0.0009)
-	loader("pennCNV_MendelianProb.rda")
-	table3 <- getVarInEnv("pennCNV_MendelianProb")
-	state.names <- trioStateNames()
-	norm.index <- which(state.names=="222")
-	lik.norm <- argmax <- lik.state <- rep(NA, length(ranges))
-	hits <- overlapFun(ranges)
-	counts <- queryHits(hits)
-	cnt <- structure(tabulate(counts, NROW(ranges)), names=names(ranges))
-	Index <- which(cnt >= 2)
-	range.index <- queryHits(hits)[queryHits(hits) %in% Index]
-	abs.thr <- values(ranges)$exceeds.md.thr
- 	for(i in Index){
-		index <- which(range.index==i)
-		k <- subjectHits(hits)[index]
-		if(length(k) < 2) next()
-		LL <- lemit[k, , , drop=FALSE]
-		LLT <- matrix(NA, 3, 6)
-		for(j in 1:3) LLT[j, ] <- apply(LL[, j, ], 2, sum, na.rm=TRUE)
-		rownames(LLT) <- c("F", "M", "O")
-		colnames(LLT) <- paste("CN_", c(0, 1, 2, 2, 3, 4), sep="")
-		LLT[, 3] <- pmax(LLT[, 3], LLT[, 4])
-		LLT <- LLT[, -4]
-		callrange <- abs.thr[i]
-		J <- if(callrange) seq_len(nrow(trio.states)) else 1
-		result <- rep(NA, length(J))
-		if(!is.null(state.prev)) state.prev <- state.prev+1L
-		for(j in J){
-			k <- if(callrange) j else norm.index
-			tau <- transitionProbability(ncol(LLT), epsilon=0.5)
-			log.pi <- log(initialStateProbs(ncol(LLT), epsilon=0.5))
-			state <- trio.states[j, ] + 1L
-			fmo <- c(LLT[1, state[1]], LLT[2, state[2]], LLT[3, state[3]])
-			if(j == 1 | is.null(state.prev)){
-				## assume Pr(state_1,f | lambda) = Pr(state_2,m | lambda) = pi
-				## For offspring, we have Pr(state_1,o | state_1,f, state_1,m, DN=0, 1)
-				##    or 1/5 if DN=1
-				## if DN is 0 (not devovo), then many of the hidden
-				##  states should have essentially an epsilon
-				##  probability of occurring.
-				pi.offspring <- c(lookUpTable1(table1, state),  1/5)
-				lpr.offspring <- log(pi.offspring[1] * (1-pr.nonmendelian) + pi.offspring[2]+pr.nonmendelian)
-				log.pi2 <- c(log.pi[state[1]], ## father
-					     log.pi[state[2]], ## mother
-					     lpr.offspring)
-				fmo <- fmo + log.pi2
-				##log.emit <- fmo
-				result[j] <- sum(fmo)
-			} else{
-				result[j] <- jointProb(segment.index=i,
-						    state=state,
-						    state.prev=state.prev,
-						    prob.nonMendelian=pr.nonmendelian,
-						    log.pi=log.pi,
-						    tau=tau,
-						    table1=table1,
-						    table3=table3,
-						    log.lik=fmo)
-			}
-		}
-		if(callrange){
-			lik.norm[i] <- result[norm.index]
-			argmax[i] <- which.max(result)
-			lik.state[i] <- result[argmax[i]]
-			state.prev <- trio.states[argmax[i], ]
-		} else {
-			lik.norm[i] <- result
-			lik.state[i] <- result
-			argmax[i] <- norm.index
-			state.prev <- trio.states[norm.index, ]
-		}
-	}
-	elementMetadata(ranges)$state <- trioStateNames()[argmax]
-	elementMetadata(ranges)$argmax <- argmax
-	elementMetadata(ranges)$lik.state <- lik.state
-	elementMetadata(ranges)$lik.norm <- lik.norm
-	ranges
+
+
+
+
+referenceIndex <- function(param) which(stateNames(param) == referenceState(param))
+
+cumulativeLogLik <- function(log_emit){
+  LLT <- apply(log_emit, c(2, 3), sum, na.rm=TRUE)
+  ## copy number 2 prob is max(diploid not ROH, diploid ROH)
+  LLT[, 3] <- pmax(LLT[, 3], LLT[, 4])
+  ## remove diploid ROH state
+  LLT <- LLT[, -4]
+  LLT
 }
+
+prTrioState <- function(param, state){
+  ## We need to compute Pr(trio state | model)
+  ##
+  ## See Additional File 1, p6 (Scharpf et al., 2012)
+  ##
+  ## Pr(trio state | model )      =  Pr(trio state, nonmendelian | model) + Pr (trio state, Mendlianl | model)
+  ##                              =  Pr( offspring | parents, nonmendelian) * Pr(parents | nonmendelian) * Pr(nonmendelian) + Pr (offspring | parents, mendelian) * Pr(parents | mendelian) * Pr (mendelian)
+  ##                              =  Pr( offspring | nonmendelian) * Pr(parents) * Pr(nonmendelian) + Pr(offspring | mendelian, parents) * pr(parents)* Pr(mendelian)
+  ##                              =  Term 1  *  Term2  * Term 3  +  Term4 * Term2 * (1-Term3)
+  ##                              =  Term 2 [Term1 * Term3 + Term4*(1-Term3)]
+  ## we assume a priori that any of the states are equally likely for the parents
+  Term2 <- 1/5^2
+  Term3 <- prNonMendelian(param)
+  ##
+  ## Term 4, or Pr(offspring | parents, mendelian), is given by tabled values in Wang et al. (Suppl Table 1)
+  ##
+  Term4 <- table1(param)[state]
+  Term1 <- 1/5
+  Term2 * (Term1 * Term3 + Term4 * (1-Term3))
+}
+
+
+loglikInitial <- function(param, LLT, state){
+  ## assume Pr(state_1,father | lambda) = Pr(state_2,mother | lambda) = pi
+  ##
+  ## Equation 3: Scharpf et al., 2012
+  ##
+  ## We need to compute the posterior probability of the trio states, or
+  ## Pr(trio state | B, R, model)  propto  Likelihood * prior
+  ##                               = likelihood * Pr(trio state | model)
+  ## Taking logarithms, we have
+  ## log lik + log Pr(trio state | model)
+  state_index <- state(param)[state, ] + 1L
+  ##
+  loglik <- sum(diag(LLT[, state_index]))
+  ##
+  pr_triostate <- prTrioState(param, state)
+  ##
+  loglik + log(pr_triostate)
+}
+
+statesToEvaluate <- function(param, above_thr){
+  nms <- stateNames(param)
+  if(above_thr){
+    x <- setNames(rep(TRUE, length(nms)), nms)
+  } else {
+    x <- setNames(rep(FALSE, length(nms)), nms)
+    x[referenceIndex(param)] <- TRUE
+  }
+  x
+}
+
+
 
 setSequenceLengths <- function(build, names){ ## names are unique(seqnames(object))
   sl <- getSequenceLengths(build)
@@ -1750,4 +1710,45 @@ setSequenceLengths <- function(build, names){ ## names are unique(seqnames(objec
 isFF <- function(object){
   names <- ls(assayData(object))
   is(assayData(object)[[names[[1]]]], "ff") | is(assayData(object)[[names[[1]]]], "ffdf")
+}
+
+
+logEmissionArray <- function(object){
+  emitlist <- assays(object)
+  ##emitlist <- lapply(emitlist, function(x, epsilon) log(x+epsilon), epsilon=epsilon)
+  lemit_array <- array(NA, dim=c(nrow(object), length(emitlist), 6))
+  for(i in seq_len(length(emitlist))) lemit_array[, i, ] <- log(emitlist[[i]])
+  lemit_array
+}
+
+#' Function for computing autocorrelations
+#'
+#' By default, this function returns the lag-10 autocorrelations of a
+#' numeric vector and omits missing values.
+#'
+#' @param x a numeric vector
+#' @param lag.max see \code{acf}
+#' @param type see \code{acf}
+#' @param plot logical, as in \code{acf}
+#' @param na.action ignored.  Missing values are automattically omitted.
+#' @param demean logical, as in \code{acf}
+#' @param ... additional arguments passed to \code{acf}
+#' @seealso \code{\link[stats]{acf}}
+#' @examples
+#' x <- rnorm(100)
+#' x[5] <- NA
+#' acf2(x)
+#' @export
+acf2 <- function(x, lag.max=10, type = c("correlation", "covariance", "partial"),
+                 plot = FALSE, na.action = na.omit, demean = TRUE,
+                 ...){
+  x <- x[!is.na(x)]
+  y <- acf(x, lag.max=lag.max, type=type, plot=plot,
+           na.action=na.action, demean=demean, ...)
+  y <- y[[1]][lag.max+1, , 1]
+}
+
+colAcfs <- function(X, lag.max=10, plot=FALSE) {
+  res <- rep(NA, ncol(X))
+  apply(X, 2, acf2, lag.max=lag.max)
 }

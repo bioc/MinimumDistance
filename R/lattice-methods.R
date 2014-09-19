@@ -182,6 +182,3 @@ xypanelTrio <- function(x, y,
 		panel.axis("right", at=at, labels=c(0, 0.5, 1), text.col="blue", line.col="blue", half=FALSE, text.cex=0.7)
 	}
 }
-
-
-

@@ -133,12 +133,12 @@ generatorMatrix2 <- function(R, B, chr, center, snp.index, anyNP, ped){
 }
 
 generatorOverlapFeatures <- function(feature.granges){
-	overlapFUN <- function(ranges){
-		hits <- findOverlaps(ranges, feature.granges)
-##		cnt <- countOverlaps(ranges, feature.granges)
-##		mm <- findOverlaps(feature.granges, ranges)
-		##return(mm=mm, cnt=cnt)
-		return(hits)
-	}
-	return(overlapFUN)
+  overlapFUN <- function(ranges){
+    hits <- findOverlaps(ranges, feature.granges)
+    ##		cnt <- countOverlaps(ranges, feature.granges)
+    ##		mm <- findOverlaps(feature.granges, ranges)
+    ##return(mm=mm, cnt=cnt)
+    return(hits)
+  }
+  return(overlapFUN)
 }
