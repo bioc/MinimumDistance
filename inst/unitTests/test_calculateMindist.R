@@ -19,4 +19,17 @@ test_calculateMindist <- function(){
   lrrArray <- array(NA, dim=c(1, 1, 3))
   lrrArray[, , ] <- c(0.2, 0.1, 0.12)
   checkEquals(as.numeric(calculateMindist(lrrArray)), 0.02, tolerance=0.0001)
+
+  ## construct SnpArrayExperiment
+  ## then, calculate min distance
+  library(oligoClasses)
+  path <- system.file("extdata", package="MinimumDistance")
+  fnames <- list.files(path, pattern=".txt")
+  ped <- Pedigree(data.frame(F=c("F.txt", "F.txt"),
+                             M=c("M.txt", "M.txt"),
+                             O=c("O.txt", "O1.txt")))
+
+
+
+
 }

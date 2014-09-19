@@ -1,12 +1,15 @@
+#' @param outdir character string indicating path to save output
+#' @aliases calculateMindist,list-method
+#' @rdname calculateMindist
 setMethod("calculateMindist", signature(object="list"),
 	  function(object, outdir=ldPath(), ...){
-		  pkgs <- neededPkgs()
-		  if(!isPackageLoaded("ff")){
-			  foreach(elt=object, .packages=pkgs) %dopar% MinimumDistance:::calculateMindistFromArray(elt, outdir=outdir, ...)
-		  } else {
-			  pkgs <- c("ff", pkgs)
-			  foreach(elt=object, .packages=pkgs) %dopar% MinimumDistance:::calculateMindistFromArray(elt, outdir=outdir, ...)
-		  }
+            pkgs <- neededPkgs()
+            if(!isPackageLoaded("ff")){
+              foreach(elt=object, .packages=pkgs) %dopar% MinimumDistance:::calculateMindistFromArray(elt, outdir=outdir, ...)
+            } else {
+              pkgs <- c("ff", pkgs)
+              foreach(elt=object, .packages=pkgs) %dopar% MinimumDistance:::calculateMindistFromArray(elt, outdir=outdir, ...)
+            }
 	  })
 
 
@@ -21,4 +24,3 @@ unstack <- function(object){
 	    fatherPhenoData=fatherPhenoData(object[[1]]),
 	    chromosome=sapply(object, function(x) unique(chromosome(x))))
 }
-

@@ -2,6 +2,7 @@
 ## output and (2) that the output is in a format that can be handled
 ## by read.bsfiles.  This should be a function and not a method for
 ## class character.
+
 annotatedDataFrameFromArray <- function(object, byrow=FALSE, ...){
   if(dim(object)[[3]] > 0){
     object <- object[, , 1, drop=TRUE]
@@ -17,14 +18,18 @@ setMethod("annotatedDataFrameFrom", signature(object="ff_array"),
 setMethod("annotatedDataFrameFrom", signature(object="array"),
           annotatedDataFrameFromArray)
 
-
 setMethod("GenomeAnnotatedDataFrameFrom", signature(object="character"),
 	  function(object, annotationPkg, genome, ...){
 		  ##check if object is a file
             if(!file.exists(object)) message("File ", object, " does not exist")
-            dat <- read.bsfiles(filenames=object)
-            GenomeAnnotatedDataFrameFrom(dat, annotationPkg=annotationPkg,
-                                         genome=genome, ...)
+            dat <- read.bsfiles(object)
+            id <- dat[[1]]
+            i <- grep("Log.R", colnames(dat))
+            dat <- GenomeAnnotatedDataFrameFrom(as.matrix(dat[[i]]),
+                                                annotationPkg=annotationPkg,
+                                                genome=genome, ...)
+            rownames(dat) <- id
+            dat
 	  })
 
 setMethod("sampleNames2", signature(object="AnnotatedDataFrame"),

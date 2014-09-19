@@ -55,45 +55,65 @@ setMethod("initialize", signature(.Object="Pedigree"),
 		  callNextMethod(.Object, trios=trios, trioIndex=trioIndex, ...)
 	  })
 
+#' Deprecated function for constructing an instance of class Pedigree
+#'
+#' This function is deprecated and will be removed in a future release.
+#'
+#' @param pedigreeInfo a \code{data.frame} with column names 'F' (father), 'M' (mother), and 'O' (offspring). Elements of the \code{data.frame} are the sample names.
+#' @param fatherIds character vector of identifiers for the father
+#' @param motherIds character vector of identifiers for the mother
+#' @param offspringIds character vector of identifiers for the offspring
+#' @examples
+#' Pedigree()
+#' @export
 Pedigree <- function(pedigreeInfo,
 		     fatherIds=character(),
 		     motherIds=character(),
 		     offspringIds=character()){
-	if(!missing(pedigreeInfo)){
-		msg <- "pedigreeInfo must be a data.frame with column names 'F', 'M', and 'O'"
-		if(!is(pedigreeInfo, "data.frame"))
-			stop(msg)
-		trios <- data.frame(F=as.character(pedigreeInfo[[1]]),
-				    M=as.character(pedigreeInfo[[2]]),
-				    O=as.character(pedigreeInfo[[3]]),
-				    stringsAsFactors=FALSE)
-		allIds <- as.character(unlist(trios))
-	} else {
-		fatherIds <- as.character(fatherIds)
-		motherIds <- as.character(motherIds)
-		offspringIds <- as.character(offspringIds)
-		trios <- data.frame(F=fatherIds,
-				    M=motherIds,
-				    O=offspringIds,
-				    stringsAsFactors=FALSE)
-		allIds <- c(fatherIds, motherIds, offspringIds)
-	}
-	trio.index <- as.integer(matrix(seq_len(nrow(trios)), nrow(trios), 3, byrow=FALSE))
-	memberId <- rep(c("F", "M", "O"), each=nrow(trios))
-	pedigreeIndex <- data.frame(individualId=allIds,
-				    memberId=memberId,
-				    index.in.pedigree=trio.index,
-			    stringsAsFactors=FALSE)
-	rownames(pedigreeIndex) <- NULL
-	new("Pedigree", trios=trios, trioIndex=pedigreeIndex)
+  if(!missing(pedigreeInfo)){
+    msg <- "pedigreeInfo must be a data.frame with column names 'F', 'M', and 'O'"
+    if(!is(pedigreeInfo, "data.frame"))
+      stop(msg)
+    trios <- data.frame(F=as.character(pedigreeInfo[[1]]),
+                        M=as.character(pedigreeInfo[[2]]),
+                        O=as.character(pedigreeInfo[[3]]),
+                        stringsAsFactors=FALSE)
+    allIds <- as.character(unlist(trios))
+  } else {
+    fatherIds <- as.character(fatherIds)
+    motherIds <- as.character(motherIds)
+    offspringIds <- as.character(offspringIds)
+    trios <- data.frame(F=fatherIds,
+                        M=motherIds,
+                        O=offspringIds,
+                        stringsAsFactors=FALSE)
+    allIds <- c(fatherIds, motherIds, offspringIds)
+  }
+  trio.index <- as.integer(matrix(seq_len(nrow(trios)), nrow(trios), 3, byrow=FALSE))
+  memberId <- rep(c("F", "M", "O"), each=nrow(trios))
+  pedigreeIndex <- data.frame(individualId=allIds,
+                              memberId=memberId,
+                              index.in.pedigree=trio.index,
+                              stringsAsFactors=FALSE)
+  rownames(pedigreeIndex) <- NULL
+  new("Pedigree", trios=trios, trioIndex=pedigreeIndex)
 }
 
-
+#' @param object a \code{Pedigree} object
+#' @aliases trios,Pedigree-method
+#' @rdname Pedigree-class
 setMethod("trios", signature(object="Pedigree"),
-	  function(object) object@trios)
+	  function(object) {
+            ##.Deprecated()
+            object@trios
+        })
 setMethod("trioIndex", signature(object="Pedigree"),
 	  function(object) object@trioIndex)
+
+#' @aliases offspringNames,Pedigree-method
+#' @rdname Pedigree-class
 setMethod("offspringNames", signature(object="Pedigree"), function(object) trios(object)$O)
+
 setMethod("sampleNames", signature(object="Pedigree"), function(object) offspringNames(object))
 setMethod("allNames", signature(object="Pedigree"), function(object) unique(trioIndex(object)$individualId))
 setMethod("fatherNames", signature(object="Pedigree"), function(object) trios(object)$F)
@@ -115,8 +135,15 @@ setMethod("show", signature(object="Pedigree"),
 			  print(tail(trioIndex(object), n=2))
 		  }
 		  cat("\n")
-	  })
+                })
 
+#' @param x a \code{Pedigree} object
+#' @param i a numeric vector for subsetting  (optional)
+#' @param j ignored
+#' @param ... ignored
+#' @param drop ignored
+#' @aliases "[",Pedigree,ANY-method
+#' @rdname Pedigree-class
 setMethod("[", signature(x="Pedigree"),
 	  function(x, i, j, ..., drop=FALSE){
             if(missing(i)) {
@@ -129,6 +156,8 @@ setMethod("[", signature(x="Pedigree"),
             return(x)
 	  })
 
+#' @aliases dim,Pedigree-method
+#' @rdname Pedigree-class
 setMethod("dim", signature(x="Pedigree"), function(x){
 	dim(trios(x))
 })
