@@ -30,7 +30,7 @@
                   prob_221=numeric(L))
 }
 
-#' @inheritParams GRanges
+#' @param ... additional arguments to \code{GRanges} constructor
 #' @param posteriors a \code{DataFrame}
 #' @export
 #' @rdname MDRanges-class
@@ -53,7 +53,7 @@ posterior221 <- function(object) object$prob_221
 
 setMethod("posteriorLogRR", "MDRanges", function(object) object$log_RR)
 
-## #' @export
+## # @export
 isDenovo <- function(states) (states %in% c(duplicationStates(), deletionStates())) & !is.na(states)
 
 setMethod("is221", "MDRanges", function(object)  object$calls=="221" & !is.na(object$calls))

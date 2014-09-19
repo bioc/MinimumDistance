@@ -1,41 +1,3 @@
-setMethod("segment2", signature(object="TrioSetList"),
-	  function(object, md=NULL, segmentParents=TRUE, verbose=TRUE, ...){
-            segmentTrioSetList(object, md, segmentParents=segmentParents, verbose=verbose, ...)
-	  })
-
-setMethod("segment2", signature(object="TrioSet"),
-	  function(object, md=NULL, segmentParents=TRUE, verbose=TRUE, ...){
-            segmentTrioSet(object, md=md, segmentParents=segmentParents, verbose=verbose, ...)
-	  })
-
-setMethod("segment2", signature(object="list"),
-	  function(object, pos, chrom, id=NULL, featureNames, segmentParents=TRUE, verbose=TRUE, genome, ...){
-            ## elements of list must be a matrix or an array
-            if(missing(genome)) stop("must specify UCSC genome build")
-            segs <- segmentList(object, pos, chrom, id, featureNames, segmentParents=segmentParents, verbose=verbose, genome=genome, ...)
-            metadata(segs) <- list(genome=genome)
-            segs
-	  })
-
-setMethod("segment2", signature(object="matrix"),
-	  function(object, pos, chrom, id, featureNames, ...){
-            stopifnot(is(id, "character"))
-            segmentMatrix(object, pos, chrom, id, featureNames, ...)
-	  })
-
-setMethod("segment2", signature(object="ff_matrix"),
-	  function(object, pos, chrom, id, featureNames, ...){
-            segmentff_matrix(object, pos, chrom, id, featureNames, ...)
-            ##segs <- foreach(i=seq_along(ilist), .packages="MinimumDistance") %dopar% segmentMatrix(object[, ilist[[i]]], pos=pos, chrom=chrom, id=id[ilist[[i]]], featureNames, ...)
-	  })
-
-setMethod("segment2", signature(object="arrayORff_array"),
-	  function(object, pos, chrom, id, featureNames, segmentParents=TRUE, verbose=TRUE, ...){
-            segmentArray(object, pos, chrom, id, featureNames, segmentParents=segmentParents, verbose=verbose, ...)
-	  })
-
-
-
 segmentTrioSetList <- function(object, md, segmentParents=TRUE, verbose=TRUE, ...){
   pkgs <- c("DNAcopy", neededPkgs())
   if(is.null(md)){
@@ -229,34 +191,6 @@ segmentArray <- function(object, pos, chrom, id, featureNames, segmentParents, v
   return(segs)
 }
 
-##setMethod("segment2", signature(object="array"),
-##	  function(object, pos, chrom, id, featureNames, ...){
-##		  stopifnot(length(dim(object))==3) ## expects a 3d array
-##		  J <- dim(object)[[3]]
-##		  resList <- vector("list", J)
-##		  if("verbose" %in% names(list(...))){
-##			  verbose <- list(...)[["verbose"]]
-##		  } else verbose <- FALSE
-##		  ##featureNames <- rownames(object)
-##		  for(j in seq_len(J)){
-##			  if(verbose > 0) message("Processing ", ncol(object), " samples")
-##			  obj <- object[, , j, drop=FALSE]
-##			  dim(obj) <- c(nrow(object), ncol(object))
-##			  ##dimnames(obj) <- list(featureNames, id[, j])
-##			  resList[[j]] <- segmentMatrix(obj, pos, chrom, id=id[, j], featureNames, ...)
-##			  rm(obj)
-##		  }
-##		  res <- stack(RangedDataList(resList))
-##		  j <- match("sample", colnames(res))
-##		  if(length(j) == 1) res <- res[, -j]
-##		  return(res)
-##	  })
-
-
-
-
-
-
 
 segmentMatrix <- function(object, pos, chrom, id, featureNames,
 			  genome, gapsize=75e3, ...){
@@ -379,26 +313,6 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames,
 subsetGRangesById <- function(g, id){ g[g$sample %in% id]}
 
 
-setMethod("segment2", "MinDistExperiment", function(object, param=MinDistParam()){
-  x <- cbind(lrr(object), mindist(object))
-  segs <- .smoothAndSegment(x, rowData(object), dnacopy(param)) ## segments the log r ratios and minimum distance for each trio
-  g <- .dnacopy2granges(segs, seqinfo(object), original_id=colnames(x))
-  MD_granges <- g[g$sample %in% .get_md_names(object)]
-  MD_grl <- split(MD_granges, MD_granges$sample)
-  offspring_granges <- g[g$sample %in% offspring(object)]
-  offspring_grl <- split(offspring_granges, offspring_granges$sample)
-  if(length(offspring_grl)==1){
-    offspring_grl <- setNames(GRangesList(offspring_grl[[1]]), names(offspring_grl))
-  } else offspring_grl <- GRangesList(offspring_grl)
-  mads <- colMads(x[, match(names(MD_grl), colnames(x)), drop=FALSE], na.rm=TRUE)
-  MD_grl <- narrow2(offspring_grl, MD_grl, mads, param)
-  mdgr <- MinDistGRanges(mindist=MD_grl,
-                         offspring=offspring_grl,
-                         father=g[g$sample == father(object)],
-                         mother=g[g$sample == mother(object)],
-                         pedigree=pedigree(object))
-  mdgr
-})
 
 ## Narrow the minimum distance segmentation breakpoints
 ##

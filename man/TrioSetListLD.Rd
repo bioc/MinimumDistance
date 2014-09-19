@@ -51,6 +51,7 @@ datasets.  This function is deprecated and will be defunct in a
 future release
 }
 \examples{
+\dontrun{
 if(require("ff")){
 	library(ff)
      library(oligoClasses)
@@ -64,6 +65,7 @@ if(require("ff")){
 				       annotationPkg="human610quadv1bCrlmm",
 				       outdir=ldPath(),
 				       genome="hg19")
+}
 }
 }
 \seealso{

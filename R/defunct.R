@@ -2,11 +2,11 @@
 #'
 #' The function, class, or data object you asked is defunct.
 #'
-#' @name coerce
 #' @aliases coerce,RangedDataCNV,GRanges-class
 #' @keywords internal
 #' @rdname Defunct
-#' @export
+#' @name Defunct
+NULL
 setAs("RangedDataCNV", "GRanges", function(from, to){
   .Defunct("RangedDataCNV class is defunct")
 })

@@ -13,6 +13,7 @@
 #' @param offspring  a \code{GRangesList} object
 #' @param father a \code{GRanges} object
 #' @param mother a \code{GRanges} object
+#' @param pedigree a \code{ParentOffspring} object
 #' @examples
 #' MinDistGRanges()
 #' @export
@@ -26,22 +27,43 @@ MinDistGRanges <- function(mindist=GRangesList(),
       father=father, mother=mother, pedigree=pedigree)
 }
 
-
+#' @param x a \code{MinDistGRanges} object
+#' @aliases names,MinDistGRanges-method
+#' @rdname MinDistGRanges-class
 setMethod("names", "MinDistGRanges", function(x) x@id)
+
+#' @param object a \code{MinDistGRanges} object
+#' @aliases mindist,MinDistGRanges-method
+#' @rdname MinDistGRanges-class
 setMethod("mindist", "MinDistGRanges", function(object) object@mindist)
 
+#' @param value a \code{GRangesList} object
+#' @aliases mindist<-,MinDistGRanges,GRangesList-method
+#' @rdname MinDistGRanges-class
 setReplaceMethod("mindist", c("MinDistGRanges", "GRangesList"), function(object, value) {
   object@mindist <- value
   object
 })
 
+#' @aliases offspring,MinDistGRanges-method
+#' @rdname MinDistGRanges-class
 setMethod("offspring", "MinDistGRanges", function(object) object@offspring)
+
+#' @aliases mother,MinDistGRanges-method
+#' @rdname MinDistGRanges-class
 setMethod("mother", "MinDistGRanges", function(object) object@mother)
+
+#' @aliases father,MinDistGRanges-method
+#' @rdname MinDistGRanges-class
 setMethod("father", "MinDistGRanges", function(object) object@father)
+
+
 ##setMethod("mad", "MinDistGRanges", function(x, center = median(x), constant = 1.4826, na.rm = FALSE, low = FALSE, high = FALSE) x@mad)
 ##setMethod("acfs", "MinDistGRanges", function(x) x@acf)
 ##pedigree_id <- function(object) object@pedigree_id
 
+#' @aliases pedigree,MinDistGRanges-method
+#' @rdname MinDistGRanges-class
 setMethod("pedigree", "MinDistGRanges", function(object) object@pedigree)
 
 setMethod("show", "MinDistGRanges", function(object){
@@ -70,7 +92,8 @@ setMethod("show", "MinDistGRanges", function(object){
 })
 
 
-
+#' @aliases offspring,GRangesList-method
+#' @rdname MinDistGRanges-class
 setMethod("offspring", "GRangesList", function(object) {
   object <- object[grep("offspring", names(object))]
 })

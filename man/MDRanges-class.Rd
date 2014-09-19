@@ -8,6 +8,8 @@
 MDRanges(..., posteriors)
 }
 \arguments{
+\item{...}{additional arguments to \code{GRanges} constructor}
+
 \item{posteriors}{a \code{DataFrame}}
 }
 \description{

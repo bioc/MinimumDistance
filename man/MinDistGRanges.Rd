@@ -14,6 +14,8 @@ MinDistGRanges(mindist = GRangesList(), offspring = GRangesList(),
 \item{father}{a \code{GRanges} object}
 
 \item{mother}{a \code{GRanges} object}
+
+\item{pedigree}{a \code{ParentOffspring} object}
 }
 \description{
 The \code{MinDistGRanges} class contains the segmentation of the

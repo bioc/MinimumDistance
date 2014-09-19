@@ -2,8 +2,40 @@
 \docType{class}
 \name{MinDistGRanges-class}
 \alias{MinDistGRanges-class}
+\alias{father,MinDistGRanges-method}
+\alias{mindist,MinDistGRanges-method}
+\alias{mindist<-,MinDistGRanges,GRangesList-method}
+\alias{mother,MinDistGRanges-method}
+\alias{names,MinDistGRanges-method}
+\alias{offspring,GRangesList-method}
+\alias{offspring,MinDistGRanges-method}
+\alias{pedigree,MinDistGRanges-method}
 \title{A container for storing segmentation data for members in a
 \code{ParentOffspring} family}
+\usage{
+\S4method{names}{MinDistGRanges}(x)
+
+\S4method{mindist}{MinDistGRanges}(object)
+
+\S4method{mindist}{MinDistGRanges,GRangesList}(object) <- value
+
+\S4method{offspring}{MinDistGRanges}(object)
+
+\S4method{mother}{MinDistGRanges}(object)
+
+\S4method{father}{MinDistGRanges}(object)
+
+\S4method{pedigree}{MinDistGRanges}(object)
+
+\S4method{offspring}{GRangesList}(object)
+}
+\arguments{
+\item{x}{a \code{MinDistGRanges} object}
+
+\item{object}{a \code{MinDistGRanges} object}
+
+\item{value}{a \code{GRangesList} object}
+}
 \description{
 A container for storing segmentation data for members in a
 \code{ParentOffspring} family

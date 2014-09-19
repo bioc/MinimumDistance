@@ -71,19 +71,13 @@ setMethod("updateObject", signature(object="TrioSet"),
 		  return(object)
 	  })
 
-## TrioSet() function fails when this method is uncommented??
-##setMethod("dims", signature(object="TrioSet"),
-##	  function(object){
-##		  nr <- nrow(object)
-##		  nchr <- 1
-##		  ntrios <- ncol(baf(object))
-##		  dm <- c(nchr, ntrios, nr)
-##		  names(dm) <- c("chromosomes", "trios", "features")
-##		  return(dm)
-##	  })
+
+#' @param object a \code{TrioSet} object
+#' @aliases pedigree,TrioSet-method
+#' @rdname TrioSet-class
 setMethod("pedigree", signature(object="TrioSet"), function(object) object@pedigree)
-##setMethod("sampleSheet", signature(object="TrioSet"), function(object) object@sampleSheet)
-##setReplaceMethod("sampleSheet", signature(object="TrioSet"), function(object) {object@sampleSheet)
+
+
 setMethod("lrr", "TrioSet", function(object) assayDataElement(object, "logRRatio"))
 setReplaceMethod("lrr", c("TrioSet", "ANY"),
 		 function(object, value) {
@@ -301,32 +295,22 @@ setReplaceMethod("sampleNames", signature(object="TrioSet"), function(object, va
 	callNextMethod(object, value)
 })
 
+#' @aliases mindist,TrioSet-method
+#' @rdname TrioSet-class
 setMethod("mindist", "TrioSet", function(object) object@mindist)
+
+#' @param value a \code{matrix}
+#' @aliases mindist<-,TrioSet,matrix-method
+#' @rdname TrioSet-class
 setReplaceMethod("mindist", signature(object="TrioSet", value="matrix"),
 		 function(object, value){
 			 object@mindist <- value
 			 return(object)
 		 })
 
-##setReplaceMethod("mindist", signature(object="TrioSet", value="ff_matrix"),
-##		 function(object, value){
-##			 object@mindist <- value
-##			 return(object)
-##		 })
-##setReplaceMethod("mindist", signature(object="TrioSet", value="NULL"),
-##		 function(object, value){
-##			 object@mindist <- value
-##			 return(object)
-##		 })
-
-
-##setReplaceMethod("trioNames", signature(object="TrioSet"),
-##		 function(object,value){
-##			 object <- callNextMethod(object, value)
-##			 row.names(object@phenoData2) <- value
-##			 object
-##		 })
-
+#' @param x a \code{TrioSet} object
+#' @aliases dim,TrioSet-method
+#' @rdname TrioSet-class
 setMethod("dim", "TrioSet", function(x) {
   adim <- callNextMethod(x)
   names(adim) <- c("Features", "Trios", "Members")
@@ -335,12 +319,20 @@ setMethod("dim", "TrioSet", function(x) {
 
 setMethod("ncol", signature(x="TrioSet"), function(x) dim(x)[[2]])
 
+#' @aliases trios,TrioSet-method
+#' @rdname TrioSet-class
 setMethod("trios", signature(object="TrioSet"),
 	  function(object){
 		  trios(pedigree(object))
-	  })
+                })
 
-
+#' @param i a numeric vector for subsetting rows  (optional)
+#' @param j a numeric vector for subsetting trios (optional)
+#' @param ... additional arguments passed to subsetting methods for matrices and data frames
+#' @param drop logical. Whether to simplify matrices to numeric
+#' vectors.  This should be left as FALSE.
+#' @aliases "[",TrioSet,ANY-method
+#' @rdname TrioSet-class
 setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 	if (missing(drop))
 		drop <- FALSE
@@ -546,73 +538,6 @@ setMethod("trioplot", signature(formula="formula", object="TrioSet", range="Rang
 ##	  function(object) object@phenoData2)
 setMethod("allNames", signature(object="TrioSet"), function(object) allNames(pedigree(object)))
 
-setAs("TrioSet", "TrioSetList",
-      function(from, to){
-	      b <- cbind(baf(from)[, , 1], baf(from)[, , 2], baf(from)[,,3])
-	      colnames(b) <- c(fatherNames(from),
-			       motherNames(from),
-			       sampleNames(from))
-	      r <- cbind(lrr(from)[, , 1], lrr(from)[, , 2], lrr(from)[,,3])
-	      colnames(r) <- colnames(b)
-	      TrioSetList(lrr=r,
-			  baf=b,
-			  pedigreeData=pedigree(from),
-			  featureData=featureData(from))
-      })
-
-setAs("TrioSet", "data.frame",
-      function(from, to){
-	      ##cn <- copyNumber(from)
-	      stopifnot(ncol(from) == 1)
-	      cn <- lrr(from)[, 1, ]
-	      md <- as.numeric(mindist(from))
-	      if(length(md) == 0) stop("minimum distance is not available")
-	      ##sns <- paste(sampleNames(from), c("F", "M", "O"), sep="_")
-	      ##sns <- phenoData2(from)[, "sampleNames", ]
-	      sns <- allNames(from)
-	      sns <- matrix(sns, nrow(cn), length(sns), byrow=TRUE)
-	      sns <- as.character(sns)
-	      ##gt <- calls(from)
-	      cn <- as.numeric(cn)
-	      is.lrr <- c(rep(1L, length(cn)), rep(0L, length(md)))
-
-	      cn <- c(cn, md)
-	      sns <- c(sns, rep("min dist", length(md)))
-	      ##gt <- as.integer(gt)
-	      bf <- as.numeric(baf(from)[, 1, ])
-	      bf <- c(bf, rep(NA, length(md)))
-	      ##baf.present <- "baf" %in% ls(assayData(from))
-	      gt.present <- "call" %in% ls(assayData(from))
-	      if(gt.present){
-		      gt <- as.numeric(assayDataElement(from, "call"))
-		      gt <- c(gt, rep(NA, length(md)))
-	      }
-	      x <- rep(position(from)/1e6, 4)
-	      ##x <- c(x, position(from)/1e6)
-	      ##x <- rep(position(object)[marker.index], 4)/1e6
-	      is.snp <- rep(isSnp(from), 4)
-	      ##is.snp <- c(is.snp, isSnp(from))
-	      ##id <- rep(sampleNames(from), each=nrow(from))
-	      if(!gt.present){
-		      df <- data.frame(x=x,
-				       lrr=cn,
-				       baf=bf,
-				       id=sns,
-				       is.snp=is.snp,
-				       stringsAsFactors=FALSE,
-				       is.lrr=is.lrr)
-	      } else {
-		      df <- data.frame(x=x,
-				       lrr=cn,
-				       gt=gt,
-				       baf=bf,
-				       id=sns,
-				       is.snp=is.snp,
-				       stringsAsFactors=FALSE,
-				       is.lrr=is.lrr)
-	      }
-	      return(df)
-      })
 
 setMethod("order", "TrioSet", ##signature(...="TrioSet"),
 	  function(..., na.last=TRUE, decreasing=FALSE){
@@ -621,6 +546,9 @@ setMethod("order", "TrioSet", ##signature(...="TrioSet"),
 	  })
 
 
+#' @param verbose logical. Whether to display messages indicating progress.
+#' @aliases calculateMindist,TrioSet-method
+#' @rdname calculateMindist
 setMethod("calculateMindist", signature(object="TrioSet"),
 	  function(object, verbose=TRUE, ...){
 		  calculateMindist(lrr(object))
@@ -629,72 +557,17 @@ setMethod("calculateMindist", signature(object="TrioSet"),
 setMethod("gcSubtract", signature(object="TrioSet"),
 	  function(object, method=c("speed", "lowess"), trio.index, ...){
 		  .Defunct("methods for GC correction have been moved to the ArrayTV package available from GitHub")
-##		  method <- match.arg(method)
-##		  gcSubtractTrioSet(object, method=method, trio.index, ...)
 	  })
 
-##gcSubtractTrioSet <- function(object, method, trio.index, ...){
-##	if(missing(trio.index)) J <- seq_len(ncol(object)) else J <- trio.index
-##	if(!"gc" %in% fvarLabels(object)) stop("gc not in fvarLabels")
-##	if(method=="lowess"){
-##		for(j in J){
-##			r <- gcSubtractMatrix(lrr(object)[,j,], gc=fData(object)$gc, pos=position(object), ...)
-##			lrr(object)[,j,] <- integerMatrix(r, 1)
-##		}
-##	} else {
-##		gcbins <- getGcBin(fData(object)$gc)
-##		for(j in J){
-##			r <- gcSubtractSpeed(lrr(object)[, j, ], gcbins=gcbins)
-##			lrr(object)[, j, ] <- integerMatrix(r, 1)
-##		}
-##	}
-##	object
-##}
-##
-##gcSubtractSpeed <- function(r, gcbins){
-##	r.adj <- r
-##	nc <- ncol(r)
-##	for(i in seq_along(gcbins)){
-##		j <- gcbins[[i]]
-##		mus <- apply(r[j, , drop=FALSE], 2, mean, na.rm=TRUE)
-##		mus <- matrix(mus, nrow=length(j), ncol=nc, byrow=TRUE)
-##		r.adj[j, ] <- r[j, , drop=FALSE] - mus
-##	}
-##	return(r.adj)
-##}
-##
-##getGcBin <- function(gc){
-##	cuts <- seq(0, 100, by=1)
-##	bins <- cut(gc, breaks=cuts)
-##	gcbins <- split(seq_len(length(gc)), bins)  ## contains indices
-##	L <- sapply(gcbins, length)
-##	gcbins <- gcbins[L > 0]
-##	L <- L[L > 0]
-##	minL <- 50
-##	while(any(L < minL)){
-##		index <- which(L < minL)
-##		if(any(index == 1)){
-##			gcbins[[2]] <- c(gcbins[[1]], gcbins[[2]])
-##			gcbins <- gcbins[-1]
-##			dropFirst <- TRUE
-##		} else dropFirst <- FALSE
-##		if(any(index == length(gcbins))){
-##			LL <- length(gcbins)
-##			gcbins[[LL-1]] <- c(gcbins[[LL-1]], gcbins[[LL]])
-##			gcbins <- gcbins[-LL]
-##			dropLast <- TRUE
-##		} else dropLast <- FALSE
-##		if(!(dropFirst | dropLast)){
-##			index.mid <- index[index > 1 & index < length(gcbins)]
-##			gcbins[[min(index.mid)-1]] <- c(gcbins[[min(index.mid)-1]], gcbins[[min(index.mid)]])
-##			gcbins <- gcbins[-min(index.mid)]
-##		}
-##		L <- sapply(gcbins, length)
-##	}
-##	return(gcbins)
-##}
 
-
+#' @param ranges a \code{GRanges} object
+#' @param transition_param an object of class \code{TransitionParam}
+#' @param emission_param an object of class \code{EmissionParam}
+#' @param mdThr the minimum absolute value of the minimum distance
+#' segment mean. Segments with means below \code{mdThr} in absolute
+#' value will not be called as they are unlikely to be de novo.
+#' @aliases MAP,TrioSet,GRanges-method
+#' @rdname TrioSet-class
 setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 						 ranges,
                                                  ##id,
@@ -704,7 +577,6 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
   .Deprecated("MAP2", msg="This function is deprecated and will be defunct in a future release. See MAP2 instead.")
   .map_trioSet(object=object,
                ranges=ranges,
-               ##id,
                transition_param=transition_param,
                emission_param=emission_param,
                mdThr=mdThr,...)
@@ -797,3 +669,43 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
   metadata(results) <- metadata(ranges)
   return(results)
 }
+
+#' @param md a matrix of the minimum distance
+#' @param segmentParents logical.  Whether to segment the log R ratios
+#' of the parents using circular binary segmentation.
+#' @param verbose logical. Whether to display messages that indicate progress.
+#' @aliases segment2,TrioSet-method
+#' @seealso \code{\link[DNAcopy]{segment}}
+#' @rdname segment2
+setMethod("segment2", signature(object="TrioSet"),
+	  function(object, md=NULL, segmentParents=TRUE, verbose=TRUE, ...){
+            segmentTrioSet(object, md=md, segmentParents=segmentParents, verbose=verbose, ...)
+	  })
+
+
+#' @aliases segment2,matrix-method
+#' @rdname segment2
+setMethod("segment2", signature(object="matrix"),
+	  function(object, pos, chrom, id, featureNames, ...){
+            stopifnot(is(id, "character"))
+            segmentMatrix(object, pos, chrom, id, featureNames, ...)
+	  })
+
+#' @aliases segment2,ff_matrix-method
+#' @rdname segment2
+setMethod("segment2", signature(object="ff_matrix"),
+	  function(object, pos, chrom, id, featureNames, ...){
+            segmentff_matrix(object, pos, chrom, id, featureNames, ...)
+            ##segs <- foreach(i=seq_along(ilist), .packages="MinimumDistance") %dopar% segmentMatrix(object[, ilist[[i]]], pos=pos, chrom=chrom, id=id[ilist[[i]]], featureNames, ...)
+	  })
+
+#' @param featureNames character vector specifying marker names for subsetting \code{object}
+#' @param id character vector of trio identifiers for subsetting \code{object}
+#' @param chrom character or integer vector of chromosome names
+#' @param pos integer vector of physical position of markers in the genome
+#' @aliases segment2,arrayORff_array-method
+#' @rdname segment2
+setMethod("segment2", signature(object="arrayORff_array"),
+	  function(object, pos, chrom, id, featureNames, segmentParents=TRUE, verbose=TRUE, ...){
+            segmentArray(object, pos, chrom, id, featureNames, segmentParents=segmentParents, verbose=verbose, ...)
+	  })

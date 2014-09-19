@@ -18,18 +18,26 @@ setMethod("cnvFilter", "MinDistPosterior", function(object, filters=FilterParamM
   cnvFilter(granges, filters)
 })
 
+#' @aliases denovoHemizygous,MinDistPosterior-method
+#' @rdname denovo
 setMethod("denovoHemizygous", "MinDistPosterior", function(object, filters=FilterParamMD(state="221")){
   cnvFilter(object, filters)
 })
 
+#' @aliases denovoHomozygous,MinDistPosterior-method
+#' @rdname denovo
 setMethod("denovoHomozygous", "MinDistPosterior", function(object, filters=FilterParamMD(state="220")){
   cnvFilter(object, filters)
 })
 
+#' @aliases denovoDuplication,MinDistPosterior-method
+#' @rdname denovo
 setMethod("denovoDuplication", "MinDistPosterior", function(object, filters=FilterParamMD(state="224")){
   cnvFilter(object, filters)
 })
 
+#' @aliases denovo,MinDistPosterior-method
+#' @rdname denovo
 setMethod("denovo", "MinDistPosterior", function(object, filters=FilterParamMD(state=c("220", "221", "224"))){
   cnvFilter(object, filters)
 })

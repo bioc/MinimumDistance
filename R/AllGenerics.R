@@ -4,7 +4,6 @@ NULL
 #' Getter and setter for the minimum distance statistic
 #'
 #' @param object see \code{showMethods("mindist")}
-#' @aliases mindist,MinDistExperiment-method mindist<-,MinDistExperiment,ANY-method
 #' @rdname mindist
 #' @export
 setGeneric("mindist", function(object) standardGeneric("mindist"))
@@ -18,15 +17,25 @@ setGeneric("range.index", function(object) standardGeneric("range.index"))
 
 #' Deprecated function to calculate the minimum distance
 #'
+#'   The 'minimum distance' is the minimum signed absolute difference of
+#'    the parental log R ratios and the offspring log R
+#'    ratios. Specifically, let |O-F| denote the absolute difference in
+#'    the log R ratios comparing offspring to father and |O-M| the
+#'    absolute difference in the log R ratios comparing offspring to
+#'    mother.  The minimum distance at a marker is the signed minimum of
+#'    |O-M| and |O-F|.  After segmentation of the minimum distance,
+#'    non-zero segments can indicate a de novo difference in the log R
+#'    ratio of the offspring and either parent.  For example, a positive
+#'    minimum distance suggests that the log R ratio from the offspring is
+#'    greater than the log R ratio of either parent.
 #' @param object see \code{showMethods("calculateMindist")}
 #' @param ... Ignored
 #' @export
-#' @aliases calculateMindist,matrix-method calculateMindist,arrayORff_array-method
 setGeneric("calculateMindist", function(object, ...) standardGeneric("calculateMindist"))
 
 setGeneric("mad")
-## setGeneric("ncol")
 setGeneric("stack")
+
 setGeneric("prune", function(object,  ranges, ...) standardGeneric("prune"))
 setGeneric("computeBayesFactor", function(object, ranges, ...) standardGeneric("computeBayesFactor"))
 setGeneric("todf", function(object, rangeData, frame, ...) standardGeneric("todf"))
@@ -35,12 +44,12 @@ setGeneric("todf", function(object, rangeData, frame, ...) standardGeneric("todf
 #'
 #' These functions will be defunct in a future release.
 #'
-#' @param object
+#' @param object see \code{showMethods("offspringNames")}
 #' @rdname Deprecated
 #' @export
 setGeneric("offspringNames", function(object) standardGeneric("offspringNames"))
 
-#' @param value
+#' @param value a character vector of offspring identifiers
 #' @rdname Deprecated
 #' @export
 setGeneric("offspringNames<-", function(object,value) standardGeneric("offspringNames<-"))
@@ -53,8 +62,6 @@ setGeneric("allNames", function(object) standardGeneric("allNames"))
 
 #' @export
 #' @rdname Deprecated
-#' @examples
-#' trios(Pedigree())
 setGeneric("trios", function(object) standardGeneric("trios"))
 
 setGeneric("minimumDistance", function(object, ...) standardGeneric("minimumDistance"))
@@ -68,10 +75,11 @@ setGeneric("trioplot", function(formula, object, range, ...) standardGeneric("tr
 #' @param ... Additional arguments passed to DNAcopy's \code{segment}.
 #' @export
 #' @seealso \code{\link{segment}}
-#' @rdname segment2-methods
+#' @rdname segment2
 setGeneric("segment2", function(object, ...) standardGeneric("segment2"))
 
-#' Wrapper for computing the median absolute deviation of low-level summaries
+#' Deprecated wrapper for computing the median absolute deviation of
+#' low-level summaries
 #'
 #' @param object see \code{showMethods("mad2")}
 #' @param byrow logical if TRUE, compute the median absolute deviation of the rows of a matrix
@@ -188,8 +196,8 @@ setGeneric("pedigreeName", function(object) standardGeneric("pedigreeName"))
 #' @param object An object of class \code{MinDistExperiment}
 #' @param mdgr An object of class \code{MinDistGRanges}, \code{GRangesList}, or \code{GRanges}.
 #' @param param An object of class \code{MinDistParam}.
+#' @param ... ignored
 #' @return An object of class \code{MinDistPosterior}
-#' @aliases MAP2,MinDistExperiment,MinDistGRanges-method MAP2,MinDistExperiment,GRangesList-method MAP2,MinDistExperiment,GRanges-method
 #' @examples
 #'   library(oligoClasses)
 #'   library(VanillaICE)
@@ -200,7 +208,9 @@ setGeneric("pedigreeName", function(object) standardGeneric("pedigreeName"))
 #'   data(md_gr)
 #'   e_param <- EmissionParam(temper=1, p_outlier=1/100)
 #'   param <- MinDistParam(thin=1L, emission=e_param)
+#' \dontrun{
 #'   md_g <- MAP2(md_exp, md_gr, param)
+#' }
 #' @export
 setGeneric("MAP2", function(object, mdgr, param, ...) standardGeneric("MAP2"))
 
@@ -212,6 +222,7 @@ setGeneric("thin", function(object) standardGeneric("thin"))
 #'
 #' @param object see \code{showMethods(MinDistExperiment)}
 #' @param pedigree a \code{ParentOffspring} object
+#' @param ... ignored
 #' @return an object of class \code{MinDistExperiment}
 #' @export
 setGeneric("MinDistExperiment", function(object=ArrayViews(), pedigree=ParentOffspring(), ...) standardGeneric("MinDistExperiment"))

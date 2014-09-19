@@ -4,8 +4,13 @@
 \alias{ParentOffspring}
 \alias{ParentOffspring-class}
 \alias{father}
+\alias{father,ParentOffspring-method}
 \alias{mother}
+\alias{mother,ParentOffspring-method}
+\alias{names,ParentOffspring-method}
 \alias{offspring}
+\alias{offspring,ParentOffspring-method}
+\alias{pedigreeName,ParentOffspring-method}
 \title{Object containing the sample identifiers for members in a pedigree}
 \usage{
 offspring(object)
@@ -15,18 +20,32 @@ mother(object)
 father(object)
 
 ParentOffspring(id = character(), father = character(),
-  mother = character(), offspring = character(), filePaths = character())
+  mother = character(), offspring = character(), parsedPath = character())
+
+\S4method{pedigreeName}{ParentOffspring}(object)
+
+\S4method{father}{ParentOffspring}(object)
+
+\S4method{mother}{ParentOffspring}(object)
+
+\S4method{offspring}{ParentOffspring}(object)
+
+\S4method{names}{ParentOffspring}(x)
 }
 \arguments{
+\item{object}{a \code{ParentOffspring} object}
+
 \item{id}{length-one character vector providing a family-level id}
 
 \item{father}{length-one character vector providing sample ids for father}
 
 \item{mother}{length-one character vector providing sample ids for mother}
 
-\item{offspring}{offspring character vector providing sample ids for offspring (can have length greater than one if there is more than one offspring)}
+\item{offspring}{character vector providing sample ids for offspring (can have length greater than one if there is more than one offspring)}
 
-\item{filePaths}{filePaths character vector providing path to low-level data}
+\item{parsedPath}{character vector providing path to low-level data}
+
+\item{x}{a \code{ParentOffspring} object}
 }
 \description{
 Container for registering sample identifiers with membership in a
@@ -49,7 +68,7 @@ Constructor for ParentOffspring class
 
 \item{\code{offspring}}{character vector providing sample ids for offspring (can have length greater than one if there is more than one offspring)}
 
-\item{\code{filePaths}}{character vector providing path to low-level data}
+\item{\code{parsedPath}}{character vector providing path to parsed files of the marker-level summaries}
 }}
 \examples{
 ParentOffspring()

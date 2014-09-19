@@ -27,8 +27,14 @@ MinDistParam <- function(nMAD=0.75, dnacopy=DNAcopyParam(), penncnv=PennParam(),
 }
 
 setMethod("thin", "MinDistParam", function(object) object@thin)
+
+#' @aliases nMAD,MinDistParam-method
+#' @rdname MinDistParam-class
 setMethod("nMAD", "MinDistParam", function(object) object@nMAD)
 
+#' @param value a length-one numeric vector.
+#' @aliases nMAD<-,MinDistParam,numeric-method
+#' @rdname MinDistParam-class
 setReplaceMethod("nMAD", c("MinDistParam", "numeric"), function(object, value){
   object@nMAD <- value
   object
@@ -37,22 +43,21 @@ setReplaceMethod("nMAD", c("MinDistParam", "numeric"), function(object, value){
 setMethod("stateNames", "MinDistParam", function(object) stateNames(penncnv(object)))
 
 setMethod("penncnv", "MinDistParam", function(object) object@penncnv)
+
 setMethod("emission", "MinDistParam", function(object) object@emission)
+
 setReplaceMethod("emission", c("MinDistParam", "EmissionParam"),
                  function(object, value) {
                    object@emission <- value
                    object
                  })
+
 setMethod("EMupdates", "MinDistParam", function(object) EMupdates(object))
 
-##setGeneric("penncnv", function(object) standardGeneric("penncnv"))
-##setMethod("penncnv", "MinDistParam", function(object) object@penncnv)
-##setReplaceMethod("penncnv", c("MinDistParam", "PennParam"),
-##                 function(object, value){
-##                   object@penncnv <- value
-##                   object
-##                 })
 
+#' @param object a \code{MinDistParam} object
+#' @aliases show,MinDistParam-method
+#' @rdname MinDistParam-class
 setMethod("show", "MinDistParam", function(object){
   cat("An object of class 'MinDistParam'\n")
   cat("  call segments with |seg.mean|/MAD > ", nMAD(object), "\n")

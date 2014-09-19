@@ -1,38 +1,59 @@
+
+##setGeneric("ParentOffspring", function(object, id=character(),
+##                                       father=character(),
+##                                       mother=character(),
+##                                       offspring=character(),
+##                                       parsedPath=character())
+##           setGeneric("ParentOffspring"))
+
+
 #' Constructor for ParentOffspring class
 #'
 #' @param id length-one character vector providing a family-level id
 #' @param father length-one character vector providing sample ids for father
 #' @param mother length-one character vector providing sample ids for mother
-#' @param offspring offspring character vector providing sample ids for offspring (can have length greater than one if there is more than one offspring)
-#' @param filePaths filePaths character vector providing path to low-level data
+#' @param offspring  character vector providing sample ids for offspring (can have length greater than one if there is more than one offspring)
+#' @param parsedPath character vector providing path to low-level data
 #' @rdname ParentOffspring-class
 #' @export
 ParentOffspring <- function(id=character(),
                             father=character(),
                             mother=character(),
                             offspring=character(),
-                            filePaths=character()){
+                            parsedPath=character()){
   new("ParentOffspring", id=id,
       father=father,
       mother=mother,
       offspring=offspring,
-      filePaths=filePaths)
+      parsedPath=parsedPath)
 }
 
 setValidity("ParentOffspring", function(object){
   msg <- TRUE
-  if(!all(file.exists(filePaths(object)))){
-    msg <- "Not all source files exist. See filePaths(object)."
+  if(!all(file.exists(parsedPath(object)))){
+    msg <- "Not all source files exist. See parsedPath(object)."
   }
   msg
 })
 
+#' @param object a \code{ParentOffspring} object
+#' @aliases pedigreeName,ParentOffspring-method
+#' @rdname ParentOffspring-class
 setMethod("pedigreeName", "ParentOffspring", function(object) object@id)
+
+#' @aliases father,ParentOffspring-method
+#' @rdname ParentOffspring-class
 setMethod("father", "ParentOffspring", function(object) object@father)
+
+#' @aliases mother,ParentOffspring-method
+#' @rdname ParentOffspring-class
 setMethod("mother", "ParentOffspring", function(object) object@mother)
+
+#' @aliases offspring,ParentOffspring-method
+#' @rdname ParentOffspring-class
 setMethod("offspring", "ParentOffspring", function(object) object@offspring)
 
-setMethod("filePaths", "ParentOffspring", function(object) object@filePaths)
+setMethod("parsedPath", "ParentOffspring", function(object) object@parsedPath)
 
 setMethod("show", "ParentOffspring", function(object){
   cat("Pedigree ID:", pedigreeName(object), "\n")
@@ -41,12 +62,7 @@ setMethod("show", "ParentOffspring", function(object){
   cat("offspring  :", paste(offspring(object), collapse=", "), "\n")
 })
 
-setAs("Pedigree", "ParentOffspring", function(from,to){
-  ParentOffspring(id=paste0("trio", nrow(from)),
-                  father=fatherNames(from),
-                  mother=motherNames(from),
-                  offspring=offspringNames(from))
-})
+
 
 #' Constructor for ParentOffspringList class
 #'
@@ -58,7 +74,9 @@ ParentOffspringList <- function(pedigrees=list()){
   new("ParentOffspringList", id=ids, pedigrees=pedigrees)
 }
 
-
+#' @param object a \code{ParentOffspringList} object
+#' @aliases pedigreeName,ParentOffspringList-method
+#' @rdname ParentOffspringList-class
 setMethod("pedigreeName", "ParentOffspringList", function(object) object@id)
 
 setMethod("show", "ParentOffspringList", function(object){
@@ -67,6 +85,13 @@ setMethod("show", "ParentOffspringList", function(object){
   cat("# pedigrees:", length(pedigreeName(object)), "\n")
 })
 
+#' @param x a \code{ParentOffspringList} object
+#' @param i a numeric vector for subsetting the list (optional)
+#' @param j ignored
+#' @param ... ignored
+#' @param drop ignored
+#' @aliases "[[",ParentOffspringList,ANY,ANY-method
+#' @rdname ParentOffspringList-class
 setMethod("[[", "ParentOffspringList", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     x <- x@pedigrees[[i]]
@@ -74,6 +99,8 @@ setMethod("[[", "ParentOffspringList", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+#' @aliases "[",ParentOffspringList,ANY-method
+#' @rdname ParentOffspringList-class
 setMethod("[", "ParentOffspringList", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     x@pedigrees <- x@pedigrees[i]
@@ -82,20 +109,24 @@ setMethod("[", "ParentOffspringList", function(x, i, j, ..., drop=FALSE){
   x
 })
 
+#' @aliases length,ParentOffspringList-method
+#' @rdname ParentOffspringList-class
 setMethod("length", "ParentOffspringList", function(x) length(x@id))
 
-
+#' @param x a \code{ParentOffspring} object
+#' @aliases names,ParentOffspring-method
+#' @rdname ParentOffspring-class
 setMethod("names", "ParentOffspring", function(x){
   c(father(x), mother(x), offspring(x))
 })
 
 setMethod("fileName", "ParentOffspringList", function(object, label){
-  datadir <- sapply(object@pedigrees, function(x) dirname(filePaths(x)[1]), USE.NAMES=FALSE)
+  datadir <- sapply(object@pedigrees, function(x) dirname(parsedPath(x)[1]), USE.NAMES=FALSE)
   file.path(datadir, paste0(pedigreeName(object), "_", label, ".rds"))
 })
 
 setMethod("fileName", "ParentOffspring", function(object, label){
-  dirs <- dirname(filePaths(object))
+  dirs <- dirname(parsedPath(object))
   ids <- paste0(names(object), "_", label, ".rds")
   file.path(dirs, ids)
 })

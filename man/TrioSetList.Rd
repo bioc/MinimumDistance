@@ -6,6 +6,27 @@
 TrioSetList(chromosome = integer(), pedigreeData = Pedigree(), sample.sheet,
   row.names = NULL, lrr, baf, featureData, cdfname, ffname = "", genome)
 }
+\arguments{
+\item{chromosome}{integer vector of chromosome names}
+
+\item{pedigreeData}{a \code{Pedigree} object}
+
+\item{sample.sheet}{a \code{data.frame} containing sample covariates}
+
+\item{row.names}{a character vector}
+
+\item{lrr}{a matrix of log R ratios}
+
+\item{baf}{a matrix of B allele frequencies}
+
+\item{featureData}{a \code{GenomeAnnotatedDataFrame}}
+
+\item{cdfname}{a character string indicating the annotation package}
+
+\item{ffname}{prefix for ff-filenames}
+
+\item{genome}{character string indicating genome build}
+}
 \description{
 The \code{TrioSetList} class has been deprecated and may be removed in
 a future release. Use \code{MinDistExperiment} instead.

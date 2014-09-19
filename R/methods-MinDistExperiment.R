@@ -59,45 +59,22 @@ setMethod(SnpGRanges, "SnpGRanges", function(object, isSnp) return(object))
 
 .MinDistExperiment <- function(cn, baf, rowData, colData){
   assays <- snpArrayAssays(cn=cn, baf=baf)
-
 }
 
-##setMethod("MinDistExperiment", c("missing", "missing"),
-##          function(object=ArrayViews(), pedigree=ParentOffspring(), ...){
-##            al <- assays(object)
-##            .constructMDE(al, rowData=SnpGRanges(rowData(object)), colData=colData(object),
-##                          pedigree=pedigree)
-##          })
-##
-##setMethod("MinDistExperiment", c("ShallowSimpleListAssays", "GRanges"),
-##          function(object, rowData, cn, baf, colData){
-##            .constructMDE(object, rowData, colData)
-##          })
-##
-##setMethod("MinDistExperiment", c("FileViews", "missing"),
-##          function(object, rowData, cn, baf, colData){
-##            al <- assays(object)
-##            extdata <- system.file("extdata", package=object@annot_pkg)
-##            load(file.path(extdata, paste0("cnProbes_", build, ".rda")))
-##            load(file.path(extdata, paste0("snpProbes_", build, ".rda")))
-##            annot <- rbind(snpProbes, cnProbes)
-##            fid <- rownames(al$data[["cn"]])
-##            annot <- annot[fid, ]
-##            is_snp <- fid %in% rownames(snpProbes)
-##            rowdata <- GRanges(paste0("chr", annot[, "chr"]), IRanges(annot[, "position"], width=1))
-##            coldata <- setNames(DataFrame(filenames(object)), "filename")
-##            .constructMDE(al, rowData=SnpGRanges(rowdata, is_snp), coldata)
-##          })
-
-
+#' @aliases MinDistExperiment,ArrayViews,ParentOffspring-method
+#' @rdname MinDistExperiment
 setMethod("MinDistExperiment", c("ArrayViews", "ParentOffspring"),
           function(object=ArrayViews(),
                    pedigree=ParentOffspring(), ...){
+            object <- object[, names(pedigree)]
+            if(!(all(colnames(object) %in% names(pedigree))))
+              stop("Samples in the views object do not match the pedigree names")
             object <- dropSexChrom(object)
             object <- sort(object)
             object <- dropDuplicatedMapLocs(object)
             al <- assays(object)
-            .constructMDE(al, rowData=SnpGRanges(rowData(object)), colData=colData(object),
+            .constructMDE(al, rowData=SnpGRanges(rowData(object)),
+                          colData=colData(object),
                           pedigree=pedigree)
           })
 
@@ -114,28 +91,38 @@ setMethod("show", "MinDistExperiment", function(object){
   ##cat("MAD(minimum distance): ", round(mad(mindist(object),na.rm=TRUE),2),  "\n")
 })
 
+#' @param object a \code{MinDistExperiment} object
+#' @aliases pedigree,MinDistExperiment-method
+#' @rdname MinDistExperiment-class
 setMethod("pedigree", "MinDistExperiment", function(object) object@pedigree)
+
+#' @param value a \code{ParentOffspring} object
+#' @aliases pedigree<-,MinDistExperiment-method
+#' @rdname MinDistExperiment-class
 setReplaceMethod("pedigree", "MinDistExperiment", function(object,value) {
   object@pedigree <- value
   object
 })
 
+#' @aliases mindist,MinDistExperiment-method
+#' @rdname MinDistExperiment-class
 setMethod("mindist", "MinDistExperiment", function(object) object@mindist)
 
+#' @aliases mindist<-,MinDistExperiment,ANY-method
+#' @rdname MinDistExperiment-class
 setReplaceMethod("mindist", "MinDistExperiment", function(object, value) {
   object@mindist <- value
   object
 })
 
-##setValidity("MinDistExperiment", function(object){
-##  msg <- TRUE
-##  if(!"filename" %in% names(colData(object))){
-##    msg <- "filename must be in colData"
-##    return(msg)
-##  }
-##  msg
-##})
-
+#' @param x a \code{MinDistExperiment} object
+#' @param i a numeric-vector for indexing the rows (optional)
+#' @param j a numeric-vector for indexing the columns (optional)
+#' @param ... additional arguments propogated to subsetting methods for \code{SummarizedExperiment}
+#' @param drop logical. Whether to simplify a one-row or one-column
+#' matrix to a vector. In most cases, this should always be FALSE.
+#' @aliases "[",MinDistExperiment,ANY-method
+#' @rdname MinDistExperiment-class
 setMethod("[", "MinDistExperiment", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
     if(is(i, "Rle")) i <- as.logical(i)
@@ -144,7 +131,9 @@ setMethod("[", "MinDistExperiment", function(x, i, j, ..., drop=FALSE){
   }
   if(!missing(j)){
     ## special operations when selecting offspring
-    ids <- colnames(x)[j]
+    if(is.numeric(j)){
+      ids <- colnames(x)[j]
+    } else ids <- j
     if(any(ids %in% offspring(x))){
       offspr <- offspring(x)[offspring(x) %in% ids]
       ped <- pedigree(x)
@@ -156,10 +145,16 @@ setMethod("[", "MinDistExperiment", function(x, i, j, ..., drop=FALSE){
   callNextMethod(x, i, j, ..., drop=drop)
 })
 
+#' @aliases offspring,MinDistExperiment-method
+#' @rdname MinDistExperiment-class
 setMethod("offspring", "MinDistExperiment", function(object) offspring(pedigree(object)))
 
-
+#' @aliases father,MinDistExperiment-method
+#' @rdname MinDistExperiment-class
 setMethod("father", "MinDistExperiment", function(object) father(pedigree(object)))
+
+#' @aliases mother,MinDistExperiment-method
+#' @rdname MinDistExperiment-class
 setMethod("mother", "MinDistExperiment", function(object) mother(pedigree(object)))
 
 
@@ -272,18 +267,24 @@ posteriorSummaries <- function(log_prior.lik){
   return(x)
 }
 
+#' @aliases MAP2,MinDistExperiment,MinDistGRanges-method
+#' @rdname MAP2
 setMethod(MAP2, c("MinDistExperiment", "MinDistGRanges"), function(object, mdgr, param, ...){
   obj <- computePosterior(object, granges=mindist(mdgr), param=param)
   ##GRangesList(obj)
   MinDistPosterior(granges=GRangesList(obj))
 })
 
+#' @aliases MAP2,MinDistExperiment,GRangesList-method
+#' @rdname MAP2
 setMethod(MAP2, c("MinDistExperiment", "GRangesList"), function(object, mdgr, param, ...){
   obj <- computePosterior(object, granges=mdgr, param=param)
   ##GRangesList(obj)
   MinDistPosterior(granges=GRangesList(obj))
 })
 
+#' @aliases MAP2,MinDistExperiment,GRanges-method
+#' @rdname MAP2
 setMethod(MAP2, c("MinDistExperiment", "GRanges"), function(object, mdgr, param, ...){
   obj <- computePosterior(object, granges=mdgr, param=param)
   MinDistPosterior(granges=GRangesList(obj))
@@ -420,43 +421,24 @@ setMethod("computePosterior", c("MinDistExperiment", "GRangesList"), function(ob
 
 
 
- setAs("TrioSetList", "MinDistExperiment", function(from, to){
-   trioSet <- stack(from)
-   as(trioSet, "MinDistExperiment")
- })
 
- setAs("TrioSet", "MinDistExperiment", function(from, to){
-   if(ncol(from) > 1) message("only coercing first trio in TrioSet to MinDistExperiment")
-   ##trioSet <- stack(trioSetList)[, 1]
-   from <- from[, 1]
-   ped <- as(pedigree(from), "ParentOffspring")
-   ##trios <- setNames(as.character(ped), c("father", "mother", "offspring"))
-   gd <- GRanges(paste0("chr", chromosome(from)),
-                 IRanges(position(from),
-                         width=1),
-                 isSnp=isSnp(from))
-   r <- .setColnames(lrr(from)[, 1, ], names(ped))/100
-   b <- .setColnames(baf(from)[, 1, ], names(ped))/1000
-   assays <- VanillaICE:::snpArrayAssays(cn=r, baf=b)
-   me <- .constructMDE(assays, rowData=gd,
-                       colData=DataFrame(row.names=names(ped)),
-                       ped)
-   me
- })
-
-
-
+#' @aliases filterExperiment,MinDistExperiment,GRanges-method
+#' @rdname filterExperiment
 setMethod("filterExperiment", c("MinDistExperiment", "GRanges"),
           function(object, granges, param){
             .filter_mdexperiment(object, granges, param)
           })
 
+#' @aliases filterExperiment,MinDistExperiment,GRangesList-method
+#' @rdname filterExperiment
 setMethod("filterExperiment", c("MinDistExperiment", "GRangesList"),
           function(object, granges, param){
             g <- unlist(granges)
             .filter_mdexperiment(object, g, param)
           })
 
+#' @aliases filterExperiment,MinDistExperiment,MinDistGRanges-method
+#' @rdname filterExperiment
 setMethod("filterExperiment", c("MinDistExperiment", "MinDistGRanges"),
           function(object, granges, param){
             g <- unlist(mindist(granges))
@@ -483,3 +465,27 @@ setMethod("filterExperiment", c("MinDistExperiment", "MinDistGRanges"),
   }
   object
 }
+
+#' @param param a \code{MinDistParam} object
+#' @aliases segment2,MinDistExperiment-method
+#' @rdname MinDistExperiment-class
+setMethod("segment2", "MinDistExperiment", function(object, param=MinDistParam()){
+  x <- cbind(lrr(object), mindist(object))
+  segs <- .smoothAndSegment(x, rowData(object), dnacopy(param)) ## segments the log r ratios and minimum distance for each trio
+  g <- .dnacopy2granges(segs, seqinfo(object), original_id=colnames(x))
+  MD_granges <- g[g$sample %in% .get_md_names(object)]
+  MD_grl <- split(MD_granges, MD_granges$sample)
+  offspring_granges <- g[g$sample %in% offspring(object)]
+  offspring_grl <- split(offspring_granges, offspring_granges$sample)
+  if(length(offspring_grl)==1){
+    offspring_grl <- setNames(GRangesList(offspring_grl[[1]]), names(offspring_grl))
+  } else offspring_grl <- GRangesList(offspring_grl)
+  mads <- colMads(x[, match(names(MD_grl), colnames(x)), drop=FALSE], na.rm=TRUE)
+  MD_grl <- narrow2(offspring_grl, MD_grl, mads, param)
+  mdgr <- MinDistGRanges(mindist=MD_grl,
+                         offspring=offspring_grl,
+                         father=g[g$sample == father(object)],
+                         mother=g[g$sample == mother(object)],
+                         pedigree=pedigree(object))
+  mdgr
+})

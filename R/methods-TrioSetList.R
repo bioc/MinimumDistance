@@ -109,7 +109,16 @@ GenomeAnnotatedDataFrameFromList <- function(object, annotationPkg){
 #' The \code{TrioSetList} class has been deprecated and may be removed in
 #' a future release. Use \code{MinDistExperiment} instead.
 #'
-#'
+#' @param chromosome integer vector of chromosome names
+#' @param pedigreeData a \code{Pedigree} object
+#' @param sample.sheet a \code{data.frame} containing sample covariates
+#' @param row.names a character vector
+#' @param lrr a matrix of log R ratios
+#' @param baf a matrix of B allele frequencies
+#' @param featureData a \code{GenomeAnnotatedDataFrame}
+#' @param cdfname a character string indicating the annotation package
+#' @param ffname prefix for ff-filenames
+#' @param genome character string indicating genome build
 #' @export
 TrioSetList <- function(chromosome=integer(),
 			pedigreeData=Pedigree(),
@@ -295,6 +304,7 @@ TrioSetList <- function(chromosome=integer(),
 #' @return A \code{TrioSetList} object
 #' @seealso   \code{\linkS4class{TrioSetList}}
 #' @examples
+#' \dontrun{
 #' if(require("ff")){
 #' 	library(ff)
 #'      library(oligoClasses)
@@ -308,6 +318,7 @@ TrioSetList <- function(chromosome=integer(),
 #' 				       annotationPkg="human610quadv1bCrlmm",
 #' 				       outdir=ldPath(),
 #' 				       genome="hg19")
+#' }
 #' }
 #' @export
 TrioSetListLD <- function(path, fnames, ext="", samplesheet, row.names,
@@ -387,7 +398,14 @@ setMethod("isSnp", signature(object="TrioSetList"),
 	  })
 
 setMethod("allNames", signature(object="TrioSetList"), function(object) allNames(pedigree(object)))
+
+#' @param object a \code{TrioSetList} object
+#' @aliases pedigree,TrioSetList-method
+#' @rdname TrioSetList-class
 setMethod("pedigree", signature(object="TrioSetList"), function(object) object@pedigree)
+
+#' @aliases trios,TrioSetList-method
+#' @rdname TrioSetList-class
 setMethod("trios", signature(object="TrioSetList"), function(object) trios(pedigree(object)))
 setMethod("sampleNames", signature(object="TrioSetList"),
 	  function(object) sampleNames(pedigree(object)))
@@ -397,9 +415,13 @@ setMethod("nrow", signature(x="TrioSetList"),
   })
 setMethod("ncol", signature(x="TrioSetList"),
 	  function(x) ncol(x[[1]]))
+
+#' @aliases offspringNames,TrioSetList-method
+#' @rdname TrioSetList-class
 setMethod("offspringNames", signature(object="TrioSetList"), function(object){
-	offspringNames(pedigree(object))
+  offspringNames(pedigree(object))
 })
+
 setMethod("fatherNames", signature(object="TrioSetList"), function(object){
 	fatherNames(pedigree(object))
 })
@@ -479,8 +501,16 @@ setReplaceMethod("phenoData", signature=signature(object="TrioSetList",
                  function(object, value) {
 			 object@phenoData <- value
 			 object
-                 })
+                       })
 
+#' @param x a \code{TrioSetList}
+#' @param i a numeric vector for subsetting the chromosomes  (optional)
+#' @param j a numeric vector for subsetting trios (optional)
+#' @param ... additional arguments passed to subsetting methods for matrices and data frames
+#' @param drop logical. Whether to simplify matrices to numeric
+#' vectors.  This should be left as FALSE.
+#' @aliases "[",TrioSetList,ANY-method
+#' @rdname TrioSetList-class
 setMethod("[", signature(x="TrioSetList"),
 	  function(x, i, j, ..., drop=FALSE){
 		  ## using 'i' to subset markers does not really make
@@ -535,8 +565,9 @@ setMethod("[", signature(x="TrioSetList"),
 		  return(x)
 	  })
 
-
-
+#' @param exact ignored
+#' @aliases "[[",TrioSetList,ANY,ANY-method
+#' @rdname TrioSetList-class
 setMethod("[[", signature(x="TrioSetList"),
 	  function(x, i, j, ..., exact=TRUE){
 		  if(missing(i)) return(x)
@@ -565,64 +596,19 @@ setMethod("show", signature(object="TrioSetList"),
 		  cat("genome:", genomeBuild(object), "\n")
 	  })
 
+#' @aliases length,TrioSetList-method
+#' @rdname TrioSetList-class
 setMethod("length", signature(x="TrioSetList"), function(x) length(x@chromosome))
 
-##setMethod("minimumDistance", signature(object="TrioSetList"),
-##	  function(object, narrow.threshold=0.1, ...){
-##		  mads.lrr.sample <- mad2(lrr(object), byrow=FALSE)
-##		  mads.lrr.marker <- mad2(lrr(object), byrow=TRUE)
-##		  mad.sample(object) <- mads.lrr.sample
-##		  mad.marker(object) <- mads.lrr.marker
-##		  md <- calculateMindist(object)
-##		  mads.md <- mad2(md, byrow=FALSE)
-##		  mad.mindist(object) <- mads.md
-##		  ## add the minimumDistance to the container.
-##		  mindist(object) <- md
-##		  return(object)
-##	  })
+
+#' @aliases calculateMindist,TrioSetList-method
+#' @rdname calculateMindist
 setMethod("calculateMindist", signature(object="TrioSetList"),
 	  function(object){
 		  AssayDataList(calculateMindist(lrr(object)))
-	  })
+                })
 
-#' @export
-setMethod("stack", signature(x="TrioSetList"),
-	  function(x, ...){
-		  b <- baf(x)
-		  Rs <- sapply(b, nrow)
-		  Cs <- ncol(b[[1]])
-		  logRR <- bf <- array(NA, dim=c(sum(Rs), Cs, 3))
-		  chrom <- rep(chromosome(x), Rs)
-		  ##pos <- unlist(position(x))
-		  ##is.snp <- unlist(lapply(x, isSnp))
-		  ##is.snp <- unlist(isSnp(x))
-		  index <- split(seq_len(sum(Rs)), chrom)
-		  for(i in seq_along(x)){
-			  j <- index[[i]]
-			  bf[j, , ] <- baf(x[[i]])[,,]
-			  logRR[j, , ] <- lrr(x[[i]])[,,]
-		  }
-		  fns <- unlist(featureNames(x))
-		  dimnames(bf) <- dimnames(logRR) <- list(fns,
-							  sampleNames(x[[1]]),
-							  c("F","M","O"))
-		  pos <- unlist(position(x))
-		  issnp <- unlist(lapply(x@featureDataList, isSnp))
-		  featureData <- new("GenomeAnnotatedDataFrame",
-				     position=pos,
-				     chromosome=chrom,
-				     isSnp=issnp,
-				     row.names=fns)
-		  obj <- new("TrioSet",
-			     BAF=bf,
-			     logRRatio=logRR,
-			     featureData=featureData,
-			     pedigree=pedigree(x),
-			     motherPhenoData=motherPhenoData(x),
-			     fatherPhenoData=fatherPhenoData(x),
-			     phenoData=phenoData(x))
-		  return(obj)
-	  })
+
 
 setMethod("assayDataList", signature(object="TrioSetList"),
 	  function(object)  object@assayDataList)
@@ -679,6 +665,7 @@ setMethod("varLabels", signature(object="TrioSetList"),
 setMethod("pData", signature(object="TrioSetList"),
 	  function(object) pData(phenoData(object)))
 
+#' @param name character string of a variable name in the phenoData
 #' @aliases $,TrioSetList-method
 #' @rdname TrioSetList-class
 setMethod("$", signature(x="TrioSetList"),
@@ -754,6 +741,21 @@ setMethod("gcSubtract", signature(object="TrioSetList"),
 	    pedigree=pedigree(object)[k, ])
 }
 
+
+#' @param ranges a \code{GRanges} object
+#' @param id a character vector of trio identifiers
+#' @param TAUP length-one numeric vector.  Larger values decrease the
+#' probability of transitioning to an different state.
+#' @param tauMAX the maximum allowed transition probability
+#' @param cnStates a length-six numeric vector profiving initial
+#' values for the mean copy number for each of the 6 states
+#' @param pr.nonmendelian a length-one numeric vector indicating the
+#' probability of a non-Mendelian copy number alteration in the offspring
+#' @param mdThr a length-one numeric vector indicating the minimum
+#' value of the mean minimum distance. Segments with absolute mean
+#' value less than \code{mdThr} are not called.
+#' @aliases MAP,TrioSetList,GRanges-method
+#' @rdname TrioSetList-class
 setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
 						     ranges,
 						     id,
@@ -853,44 +855,30 @@ setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
   return(results)
 }
 
-setMethod("coerce", signature(from="TrioSetList", to="SummarizedExperiment"),
-	  function(from, to){
-		  if(ncol(from) > 1) stop("coercion to SummarizedExperiment does not work when ncol > 1")
-		  ##nms <- varLabels(from@featureDataList[[1]])
-		  chrom <- rep(paste("chr", chromosome(from), sep=""),
-			       elementLengths(from))
-		  pos <- unlist(position(from))
-		  is.snp <- unlist(lapply(featureDataList(from), isSnp))
-		  ## stack the featureDataList to make featureData
-		  ## make granges object from featureData
-		  sl <- getSequenceLengths(genomeBuild(from))
-		  sl <- sl[unique(chrom)]
-
-		  seqinfo <- Seqinfo(seqnames=unique(chrom),
-				     genome="hg18")
-		  gr <- GRanges(chrom, IRanges(pos,pos), isSnp=is.snp,
-				seqlengths=sl,
-				seqinfo=seqinfo)
-		  names(gr) <- unlist(featureNames(from))
-		  rlist <- lrr(from)
-		  blist <- baf(from)
-		  isff <- is(rlist[[1]], "ff")
-		  if(isff) require("ff")
-		  ##if(is(rlist[[1]], "ff")
-		  rl <- lapply(rlist, "[", , 1, , drop=TRUE) ##function(x) x[, ,drop=FALSE])
-		  bl <- lapply(blist, "[", , 1, , drop=TRUE) ##function(x) x[, ,drop=FALSE])
-		  r <- do.call("rbind", rl)
-		  b <- do.call("rbind", bl)
-		  ##rownames(r) <- rownames(b) <- unlist(featureNames(from))
-		  ped <- as.character(trios(pedigree(from)))
-		  ##colData <- DataFrame(pData(from))
-		  ##rownames(colData) <- sampleNames(from)
-		  colnames(r) <- colnames(b) <- ped
-		  SummarizedExperiment(assays=SimpleList(lrr=r, baf=b),
-				       rowData=gr)
+#' @param md a list of minimum distance matrices. Length of list
+#' should be the same as the length of the \code{TrioSetList} object.
+#' @param segmentParents logical. Whether to segment the parental log R ratios.
+#' @param verbose logical. Whether to display messages indicating progress.
+#' @param genome a character vector indicating the UCSC genome build
+#' used for the annotation (i.e., 'hg18' or 'hg19').
+#' @aliases segment2,TrioSetList-method
+#' @rdname TrioSetList-class
+setMethod("segment2", signature(object="TrioSetList"),
+	  function(object, md=NULL, segmentParents=TRUE, verbose=TRUE, ...){
+            segmentTrioSetList(object, md, segmentParents=segmentParents, verbose=verbose, ...)
 	  })
 
-##setMethod("dataFrame", signature(range="GRanges", data="SummarizedExperiment"),
-##	  function(range, data, ...){
-##		  dataFrameSummarizedExperimentTrio(range=range, object=data, ...)
-##	  })
+
+#' @param pos a list of the genomic positions (integers)
+#' @param chrom list of chromosome names
+#' @param featureNames a list of the marker names
+#' @aliases segment2,list-method
+#' @rdname TrioSetList-class
+setMethod("segment2", signature(object="list"),
+	  function(object, pos, chrom, id=NULL, featureNames, segmentParents=TRUE, verbose=TRUE, genome, ...){
+            ## elements of list must be a matrix or an array
+            if(missing(genome)) stop("must specify UCSC genome build")
+            segs <- segmentList(object, pos, chrom, id, featureNames, segmentParents=segmentParents, verbose=verbose, genome=genome, ...)
+            metadata(segs) <- list(genome=genome)
+            segs
+	  })

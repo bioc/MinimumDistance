@@ -6,6 +6,21 @@
 acf2(x, lag.max = 10, type = c("correlation", "covariance", "partial"),
   plot = FALSE, na.action = na.omit, demean = TRUE, ...)
 }
+\arguments{
+\item{x}{a numeric vector}
+
+\item{lag.max}{see \code{acf}}
+
+\item{type}{see \code{acf}}
+
+\item{plot}{logical, as in \code{acf}}
+
+\item{na.action}{ignored.  Missing values are automattically omitted.}
+
+\item{demean}{logical, as in \code{acf}}
+
+\item{...}{additional arguments passed to \code{acf}}
+}
 \description{
 By default, this function returns the lag-10 autocorrelations of a
 numeric vector and omits missing values.
@@ -14,5 +29,8 @@ numeric vector and omits missing values.
 x <- rnorm(100)
 x[5] <- NA
 acf2(x)
+}
+\seealso{
+\code{\link[stats]{acf}}
 }
 

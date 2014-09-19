@@ -1726,7 +1726,14 @@ logEmissionArray <- function(object){
 #' By default, this function returns the lag-10 autocorrelations of a
 #' numeric vector and omits missing values.
 #'
-#' @inheritParams acf
+#' @param x a numeric vector
+#' @param lag.max see \code{acf}
+#' @param type see \code{acf}
+#' @param plot logical, as in \code{acf}
+#' @param na.action ignored.  Missing values are automattically omitted.
+#' @param demean logical, as in \code{acf}
+#' @param ... additional arguments passed to \code{acf}
+#' @seealso \code{\link[stats]{acf}}
 #' @examples
 #' x <- rnorm(100)
 #' x[5] <- NA

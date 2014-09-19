@@ -99,15 +99,21 @@ Pedigree <- function(pedigreeInfo,
   new("Pedigree", trios=trios, trioIndex=pedigreeIndex)
 }
 
-
+#' @param object a \code{Pedigree} object
+#' @aliases trios,Pedigree-method
+#' @rdname Pedigree-class
 setMethod("trios", signature(object="Pedigree"),
 	  function(object) {
-            .Deprecated()
+            ##.Deprecated()
             object@trios
         })
 setMethod("trioIndex", signature(object="Pedigree"),
 	  function(object) object@trioIndex)
+
+#' @aliases offspringNames,Pedigree-method
+#' @rdname Pedigree-class
 setMethod("offspringNames", signature(object="Pedigree"), function(object) trios(object)$O)
+
 setMethod("sampleNames", signature(object="Pedigree"), function(object) offspringNames(object))
 setMethod("allNames", signature(object="Pedigree"), function(object) unique(trioIndex(object)$individualId))
 setMethod("fatherNames", signature(object="Pedigree"), function(object) trios(object)$F)
@@ -129,8 +135,15 @@ setMethod("show", signature(object="Pedigree"),
 			  print(tail(trioIndex(object), n=2))
 		  }
 		  cat("\n")
-	  })
+                })
 
+#' @param x a \code{Pedigree} object
+#' @param i a numeric vector for subsetting  (optional)
+#' @param j ignored
+#' @param ... ignored
+#' @param drop ignored
+#' @aliases "[",Pedigree,ANY-method
+#' @rdname Pedigree-class
 setMethod("[", signature(x="Pedigree"),
 	  function(x, i, j, ..., drop=FALSE){
             if(missing(i)) {
@@ -143,6 +156,8 @@ setMethod("[", signature(x="Pedigree"),
             return(x)
 	  })
 
+#' @aliases dim,Pedigree-method
+#' @rdname Pedigree-class
 setMethod("dim", signature(x="Pedigree"), function(x){
 	dim(trios(x))
 })

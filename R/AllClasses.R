@@ -3,7 +3,7 @@ NULL
 
 setOldClass("ff_array")
 setOldClass("ff_matrix")
-setClassUnion("matrixOrNULL", c("matrix", "NULL"))
+## setClassUnion("matrixOrNULL", c("matrix", "NULL"))
 setClassUnion("arrayORff_array", c("array", "ff_array"))
 
 ##
@@ -17,7 +17,7 @@ setClassUnion("arrayORff_array", c("array", "ff_array"))
 #' containing sample identifiers for the father (F), mother (M), and
 #' offspring (O).
 #' @slot trioIndex a \code{data.frame}
-#' @rdname Deprecated
+#' @rdname Pedigree-class
 #' @export
 setClass("Pedigree", representation(trios="data.frame",
 				    trioIndex="data.frame"))
@@ -33,8 +33,13 @@ setClass("Pedigree", representation(trios="data.frame",
 #'
 #' @slot fatherPhenoData \code{AnnotatedDataFrame} containing covariates for the father
 #' @slot motherPhenoData \code{AnnotatedDataFrame} containing covariates for the mother
-#' @slot Pedigree an object of class \code{Pedigree}
+#' @slot pedigree an object of class \code{Pedigree}
 #' @slot mindist a numeric matrix of the minimum distance for each trio, or NULL
+# @slot assayData
+# @slot experimentData
+# @slot genome
+# @slot phenoData
+# @slot protocolData
 #' @rdname TrioSet-class
 #' @docType class
 #' @export
@@ -54,7 +59,7 @@ setClass("TrioSet", contains="gSet",
 #'
 #' @slot fatherPhenoData \code{AnnotatedDataFrame} containing covariates for the father
 #' @slot motherPhenoData \code{AnnotatedDataFrame} containing covariates for the mother
-#' @slot Pedigree an object of class \code{Pedigree}
+#' @slot pedigree an object of class \code{Pedigree}
 #' @rdname TrioSetList-class
 #' @export
 setClass("TrioSetList", contains="gSetList",
@@ -87,6 +92,18 @@ setClass("DNAcopyParam", representation(alpha="numeric",
                                         undo.splits="character",
                                         undo.SD="numeric"))
 
+#' Class and methods for parameters of minimum distance algorithm
+#'
+#' Contains parameters used for circular binary segmentation (package
+#' DNAcopy), parameters in the PennCNV hidden Markov model, and
+#' parameters used for computing emission probabilities.
+#' @slot nMAD a length-one numeric vector
+#' @slot dnacopy an object of class \code{DNAcopyParam}
+#' @slot penncnv an object of class \code{PennParam}
+#' @slot emission an object of class \code{EmissionParam}
+#' @slot thin a length-one non-negative integer
+#' @export
+#' @rdname MinDistParam-class
 setClass("MinDistParam", representation(nMAD="numeric",
                                         dnacopy="DNAcopyParam",
                                         penncnv="PennParam",
@@ -103,7 +120,7 @@ setClass("MinDistParam", representation(nMAD="numeric",
 #' @slot father length-one character vector providing sample ids for father
 #' @slot mother length-one character vector providing sample ids for mother
 #' @slot offspring character vector providing sample ids for offspring (can have length greater than one if there is more than one offspring)
-#' @slot filePaths character vector providing path to low-level data
+#' @slot parsedPath character vector providing path to parsed files of the marker-level summaries
 #' @rdname ParentOffspring-class
 #' @export
 #' @examples
@@ -113,7 +130,7 @@ setClass("ParentOffspring", representation(id="character", ## id for pedigree
                                            father="character",
                                            mother="character",
                                            offspring="character",
-                                           filePaths="character"))
+                                           parsedPath="character"))
 
 #' A list of \code{ParentOffspring} objects
 #'
@@ -152,6 +169,12 @@ setClass("MinDistGRanges", representation(mindist="GRangesList",
                                           pedigree="ParentOffspring"))
 
 
+#' Class and methods for MinDistExperiment
+#'
+#' @slot mindist a matrix
+#' @slot pedigree a \code{ParentOffspring} object
+#' @export
+#' @rdname MinDistExperiment-class
 setClass("MinDistExperiment", contains="SnpArrayExperiment",
          representation(mindist="matrix", pedigree="ParentOffspring"))
 

@@ -1,9 +1,14 @@
+#' @param center ignored
+#' @aliases calculateMindist,arrayORff_array-method
+#' @rdname calculateMindist
 setMethod("calculateMindist", signature(object="arrayORff_array"),
 	  function(object, outdir, center, ...){
             ##stopifnot(ncol(object)==3)
             calculateMindistFromArray(object, outdir, ...)
 	  })
 
+#' @aliases calculateMindist,matrix-method
+#' @rdname calculateMindist
 setMethod("calculateMindist", signature(object="matrix"),
 	  function(object, ...){
             calculateMindistFromMatrix(object)
