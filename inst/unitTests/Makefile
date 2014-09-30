@@ -15,11 +15,11 @@ test: # Run unit tests
 	R --vanilla --slave < ${SUITE}
 
 release:
-	R_LIBS_USER=~/Library/R/3.0-bioc-release/library R-3.0 CMD INSTALL --no-lock ${PKG}
+	R_LIBS_USER=~/Library/R/3.1-bioc-release/library R-3.1 CMD INSTALL --no-lock ${PKG}
 	export RCMDCHECK=FALSE;\
 	export RUNITFILEPATTERN="$(file)";\
 	cd ${TOP}/tests;\
-	R_LIBS_USER=~/Library/R/3.0-bioc-release/library R-3.0 --vanilla --slave < ${SUITE}
+	R_LIBS_USER=~/Library/R/3.0-bioc-release/library R-3.1 --vanilla --slave < ${SUITE}
 
 devel:
 	R_LIBS_USER=~/Library/R/3.1-bioc-devel/library R-3.1 CMD INSTALL --no-lock ${PKG}

@@ -1,8 +1,8 @@
 Package: MinimumDistance
 Type: Package
 Title: A package for de novo CNV detection in case-parent trios
-Version: 1.8.0
-Date: Thu Mar 20 11:19:56 EDT 2014
+Version: 1.8.1
+Date: Mon Sep 29 21:20:20 EDT 2014
 Author: Robert B Scharpf and Ingo Ruczinski
 Maintainer: Robert B Scharpf <rscharpf@jhsph.edu>
 Description: Analysis of de novo copy number variants in trios from
@@ -10,8 +10,8 @@ Description: Analysis of de novo copy number variants in trios from
 License: Artistic-2.0
 Depends: R (>= 3.01)
 Imports: methods, DNAcopy, utils, msm, lattice, BiocGenerics,
-        VanillaICE (>= 1.25.4), ff, Biobase (>= 2.23.6), foreach,
-        oligoClasses (>= 1.25.8), IRanges, GenomicRanges, matrixStats
+        VanillaICE (>= 1.26.1), ff, Biobase (>= 2.23.6), foreach,
+        oligoClasses (>= 1.24.0), IRanges, GenomicRanges, matrixStats
 Suggests: human610quadv1bCrlmm (>= 1.0.3), SNPchip, RUnit
 Enhances: snow, doSNOW
 Collate: AllGenerics.R AllClasses.R methods-AnnotatedDataFrame.R
