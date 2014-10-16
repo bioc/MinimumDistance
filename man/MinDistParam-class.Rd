@@ -4,6 +4,7 @@
 \alias{MinDistParam-class}
 \alias{nMAD,MinDistParam-method}
 \alias{nMAD<-,MinDistParam,numeric-method}
+\alias{show,DNAcopyParam-method}
 \alias{show,MinDistParam-method}
 \title{Class and methods for parameters of minimum distance algorithm}
 \usage{
@@ -12,6 +13,8 @@
 \S4method{nMAD}{MinDistParam,numeric}(object) <- value
 
 \S4method{show}{MinDistParam}(object)
+
+\S4method{show}{DNAcopyParam}(object)
 }
 \arguments{
 \item{object}{a \code{MinDistParam} object}

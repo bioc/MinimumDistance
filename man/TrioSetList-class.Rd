@@ -14,6 +14,7 @@
 \alias{pedigree,TrioSetList-method}
 \alias{segment2,TrioSetList-method}
 \alias{segment2,list-method}
+\alias{show,TrioSetList-method}
 \alias{trios,TrioSetList-method}
 \title{Deprecated class for storing low-level genomic data for trios}
 \usage{
@@ -28,6 +29,8 @@
 \S4method{[}{TrioSetList,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{[[}{TrioSetList,ANY,ANY}(x, i, j, ..., exact = TRUE)
+
+\S4method{show}{TrioSetList}(object)
 
 \S4method{length}{TrioSetList}(x)
 

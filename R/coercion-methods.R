@@ -34,7 +34,7 @@ setAs("TrioSet", "MinDistExperiment", function(from, to){
                 isSnp=isSnp(from))
   r <- .setColnames(lrr(from)[, 1, ], names(ped))/100
   b <- .setColnames(baf(from)[, 1, ], names(ped))/1000
-  assays <- VanillaICE:::snpArrayAssays(cn=r, baf=b)
+  assays <- snpArrayAssays(cn=r, baf=b)
   me <- .constructMDE(assays, rowData=gd,
                       colData=DataFrame(row.names=names(ped)),
                       ped)

@@ -10,6 +10,7 @@
 \alias{offspring,GRangesList-method}
 \alias{offspring,MinDistGRanges-method}
 \alias{pedigree,MinDistGRanges-method}
+\alias{show,MinDistGRanges-method}
 \title{A container for storing segmentation data for members in a
 \code{ParentOffspring} family}
 \usage{
@@ -26,6 +27,8 @@
 \S4method{father}{MinDistGRanges}(object)
 
 \S4method{pedigree}{MinDistGRanges}(object)
+
+\S4method{show}{MinDistGRanges}(object)
 
 \S4method{offspring}{GRangesList}(object)
 }

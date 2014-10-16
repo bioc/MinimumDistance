@@ -589,6 +589,8 @@ setMethod("[[", signature(x="TrioSetList"),
 		  }
 	  })
 
+#' @aliases show,TrioSetList-method
+#' @rdname TrioSetList-class
 setMethod("show", signature(object="TrioSetList"),
 	  function(object){
 		  lo <- length(lrr(object))
@@ -764,96 +766,97 @@ setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
 						     cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
 						     pr.nonmendelian=1.5e-6,
 						     mdThr=0.9, ...){
-						     ##collapseRanges=TRUE,...){
-	.map_trioSetList(object=object,
-			 ranges=ranges,
-			 id=id,
-			 TAUP=TAUP,
-			 tauMAX=tauMAX,
-			 cnStates=cnStates,
-			 pr.nonmendelian=pr.nonmendelian,
-			 mdThr=mdThr, ...)
+  ##collapseRanges=TRUE,...){
+  .Deprecated("MAP2", msg="This function is deprecated. See MAP2 instead.")
+##	.map_trioSetList(object=object,
+##			 ranges=ranges,
+##			 id=id,
+##			 TAUP=TAUP,
+##			 tauMAX=tauMAX,
+##			 cnStates=cnStates,
+##			 pr.nonmendelian=pr.nonmendelian,
+##			 mdThr=mdThr, ...)
 })
 
-.map_trioSetList <- function(object,
-			     ranges, id,
-			     TAUP=1e10,
-			     tauMAX,
-			     cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
-			     pr.nonmendelian=1.5e-6,
-			     mdThr=0.9,...){
-  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
-  if(missing(id)) id <- sampleNames(object)
-  index.trios <- match(id, sampleNames(object))
-  if(!all(sampleNames(ranges) %in% id))
-    ranges <- ranges[sampleNames(ranges) %in% id, ]
-  if(!all(id %in% sampleNames(ranges))){
-    object <- object[, match(unique(sampleNames(ranges)), id)]
-    id <- id[id %in% sampleNames(ranges)]
-  }
-  chrom.ranges <- unique(chromosome(ranges))
-  chrom.object <- paste("chr", chromosome(object), sep="")
-  object <- object[chrom.object %in% chrom.ranges]
-  ranges <- ranges[chrom.ranges %in% chrom.object, ]
-  ## only call segs that are "nonzero"
-  if("mindist.mad" %in% colnames(elementMetadata(ranges))){
-    mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
-    abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
-  } else{
-    ## call all segments
-    abs.thr <- rep(TRUE, length(ranges))
-  }
-  elementMetadata(ranges)$exceeds.md.thr <- abs.thr
-  ocSamples(1) ## has to be 1. This will process 3 samples per alotted CPU
-  chunks <- splitIndicesByLength(index.trios, ocSamples())
-  rlist <- lrr(object)
-  blist <- baf(object)
-  pos <- unlist(position(object))
-  chr <- rep(chromosome(object), elementLengths(object))
-  build <- genomeBuild(object)
-  sl <- setSequenceLengths(build,
-                           paste("chr", chromosome(object), sep=""))
-  feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
-                             seqlengths=sl)
-  grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
-  is.snp <- unlist(lapply(featureDataList(object), isSnp))
-  snp.index <- which(is.snp)
-  anyNP <- any(!is.snp)
-  center <- TRUE
-  pkgs <- c("oligoClasses", "VanillaICE")
-  isff <- is(rlist[[1]], "ff")
-  if(isff) pkgs <- c("ff", pkgs)
-  matrixFun <- generatorMatrix(rlist, blist, chr, center=TRUE,
-                               snp.index=snp.index, anyNP=anyNP,
-                               ped=pedigree(object))
-  overlapFun <- generatorOverlapFeatures(feature.granges)
-  grl <- split(ranges, sampleNames(ranges))
-  grl <- grl[match(sampleNames(object), names(grl))]
-  rm(pos, chr, blist, rlist); gc()
-  i <- NULL
-  results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
-    emit <- viterbi2Wrapper(index.samples=i,
-                            snp.index=snp.index,
-                            anyNP=anyNP,
-                            is.log=TRUE,
-                            limits=c(-4, 3),
-                            cnStates=cnStates,
-                            grFun=grFun,
-                            matrixFun=matrixFun,
-                            returnEmission=TRUE, ...)
-    granges <- sort(granges)
-    ranges <- loglik(emit=emit,
-                     ranges=granges,
-                     pr.nonmendelian=pr.nonmendelian,
-                     overlapFun=overlapFun)
-    chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
-    ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
-    ranges
-  }
-  results <- unlist(GRangesList(results))
-  metadata(results) <- metadata(ranges)
-  return(results)
-}
+##.map_trioSetList <- function(object,
+##			     ranges, id,
+##			     TAUP=1e10,
+##			     tauMAX,
+##			     cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
+##			     pr.nonmendelian=1.5e-6,
+##			     mdThr=0.9,...){
+##  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+##  if(missing(id)) id <- sampleNames(object)
+##  index.trios <- match(id, sampleNames(object))
+##  if(!all(sampleNames(ranges) %in% id))
+##    ranges <- ranges[sampleNames(ranges) %in% id, ]
+##  if(!all(id %in% sampleNames(ranges))){
+##    object <- object[, match(unique(sampleNames(ranges)), id)]
+##    id <- id[id %in% sampleNames(ranges)]
+##  }
+##  chrom.ranges <- unique(chromosome(ranges))
+##  chrom.object <- paste("chr", chromosome(object), sep="")
+##  object <- object[chrom.object %in% chrom.ranges]
+##  ranges <- ranges[chrom.ranges %in% chrom.object, ]
+##  ## only call segs that are "nonzero"
+##  if("mindist.mad" %in% colnames(elementMetadata(ranges))){
+##    mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
+##    abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
+##  } else{
+##    ## call all segments
+##    abs.thr <- rep(TRUE, length(ranges))
+##  }
+##  elementMetadata(ranges)$exceeds.md.thr <- abs.thr
+##  ocSamples(1) ## has to be 1. This will process 3 samples per alotted CPU
+##  chunks <- splitIndicesByLength(index.trios, ocSamples())
+##  rlist <- lrr(object)
+##  blist <- baf(object)
+##  pos <- unlist(position(object))
+##  chr <- rep(chromosome(object), elementLengths(object))
+##  build <- genomeBuild(object)
+##  sl <- setSequenceLengths(build,
+##                           paste("chr", chromosome(object), sep=""))
+##  feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
+##                             seqlengths=sl)
+##  grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
+##  is.snp <- unlist(lapply(featureDataList(object), isSnp))
+##  snp.index <- which(is.snp)
+##  anyNP <- any(!is.snp)
+##  center <- TRUE
+##  pkgs <- c("oligoClasses", "VanillaICE")
+##  isff <- is(rlist[[1]], "ff")
+##  if(isff) pkgs <- c("ff", pkgs)
+##  matrixFun <- generatorMatrix(rlist, blist, chr, center=TRUE,
+##                               snp.index=snp.index, anyNP=anyNP,
+##                               ped=pedigree(object))
+##  overlapFun <- generatorOverlapFeatures(feature.granges)
+##  grl <- split(ranges, sampleNames(ranges))
+##  grl <- grl[match(sampleNames(object), names(grl))]
+##  rm(pos, chr, blist, rlist); gc()
+##  i <- NULL
+##  results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
+##    emit <- viterbi2Wrapper(index.samples=i,
+##                            snp.index=snp.index,
+##                            anyNP=anyNP,
+##                            is.log=TRUE,
+##                            limits=c(-4, 3),
+##                            cnStates=cnStates,
+##                            grFun=grFun,
+##                            matrixFun=matrixFun,
+##                            returnEmission=TRUE, ...)
+##    granges <- sort(granges)
+##    ranges <- loglik(emit=emit,
+##                     ranges=granges,
+##                     pr.nonmendelian=pr.nonmendelian,
+##                     overlapFun=overlapFun)
+##    chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
+##    ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
+##    ranges
+##  }
+##  results <- unlist(GRangesList(results))
+##  metadata(results) <- metadata(ranges)
+##  return(results)
+##}
 
 #' @param md a list of minimum distance matrices. Length of list
 #' should be the same as the length of the \code{TrioSetList} object.

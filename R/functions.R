@@ -597,7 +597,7 @@ trioStates <- function(states=0:4){
 }
 
 trioStateNames <- function(trio.states){
-  if(missing(trio.states)) strio.states <- trioStates()
+  if(missing(trio.states)) trio.states <- trioStates()
   paste(paste(trio.states[,1], trio.states[,2], sep=""), trio.states[,3], sep="")
 }
 
@@ -698,13 +698,13 @@ stateIndex <- function(param, state) state(param)[state, ] + 1L
 ##  term1*term2*term3*term4*term5
 ##}
 
-currentNonMendelian <- function(param, prev_index, state_index, transitionNM){
-  ## Pr(cTS, pNM, cNM | pTS) =
-  ## Pr(cO | cTS[-O], pTS, cNM, pNM) * Pr(cTS[-O] | pTS, cNM=1, pNM=1) * Pr(cNM=1 | pNM=1) * Pr(pNM=1)
-  ## = Pr(cO | pO, cNM, pNM) * Pr(cF | ...) * Pr(cM | ...) * Pr(cNM=1|pNM=1) * Pr(pNM=1)
-  prev_name <- rownames(state(param))[prev_index]
-  1/5 * table1(param)[prev_name] * transitionNM * probNM
-}
+##currentNonMendelian <- function(param, prev_index, state_index, transitionNM){
+##  ## Pr(cTS, pNM, cNM | pTS) =
+##  ## Pr(cO | cTS[-O], pTS, cNM, pNM) * Pr(cTS[-O] | pTS, cNM=1, pNM=1) * Pr(cNM=1 | pNM=1) * Pr(pNM=1)
+##  ## = Pr(cO | pO, cNM, pNM) * Pr(cF | ...) * Pr(cM | ...) * Pr(cNM=1|pNM=1) * Pr(pNM=1)
+##  prev_name <- rownames(state(param))[prev_index]
+##  1/5 * table1(param)[prev_name] * transitionNM * probNM
+##}
 
 computeB <- function(param, current_state, previous_state){
   ## B = Pr(S_iO, S_{i-1, O} | S_iF, S_iM, S_{i-1,F}, S_{i-1,M}, NM)
@@ -820,117 +820,117 @@ posterior <- function(state,
   posterior
 }
 
-xypanelMD <- function(x, y,
-		      id,
-		      gt,
-		      is.snp,
-		      range,
-		      cex,
-		      col.hom="grey20",
-		      fill.hom="lightblue",
-		      col.het="grey20" ,
-		      fill.het="salmon",
-		      col.np="grey20",
-		      fill.np="grey60",
-		      show.state=TRUE,
-		      lrr.segs,
-		      md.segs,
-		      ..., subscripts){
-	xypanel(x, y,
-                gt,
-                is.snp,
-                range,
-                col.hom=col.hom,
-                fill.hom=fill.hom,
-                col.het=col.het,
-                fill.het=fill.het,
-                col.np=col.np,
-                fill.np=fill.np,
-                show.state, cex=cex, ..., subscripts=subscripts)
-	id <- unique(id[subscripts])
-	range <- range[1, ]
-	CHR <- chromosome(range)
-	##stopifnot(length(CHR)==1)
-	if(id != "min dist" & !missing(lrr.segs)){
-		cbs.sub <- lrr.segs[sampleNames(lrr.segs)==as.character(id) & chromosome(lrr.segs)==CHR, ]
-		segments <- TRUE && nrow(cbs.sub) > 0
-	} else segments <- FALSE
-	if(!missing(md.segs) & id == "min dist"){
-		cbs.sub <- md.segs[sampleNames(md.segs) %in% sampleNames(range), ]
-		cbs.sub <- cbs.sub[chromosome(cbs.sub) == chromosome(range), ]
-		##cbs.sub$seg.mean <- -1*cbs.sub$seg.mean
-		segments.md <- TRUE && nrow(cbs.sub) > 0
-	} else segments.md <- FALSE
-	if(segments | segments.md){
-		##if(missing(ylimit)) ylimit <- range(y, na.rm=TRUE) ##else ylim <- ylimit
-		ylimit <- current.panel.limits()$ylim
-		if(nrow(cbs.sub) > 0){
-			index <- which(cbs.sub$seg.mean < ylimit[1])
-			if(length(index) > 0)
-				cbs.sub$seg.mean[index] <- ylimit[1] + 0.2
-			index <- which(cbs.sub$seg.mean > ylimit[2])
-			if(length(index) > 0)
-				cbs.sub$seg.mean[index] <- ylimit[2] - 0.2
-			panel.segments(x0=start(cbs.sub)/1e6, x1=end(cbs.sub)/1e6, y0=cbs.sub$seg.mean, y1=cbs.sub$seg.mean, lwd=2, col="black")#gp=gpar("lwd"=2))
-		}
-	}
-}
-
-xypanelMD2 <- function(x, y,
-		       id,
-		       gt,
-		       is.snp,
-		       range,
-		       show.state=TRUE,
-		       lrr.segs,
-		       md.segs,
-		       col,
-		       cex=1,
-		       cex.state=1,
-		       col.state="blue",
-		       ..., subscripts){
-	panel.grid(v=0, h=4, "grey", lty=2)
-	panel.xyplot(x, y, cex=cex, col=col[subscripts], ...)
-	##lpoints(x, y, col=col[subscripts], cex=cex, ...)
-##	lpoints(x[!is.snp], y[!is.snp], col=col.np, cex=cex, ...)
-	id <- unique(id[subscripts])
-	range <- range[1, ]
-	CHR <- chromosome(range)
-	##stopifnot(length(CHR)==1)
-	if(id != "min dist" & !missing(lrr.segs)){
-		cbs.sub <- lrr.segs[sampleNames(lrr.segs)==as.character(id) & chromosome(lrr.segs)==CHR, ]
-		segments <- TRUE && nrow(cbs.sub) > 0
-	} else segments <- FALSE
-	if(!missing(md.segs) & id == "min dist"){
-		cbs.sub <- md.segs[sampleNames(md.segs) %in% sampleNames(range), ]
-		cbs.sub <- cbs.sub[chromosome(cbs.sub) == chromosome(range), ]
-		##cbs.sub$seg.mean <- -1*cbs.sub$seg.mean
-		segments.md <- TRUE && nrow(cbs.sub) > 0
-	} else segments.md <- FALSE
-	if(segments | segments.md){
-		##if(missing(ylimit)) ylimit <- range(y, na.rm=TRUE) ##else ylim <- ylimit
-		ylimit <- current.panel.limits()$ylim
-		if(nrow(cbs.sub) > 0){
-			index <- which(cbs.sub$seg.mean < ylimit[1])
-			if(length(index) > 0)
-				cbs.sub$seg.mean[index] <- ylimit[1] + 0.2
-			index <- which(cbs.sub$seg.mean > ylimit[2])
-			if(length(index) > 0)
-				cbs.sub$seg.mean[index] <- ylimit[2] - 0.2
-			panel.segments(x0=start(cbs.sub)/1e6, x1=end(cbs.sub)/1e6, y0=cbs.sub$seg.mean, y1=cbs.sub$seg.mean, lwd=2, col="black")#gp=gpar("lwd"=2))
-		}
-	}
-	j <- panel.number()
-	st <- start(range)[j]/1e6
-	lrect(xleft=st, xright=end(range)[j]/1e6,
-	      ybottom=-10, ytop=10, ...)
-	if(show.state){
-		## left justify the label to the start of the range
-		y.max <- current.panel.limits()$ylim[2]
-		ltext(st, y.max, labels=paste("state", state(range)[j]),
-		      adj=c(0,1), cex=cex.state, col=col.state)
-	}
-}
+##xypanelMD <- function(x, y,
+##		      id,
+##		      gt,
+##		      is.snp,
+##		      range,
+##		      cex,
+##		      col.hom="grey20",
+##		      fill.hom="lightblue",
+##		      col.het="grey20" ,
+##		      fill.het="salmon",
+##		      col.np="grey20",
+##		      fill.np="grey60",
+##		      show.state=TRUE,
+##		      lrr.segs,
+##		      md.segs,
+##		      ..., subscripts){
+##	xypanel(x, y,
+##                gt,
+##                is.snp,
+##                range,
+##                col.hom=col.hom,
+##                fill.hom=fill.hom,
+##                col.het=col.het,
+##                fill.het=fill.het,
+##                col.np=col.np,
+##                fill.np=fill.np,
+##                show.state, cex=cex, ..., subscripts=subscripts)
+##	id <- unique(id[subscripts])
+##	range <- range[1, ]
+##	CHR <- chromosome(range)
+##	##stopifnot(length(CHR)==1)
+##	if(id != "min dist" & !missing(lrr.segs)){
+##		cbs.sub <- lrr.segs[sampleNames(lrr.segs)==as.character(id) & chromosome(lrr.segs)==CHR, ]
+##		segments <- TRUE && nrow(cbs.sub) > 0
+##	} else segments <- FALSE
+##	if(!missing(md.segs) & id == "min dist"){
+##		cbs.sub <- md.segs[sampleNames(md.segs) %in% sampleNames(range), ]
+##		cbs.sub <- cbs.sub[chromosome(cbs.sub) == chromosome(range), ]
+##		##cbs.sub$seg.mean <- -1*cbs.sub$seg.mean
+##		segments.md <- TRUE && nrow(cbs.sub) > 0
+##	} else segments.md <- FALSE
+##	if(segments | segments.md){
+##		##if(missing(ylimit)) ylimit <- range(y, na.rm=TRUE) ##else ylim <- ylimit
+##		ylimit <- current.panel.limits()$ylim
+##		if(nrow(cbs.sub) > 0){
+##			index <- which(cbs.sub$seg.mean < ylimit[1])
+##			if(length(index) > 0)
+##				cbs.sub$seg.mean[index] <- ylimit[1] + 0.2
+##			index <- which(cbs.sub$seg.mean > ylimit[2])
+##			if(length(index) > 0)
+##				cbs.sub$seg.mean[index] <- ylimit[2] - 0.2
+##			panel.segments(x0=start(cbs.sub)/1e6, x1=end(cbs.sub)/1e6, y0=cbs.sub$seg.mean, y1=cbs.sub$seg.mean, lwd=2, col="black")#gp=gpar("lwd"=2))
+##		}
+##	}
+##}
+##
+##xypanelMD2 <- function(x, y,
+##		       id,
+##		       gt,
+##		       is.snp,
+##		       range,
+##		       show.state=TRUE,
+##		       lrr.segs,
+##		       md.segs,
+##		       col,
+##		       cex=1,
+##		       cex.state=1,
+##		       col.state="blue",
+##		       ..., subscripts){
+##	panel.grid(v=0, h=4, "grey", lty=2)
+##	panel.xyplot(x, y, cex=cex, col=col[subscripts], ...)
+##	##lpoints(x, y, col=col[subscripts], cex=cex, ...)
+####	lpoints(x[!is.snp], y[!is.snp], col=col.np, cex=cex, ...)
+##	id <- unique(id[subscripts])
+##	range <- range[1, ]
+##	CHR <- chromosome(range)
+##	##stopifnot(length(CHR)==1)
+##	if(id != "min dist" & !missing(lrr.segs)){
+##		cbs.sub <- lrr.segs[sampleNames(lrr.segs)==as.character(id) & chromosome(lrr.segs)==CHR, ]
+##		segments <- TRUE && nrow(cbs.sub) > 0
+##	} else segments <- FALSE
+##	if(!missing(md.segs) & id == "min dist"){
+##		cbs.sub <- md.segs[sampleNames(md.segs) %in% sampleNames(range), ]
+##		cbs.sub <- cbs.sub[chromosome(cbs.sub) == chromosome(range), ]
+##		##cbs.sub$seg.mean <- -1*cbs.sub$seg.mean
+##		segments.md <- TRUE && nrow(cbs.sub) > 0
+##	} else segments.md <- FALSE
+##	if(segments | segments.md){
+##		##if(missing(ylimit)) ylimit <- range(y, na.rm=TRUE) ##else ylim <- ylimit
+##		ylimit <- current.panel.limits()$ylim
+##		if(nrow(cbs.sub) > 0){
+##			index <- which(cbs.sub$seg.mean < ylimit[1])
+##			if(length(index) > 0)
+##				cbs.sub$seg.mean[index] <- ylimit[1] + 0.2
+##			index <- which(cbs.sub$seg.mean > ylimit[2])
+##			if(length(index) > 0)
+##				cbs.sub$seg.mean[index] <- ylimit[2] - 0.2
+##			panel.segments(x0=start(cbs.sub)/1e6, x1=end(cbs.sub)/1e6, y0=cbs.sub$seg.mean, y1=cbs.sub$seg.mean, lwd=2, col="black")#gp=gpar("lwd"=2))
+##		}
+##	}
+##	j <- panel.number()
+##	st <- start(range)[j]/1e6
+##	lrect(xleft=st, xright=end(range)[j]/1e6,
+##	      ybottom=-10, ytop=10, ...)
+##	if(show.state){
+##		## left justify the label to the start of the range
+##		y.max <- current.panel.limits()$ylim[2]
+##		ltext(st, y.max, labels=paste("state", state(range)[j]),
+##		      adj=c(0,1), cex=cex.state, col=col.state)
+##	}
+##}
 
 ##narrow <- function(object, lrr.segs, thr=0.9,
 ##		   mad.minimumdistance, verbose=TRUE,

@@ -34,4 +34,7 @@ extracted from the \code{PennCNV} HMM such as parent-offspring
 transmission parobabilities (see citation below), and initial
 values / parameters for computing emission probabilities.
 }
+\seealso{
+\code{\link[DNAcopy]{segment}}
+}
 

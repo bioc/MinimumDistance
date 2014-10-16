@@ -3,9 +3,12 @@
 \name{MDRanges-class}
 \alias{MDRanges}
 \alias{MDRanges-class}
+\alias{reduce,MDRanges-method}
 \title{A \code{GRanges}-derived class}
 \usage{
 MDRanges(..., posteriors)
+
+\S4method{reduce}{MDRanges}(x, ...)
 }
 \arguments{
 \item{...}{additional arguments to \code{GRanges} constructor}
