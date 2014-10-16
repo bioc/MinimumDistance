@@ -4,6 +4,15 @@
   ##
   library(data.table)
   library(VanillaICE)
+  datdir <- system.file("extdata", package="VanillaICE")
+  files <- list.files(datdir, pattern="FinalReport")
+  pedlist <- list(ParentOffspring(id = "hapmap", father="12287_03",
+                                  mother="12287_02",
+                                  offspring="12287_01",
+                                  filePaths=filePaths(views)[1:3]))
+  ##
+  ## Maher
+  ##
   library(Maher)
   datdir <- "/dcs01/oncbio/rscharpf/maher"
   data(pedlist, package="Maher")

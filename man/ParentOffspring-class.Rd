@@ -11,6 +11,7 @@
 \alias{offspring}
 \alias{offspring,ParentOffspring-method}
 \alias{pedigreeName,ParentOffspring-method}
+\alias{show,ParentOffspring-method}
 \title{Object containing the sample identifiers for members in a pedigree}
 \usage{
 offspring(object)
@@ -29,6 +30,8 @@ ParentOffspring(id = character(), father = character(),
 \S4method{mother}{ParentOffspring}(object)
 
 \S4method{offspring}{ParentOffspring}(object)
+
+\S4method{show}{ParentOffspring}(object)
 
 \S4method{names}{ParentOffspring}(x)
 }

@@ -6,12 +6,15 @@
 \alias{[,Pedigree,ANY-method}
 \alias{dim,Pedigree-method}
 \alias{offspringNames,Pedigree-method}
+\alias{show,Pedigree-method}
 \alias{trios,Pedigree-method}
 \title{Deprecated class for storing pedigree data}
 \usage{
 \S4method{trios}{Pedigree}(object)
 
 \S4method{offspringNames}{Pedigree}(object)
+
+\S4method{show}{Pedigree}(object)
 
 \S4method{[}{Pedigree,ANY}(x, i, j, ..., drop = FALSE)
 

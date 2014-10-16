@@ -118,6 +118,9 @@ setMethod("sampleNames", signature(object="Pedigree"), function(object) offsprin
 setMethod("allNames", signature(object="Pedigree"), function(object) unique(trioIndex(object)$individualId))
 setMethod("fatherNames", signature(object="Pedigree"), function(object) trios(object)$F)
 setMethod("motherNames", signature(object="Pedigree"), function(object) trios(object)$M)
+
+#' @aliases show,Pedigree-method
+#' @rdname Pedigree-class
 setMethod("show", signature(object="Pedigree"),
 	  function(object){
 		  ##cat('An object of class "Pedigree": \n')

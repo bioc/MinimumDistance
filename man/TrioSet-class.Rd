@@ -11,10 +11,15 @@
 \alias{mindist,TrioSet-method}
 \alias{mindist<-,TrioSet,matrix-method}
 \alias{pedigree,TrioSet-method}
+\alias{show,TrioSet-method}
 \alias{trios,TrioSet-method}
 \title{Deprecated class for storing low-level genomic data for trios}
 \usage{
+\S4method{[}{ff_array,ANY}(x, i, j, ..., drop = FALSE)
+
 \S4method{pedigree}{TrioSet}(object)
+
+\S4method{show}{TrioSet}(object)
 
 \S4method{mindist}{TrioSet}(object)
 
@@ -29,14 +34,8 @@
 \S4method{MAP}{TrioSet,GRanges}(object, ranges,
   transition_param = TransitionParam(), emission_param = EmissionParam(),
   mdThr = 0.9, ...)
-
-\S4method{[}{ff_array,ANY}(x, i, j, ..., drop = FALSE)
 }
 \arguments{
-\item{object}{a \code{TrioSet} object}
-
-\item{value}{a \code{matrix}}
-
 \item{x}{a \code{TrioSet} object}
 
 \item{i}{a numeric vector for subsetting rows  (optional)}
@@ -47,6 +46,10 @@
 
 \item{drop}{logical. Whether to simplify matrices to numeric
 vectors.  This should be left as FALSE.}
+
+\item{object}{a \code{TrioSet} object}
+
+\item{value}{a \code{matrix}}
 
 \item{ranges}{a \code{GRanges} object}
 

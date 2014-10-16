@@ -11,26 +11,26 @@
 \usage{
 calculateMindist(object, ...)
 
-\S4method{calculateMindist}{TrioSet}(object, verbose = TRUE, ...)
-
-\S4method{calculateMindist}{TrioSetList}(object)
-
 \S4method{calculateMindist}{list}(object, outdir = ldPath(), ...)
 
 \S4method{calculateMindist}{arrayORff_array}(object, outdir, center, ...)
 
 \S4method{calculateMindist}{matrix}(object, ...)
+
+\S4method{calculateMindist}{TrioSetList}(object)
+
+\S4method{calculateMindist}{TrioSet}(object, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{see \code{showMethods("calculateMindist")}}
 
 \item{...}{Ignored}
 
-\item{verbose}{logical. Whether to display messages indicating progress.}
-
 \item{outdir}{character string indicating path to save output}
 
 \item{center}{ignored}
+
+\item{verbose}{logical. Whether to display messages indicating progress.}
 }
 \description{
 The 'minimum distance' is the minimum signed absolute difference of

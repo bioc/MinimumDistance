@@ -11,10 +11,11 @@
 #' @import DNAcopy
 #' @import foreach
 #' @importFrom matrixStats colMads colMedians
-#' @importMethodsFrom GenomeInfoDb seqlengths seqlengths<-
+#' @import GenomeInfoDb
 #' @import BiocGenerics
 #' @import oligoClasses
 #' @import VanillaICE
 #' @import lattice
+#' @import grid
 #' @importFrom data.table fread
 NULL

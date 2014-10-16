@@ -198,6 +198,13 @@ setClass("MDRanges", contains="GRanges")
 
 setClass("ILimit", contains="IRanges")
 
+#' Container for the segmentation results from a MinDistExperiment
+#'
+#' MinDistPosterior is a \code{GRangesList}-derived container for the
+#' segmentation and maximum a posteriori trio copy number states.
+#' @export
+#' @seealso \code{\link{denovo}}
+#' @rdname MinDistPosterior-class
 setClass("MinDistPosterior", representation(granges="GRangesList"))
 
 #' A class for filtering genomic intervals called by MinimumDistance

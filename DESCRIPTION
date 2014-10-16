@@ -1,8 +1,8 @@
 Package: MinimumDistance
 Type: Package
 Title: A package for de novo CNV detection in case-parent trios
-Version: 1.9.19
-Date: Fri Sep 19 10:23:42 EDT 2014
+Version: 1.9.20
+Date: Fri Oct 10 08:20:17 EDT 2014
 Author: Robert B Scharpf and Ingo Ruczinski
 Maintainer: Robert B Scharpf <rscharpf@jhu.edu>
 Description: Analysis of de novo copy number variants in trios from
@@ -13,7 +13,7 @@ Depends:
 Imports:
     oligoClasses,
     S4Vectors,
-    VanillaICE (>= 1.27.29),
+    VanillaICE (>= 1.27.35),
     Biobase,
     DNAcopy,
     BiocGenerics,
@@ -24,7 +24,8 @@ Imports:
     lattice,
     GenomicRanges (>= 1.17.16),
     GenomeInfoDb,
-    data.table
+    data.table,
+    grid
 Suggests:
     human610quadv1bCrlmm (>= 1.0.3),
     SNPchip,
@@ -51,6 +52,7 @@ Collate:
     'methods-MinDistParam.R'
     'methods-MinDistPosterior.R'
     'methods-ParentOffspring.R'
+    'methods-ParentOffspringList.R'
     'methods-Pedigree.R'
     'methods-PennParam.R'
     'methods-ShallowSimpleList.R'
@@ -58,6 +60,7 @@ Collate:
     'methods-TrioSet.R'
     'methods-TrioSetList.R'
     'methods-ff_array.R'
+    'methods-grid.R'
     'methods-list.R'
     'methods-matrix.R'
     'segment2-methods.R'
@@ -67,6 +70,6 @@ Enhances: snow, doSNOW
 LazyLoad: yes
 Packaged: 2012-03-23 14:08:50 UTC; rscharpf
 biocViews: Microarray, SNP, CopyNumberVariation
-## Local Variables:
+## Local Variables: 
 ## time-stamp-pattern: "8/Date: %3a %3b %2d %02H:%02M:%02S %Z %:y\n"
-## End:
+## End: 
