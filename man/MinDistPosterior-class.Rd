@@ -2,11 +2,11 @@
 \docType{class}
 \name{MinDistPosterior-class}
 \alias{MinDistPosterior-class}
-\alias{[,MinDistPosterior,ANY-method}
+\alias{[,MinDistPosterior,ANY,ANY,ANY-method}
 \alias{show,MinDistPosterior-method}
 \title{Container for the segmentation results from a MinDistExperiment}
 \usage{
-\S4method{[}{MinDistPosterior,ANY}(x, i, j, ..., drop = FALSE)
+\S4method{[}{MinDistPosterior,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{show}{MinDistPosterior}(object)
 }

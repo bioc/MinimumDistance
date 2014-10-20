@@ -1,10 +1,27 @@
+
+.find_xlim_percent <- function(g, percent=0.05){
+  wd <- width(g)
+  w <- wd/percent
+  d <- (w-wd)*1/2
+  st <- max(start(g)[1]-d, 1)
+  en <- min(end(g)[1]+d, seqlengths(g))
+  lim <- as.integer(c(st, en))
+  ##ILimit(start=lim[1], end=lim[2])
+  lim
+}
+
+## accessors for HmmTrellisParam objects
+expandFun <- function(object) object@expandfun
+yLimits <- function(object) object@ylimits
+
+
 #' @aliases plotDenovo,MinDistExperiment,MDRanges-method
 #' @rdname plotDenovo
 setMethod("plotDenovo",  c("MinDistExperiment", "MDRanges"),
           function(object, g, param){
             ##if(missing(maxgap)) maxgap <- 50*width(g)
-            FUN <- VanillaICE:::expandFun(param)
-            ylimits <- VanillaICE:::yLimits(param)
+            FUN <- expandFun(param)
+            ylimits <- yLimits(param)
             maxgap <- FUN(g)
 
             index <- subjectHits(findOverlaps(g, object, maxgap=maxgap))
@@ -77,16 +94,28 @@ pedigreeViewports <- function(){
                   width=unit(0.5, "npc"),
                   height=unit(0.88, "npc"), just=c("left", "bottom"),
                   name="lvp2")
+
+  datavp <- viewport(unit(0, "npc"),
+                     unit(0, "npc"),
+                     width=unit(1, "npc")-unit(1.5, "inch"),
+                     height=unit(1, "npc"),
+                     just=c("left", "bottom"))
+
   idiogram <- viewport(x=0.5, y=0.87,
-                       width=unit(0.75, "npc"),
+                       width=unit(0.65, "npc"),
                        height=unit(0.15, "npc"),
                        just=c("center", "bottom"))
 
-  legend <- viewport(x=0.88, y=0.9, width=unit(0.15, "npc"),
-                     height=unit(0.1, "npc"),
-                     just=c("left", "bottom"))
+  legend <- viewport(x=unit(1, "npc")-unit(1.5, "inch"),
+                     y=unit(1, "npc"),
+                     width=unit(2, "inch"),
+                     height=unit(2, "inch"), just=c("left", "top"))
 
-  list(lrr=lrr, baf=baf, idiogram=idiogram, legend=legend)
+##  legend <- viewport(x=0.88, y=0.9, width=unit(0.15, "npc"),
+##                     height=unit(0.1, "npc"),
+##                     just=c("left", "bottom"))
+
+  list(datavp=datavp, lrr=lrr, baf=baf, idiogram=idiogram, legend=legend)
 }
 
 #' Plot the log R ratios and BAFs on a grid given by precomputed viewports
@@ -131,23 +160,25 @@ pedigreeViewports <- function(){
 #' @seealso \code{\link{plotDenovo}} \code{\link{pedigreeViewports}}
 #' @export
 pedigreeGrid <- function(g, vps, figs){
-  xlim <- VanillaICE:::.find_xlim_percent(g, 0.05)
+  xlim <- .find_xlim_percent(g, 0.05)
   chr <- chromosome(g)
   sl <- seqlengths(g)[chr]
   iparams <- IdiogramParams(seqnames=chr,
-                            genome="hg19",
+                            genome=genome(g)[[1]],
                             seqlengths=sl,
                             box=list(xlim=xlim, color="blue"))
   idiogram <- VanillaICE::plot(iparams)
   grid.newpage()
-  vp <- vps[["idiogram"]]
+  vp <- vps[["datavp"]]
   pushViewport(vp)
-  print(idiogram, vp=vp, newpage=FALSE)
-  upViewport(0)
+  vpidiogram <- vps[["idiogram"]]
+  pushViewport(vpidiogram)
+  print(idiogram, vp=vpidiogram, newpage=FALSE)
+  upViewport()
   vp <- vps[["lrr"]]
   pushViewport(vp)
   print(figs[[1]], vp=vp, newpage=FALSE)
-  upViewport(0)
+  upViewport()
   vp <- vps[["baf"]]
   pushViewport(vp)
   print(figs[[2]], vp=vp, newpage=FALSE)
@@ -155,6 +186,11 @@ pedigreeGrid <- function(g, vps, figs){
   id <- g[1]$sample
   grid.text(paste0(id, "\n", chr), x=unit(0.01, "npc"), y=unit(0.98, "npc"),
             just=c("left", "top"))
+  vp <- vps[["legend"]]
+  pushViewport(vp)
+  leg <- mdLegend(g[1])
+  grid.text(leg, x=unit(0.02, "npc"), y=unit(0.95, "npc"), just=c("left", "top"),
+            gp=gpar(cex=0.6, fontfamily="mono"))
 }
 
 #' Text summary of information encapculated in a MDRanges object for a particular interval

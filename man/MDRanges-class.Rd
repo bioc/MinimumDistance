@@ -14,6 +14,8 @@ MDRanges(..., posteriors)
 \item{...}{additional arguments to \code{GRanges} constructor}
 
 \item{posteriors}{a \code{DataFrame}}
+
+\item{x}{a \code{MDRanges} object}
 }
 \description{
 Contains maximum a posteriori estimates for each genomic interval

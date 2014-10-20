@@ -80,6 +80,7 @@ setMethod("cnvFilter", "MDRanges", function(object, filters=FilterParam()){
   .apply_ped_filters(object, filters)
 })
 
+#' @param x a \code{MDRanges} object
 #' @rdname MDRanges-class
 #' @aliases reduce,MDRanges-method
 #' @export

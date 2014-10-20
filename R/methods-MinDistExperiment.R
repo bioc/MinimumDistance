@@ -124,7 +124,7 @@ setReplaceMethod("mindist", "MinDistExperiment", function(object, value) {
 #' @param ... additional arguments propogated to subsetting methods for \code{SummarizedExperiment}
 #' @param drop logical. Whether to simplify a one-row or one-column
 #' matrix to a vector. In most cases, this should always be FALSE.
-#' @aliases [,MinDistExperiment,ANY-method
+#' @aliases [,MinDistExperiment,ANY,ANY,ANY-method
 #' @rdname MinDistExperiment-class
 setMethod("[", "MinDistExperiment", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){

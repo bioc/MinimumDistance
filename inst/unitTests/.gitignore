@@ -2,3 +2,4 @@ report*
 ## files to speed up unit testing
 lrr_segs.rds
 md_segs.rds
+test_data*

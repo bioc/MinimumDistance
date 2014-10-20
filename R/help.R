@@ -2,6 +2,7 @@
 #'
 #' @docType package
 #' @name MinimumDistance
+#' @import methods
 #' @import ff
 #' @import Biobase
 #' @import S4Vectors

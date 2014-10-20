@@ -344,7 +344,7 @@ the naming issue, we read in separate file provided in the
 <<sample_data>>=
 sample_info <- read.csv(file.path(extdir, "sample_data.csv"), stringsAsFactors=FALSE)
 ind_id <- setNames(gsub(" ", "", sample_info$IndividualID), sample_info$File)
-colnames(views) <- ind_id[gsub(".csv", "", colnames(views))]
+colnames(views) <- ind_id[gsub(".txt", "", colnames(views))]
 @
 
 \subsection{MinDistExperiment class}
@@ -518,43 +518,29 @@ cnvs
 
 \subsection{Visualization}
 
-We use a combination of lattice and grid to visualize the marker-level
-summaries and the copy number inference for the trio.
-
-
-<<plotDenovo1, fig=TRUE, width=8, height=6>>=
-library(grid)
-g <- denovoHemizygous(md_g)
-vps <- MinimumDistance:::pedigreeViewports()
-param <- HmmTrellisParam()
-p <- plotDenovo(me, g[1], param)
-p <- pedigreeGrid(g=g[1], vps=vps, figs=p)
-leg <- mdLegend(g[1])
-upViewport(0)
-pushViewport(vps[["legend"]])
-grid.text(leg, x=unit(0.02, "npc"), y=unit(0.95, "npc"), just=c("left", "top"),
-          gp=gpar(cex=0.6, fontfamily="mono"))
-@
-
 This produces a somewhat unsatisfactory result in that there are 2
 additional denovo hemizygous deletions nearby that likely comprise one
-denovo segment.  In the following code-chunk, we reduce the denovo
-hemizygous deletions, update the posterior probabilities for the MAP
-estimates, and visualize the result.
+denovo segment.
 
-<<plotDenovo2, fig=TRUE, width=8, height=6>>=
+<<denovo_hemizygous>>=
+denovoHemizygous(md_g)
+@
+
+In the following code-chunk, we reduce the denovo hemizygous deletions
+and update the posterior probabilities for the MAP estimates.  We use
+a combination of lattice and grid to visualize the marker-level
+summaries and copy number inference for the trio.
+
+<<plotDenovo, fig=TRUE, width=9, height=6>>=
+library(grid)
 g2 <- reduce(denovoHemizygous(md_g), min.gapwidth=500e3)
 post <- MAP2(me, g2, params)
 g2 <- denovoHemizygous(post)
-p <- plotDenovo(me, g2, param)
-p <- pedigreeGrid(g=g2, vps=vps, figs=p)
-leg <- mdLegend(g2)
-upViewport(0)
-pushViewport(vps[["legend"]])
-grid.text(leg, x=unit(0.02, "npc"), y=unit(0.95, "npc"), just=c("left", "top"),
-          gp=gpar(cex=0.6, fontfamily="mono"))
+vps <- pedigreeViewports()
+grid.params <-  HmmTrellisParam()
+p <- plotDenovo(me, g2, grid.params)
+pedigreeGrid(g=g2, vps=vps, figs=p)
 @
-
 
 
 \section{Acknowledgements}
