@@ -4,6 +4,7 @@
 \alias{"[[",ParentOffspringList,ANY,ANY-method}
 \alias{ParentOffspringList}
 \alias{ParentOffspringList-class}
+\alias{[,ParentOffspringList,ANY,ANY,ANY-method}
 \alias{[,ParentOffspringList,ANY-method}
 \alias{[[,ParentOffspringList,ANY,ANY-method}
 \alias{length,ParentOffspringList-method}
@@ -19,7 +20,7 @@ ParentOffspringList(pedigrees = list(), id)
 
 \S4method{[[}{ParentOffspringList,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
-\S4method{[}{ParentOffspringList,ANY}(x, i, j, ..., drop = FALSE)
+\S4method{[}{ParentOffspringList,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{length}{ParentOffspringList}(x)
 }

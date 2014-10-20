@@ -2,7 +2,7 @@
 \docType{class}
 \name{MinDistExperiment-class}
 \alias{MinDistExperiment-class}
-\alias{[,MinDistExperiment,ANY-method}
+\alias{[,MinDistExperiment,ANY,ANY,ANY-method}
 \alias{father,MinDistExperiment-method}
 \alias{father,SummarizedExperiment-method}
 \alias{mindist,MinDistExperiment-method}
@@ -27,7 +27,7 @@
 
 \S4method{mindist}{MinDistExperiment,ANY}(object) <- value
 
-\S4method{[}{MinDistExperiment,ANY}(x, i, j, ..., drop = FALSE)
+\S4method{[}{MinDistExperiment,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{offspring}{MinDistExperiment}(object)
 

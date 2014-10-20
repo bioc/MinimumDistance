@@ -29,7 +29,7 @@ setMethod("denovoHemizygous", "MinDistPosterior", function(object, filters=Filte
 #' @param j an index for subsetting columns
 #' @param ... additional arguments passed to subsetting matrices
 #' @param drop logical -- whether to coerce single-row matrices to vectors
-#' @aliases [,MinDistPosterior,ANY-method
+#' @aliases [,MinDistPosterior,ANY,ANY,ANY-method
 #' @rdname MinDistPosterior-class
 setMethod("[", "MinDistPosterior", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){

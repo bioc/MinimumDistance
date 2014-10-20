@@ -6,7 +6,7 @@
 \alias{$,TrioSetList-method}
 \alias{MAP,TrioSetList,GRanges-method}
 \alias{TrioSetList-class}
-\alias{[,TrioSetList,ANY-method}
+\alias{[,TrioSetList,ANY,ANY,ANY-method}
 \alias{[[,TrioSetList,ANY,ANY-method}
 \alias{coerce,TrioSetList,SummarizedExperiment-method}
 \alias{length,TrioSetList-method}
@@ -26,7 +26,7 @@
 
 \S4method{offspringNames}{TrioSetList}(object)
 
-\S4method{[}{TrioSetList,ANY}(x, i, j, ..., drop = FALSE)
+\S4method{[}{TrioSetList,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{[[}{TrioSetList,ANY,ANY}(x, i, j, ..., exact = TRUE)
 
