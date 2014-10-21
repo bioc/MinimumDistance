@@ -248,7 +248,8 @@ TrioSet <- function(pedigreeData=Pedigree(),
 }
 
 
-
+#' @aliases show,TrioSet-method
+#' @rdname TrioSet-class
 setMethod("show", signature(object="TrioSet"),
 	  function(object){
               cat(class( object ), " (storageMode: ", storageMode(object), ")\n", sep="")
@@ -528,11 +529,6 @@ setMethod("motherNames", signature(object="TrioSet"), function(object){
 #             }
 # 	  })
 
-setMethod("trioplot", signature(formula="formula", object="TrioSet", range="RangedDataCNV"),
-	  function(formula, object, range, ...){
-		  xyplot2(x=formula, data=object, range=range, ...)
-	  })
-
 
 ##setMethod("phenoData2", signature(object="TrioSet"),
 ##	  function(object) object@phenoData2)
@@ -574,101 +570,12 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
                                                  transition_param=TransitionParam(),
                                                  emission_param=EmissionParam(),
 						 mdThr=0.9, ...){
-  .Deprecated("MAP2", msg="This function is deprecated and will be defunct in a future release. See MAP2 instead.")
-  .map_trioSet(object=object,
-               ranges=ranges,
-               transition_param=transition_param,
-               emission_param=emission_param,
-               mdThr=mdThr,...)
+  .Deprecated("MAP2", msg="This function is deprecated. See MAP2 instead.")
 })
 
 
 
-.map_trioSet <- function(object,
-			 ranges,
-                         ##id,
-                         transition_param,
-                         emission_param,
-			 mdThr=0.9,...){
-  browser()
-  se <- as(object, "SnpArrayExperiment")
-  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
-  ##build <- genomeBuild(object)
-  build <- genome(object)[1]
-  ranges <- ranges[ranges$sample %in% colnames(se)]
-  ##chrom.ranges <- unique(chromosome(ranges))
-  ##seqlevels(ranges, force=TRUE) <- chrom.ranges
-  ##id <- trios(pedigree(object))[1, ]
-  ##object <- object[, match(unique(sampleNames(ranges)), id)]
-  ##chrom.object <- paste0("chr", chromosome(object))
-  ##object <- object[chrom.object %in% chrom.ranges, ]
-  ##ranges <- ranges[chrom.ranges %in% chrom.object, ]
-  ## only call segs that are "nonzero"
-##  if("mindist.mad" %in% colnames(elementMetadata(ranges))){
-##    mads <- pmax(elementMetadata(ranges)$mindist.mad, .1)
-##    abs.thr <- abs(elementMetadata(ranges)$seg.mean)/mads > mdThr
-##  } else{
-##    ## call all segments
-##    abs.thr <- rep(TRUE, length(ranges))
-##  }
-  ## Assume mindist.mad is always in mcols.
-  mads <- pmax(ranges$mindist.mad, .1)
-  ranges$exceeds.md.thr <- abs(ranges$seg.mean/mads) > mdThr
-  ##ocSamples(1) ## has to be 1. This will process 3 samples per alotted CPU
-  ##chunks <- splitIndicesByLength(index.trios, ocSamples())
-  ## coerce to Experiment class
-##  r <- lrr(object)
-##  b <- baf(object)
-##  pos <- position(object)
-##  chr <- chromosome(object)
-##  sl <- setSequenceLengths(build,
-##                           paste("chr", unique(chr), sep=""))
-##  feature.granges <- GRanges(paste("chr", chr, sep=""), IRanges(pos, pos),
-##                             seqlengths=sl)
-  ##grFun <- generatorTransitionProbs(chr, pos, build, TAUP=TAUP, tauMAX=tauMAX)
-##  is.snp <- isSnp(object)
-##  snp.index <- which(is.snp)
-##  anyNP <- any(!is.snp)
-##  center <- TRUE
-##  pkgs <- c("oligoClasses", "VanillaICE")
-##  isff <- is(r, "ff")
-##  if(isff) pkgs <- c("ff", pkgs)
-##  matrixFun <- generatorMatrix2(r, b, chr, center=TRUE,
-##                                snp.index=snp.index,
-##                                anyNP=anyNP,
-##                                ped=pedigree(object))
-##  overlapFun <- generatorOverlapFeatures(feature.granges)
-  grl <- split(ranges, ranges$sample)
-  ##offsrping is the 3rd index
-  grl <- grl[match(colnames(se)[3], names(grl))]
 
-  fit <- hmm2(se) ## A GRangesList
-##
-##  rm(pos, chr, b, r); gc()
-##  i <- NULL
-##  results <- foreach(i=chunks, granges=grl, .packages=pkgs) %dopar% {
-##    emit <- viterbi2Wrapper(index.samples=i,
-##                            snp.index=snp.index,
-##                            anyNP=anyNP,
-##                            is.log=TRUE,
-##                            limits=c(-4, 3),
-##                            cnStates=cnStates,
-##                            grFun=grFun,
-##                            matrixFun=matrixFun,
-##                            returnEmission=TRUE, ...)
-    granges <- sort(granges)
-    ranges <- loglik2(emit=emit,
-                      ranges=granges,
-                      pr.nonmendelian=pr.nonmendelian,
-                      overlapFun=overlapFun)
-    chr.arm <- .getArm(chromosome(ranges), start(ranges), build)
-    ranges <- combineRangesByFactor(ranges, paste(chr.arm, state(ranges), sep="_"))
-    ranges
-##  }
-  results <- unlist(GRangesList(results))
-  metadata(results) <- metadata(ranges)
-  return(results)
-}
 
 #' @param md a matrix of the minimum distance
 #' @param segmentParents logical.  Whether to segment the log R ratios

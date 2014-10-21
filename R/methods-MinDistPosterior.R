@@ -42,6 +42,10 @@ setMethod("denovo", "MinDistPosterior", function(object, filters=FilterParamMD(s
   cnvFilter(object, filters)
 })
 
+
+#' @param object a \code{MinDistPosterior} object
+#' @aliases show,MinDistPosterior-method
+#' @rdname MinDistPosterior-class
 setMethod("show", "MinDistPosterior", function(object){
   cat("Object of class 'MinDistPosterior'\n")
   nsegs <- elementLengths(granges(object))
@@ -58,4 +62,18 @@ setMethod("show", "MinDistPosterior", function(object){
   cat("      homozygous :", length(denovo_homo), "\n")
   cat("      duplication:", length(denovo_dup), "\n")
   cat("See denovoHemizygous(), denovoHomozygous(), denovo()\n")
+})
+
+#' @param x a \code{MinDistPosterior} object
+#' @param i an index for subsetting rows
+#' @param j an index for subsetting columns
+#' @param ... additional arguments passed to subsetting matrices
+#' @param drop logical -- whether to coerce single-row matrices to vectors
+#' @aliases [,MinDistPosterior,ANY,ANY,ANY-method
+#' @rdname MinDistPosterior-class
+setMethod("[", "MinDistPosterior", function(x, i, j, ..., drop=FALSE){
+  if(!missing(i)){
+    x@granges <- x@granges[i]
+  }
+  x
 })

@@ -86,6 +86,8 @@ setMethod("assays", "ArrayViews", function(x, ...){
   snpArrayAssays(cn=r, baf=b)
 })
 
+#' @aliases show,MinDistExperiment-method
+#' @rdname MinDistExperiment-class
 setMethod("show", "MinDistExperiment", function(object){
   callNextMethod(object)
   ##cat("MAD(minimum distance): ", round(mad(mindist(object),na.rm=TRUE),2),  "\n")
@@ -121,7 +123,7 @@ setReplaceMethod("mindist", "MinDistExperiment", function(object, value) {
 #' @param ... additional arguments propogated to subsetting methods for \code{SummarizedExperiment}
 #' @param drop logical. Whether to simplify a one-row or one-column
 #' matrix to a vector. In most cases, this should always be FALSE.
-#' @aliases "[",MinDistExperiment,ANY-method
+#' @aliases [,MinDistExperiment,ANY,ANY,ANY-method
 #' @rdname MinDistExperiment-class
 setMethod("[", "MinDistExperiment", function(x, i, j, ..., drop=FALSE){
   if(!missing(i)){
@@ -234,10 +236,6 @@ computeEmissionProbs <- function(object, param=MinDistParam()){
   se
 }
 
-setGeneric("colMads", function(x, centers=colMedians(x, ...), constant=1.4826, ...)
-           standardGeneric("colMads"))
-
-
 setMethod("colMads", signature(x="MinDistExperiment"),
           function(x, centers=colMedians(x, ...), constant=1.4826, ...){
             colMads(mindist(x), na.rm=TRUE)
@@ -269,7 +267,7 @@ posteriorSummaries <- function(log_prior.lik){
 
 #' @aliases MAP2,MinDistExperiment,MinDistGRanges-method
 #' @rdname MAP2
-setMethod(MAP2, c("MinDistExperiment", "MinDistGRanges"), function(object, mdgr, param, ...){
+setMethod(MAP2, c("MinDistExperiment", "MinDistGRanges"), function(object, mdgr, param=MinDistParam(), ...){
   obj <- computePosterior(object, granges=mindist(mdgr), param=param)
   ##GRangesList(obj)
   MinDistPosterior(granges=GRangesList(obj))
@@ -277,7 +275,7 @@ setMethod(MAP2, c("MinDistExperiment", "MinDistGRanges"), function(object, mdgr,
 
 #' @aliases MAP2,MinDistExperiment,GRangesList-method
 #' @rdname MAP2
-setMethod(MAP2, c("MinDistExperiment", "GRangesList"), function(object, mdgr, param, ...){
+setMethod(MAP2, c("MinDistExperiment", "GRangesList"), function(object, mdgr, param=MinDistParam(), ...){
   obj <- computePosterior(object, granges=mdgr, param=param)
   ##GRangesList(obj)
   MinDistPosterior(granges=GRangesList(obj))
@@ -285,7 +283,7 @@ setMethod(MAP2, c("MinDistExperiment", "GRangesList"), function(object, mdgr, pa
 
 #' @aliases MAP2,MinDistExperiment,GRanges-method
 #' @rdname MAP2
-setMethod(MAP2, c("MinDistExperiment", "GRanges"), function(object, mdgr, param, ...){
+setMethod(MAP2, c("MinDistExperiment", "GRanges"), function(object, mdgr, param=MinDistParam(), ...){
   obj <- computePosterior(object, granges=mdgr, param=param)
   MinDistPosterior(granges=GRangesList(obj))
 })
@@ -373,6 +371,7 @@ setMethod("computePosterior", c("MinDistExperiment", "GRangesList"), function(ob
   }
   offspr <- offspring(object)
   J <- foreach(id=offspr) %do% c(1:2, match(id, colnames(object)))
+  id <- j <- g <- NULL
   md_rangesList <- foreach(j = J, g=granges) %do% {
     .compute_trio_posterior(object=object[, j],
                             granges=g,

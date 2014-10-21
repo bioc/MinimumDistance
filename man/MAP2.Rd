@@ -7,13 +7,16 @@
 \alias{MAP2,MinDistExperiment,MinDistGRanges-method}
 \title{Computes maximum a posteriori estimate for the trio copy number state}
 \usage{
-MAP2(object, mdgr, param, ...)
+MAP2(object, mdgr, param = MinDistParam(), ...)
 
-\S4method{MAP2}{MinDistExperiment,MinDistGRanges}(object, mdgr, param, ...)
+\S4method{MAP2}{MinDistExperiment,MinDistGRanges}(object, mdgr,
+  param = MinDistParam(), ...)
 
-\S4method{MAP2}{MinDistExperiment,GRangesList}(object, mdgr, param, ...)
+\S4method{MAP2}{MinDistExperiment,GRangesList}(object, mdgr,
+  param = MinDistParam(), ...)
 
-\S4method{MAP2}{MinDistExperiment,GRanges}(object, mdgr, param, ...)
+\S4method{MAP2}{MinDistExperiment,GRanges}(object, mdgr,
+  param = MinDistParam(), ...)
 }
 \arguments{
 \item{object}{An object of class \code{MinDistExperiment}}

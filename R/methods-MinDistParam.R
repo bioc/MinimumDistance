@@ -21,6 +21,7 @@
 #' @param thin a length-one vector indicating whether to thin the
 #' data. This is primarily for internal use in conjunction with the
 #' \code{filterExperiment} function.
+#' @seealso \code{\link[DNAcopy]{segment}}
 #' @export
 MinDistParam <- function(nMAD=0.75, dnacopy=DNAcopyParam(), penncnv=PennParam(), emission=EmissionParam(), thin=10L){
   new("MinDistParam", nMAD=nMAD, dnacopy=dnacopy, penncnv=penncnv, emission=emission, thin=thin)
@@ -71,6 +72,21 @@ setMethod("show", "MinDistParam", function(object){
   cat("    See segment() for description of DNAcopy parameters\n")
 })
 
+#' Constructor for DNAcopyParam class
+#'
+#' Creates an instance of a parameter class for circular binary
+#' segmentation of the minimum distance and the log R ratios.
+#' Parameters in this object are passed to the \code{segment} function
+#' in the package DNAcopy.
+#' @param alpha see \code{\link[DNAcopy]{segment}}
+#' @param min.width see \code{\link[DNAcopy]{segment}}
+#' @param undo.splits see \code{\link[DNAcopy]{segment}}
+#' @param undo.SD see \code{\link[DNAcopy]{segment}}
+#' @export
+#' @seealso \code{\link[DNAcopy]{segment}}
+#' @examples
+#' segment_params <- DNAcopyParam(alpha=0.01)
+#' params <- MinDistParam(dnacopy=segment_params)
 DNAcopyParam <- function(alpha=0.01, min.width=2L, undo.splits=c("none", "prune", "sdundo"), undo.SD=3){
   new("DNAcopyParam", alpha=alpha, min.width=min.width, undo.splits=match.arg(undo.splits), undo.SD=undo.SD)
 }
@@ -82,6 +98,8 @@ setMethod("min.width", "DNAcopyParam", function(object) object@min.width)
 setMethod("undo.splits", "DNAcopyParam", function(object) object@undo.splits)
 setMethod("undo.SD", "DNAcopyParam", function(object) object@undo.SD)
 
+#' @aliases show,DNAcopyParam-method
+#' @rdname MinDistParam-class
 setMethod("show", "DNAcopyParam", function(object){
   cat("An object of class 'DNAcopyParam'\n")
   cat("  alpha: ", alpha(object), "\n")

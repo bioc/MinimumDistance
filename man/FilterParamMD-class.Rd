@@ -2,7 +2,14 @@
 \docType{class}
 \name{FilterParamMD-class}
 \alias{FilterParamMD-class}
+\alias{show,FilterParamMD-method}
 \title{A class for filtering genomic intervals called by MinimumDistance}
+\usage{
+\S4method{show}{FilterParamMD}(object)
+}
+\arguments{
+\item{object}{a \code{FilterParamMD} object}
+}
 \description{
 Options for filtering include the number of markers spanned by a
 segment, the posterior probability of the maximum a posteriori

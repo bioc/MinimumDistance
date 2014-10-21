@@ -66,6 +66,8 @@ setMethod("father", "MinDistGRanges", function(object) object@father)
 #' @rdname MinDistGRanges-class
 setMethod("pedigree", "MinDistGRanges", function(object) object@pedigree)
 
+#' @aliases show,MinDistGRanges-method
+#' @rdname MinDistGRanges-class
 setMethod("show", "MinDistGRanges", function(object){
   cat("An object of class 'MinDistGRanges' \n")
   ##cat("  pedigree id:  ", pedigree_id(object), "\n")

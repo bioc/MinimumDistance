@@ -3,9 +3,10 @@
 \name{Pedigree-class}
 \alias{"[",Pedigree,ANY-method}
 \alias{Pedigree-class}
-\alias{[,Pedigree,ANY-method}
+\alias{[,Pedigree,ANY,ANY,ANY-method}
 \alias{dim,Pedigree-method}
 \alias{offspringNames,Pedigree-method}
+\alias{show,Pedigree-method}
 \alias{trios,Pedigree-method}
 \title{Deprecated class for storing pedigree data}
 \usage{
@@ -13,7 +14,9 @@
 
 \S4method{offspringNames}{Pedigree}(object)
 
-\S4method{[}{Pedigree,ANY}(x, i, j, ..., drop = FALSE)
+\S4method{show}{Pedigree}(object)
+
+\S4method{[}{Pedigree,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{dim}{Pedigree}(x)
 }

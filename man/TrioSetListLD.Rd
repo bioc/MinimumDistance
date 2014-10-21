@@ -47,26 +47,7 @@ A \code{TrioSetList} object
 }
 \description{
 The TrioSetListLD constructor uses ff objects to handle large
-datasets.  This function is deprecated and will be defunct in a
-future release
-}
-\examples{
-\dontrun{
-if(require("ff")){
-	library(ff)
-     library(oligoClasses)
-	ldPath(tempdir())
-     path <- system.file("extdata", package="MinimumDistance")
-	fnames <- list.files(path, pattern="[FMO].txt")
-	trioSetListff <- TrioSetListLD(path=path,
-				       fnames=fnames,
-				       pedigreeData=Pedigree(data.frame(F="F.txt",
-				       M="M.txt", O="O.txt")),
-				       annotationPkg="human610quadv1bCrlmm",
-				       outdir=ldPath(),
-				       genome="hg19")
-}
-}
+datasets.  This function is defunct. Use MinDistExperiment instead.
 }
 \seealso{
 \code{\linkS4class{TrioSetList}}

@@ -212,7 +212,7 @@ setGeneric("pedigreeName", function(object) standardGeneric("pedigreeName"))
 #'   md_g <- MAP2(md_exp, md_gr, param)
 #' }
 #' @export
-setGeneric("MAP2", function(object, mdgr, param, ...) standardGeneric("MAP2"))
+setGeneric("MAP2", function(object, mdgr, param=MinDistParam(), ...) standardGeneric("MAP2"))
 
 setGeneric("posteriorLogOdds", function(object) standardGeneric("posteriorLogOdds"))
 setGeneric("posteriorLogRR", function(object) standardGeneric("posteriorLogRR"))
@@ -282,3 +282,15 @@ setGeneric("denovo", function(object, filters=FilterParamMD(state=c("220", "221"
 #' @rdname denovo
 #' @export
 setGeneric("denovoDuplication", function(object, filters=FilterParamMD(state="224")) standardGeneric("denovoDuplication"))
+
+
+
+#' Plot marker-level summaries for a genomic interval of interest
+#'
+#' @param object see \code{showMethods("plotDenovo")}
+#' @param g a \code{MDRanges} object
+#' @param param a \code{HmmTrellisParam} object
+#' @export
+#' @rdname plotDenovo
+setGeneric("plotDenovo",
+           function(object, g, param) standardGeneric("plotDenovo"))

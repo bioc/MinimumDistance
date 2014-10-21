@@ -285,13 +285,6 @@ segmentMatrix <- function(object, pos, chrom, id, featureNames,
           undo.splits=undo.splits(param))$output
 }
 
-.setFilename <- function(granges, se){
-  files <- se$filename
-  mdfiles <- setNames(files[offspring(se)], .mindistnames(offspring(se)))
-  files <- c(files, mdfiles)
-  files[granges$sample]
-}
-
 .validNames <- function(g, id){
   if(!all(g$sample %in% id)){
     warning("appears that names were mangled by dnacopy. Attempting to unmangle")
@@ -325,6 +318,7 @@ subsetGRangesById <- function(g, id){ g[g$sample %in% id]}
 ## @param param
 ## @export
 narrow2 <- function(offspring_grl, mindist_grl, mads, param){
+  md.mad <- offspr_gr <- md_gr <- NULL
   mindist_grl2 <- foreach(md_gr=mindist_grl, offspr_gr=offspring_grl, md.mad=mads) %do%{
     .narrowMinDistGRanges(md_gr=md_gr, offspr_gr=offspr_gr, md.mad=md.mad, param=param)
   }

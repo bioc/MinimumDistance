@@ -79,3 +79,31 @@ setMethod("state", "MDRanges", function(object) object$calls)
 setMethod("cnvFilter", "MDRanges", function(object, filters=FilterParam()){
   .apply_ped_filters(object, filters)
 })
+
+
+#' @param x a \code{MDRanges} object
+#' @rdname MDRanges-class
+#' @aliases reduce,MDRanges-method
+#' @export
+setMethod("reduce", "MDRanges", function(x, ...){
+  g <- as(x, "GRanges")
+  gr <- reduce(g, ...)
+  hits <- findOverlaps(gr, g)
+  nf <- split(numberFeatures(x), queryHits(hits))
+  nf <- sapply(nf, sum)
+  st <- split(state(x), queryHits(hits))
+  st <- sapply(st, function(x) paste(unique(x), collapse=","))
+  seg.mean <- mapply(function(x, w) sum(x)/sum(w), x=split(g$seg.mean * width(g), queryHits(hits)),
+                     w=split(width(g), queryHits(hits)))
+
+
+
+  ##  prCall <- sapply(split(x$prCall, queryHits(hits)), min)
+  id <- sapply(split(x$sample, queryHits(hits)), unique)
+  gr$numberFeatures <- nf
+  gr$state <- st
+  ##  gr$prCall <- prCall
+  gr$sample <- id
+  gr$seg.mean <- seg.mean
+  gr
+})

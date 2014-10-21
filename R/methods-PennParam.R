@@ -25,6 +25,7 @@ PennParam <- function(states, referenceState="222", prLessLikelyCN=0.0009,
   table1v <- vectorizeTable1(table1, states)
   path <- system.file("extdata", package="MinimumDistance", mustWork=TRUE)
   load(file.path(path, "pennCNV_MendelianProb.rda"))
+  pennCNV_MendelianProb <- get("pennCNV_MendelianProb")
   initial_probs <- setNames(.initialStateProbs(5L, normal.index=3, prInitialStateNotDiploid),
                             paste0("CN:", 0:4))
   transition_probs <- transitionProbability(5L, epsilon=prTransitionToNewState) ## 5 states
@@ -85,6 +86,9 @@ setReplaceMethod("initialStateProb", "PennParam", function(object, value) {
 setMethod("transitionProb", "PennParam", function(object) object@transitionProb)
 setMethod("minimum_MAD", "PennParam", function(object) object@minimum_MAD)
 
+#' @param object a \code{PennParam} object
+#' @aliases show,PennParam-method
+#' @rdname PennParam
 setMethod("show", "PennParam", function(object){
   cat("Object of class `PennParam'\n")
   cat("  ", nrow(state(object)), " trio states\n")
@@ -94,7 +98,7 @@ setMethod("show", "PennParam", function(object){
   cat("   PennCNV Table 1: ", length(table1(object)), " vector\n")
   cat("   PennCNV Table 3: 5 x 5 x 5 x 5 x 5 x 5 array \n")
   cat("   probability non-Mendelian:", prNonMendelian(object), "\n")
-  cat("   minimum distance threshold:", minimum_distance_threshold(object), "\n")
+##  cat("   minimum distance threshold:", minimum_distance_threshold(object), "\n")
   pis <- paste(round(initialStateProb(object), 2), collapse=",")
   cat("   initial state probabilities: ", pis, "\n")
   cat("   transition prob: 5 x 5 matrix \n")
