@@ -66,7 +66,6 @@ setMethod(SnpGRanges, "SnpGRanges", function(object, isSnp) return(object))
 setMethod("MinDistExperiment", c("ArrayViews", "ParentOffspring"),
           function(object=ArrayViews(),
                    pedigree=ParentOffspring(), ...){
-            tmp <- object[, names(pedigree)]
             object <- object[, names(pedigree)]
             if(!(all(colnames(object) %in% names(pedigree))))
               stop("Samples in the views object do not match the pedigree names")
