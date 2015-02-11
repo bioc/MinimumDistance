@@ -237,7 +237,7 @@ computeEmissionProbs <- function(object, param=MinDistParam()){
 }
 
 setMethod("colMads", signature(x="MinDistExperiment"),
-          function(x, centers=colMedians(x, ...), constant=1.4826, ...){
+          function(x, center=colMedians(x, ...), constant=1.4826, ...){
             colMads(mindist(x), na.rm=TRUE)
           })
 
