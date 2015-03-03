@@ -73,7 +73,7 @@ setMethod("MinDistExperiment", c("ArrayViews", "ParentOffspring"),
             object <- sort(object)
             object <- dropDuplicatedMapLocs(object)
             al <- assays(object)
-            .constructMDE(al, rowData=SnpGRanges(rowData(object)),
+            .constructMDE(al, rowData=SnpGRanges(rowRanges(object)),
                           colData=colData(object),
                           pedigree=pedigree)
           })
@@ -163,7 +163,7 @@ setMethod("mother", "MinDistExperiment", function(object) mother(pedigree(object
 setMethod("subsetAndSort", "MinDistExperiment",
           function(object, autosomes=seqlevels(object)[1:22]){
             object <- object[chromosome(object) %in% autosomes, ]
-            seqlevels(rowData(object), force=TRUE) <- autosomes
+            seqlevels(rowRanges(object), force=TRUE) <- autosomes
             object <- sort(object)
             object <- removeDuplicateMapLoc(object)
             object
@@ -230,7 +230,7 @@ computeEmissionProbs <- function(object, param=MinDistParam()){
   tmp2 <- SimpleList(emitO)
   tmp2@listData <- setNames(tmp2@listData, offspring(object))
   tmp@listData <- setNames(tmp@listData, c(father(object), mother(object)))
-  se <- SummarizedExperiment(assays=c(tmp, tmp2), rowData=rowData(object))
+  se <- SummarizedExperiment(assays=c(tmp, tmp2), rowData=rowRanges(object))
   ##e <- assays(se)[[4]][37390:37394, ]
   ##pr2 <- e[, "cn2"]/rowSums(e)
   se
@@ -328,7 +328,7 @@ filterIndexForGRanges <- function(object, granges, param){
   granges <- granges[Index]
   mcols(granges) <- c(mcols(granges), post)
   granges$calls <- calls
-  granges$number_probes <- countOverlaps(granges, rowData(object))
+  granges$number_probes <- countOverlaps(granges, rowRanges(object))
   mg <- as(granges, "MDRanges")
   versions <- c(packageVersion("VanillaICE"),
                 packageVersion("MinimumDistance"))
@@ -454,9 +454,9 @@ setMethod("filterExperiment", c("MinDistExperiment", "MinDistGRanges"),
   ##mads <- mad(mdgr)[names(mindist(mdgr))]
   above_thr <- segMeanAboveThr(mean=granges$seg.mean, mad=mads, nmad=nMAD(param))
   ##g <- mindist(mdgr)[[1]]
-  index <- unique(subjectHits(findOverlaps(granges[above_thr], rowData(object), maxgap=50e3)))
+  index <- unique(subjectHits(findOverlaps(granges[above_thr], rowRanges(object), maxgap=50e3)))
   if(length(index) > 0){
-    index2 <- seq_along(rowData(object))[-index]
+    index2 <- seq_along(rowRanges(object))[-index]
     ## add a thin argument to the parameter class
     index2 <- index2[seq(1, length(index2), by=thin(param))]
     indices <- sort(c(index, index2))
@@ -472,7 +472,7 @@ setMethod("filterExperiment", c("MinDistExperiment", "MinDistGRanges"),
 #' @rdname MinDistExperiment-class
 setMethod("segment2", "MinDistExperiment", function(object, param=MinDistParam()){
   x <- cbind(lrr(object), mindist(object))
-  segs <- .smoothAndSegment(x, rowData(object), dnacopy(param)) ## segments the log r ratios and minimum distance for each trio
+  segs <- .smoothAndSegment(x, rowRanges(object), dnacopy(param)) ## segments the log r ratios and minimum distance for each trio
   g <- .dnacopy2granges(segs, seqinfo(object), original_id=colnames(x))
   MD_granges <- g[g$sample %in% .get_md_names(object)]
   MD_grl <- split(MD_granges, MD_granges$sample)
