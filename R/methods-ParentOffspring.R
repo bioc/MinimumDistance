@@ -78,14 +78,15 @@ setMethod("fileName", "ParentOffspring", function(object, label){
   ids <- paste0(names(object), "_", label, ".rds")
   file.path(dirs, ids)
 })
-setMethod("lrrFile", "ParentOffspring", function(object, label="lrr"){
-  fileName(object, label)
+
+setMethod("lrrFile", "ParentOffspring", function(object){
+  fileName(object, "lrr")
 })
 
-setMethod("bafFile", "ParentOffspring", function(object, label="baf"){
-  fileName(object, label)
+setMethod("bafFile", "ParentOffspring", function(object){
+  fileName(object, "baf")
 })
 
-setMethod("gtFile", "ParentOffspring", function(object, label="gt"){
-  fileName(object, label)
+setMethod("gtFile", "ParentOffspring", function(object){
+  fileName(object, "gt")
 })

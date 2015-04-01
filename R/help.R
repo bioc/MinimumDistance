@@ -18,5 +18,6 @@
 #' @import VanillaICE
 #' @import lattice
 #' @import grid
+#' @importFrom stats setNames
 #' @importFrom data.table fread
 NULL

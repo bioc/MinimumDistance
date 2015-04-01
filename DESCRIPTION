@@ -1,7 +1,7 @@
 Package: MinimumDistance
 Type: Package
 Title: A package for de novo CNV detection in case-parent trios
-Version: 1.11.3
+Version: 1.11.4
 Date: Tue Oct 21 22:11:13 EDT 2014
 Author: Robert B Scharpf and Ingo Ruczinski
 Maintainer: Robert B Scharpf <rscharpf@jhu.edu>
@@ -26,9 +26,12 @@ Imports:
     GenomicRanges (>= 1.17.16),
     GenomeInfoDb,
     data.table,
-    grid
+    grid,
+    stats
 Suggests:
     human610quadv1bCrlmm (>= 1.0.3),
+    BSgenome.Hsapiens.UCSC.hg18,
+    BSgenome.Hsapiens.UCSC.hg19,
     SNPchip,
     RUnit
 Collate:
@@ -71,6 +74,6 @@ Enhances: snow, doSNOW
 LazyLoad: yes
 Packaged: 2012-03-23 14:08:50 UTC; rscharpf
 biocViews: Microarray, SNP, CopyNumberVariation
-## Local Variables:
+## Local Variables: 
 ## time-stamp-pattern: "8/Date: %3a %3b %2d %02H:%02M:%02S %Z %:y\n"
-## End:
+## End: 
