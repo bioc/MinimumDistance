@@ -35,7 +35,7 @@ setAs("TrioSet", "MinDistExperiment", function(from, to){
   r <- .setColnames(lrr(from)[, 1, ], names(ped))/100
   b <- .setColnames(baf(from)[, 1, ], names(ped))/1000
   assays <- snpArrayAssays(cn=r, baf=b)
-  me <- .constructMDE(assays, rowData=gd,
+  me <- .constructMDE(assays, rowRanges=gd,
                       colData=DataFrame(row.names=names(ped)),
                       ped)
   me
@@ -153,7 +153,7 @@ setMethod("coerce", signature(from="TrioSetList", to="SummarizedExperiment"),
 		  ##rownames(colData) <- sampleNames(from)
 		  colnames(r) <- colnames(b) <- ped
 		  SummarizedExperiment(assays=SimpleList(lrr=r, baf=b),
-				       rowData=gr)
+				       rowRanges=gr)
 	  })
 
 #' Coerces a TrioSetList to a TrioSet

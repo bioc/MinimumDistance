@@ -36,28 +36,28 @@ setMethod(SnpGRanges, "SnpGRanges", function(object, isSnp) return(object))
 .set_md_names <- function(id) paste0("md_", id)
 .get_md_names <- function(object) .set_md_names(offspring(object))
 
-.constructMDE <- function(assays, rowData, colData, pedigree){
+.constructMDE <- function(assays, rowRanges, colData, pedigree){
   md <- .setColnames(.mindist(assays), .set_md_names(offspring(pedigree)))
   new("MinDistExperiment",
       assays=assays,
-      rowData=SnpGRanges(rowData),
+      rowData=SnpGRanges(rowRanges),
       colData=colData,
       mindist=md,
       pedigree=pedigree)
 }
 
 ##setMethod("MinDistExperiment", c("missing", "GRanges", "matrix", "matrix"),
-##          function(object, rowData, cn, baf, colData){
+##          function(object, rowRanges, cn, baf, colData){
 ##            filenames <- colData$filename
 ##            if(!all(colnames(cn) %in% filenames)) stop("colnames of cn matrix are not in the pedigree vector.")
 ##            cn <- cn[, filenames]
 ##            baf <- baf[, filenames]
 ##            colnames(cn) <- colnames(baf) <- rownames(colData)
 ##            assays <- snpArrayAssays(cn=cn, baf=baf)
-##            .constructMDE(assays, rowData, colData)
+##            .constructMDE(assays, rowRanges, colData)
 ##          })
 
-.MinDistExperiment <- function(cn, baf, rowData, colData){
+.MinDistExperiment <- function(cn, baf, rowRanges, colData){
   assays <- snpArrayAssays(cn=cn, baf=baf)
 }
 
@@ -73,7 +73,7 @@ setMethod("MinDistExperiment", c("ArrayViews", "ParentOffspring"),
             object <- sort(object)
             object <- dropDuplicatedMapLocs(object)
             al <- assays(object)
-            .constructMDE(al, rowData=SnpGRanges(rowRanges(object)),
+            .constructMDE(al, rowRanges=SnpGRanges(rowRanges(object)),
                           colData=colData(object),
                           pedigree=pedigree)
           })
@@ -230,7 +230,7 @@ computeEmissionProbs <- function(object, param=MinDistParam()){
   tmp2 <- SimpleList(emitO)
   tmp2@listData <- setNames(tmp2@listData, offspring(object))
   tmp@listData <- setNames(tmp@listData, c(father(object), mother(object)))
-  se <- SummarizedExperiment(assays=c(tmp, tmp2), rowData=rowRanges(object))
+  se <- SummarizedExperiment(assays=c(tmp, tmp2), rowRanges=rowRanges(object))
   ##e <- assays(se)[[4]][37390:37394, ]
   ##pr2 <- e[, "cn2"]/rowSums(e)
   se
@@ -414,8 +414,8 @@ setMethod("computePosterior", c("MinDistExperiment", "GRangesList"), function(ob
  ##  gd <- GRanges(paste0("chr", chromosome(from)), IRanges(position(from),
  ##                                                         width=1),
  ##                isSnp=isSnp(from))
- ##  rowdata <- SnpGRanges(gd)
- ##  se <- SnpArrayExperiment(cn=cn, baf=b, rowData=rowdata)
+ ##  rowranges <- SnpGRanges(gd)
+ ##  se <- SnpArrayExperiment(cn=cn, baf=b, rowRanges=rowranges)
  ##  se
  ##})
 

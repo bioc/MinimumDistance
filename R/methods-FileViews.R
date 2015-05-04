@@ -61,12 +61,12 @@
 ##})
 
 
-##setMethod(MAP2, "FileViews", function(object, mdgr, param, rowData, ...){
+##setMethod(MAP2, "FileViews", function(object, mdgr, param, rowRanges, ...){
 ##  object <- object[1]
 ##  assayList <- assays(object)
 ##  ped <- pedigree(object)
 ##  me <- MinDistExperiment(assays=assayList,
-##                          rowData=rowData,
+##                          rowRanges=rowRanges,
 ##                          colData=setNames(DataFrame(ped), "filename"))
 ##  me <- subsetAndSort(me, seqlevels(me)[1:22])
 ##  mdgr <- segment2(me, param=param)

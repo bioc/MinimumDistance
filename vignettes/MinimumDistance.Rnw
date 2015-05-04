@@ -185,7 +185,7 @@ steps for copy number estimation no longer depend on the format of the
 source files.  At this point, we encapsulate the names of the source
 files ('sourcePaths'), the location of where we intend to store the
 parsed data ('parsedPath'), and the genomic marker annnotation created
-in the preceding section ('rowData') in a single object called an
+in the preceding section ('rowRanges') in a single object called an
 \Rclass{ArrayViews}.
 
 <<ArrayViews>>=
@@ -194,7 +194,7 @@ in the preceding section ('rowData') in a single object called an
 ##
 parsedDir <- "ParsedFiles"
 if(!file.exists(parsedDir)) dir.create(parsedDir)
-views <- ArrayViews(rowData=fgr, sourcePaths=files, parsedPath=parsedDir)
+views <- ArrayViews(rowRanges=fgr, sourcePaths=files, parsedPath=parsedDir)
 show(views)
 @
 

@@ -20,13 +20,13 @@
   ##ped <- fread("/dcs01/oncbio/rscharpf/maher/triosh.txt", header=FALSE)
   ##ped <- formatPedigree(ped)
   fgr2 <- readRDS(file.path(datdir, "feature_granges_hg19.rds"))
-  views <- ArrayViews(rowData=fgr2,
+  views <- ArrayViews(rowRanges=fgr2,
                       filePaths=atv.files,
                       sample_ids=names(pedlist[[1]]))
   ##pedigree=ped, cnvar="lrr", bafvar="baf")
   ##assayList <- assays(views[1, ])
 ##  me <- MinDistExperiment(assays=assayList,
-##                          rowData=fgr2,
+##                          rowRanges=fgr2,
   ##                          pedigree=pedigree(views[1,]))
   me <- MinDistExperiment(views, pedigree=pedlist[[1]])
   mdgr <- segment2(me, param=param)
