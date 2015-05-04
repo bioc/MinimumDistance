@@ -8,7 +8,7 @@
 ##fgr <- readRDS(file.path(datdir, "feature_granges_hg19.rds"))
 ##
 ####views <- ArrayViews(filePaths=unlist(pedlist),
-####                    rowData=
+####                    rowRanges=
 ##
 ##setClass("PedigreeView", contains="ArrayViews",
 ##         representation(pedigree='character'))

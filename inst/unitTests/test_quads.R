@@ -16,7 +16,7 @@ quad_RdsViews <- function(){
 ##  fgr <- readRDS(file.path(datdir, "feature_granges_hg19.rds"))
 ##  assayList <- assays(views[1, ])
 ##  ped <- pedigree(views[1,])
-##  me <- MinDistExperiment(object=assayList, rowData=fgr,
+##  me <- MinDistExperiment(object=assayList, rowRanges=fgr,
 ##                          colData=setNames(DataFrame(ped), "filename"))
 ##  ## check gender
 ##  if(FALSE){
@@ -39,7 +39,7 @@ quad_RdsViews <- function(){
 ##  param <- MinDistParam()
 ##  pedids <- pedigreeId(views)
 ##  target_files <- file.path(path(views), paste0(pedids, "_mdgr.rds"))
-##  viewSapply(views[1:2], segment2, rowData=fgr, param=param,
+##  viewSapply(views[1:2], segment2, rowRanges=fgr, param=param,
 ##             target_file=target_files[1:2])
 ##  mdgr <- readRDS(target_files[1])
 ##  mindist(mdgr) <- narrow2(mdgr, param)

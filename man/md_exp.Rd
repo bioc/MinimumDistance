@@ -33,7 +33,7 @@ such as \code{findOverlaps} are available through inheritance.
     ## parse files
     parsedDir <- "ParsedFiles"
     if(!file.exists(parsedDir)) dir.create(parsedDir)
-    views <- ArrayViews(rowData=fgr, sourcePaths=files, parsedPath=parsedDir)
+    views <- ArrayViews(rowRanges=fgr, sourcePaths=files, parsedPath=parsedDir)
     dat <- fread(files[1])
     select_columns <- match(c("SNP Name", "Allele1 - AB", "Allele2 - AB",
                               "Log R Ratio", "B Allele Freq"), names(dat))

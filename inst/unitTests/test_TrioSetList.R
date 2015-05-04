@@ -82,7 +82,7 @@ test_TrioSetList_construction <- function(){
 		chrom <- paste("chr", chromosome(trioSet), sep="")
 		seqinfo <- Seqinfo(seqnames=unique(chrom),
 				   genome="hg18")
-		rowData <- GRanges(chrom,
+		rowRanges <- GRanges(chrom,
 				   IRanges(position(trioSet)-12,
 					   position(trioSet)+12),
 				   seqinfo=seqinfo)
@@ -106,7 +106,7 @@ test_TrioSetList_construction <- function(){
 		rownames(colData) <- sampleNames(ped)
 		##colnames(colData) <- c("father", "mother", "offspring")
 		se <- SummarizedExperiment(assays=SimpleList(lrr=r),
-					   rowData=rowData,
+					   rowRanges=rowRanges,
 					   colData=colData)
 	}
 	checkTrue(validObject(trioSet))
