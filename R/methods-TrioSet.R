@@ -589,7 +589,7 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 ##			 mdThr=0.9,...){
 ##  browser()
 ##  se <- as(object, "SnpArrayExperiment")
-##  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+##  pkgs <- c("VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
 ##  ##build <- genomeBuild(object)
 ##  build <- genome(object)[1]
 ##  ranges <- ranges[ranges$sample %in% colnames(se)]

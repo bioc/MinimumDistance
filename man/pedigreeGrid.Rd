@@ -17,7 +17,6 @@ pedigreeGrid(g, vps, figs)
 Plot the log R ratios and BAFs on a grid given by precomputed viewports
 }
 \examples{
-library(GenomicRanges)
 library(VanillaICE)
 require(grid)
 ##marker-level summaries

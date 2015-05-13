@@ -7,7 +7,6 @@
 #' @import Biobase
 #' @import S4Vectors
 #' @import IRanges
-#' @import GenomicRanges
 #' @importFrom utils packageDescription
 #' @import DNAcopy
 #' @import foreach

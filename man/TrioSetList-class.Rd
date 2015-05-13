@@ -9,7 +9,7 @@
 \alias{TrioSetList-class}
 \alias{[,TrioSetList,ANY,ANY,ANY-method}
 \alias{[[,TrioSetList,ANY,ANY-method}
-\alias{coerce,TrioSetList,SummarizedExperiment-method}
+\alias{coerce,TrioSetList,RangedSummarizedExperiment-method}
 \alias{length,TrioSetList-method}
 \alias{offspringNames,TrioSetList-method}
 \alias{pedigree,TrioSetList-method}
@@ -19,7 +19,7 @@
 \alias{trios,TrioSetList-method}
 \title{Deprecated class for storing low-level genomic data for trios}
 \usage{
-\S4method{coerce}{TrioSetList,SummarizedExperiment}(from, to)
+\S4method{coerce}{TrioSetList,RangedSummarizedExperiment}(from, to)
 
 \S4method{pedigree}{TrioSetList}(object)
 
@@ -50,7 +50,7 @@
 \arguments{
 \item{from}{a \code{TrioSetList}}
 
-\item{to}{a \code{SummarizedExperiment}}
+\item{to}{a \code{RangedSummarizedExperiment}}
 
 \item{object}{a \code{TrioSetList} object}
 
