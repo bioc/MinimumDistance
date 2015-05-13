@@ -1234,7 +1234,7 @@ callDenovoSegments <- function(path="",
 			       mdThr=0.9,
 			       prOutlierBAF=list(initial=1e-3, max=1e-1, maxROH=1e-3),
 			       verbose=FALSE, genome=c("hg19", "hg18"), ...){
-  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+  pkgs <- c("VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
   genome <- match.arg(genome)
   if(!is(pedigreeData, "Pedigree")) stop("pedigreeData must be an object of class Pedigree")
   filenames <- file.path(path, paste(originalNames(allNames(pedigreeData)), ext, sep=""))
@@ -1745,7 +1745,7 @@ acf2 <- function(x, lag.max=10, type = c("correlation", "covariance", "partial")
   x <- x[!is.na(x)]
   y <- acf(x, lag.max=lag.max, type=type, plot=plot,
            na.action=na.action, demean=demean, ...)
-  y <- y[[1]][lag.max+1, , 1]
+  y[[1]][lag.max+1, , 1]
 }
 
 colAcfs <- function(X, lag.max=10, plot=FALSE) {

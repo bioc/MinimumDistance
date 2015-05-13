@@ -116,12 +116,12 @@ setAs("TrioSet", "data.frame",
             })
 
 #' @param from a \code{TrioSetList}
-#' @param to a \code{SummarizedExperiment}
-#' @aliases coerce,TrioSetList,SummarizedExperiment-method
+#' @param to a \code{RangedSummarizedExperiment}
+#' @aliases coerce,TrioSetList,RangedSummarizedExperiment-method
 #' @rdname TrioSetList-class
-setMethod("coerce", signature(from="TrioSetList", to="SummarizedExperiment"),
+setMethod("coerce", signature(from="TrioSetList", to="RangedSummarizedExperiment"),
 	  function(from, to){
-		  if(ncol(from) > 1) stop("coercion to SummarizedExperiment does not work when ncol > 1")
+		  if(ncol(from) > 1) stop("coercion to RangedSummarizedExperiment does not work when ncol > 1")
 		  ##nms <- varLabels(from@featureDataList[[1]])
 		  chrom <- rep(paste("chr", chromosome(from), sep=""),
 			       elementLengths(from))

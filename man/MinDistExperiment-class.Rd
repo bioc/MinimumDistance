@@ -5,13 +5,13 @@
 \alias{MinDistExperiment-class}
 \alias{[,MinDistExperiment,ANY,ANY,ANY-method}
 \alias{father,MinDistExperiment-method}
-\alias{father,SummarizedExperiment-method}
+\alias{father,RangedSummarizedExperiment-method}
 \alias{mindist,MinDistExperiment-method}
 \alias{mindist<-,MinDistExperiment,ANY-method}
 \alias{mother,MinDistExperiment-method}
-\alias{mother,SummarizedExperiment-method}
+\alias{mother,RangedSummarizedExperiment-method}
 \alias{offspring,MinDistExperiment-method}
-\alias{offspring,SummarizedExperiment-method}
+\alias{offspring,RangedSummarizedExperiment-method}
 \alias{pedigree,MinDistExperiment-method}
 \alias{pedigree<-,MinDistExperiment-method}
 \alias{segment2,MinDistExperiment-method}
@@ -38,11 +38,11 @@
 
 \S4method{segment2}{MinDistExperiment}(object, param = MinDistParam())
 
-\S4method{father}{SummarizedExperiment}(object)
+\S4method{father}{RangedSummarizedExperiment}(object)
 
-\S4method{mother}{SummarizedExperiment}(object)
+\S4method{mother}{RangedSummarizedExperiment}(object)
 
-\S4method{offspring}{SummarizedExperiment}(object)
+\S4method{offspring}{RangedSummarizedExperiment}(object)
 }
 \arguments{
 \item{object}{a \code{MinDistExperiment} object}
@@ -55,7 +55,7 @@
 
 \item{j}{a numeric-vector for indexing the columns (optional)}
 
-\item{...}{additional arguments propogated to subsetting methods for \code{SummarizedExperiment}}
+\item{...}{additional arguments propogated to subsetting methods for \code{RangedSummarizedExperiment}}
 
 \item{drop}{logical. Whether to simplify a one-row or one-column
 matrix to a vector. In most cases, this should always be FALSE.}

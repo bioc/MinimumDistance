@@ -677,7 +677,7 @@ setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
 ##			     cnStates=c(-2, -0.4, 0, 0, 0.4, 1),
 ##			     pr.nonmendelian=1.5e-6,
 ##			     mdThr=0.9,...){
-##  pkgs <- c("GenomicRanges", "VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
+##  pkgs <- c("VanillaICE", "oligoClasses", "matrixStats", "MinimumDistance")
 ##  if(missing(id)) id <- sampleNames(object)
 ##  index.trios <- match(id, sampleNames(object))
 ##  if(!all(sampleNames(ranges) %in% id))

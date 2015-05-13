@@ -8,14 +8,13 @@
 This dataset contains log R ratios and B allele frequencies from a
 parent-offspring trio (three individuals). Only markers from
 chromosomes 7 and 22 are included in this object. The
-\code{MinDistExperiment} class extends \code{SummarizedExperiment},
-and so many of the methods defined for \code{SummarizedExperiment}
+\code{MinDistExperiment} class extends \code{RangedSummarizedExperiment},
+and so many of the methods defined for \code{RangedSummarizedExperiment}
 such as \code{findOverlaps} are available through inheritance.
 }
 \examples{
 \dontrun{
     library(oligoClasses)
-    library(GenomicRanges)
     library(VanillaICE)
     library(data.table)
     library(BSgenome.Hsapiens.UCSC.hg18)

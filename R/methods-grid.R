@@ -124,7 +124,6 @@ pedigreeViewports <- function(){
 #' @param vps a list of viewports.  See \code{\link{pedigreeViewports}}.
 #' @param figs a list of trellis objects created by the function \code{\link{plotDenovo}}.
 #' @examples
-#' library(GenomicRanges)
 #' library(VanillaICE)
 #' require(grid)
 #' ##marker-level summaries

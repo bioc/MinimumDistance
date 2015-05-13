@@ -1,13 +1,13 @@
 ## these methods are used internally...
 
-#' @aliases father,SummarizedExperiment-method
+#' @aliases father,RangedSummarizedExperiment-method
 #' @rdname MinDistExperiment-class
-setMethod("father", "SummarizedExperiment", function(object) assays(object)[["father"]])
+setMethod("father", "RangedSummarizedExperiment", function(object) assays(object)[["father"]])
 
-#' @aliases mother,SummarizedExperiment-method
+#' @aliases mother,RangedSummarizedExperiment-method
 #' @rdname MinDistExperiment-class
-setMethod("mother", "SummarizedExperiment", function(object) assays(object)[["mother"]])
+setMethod("mother", "RangedSummarizedExperiment", function(object) assays(object)[["mother"]])
 
-#' @aliases offspring,SummarizedExperiment-method
+#' @aliases offspring,RangedSummarizedExperiment-method
 #' @rdname MinDistExperiment-class
-setMethod("offspring", "SummarizedExperiment", function(object) assays(object)[["offspring"]])
+setMethod("offspring", "RangedSummarizedExperiment", function(object) assays(object)[["offspring"]])

@@ -1,5 +1,5 @@
 %\VignetteIndexEntry{Detection of de novo copy number alterations in case-parent trios}
-%\VignetteDepends{VanillaICE}
+%\VignetteDepends{oligoClasses, VanillaICE, MinimumDistance}
 %\VignetteKeywords{MinimumDistance, copy number, SNP, case-parent trios, de novo}
 %\VignettePackage{MinimumDistance}
 \documentclass{article}
@@ -126,7 +126,6 @@ publicly available oral cleft trio, each assayed on the Illumina
 
 <<registerBackend>>=
 library(oligoClasses)
-library(GenomicRanges)
 library(VanillaICE)
 library(MinimumDistance)
 foreach::registerDoSEQ()
@@ -292,7 +291,7 @@ VanillaICE::genotypes(views)[1:2, 2:4]
 @
 
  More often, it is useful to extract the low-level data in a
- \Rclass{SummarizedExperiment}-derived class such that meta-data on
+ \Rclass{RangedSummarizedExperiment}-derived class such that meta-data on
  the samples remains bound to the columns of the assay data (log R
  ratios / B allele frequencies) and meta-data on the rows remains
  bound to the rows of the assay data. This is accomplished by applying

@@ -40,7 +40,7 @@ setMethod(SnpGRanges, "SnpGRanges", function(object, isSnp) return(object))
   md <- .setColnames(.mindist(assays), .set_md_names(offspring(pedigree)))
   new("MinDistExperiment",
       assays=assays,
-      rowData=SnpGRanges(rowRanges),
+      rowRanges=SnpGRanges(rowRanges),
       colData=colData,
       mindist=md,
       pedigree=pedigree)
@@ -120,7 +120,7 @@ setReplaceMethod("mindist", "MinDistExperiment", function(object, value) {
 #' @param x a \code{MinDistExperiment} object
 #' @param i a numeric-vector for indexing the rows (optional)
 #' @param j a numeric-vector for indexing the columns (optional)
-#' @param ... additional arguments propogated to subsetting methods for \code{SummarizedExperiment}
+#' @param ... additional arguments propogated to subsetting methods for \code{RangedSummarizedExperiment}
 #' @param drop logical. Whether to simplify a one-row or one-column
 #' matrix to a vector. In most cases, this should always be FALSE.
 #' @aliases [,MinDistExperiment,ANY,ANY,ANY-method
