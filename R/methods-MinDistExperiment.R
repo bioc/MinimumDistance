@@ -39,9 +39,10 @@ setMethod(SnpGRanges, "SnpGRanges", function(object, isSnp) return(object))
 .constructMDE <- function(assays, rowRanges, colData, pedigree){
   md <- .setColnames(.mindist(assays), .set_md_names(offspring(pedigree)))
   new("MinDistExperiment",
-      assays=assays,
-      rowRanges=SnpGRanges(rowRanges),
-      colData=colData,
+      SummarizedExperiment(
+          assays=assays$data,
+          rowRanges=SnpGRanges(rowRanges),
+          colData=colData),
       mindist=md,
       pedigree=pedigree)
 }
