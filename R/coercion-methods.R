@@ -124,7 +124,7 @@ setMethod("coerce", signature(from="TrioSetList", to="RangedSummarizedExperiment
 		  if(ncol(from) > 1) stop("coercion to RangedSummarizedExperiment does not work when ncol > 1")
 		  ##nms <- varLabels(from@featureDataList[[1]])
 		  chrom <- rep(paste("chr", chromosome(from), sep=""),
-			       elementLengths(from))
+			       elementNROWS(from))
 		  pos <- unlist(position(from))
 		  is.snp <- unlist(lapply(featureDataList(from), isSnp))
 		  ## stack the featureDataList to make featureData

@@ -25,13 +25,13 @@ setMethod("initialize", signature(.Object="TrioSetList"),
 		  .Object
 	  })
 
-setMethod("elementLengths", signature(x="TrioSetList"), function(x){
+setMethod("elementNROWS", signature(x="TrioSetList"), function(x){
 	if(length(x) == 0) return(0L)
 	as.integer(sapply(featureData(x), nrow))
 })
 
 setValidity("TrioSetList", function(object){
-	l <- elementLengths(object)
+	l <- elementNROWS(object)
 	if(any(l > 0)){
 		if(!genomeBuild(object) %in% c("hg19", "hg18"))
 			return(paste("genome is ", genomeBuild(object), ", but must be 'hg18' or 'hg19'.", sep=""))
@@ -704,7 +704,7 @@ setMethod(MAP, c("TrioSetList", "GRanges"), function(object,
 ##  rlist <- lrr(object)
 ##  blist <- baf(object)
 ##  pos <- unlist(position(object))
-##  chr <- rep(chromosome(object), elementLengths(object))
+##  chr <- rep(chromosome(object), elementNROWS(object))
 ##  build <- genomeBuild(object)
 ##  sl <- setSequenceLengths(build,
 ##                           paste("chr", chromosome(object), sep=""))

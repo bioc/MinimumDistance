@@ -1,7 +1,7 @@
 Package: MinimumDistance
 Type: Package
 Title: A package for de novo CNV detection in case-parent trios
-Version: 1.15.0
+Version: 1.15.1
 Date: Thu Jun 18 16:31:04 PDT 2015
 Author: Robert B Scharpf and Ingo Ruczinski
 Maintainer: Robert B Scharpf <rscharpf@jhu.edu>
@@ -12,19 +12,19 @@ Depends:
     R (>= 3.01), VanillaICE (>= 1.31.3)
 Imports:
     methods,
-    oligoClasses,
-    S4Vectors,
-    Biobase,
-    DNAcopy,
     BiocGenerics,
+    Biobase,
+    S4Vectors (>= 0.9.25),
+    IRanges,
+    GenomeInfoDb,
+    GenomicRanges (>= 1.17.16),
+    SummarizedExperiment (>= 0.2.0),
+    oligoClasses,
+    DNAcopy,
     ff,
     foreach,
     matrixStats,
-    IRanges,
     lattice,
-    GenomicRanges (>= 1.17.16),
-    SummarizedExperiment (>= 0.2.0),
-    GenomeInfoDb,
     data.table,
     grid,
     stats
