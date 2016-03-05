@@ -1,15 +1,14 @@
 Package: MinimumDistance
-Type: Package
-Title: A package for de novo CNV detection in case-parent trios
-Version: 1.15.1
-Date: Thu Jun 18 16:31:04 PDT 2015
+Title: A Package for De Novo CNV Detection in Case-Parent Trios
+Version: 1.15.2
+Date: 2015-06-18
 Author: Robert B Scharpf and Ingo Ruczinski
 Maintainer: Robert B Scharpf <rscharpf@jhu.edu>
 Description: Analysis of de novo copy number variants in trios from
     high-dimensional genotyping platforms
 License: Artistic-2.0
 Depends:
-    R (>= 3.01), VanillaICE (>= 1.31.3)
+    R (>= 3.0.1), VanillaICE (>= 1.31.3)
 Imports:
     methods,
     BiocGenerics,
@@ -72,8 +71,4 @@ Collate:
     'zzz.R'
 Enhances: snow, doSNOW
 LazyLoad: yes
-Packaged: 2012-03-23 14:08:50 UTC; rscharpf
 biocViews: Microarray, SNP, CopyNumberVariation
-## Local Variables: 
-## time-stamp-pattern: "8/Date: %3a %3b %2d %02H:%02M:%02S %Z %:y\n"
-## End: 
