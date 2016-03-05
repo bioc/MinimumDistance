@@ -456,6 +456,7 @@ setMethod("prune", signature(object="TrioSet", ranges="RangedDataCNV"),
 		  pruneTrioSet(object=object, ranges=ranges, md=md, verbose=verbose, ...)
 	 })
 
+#' @importFrom utils setTxtProgressBar txtProgressBar
 pruneTrioSet <- function(object, ranges, md, verbose=TRUE, ...){
 	CHR <- unique(chromosome(object))
 	if(verbose) message("Pruning chromosome ", CHR)

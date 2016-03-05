@@ -27,7 +27,8 @@ Imports:
     lattice,
     data.table,
     grid,
-    stats
+    stats,
+    utils
 Suggests:
     human610quadv1bCrlmm (>= 1.0.3),
     BSgenome.Hsapiens.UCSC.hg18,

@@ -297,6 +297,7 @@ filterIndexForGRanges <- function(object, granges, param){
   which(above_thr)
 }
 
+#' @importFrom utils packageVersion
 .compute_trio_posterior <- function(object, granges, param, lemit){
   granges <- subsetByOverlaps(granges, object)
   states <- stateNames(param)
