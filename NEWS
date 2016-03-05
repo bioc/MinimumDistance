@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.14.2
+-------------------------
+
+  o SPEEDUP: Using rowMads() of matrixStats.
+  
+
 CHANGES IN VERSION 1.10.0
 -------------------------
 

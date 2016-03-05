@@ -585,10 +585,9 @@ fillInMissing <- function(rangeIndex){
 	return(rangeIndex)
 }
 
+#' @importFrom matrixStats rowMads
 rowMAD <- function(x, y, ...){
-	##notna <- !is.na(x)
-	mad <- 1.4826*rowMedians(abs(x-rowMedians(x, ...)), ...)
-	return(mad)
+	rowMads(x, ...)
 }
 
 dups.penn <- expand.grid(c(1,2,3,5,6), c(1,2,3,5,6), c(5,6))
