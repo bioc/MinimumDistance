@@ -80,10 +80,10 @@ setMethod("cnvFilter", "MDRanges", function(object, filters=FilterParam()){
   .apply_ped_filters(object, filters)
 })
 
-#' @param x a \code{MDRanges} object
-#' @rdname MDRanges-class
-#' @aliases reduce,MDRanges-method
-#' @export
+## @param x a \code{MDRanges} object
+## @rdname MDRanges-class
+## @aliases reduce,MDRanges-method
+
 setMethod("reduce", "MDRanges", function(x, ...){
   g <- as(x, "GRanges")
   gr <- reduce(g, ...)

@@ -4,19 +4,14 @@
 \name{MDRanges-class}
 \alias{MDRanges}
 \alias{MDRanges-class}
-\alias{reduce,MDRanges-method}
 \title{A \code{GRanges}-derived class}
 \usage{
 MDRanges(..., posteriors)
-
-\S4method{reduce}{MDRanges}(x, drop.empty.ranges = FALSE, ...)
 }
 \arguments{
 \item{...}{additional arguments to \code{GRanges} constructor}
 
 \item{posteriors}{a \code{DataFrame}}
-
-\item{x}{a \code{MDRanges} object}
 }
 \description{
 Contains maximum a posteriori estimates for each genomic interval
