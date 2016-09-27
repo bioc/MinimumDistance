@@ -119,7 +119,7 @@ isDeletion <- function(x){
 
 overlapsCentromere <- function(myranges){
 	##require(SNPchip)
-	data(chromosomeAnnotation, package="SNPchip")
+	data(chromosomeAnnotation, package="SNPchip", envir=environment())
 	chromosomeAnnotation <- get("chromosomeAnnotation")
 	centromere.ranges <- RangedData(IRanges(chromosomeAnnotation[, "centromereStart"],
 						chromosomeAnnotation[, "centromereEnd"]),
@@ -1500,7 +1500,7 @@ initializeLrrAndBafArrays <- function(dims, col.names, outdir, name=""){
 }
 
 trioSetListExample <- function(){
-	data(trioSetListExample)
+	data(trioSetListExample, envir=environment())
 	ad <- assayData(trioSetList)
 	b <- lapply(ad[["BAF"]], integerArray, scale=1000)
 	r <- lapply(ad[["logRRatio"]], integerArray, scale=100)

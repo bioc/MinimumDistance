@@ -7,7 +7,7 @@
 #' @import Biobase
 #' @import S4Vectors
 #' @import IRanges
-#' @importFrom utils packageDescription
+#' @importFrom utils packageDescription data
 #' @import DNAcopy
 #' @import foreach
 #' @importFrom matrixStats colMads colMedians
