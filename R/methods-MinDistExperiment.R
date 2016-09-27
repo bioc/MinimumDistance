@@ -214,9 +214,9 @@ removeDuplicateMapLoc <- function(object){
 computeEmissionProbs <- function(object, param=MinDistParam()){
   object <- NA_filter(object)
   transition_param <- TransitionParam()
-  F <- updateHmmParams(object[, father(object)], emission(param), transition_param=transition_param)
+  F. <- updateHmmParams(object[, father(object)], emission(param), transition_param=transition_param)
   ## use emission parameters (updated by Baum Welch) as initial values for Mother
-  emission(param) <- emissionParam(F)
+  emission(param) <- emissionParam(F.)
   M <- updateHmmParams(object[, mother(object)], emission(param), transition_param=transition_param)
   ## Again, update initial values from Mother
   emission(param) <- emissionParam(M)
@@ -227,7 +227,7 @@ computeEmissionProbs <- function(object, param=MinDistParam()){
     Olist[[j]] <- updateHmmParams(object[, id], emission(param), transition_param=transition_param)
   }
   emitO <- lapply(Olist, emission)
-  tmp <- SimpleList(father=emission(F), mother=emission(M))
+  tmp <- SimpleList(father=emission(F.), mother=emission(M))
   tmp2 <- SimpleList(emitO)
   tmp2@listData <- setNames(tmp2@listData, offspring(object))
   tmp@listData <- setNames(tmp@listData, c(father(object), mother(object)))

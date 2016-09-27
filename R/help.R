@@ -12,6 +12,8 @@
 #' @import foreach
 #' @importFrom matrixStats colMads colMedians
 #' @import GenomeInfoDb
+#' @import GenomicRanges
+#' @import SummarizedExperiment
 #' @import BiocGenerics
 #' @import oligoClasses
 #' @import VanillaICE

@@ -201,7 +201,6 @@ setGeneric("pedigreeName", function(object) standardGeneric("pedigreeName"))
 #' @examples
 #'   library(oligoClasses)
 #'   library(VanillaICE)
-#'   library(MinimumDistance)
 #'   ## A MinDistExperiment object:
 #'   data(md_exp)
 #'   ## Segmented data

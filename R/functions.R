@@ -13,7 +13,9 @@ catFun2 <- function(rd.query, rd.subject, ...){
 	if(length(index) > 0){
 		query.index <- unique(query.index[index])
 		p <- length(query.index)/nrow(rd.query)
-		if(p > 1) browser()
+		if(p > 1) {
+      stop("Reached a place in catFun2 that we shouldn't have")
+    }
 	} else p <- 0
 	return(p)
 }
@@ -195,7 +197,6 @@ pruneByFactor <- function(range.object, f, verbose=FALSE){
 		##id <- unique(range.object$id)[i]
 		##(index <- which(range.object$id == id))
 		index <- which(id.chr==ff[i])
-		##trace(combineRangesByFactor, browser)
 		rd[[i]] <- combineRangesByFactor(range.object[index, ], f=f[index])
 	}
 	if(verbose) close(pb)
@@ -375,7 +376,7 @@ pruneMD <- function(genomdat,
 			## number of standard deviations
 			segments0 <- cbind(c(1,1+cpt.loc[-k]),cpt.loc)
 			## median copy number for each segment
-			segmed <- apply(segments0, 1, function(i,x) {median(x[i[1]:i[2]], na.rm=T)}, genomdat)
+			segmed <- apply(segments0, 1, function(i,x) {median(x[i[1]:i[2]], na.rm=TRUE)}, genomdat)
 			## absolute copy number difference of adjacent segments
  			##adsegmed <- abs(diff(segmed))
 			adsegmed <- abs(diff(segmed))
@@ -462,8 +463,8 @@ addRangeIndex <- function(id, trioSet, ranges){
 	##fData(object)$range.index[qhits] <- shits
 	range.index[qhits] <- shits
 	if(sum(table(range.index)) != nrow(trioSet)){
-		message("# of markers in the ranges not equal to total number of markers")
-		browser()
+		msg <- "# of markers in the ranges not equal to total number of markers"
+    stop(msg)
 	}
 	return(range.index)
 }
@@ -822,7 +823,9 @@ posterior <- function(state,
   prior <- sum(prior[i["O"], ])
   loglik <- sum(diag(log.lik[, i]))
   posterior <- loglik + log(prior)
-  if(all(is.na(posterior))) browser()
+  if(all(is.na(posterior))) {
+    stop("all NAs in posterior")
+  }
   posterior
 }
 

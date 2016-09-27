@@ -9,7 +9,7 @@
 \usage{
 MDRanges(..., posteriors)
 
-\S4method{reduce}{MDRanges}(x, ...)
+\S4method{reduce}{MDRanges}(x, drop.empty.ranges = FALSE, ...)
 }
 \arguments{
 \item{...}{additional arguments to \code{GRanges} constructor}
