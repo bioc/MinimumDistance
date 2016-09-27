@@ -358,8 +358,8 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 		x@pedigree <- pedigree(x)[j, , drop=drop]
 		b <- baf(x)[, j, , drop=drop]
 		r <- lrr(x)[, j, , drop=drop]
-		x <- assayDataElementReplace(x, "logRRatio", r)
-		x <- assayDataElementReplace(x, "BAF", b)
+		x <- assayDataElementReplace(x, "logRRatio", r, validate=FALSE)
+		x <- assayDataElementReplace(x, "BAF", b, validate=FALSE)
 		x@fatherPhenoData <- fatherPhenoData(x)[j, ]
 		x@motherPhenoData <- motherPhenoData(x)[j, ]
 		if(!is.null(mindist(x))){
@@ -375,8 +375,8 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 		r <- lrr(x)[i, j, , drop=drop]
 		##x@sampleSheet <- x@sampleSheet[j, , , drop=drop]
 		x@pedigree <- x@pedigree[j, , drop=drop]
-		x <- assayDataElementReplace(x, "logRRatio", r)
-		x <- assayDataElementReplace(x, "BAF", b)
+		x <- assayDataElementReplace(x, "logRRatio", r, validate=FALSE)
+		x <- assayDataElementReplace(x, "BAF", b, validate=FALSE)
 		x@fatherPhenoData <- fatherPhenoData(x)[j, ]
 		x@motherPhenoData <- motherPhenoData(x)[j, ]
 		if(!is.null(mindist(x))){
@@ -387,8 +387,8 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 		featureData(x) <- featureData(x)[i, ,..., drop=drop]
 		b <- baf(x)[i, , , drop=drop]
 		r <- lrr(x)[i, , , drop=drop]
-		x <- assayDataElementReplace(x, "logRRatio", r)
-		x <- assayDataElementReplace(x, "BAF", b)
+		x <- assayDataElementReplace(x, "logRRatio", r, validate=FALSE)
+		x <- assayDataElementReplace(x, "BAF", b, validate=FALSE)
 		if(!is.null(mindist(x))){
 			mindist(x) <- mindist(x)[i, , drop=FALSE]
 		}
