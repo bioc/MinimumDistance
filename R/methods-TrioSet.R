@@ -595,7 +595,7 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 ##  build <- genome(object)[1]
 ##  ranges <- ranges[ranges$sample %in% colnames(se)]
 ##  ##chrom.ranges <- unique(chromosome(ranges))
-##  ##seqlevels(ranges, force=TRUE) <- chrom.ranges
+##  ##seqlevels(ranges, pruning.mode="coarse") <- chrom.ranges
 ##  ##id <- trios(pedigree(object))[1, ]
 ##  ##object <- object[, match(unique(sampleNames(ranges)), id)]
 ##  ##chrom.object <- paste0("chr", chromosome(object))

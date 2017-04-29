@@ -67,7 +67,7 @@ NULL
 #'     ind_id <- setNames(gsub(" ", "", sample_info$IndividualID), sample_info$File)
 #'     colnames(views) <- ind_id[gsub(".csv", "", colnames(views))]
 #'     md_exp <- MinDistExperiment(views, pedigree=ped_list[[2]])
-#'     seqlevels(md_exp, force=TRUE) <- "chr22"
+#'     seqlevels(md_exp, pruning.mode="coarse") <- "chr22"
 #'     params <- MinDistParam()
 #'     md_gr <- segment2(md_exp, params)
 #'     save(md_exp, file="~/Software/bridge/MinimumDistance/data/md_exp.rda")

@@ -46,7 +46,7 @@ quad_RdsViews <- function(){
 
 ##  ##1594:1596
 ##  me2 <- me
-##  seqlevels(me2, force=TRUE) <- "chr10"
+##  seqlevels(me2, pruning.mode="coarse") <- "chr10"
 ##  md_grl <- MAP2(me2, mdgr, param)
 ##  md_grl <- MAP2(me, mdgr, param)
 ##  md_ranges <- md_grl[[1]]

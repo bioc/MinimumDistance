@@ -21,7 +21,7 @@ library(VanillaICE)
 require(grid)
 ##marker-level summaries
 data(md_exp)
-seqlevels(md_exp, force=TRUE) <- "chr22"
+seqlevels(md_exp, pruning.mode="coarse") <- "chr22"
 ## segmentation results
 data(md_gr)
 posteriorCalls <- MAP2(md_exp, md_gr, MinDistParam())

@@ -164,7 +164,7 @@ setMethod("mother", "MinDistExperiment", function(object) mother(pedigree(object
 setMethod("subsetAndSort", "MinDistExperiment",
           function(object, autosomes=seqlevels(object)[1:22]){
             object <- object[chromosome(object) %in% autosomes, ]
-            seqlevels(rowRanges(object), force=TRUE) <- autosomes
+            seqlevels(rowRanges(object), pruning.mode="coarse") <- autosomes
             object <- sort(object)
             object <- removeDuplicateMapLoc(object)
             object
