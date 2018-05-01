@@ -192,6 +192,7 @@ segmentArray <- function(object, pos, chrom, id, featureNames, segmentParents, v
 }
 
 
+#' @importFrom utils setTxtProgressBar
 segmentMatrix <- function(object, pos, chrom, id, featureNames,
 			  genome, gapsize=75e3, ...){
   if(!is(object, "matrix"))

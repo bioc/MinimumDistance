@@ -73,8 +73,8 @@ setMethod("show", "MinDistGRanges", function(object){
   ##cat("  pedigree id:  ", pedigree_id(object), "\n")
   offspr <- offspring(pedigree(object))
   mdr <- mindist(object)
-  L <- elementLengths(offspring(object))
-  L2 <- elementLengths(mdr)
+  L <- elementNROWS(offspring(object))
+  L2 <- elementNROWS(mdr)
   mdrnames <- names(mdr)
   cat("  mindist:  GRangesList of length", length(offspring(object)), "\n")
   for(i in seq_along(offspr)){

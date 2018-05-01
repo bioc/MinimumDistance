@@ -116,7 +116,7 @@ setMethod("offspringNames", signature(object="Pedigree"), function(object) trios
 
 setMethod("sampleNames", signature(object="Pedigree"), function(object) offspringNames(object))
 setMethod("allNames", signature(object="Pedigree"), function(object) unique(trioIndex(object)$individualId))
-setMethod("fatherNames", signature(object="Pedigree"), function(object) trios(object)$F)
+setMethod("fatherNames", signature(object="Pedigree"), function(object) trios(object)[["F"]])
 setMethod("motherNames", signature(object="Pedigree"), function(object) trios(object)$M)
 
 #' @aliases show,Pedigree-method

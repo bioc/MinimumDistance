@@ -13,7 +13,9 @@ catFun2 <- function(rd.query, rd.subject, ...){
 	if(length(index) > 0){
 		query.index <- unique(query.index[index])
 		p <- length(query.index)/nrow(rd.query)
-		if(p > 1) browser()
+		if(p > 1) {
+      stop("Reached a place in catFun2 that we shouldn't have")
+    }
 	} else p <- 0
 	return(p)
 }
@@ -66,6 +68,7 @@ discAtTop <- function(ranges.query, ranges.subject, verbose=TRUE,...){
 	return(res)
 }
 
+#' @importFrom utils setTxtProgressBar txtProgressBar
 concAtTop <- function(ranges.query, ranges.subject, list.size, verbose=TRUE, ...){
 	p <- rep(NA, length(list.size))
 	pAny1 <- rep(NA, length(list.size))
@@ -116,7 +119,7 @@ isDeletion <- function(x){
 
 overlapsCentromere <- function(myranges){
 	##require(SNPchip)
-	data(chromosomeAnnotation, package="SNPchip")
+	data(chromosomeAnnotation, package="SNPchip", envir=environment())
 	chromosomeAnnotation <- get("chromosomeAnnotation")
 	centromere.ranges <- RangedData(IRanges(chromosomeAnnotation[, "centromereStart"],
 						chromosomeAnnotation[, "centromereEnd"]),
@@ -135,6 +138,7 @@ overlapsCentromere <- function(myranges){
 	return(overlaps.centromere)
 }
 
+#' @importFrom utils read.delim
 getRefGene <- function(filename="~/Data/Downloads/hg18_refGene.txt"){
 	colClasses <- c("integer", "character", "character", "factor",
 			"integer", "integer",
@@ -177,6 +181,7 @@ combineRanges <- function(deletion.ranges, amp.ranges){
 }
 
 
+#' @importFrom utils setTxtProgressBar txtProgressBar
 pruneByFactor <- function(range.object, f, verbose=FALSE){
 	rd <- list()
 	id.chr <- paste(sampleNames(range.object), chromosome(range.object), sep="_")
@@ -192,7 +197,6 @@ pruneByFactor <- function(range.object, f, verbose=FALSE){
 		##id <- unique(range.object$id)[i]
 		##(index <- which(range.object$id == id))
 		index <- which(id.chr==ff[i])
-		##trace(combineRangesByFactor, browser)
 		rd[[i]] <- combineRangesByFactor(range.object[index, ], f=f[index])
 	}
 	if(verbose) close(pb)
@@ -372,7 +376,7 @@ pruneMD <- function(genomdat,
 			## number of standard deviations
 			segments0 <- cbind(c(1,1+cpt.loc[-k]),cpt.loc)
 			## median copy number for each segment
-			segmed <- apply(segments0, 1, function(i,x) {median(x[i[1]:i[2]], na.rm=T)}, genomdat)
+			segmed <- apply(segments0, 1, function(i,x) {median(x[i[1]:i[2]], na.rm=TRUE)}, genomdat)
 			## absolute copy number difference of adjacent segments
  			##adsegmed <- abs(diff(segmed))
 			adsegmed <- abs(diff(segmed))
@@ -422,9 +426,13 @@ pruneMD <- function(genomdat,
 
 ## pdf of standard normal
 ## the msm package has this stuff, but it seemed slow...
+#' @importFrom stats dnorm
 phi <- function(x, mu, sigma) dnorm(x, mu, sigma)
+
 ## cdf of standard normal
+#' @importFrom stats pnorm
 Phi <- function(x, mu, sigma) pnorm(x, mu, sigma)
+
 ## pdf of truncated normal on support [0, 1]
 tnorm <- function(x, mean, sd, lower=0, upper=1){
 	res <- phi(x, mean, sd)/(Phi(upper, mean, sd)-Phi(lower, mean, sd))
@@ -455,8 +463,8 @@ addRangeIndex <- function(id, trioSet, ranges){
 	##fData(object)$range.index[qhits] <- shits
 	range.index[qhits] <- shits
 	if(sum(table(range.index)) != nrow(trioSet)){
-		message("# of markers in the ranges not equal to total number of markers")
-		browser()
+		msg <- "# of markers in the ranges not equal to total number of markers"
+    stop(msg)
 	}
 	return(range.index)
 }
@@ -578,10 +586,9 @@ fillInMissing <- function(rangeIndex){
 	return(rangeIndex)
 }
 
+#' @importFrom matrixStats rowMads
 rowMAD <- function(x, y, ...){
-	##notna <- !is.na(x)
-	mad <- 1.4826*rowMedians(abs(x-rowMedians(x, ...)), ...)
-	return(mad)
+	rowMads(x, ...)
 }
 
 dups.penn <- expand.grid(c(1,2,3,5,6), c(1,2,3,5,6), c(5,6))
@@ -816,7 +823,9 @@ posterior <- function(state,
   prior <- sum(prior[i["O"], ])
   loglik <- sum(diag(log.lik[, i]))
   posterior <- loglik + log(prior)
-  if(all(is.na(posterior))) browser()
+  if(all(is.na(posterior))) {
+    stop("all NAs in posterior")
+  }
   posterior
 }
 
@@ -936,6 +945,7 @@ posterior <- function(state,
 ##		   mad.minimumdistance, verbose=TRUE,
 ##		   fD, genome) .Defunct("The 'narrow' function is defunct in MinimumDistance. Use narrowRanges instead.")
 
+#' @importFrom utils txtProgressBar
 narrowRanges <- function(object,
                          lrr.segs,
                          thr=0.9,
@@ -1490,7 +1500,7 @@ initializeLrrAndBafArrays <- function(dims, col.names, outdir, name=""){
 }
 
 trioSetListExample <- function(){
-	data(trioSetListExample)
+	data(trioSetListExample, envir=environment())
 	ad <- assayData(trioSetList)
 	b <- lapply(ad[["BAF"]], integerArray, scale=1000)
 	r <- lapply(ad[["logRRatio"]], integerArray, scale=100)
@@ -1501,6 +1511,7 @@ trioSetListExample <- function(){
 
 neededPkgs <- function() c("oligoClasses", "Biobase", "MinimumDistance")
 
+#' @importFrom stats lowess
 gcSubtractMatrix <- function(object, center=TRUE, gc, pos, smooth.gc=TRUE, ...){
 	if(ncol(object) !=3) stop("Must pass one trio at a time.")
 	cnhat <- matrix(NA, nrow(object), ncol(object))
@@ -1738,6 +1749,7 @@ logEmissionArray <- function(object){
 #' x <- rnorm(100)
 #' x[5] <- NA
 #' acf2(x)
+#' @importFrom stats acf
 #' @export
 acf2 <- function(x, lag.max=10, type = c("correlation", "covariance", "partial"),
                  plot = FALSE, na.action = na.omit, demean = TRUE,

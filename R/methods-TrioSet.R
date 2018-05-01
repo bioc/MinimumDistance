@@ -358,8 +358,8 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 		x@pedigree <- pedigree(x)[j, , drop=drop]
 		b <- baf(x)[, j, , drop=drop]
 		r <- lrr(x)[, j, , drop=drop]
-		x <- assayDataElementReplace(x, "logRRatio", r)
-		x <- assayDataElementReplace(x, "BAF", b)
+		x <- assayDataElementReplace(x, "logRRatio", r, validate=FALSE)
+		x <- assayDataElementReplace(x, "BAF", b, validate=FALSE)
 		x@fatherPhenoData <- fatherPhenoData(x)[j, ]
 		x@motherPhenoData <- motherPhenoData(x)[j, ]
 		if(!is.null(mindist(x))){
@@ -375,8 +375,8 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 		r <- lrr(x)[i, j, , drop=drop]
 		##x@sampleSheet <- x@sampleSheet[j, , , drop=drop]
 		x@pedigree <- x@pedigree[j, , drop=drop]
-		x <- assayDataElementReplace(x, "logRRatio", r)
-		x <- assayDataElementReplace(x, "BAF", b)
+		x <- assayDataElementReplace(x, "logRRatio", r, validate=FALSE)
+		x <- assayDataElementReplace(x, "BAF", b, validate=FALSE)
 		x@fatherPhenoData <- fatherPhenoData(x)[j, ]
 		x@motherPhenoData <- motherPhenoData(x)[j, ]
 		if(!is.null(mindist(x))){
@@ -387,8 +387,8 @@ setMethod("[", "TrioSet", function(x, i, j, ..., drop = FALSE) {
 		featureData(x) <- featureData(x)[i, ,..., drop=drop]
 		b <- baf(x)[i, , , drop=drop]
 		r <- lrr(x)[i, , , drop=drop]
-		x <- assayDataElementReplace(x, "logRRatio", r)
-		x <- assayDataElementReplace(x, "BAF", b)
+		x <- assayDataElementReplace(x, "logRRatio", r, validate=FALSE)
+		x <- assayDataElementReplace(x, "BAF", b, validate=FALSE)
 		if(!is.null(mindist(x))){
 			mindist(x) <- mindist(x)[i, , drop=FALSE]
 		}
@@ -456,6 +456,8 @@ setMethod("prune", signature(object="TrioSet", ranges="RangedDataCNV"),
 		  pruneTrioSet(object=object, ranges=ranges, md=md, verbose=verbose, ...)
 	 })
 
+
+#' @importFrom utils setTxtProgressBar txtProgressBar
 pruneTrioSet <- function(object, ranges, md, verbose=TRUE, ...){
 	CHR <- unique(chromosome(object))
 	if(verbose) message("Pruning chromosome ", CHR)
@@ -594,7 +596,7 @@ setMethod(MAP, c("TrioSet", "GRanges"), function(object,
 ##  build <- genome(object)[1]
 ##  ranges <- ranges[ranges$sample %in% colnames(se)]
 ##  ##chrom.ranges <- unique(chromosome(ranges))
-##  ##seqlevels(ranges, force=TRUE) <- chrom.ranges
+##  ##seqlevels(ranges, pruning.mode="coarse") <- chrom.ranges
 ##  ##id <- trios(pedigree(object))[1, ]
 ##  ##object <- object[, match(unique(sampleNames(ranges)), id)]
 ##  ##chrom.object <- paste0("chr", chromosome(object))

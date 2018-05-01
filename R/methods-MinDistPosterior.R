@@ -68,7 +68,7 @@ setMethod("denovo", "MinDistPosterior", function(object, filters=FilterParamMD(s
 #' @rdname MinDistPosterior-class
 setMethod("show", "MinDistPosterior", function(object){
   cat("Object of class 'MinDistPosterior'\n")
-  nsegs <- elementLengths(granges(object))
+  nsegs <- elementNROWS(granges(object))
   cat("  no. segments:\n")
   for(i in seq_along(nsegs)){
     cat("    offspring", i, "-", nsegs[i], "\n")

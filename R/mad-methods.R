@@ -52,10 +52,10 @@ madList <- function(object, byrow, pedigree, ...){
 			## pass the ff object to the worker nodes,
 			## calculate the mad, and return the mad.
 			if(!isff){
-				F <- lapply(object, function(x) as.matrix(x[, , 1]))
+				F. <- lapply(object, function(x) as.matrix(x[, , 1]))
 				M <- lapply(object, function(x) as.matrix(x[, , 2]))
 				O <- lapply(object, function(x) as.matrix(x[, , 3]))
-				mads.father <- madFromMatrixList(F, byrow=FALSE)
+				mads.father <- madFromMatrixList(F., byrow=FALSE)
 				mads.mother <- madFromMatrixList(M, byrow=FALSE)
 				mads.offspr <- madFromMatrixList(O, byrow=FALSE)
 				if(!missing(pedigree)){
