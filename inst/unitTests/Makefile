@@ -3,7 +3,7 @@
 TOP=../..
 PKG=${shell cd ${TOP};pwd}
 SUITE=doRUnit.R
-#R=${R_HOME}/bin/R
+R=${HOME}/bin/R
 
 all: inst test
 
@@ -15,22 +15,22 @@ test: # Run unit tests
 	export RCMDCHECK=FALSE;\
 	export RUNITFILEPATTERN="$(file)";\
 	cd ${TOP}/tests;\
-	R_LIBS_USER=~/Library/R/3.0-bioc-release/library R-3.0 --vanilla --slave < ${SUITE}
+	R_LIBS_USER=~/Library/R/3.8-bioc-devel R --vanilla --slave < ${SUITE}
 
 release: # Run unit tests
 	cd ${TOP}/..;\
-	R_LIBS_USER=~/Library/R/3.1-bioc-release/library R-3.1 CMD INSTALL ${PKG}
+	R_LIBS_USER=~/Library/R/3.7-bioc-release R CMD INSTALL ${PKG}
 	export RCMDCHECK=FALSE;\
 	export RUNITFILEPATTERN="$(file)";\
 	cd ${TOP}/tests;\
-	R_LIBS_USER=~/Library/R/3.1-bioc-release/library R-3.1 --vanilla --slave < ${SUITE}
+	R_LIBS_USER=~/Library/R/3.7-bioc-release R --vanilla --slave < ${SUITE}
 
 devel:
-	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 CMD INSTALL --no-lock ${PKG}
+	R_LIBS_USER=~/Library/R/3.8-bioc-devel $R CMD INSTALL --no-lock ${PKG}
 	export RCMDCHECK=FALSE;\
 	export RUNITFILEPATTERN="$(file)";\
 	cd ${TOP}/tests;\
-	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 --vanilla --slave < ${SUITE}
+	R_LIBS_USER=~/Library/R/3.8-bioc-devel $R --vanilla --slave < ${SUITE}
 
 install:
-	R_LIBS_USER=~/Library/R/3.2-bioc-devel/library R-3.2 CMD INSTALL --no-lock ${PKG}
+	R_LIBS_USER=~/Library/R/3.8-bioc-devel R CMD INSTALL --no-lock ${PKG}
