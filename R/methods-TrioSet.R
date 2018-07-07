@@ -122,16 +122,6 @@ setMethod("offspringPhenoData", signature(object="TrioSet"),
 #' @param mindist  can be either NULL or a matrix of the minimum distance
 #' @param genome character string providing the UCSC genome build
 #' @return \code{TrioSet}
-#' @examples
-#' 	path <- system.file("extdata", package="MinimumDistance")
-#' 	load(file.path(path, "logRratio.rda"))
-#' 	load(file.path(path, "baf.rda"))
-#' 	load(file.path(path, "pedigreeInfo.rda"))
-#' 	trioSet <- TrioSet(lrr=logRratio,
-#' 			   baf=baf,
-#' 			   pedigree=Pedigree(pedigreeInfo),
-#' 			   cdfname="human610quadv1bCrlmm",
-#' 			   genome="hg18")
 #' @export
 TrioSet <- function(pedigreeData=Pedigree(),
 		    sample.sheet,
