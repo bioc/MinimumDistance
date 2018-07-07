@@ -26,7 +26,7 @@ release: # Run unit tests
 	R_LIBS_USER=~/Library/R/3.7-bioc-release R --vanilla --slave < ${SUITE}
 
 devel:
-	R_LIBS_USER=~/Library/R/3.8-bioc-devel ~/bin/R-3.5.0 CMD INSTALL --vanilla --no-lock ${PKG}
+	R_LIBS_USER=~/Library/R/3.8-bioc-devel ~/bin/R-3.5.0 --vanilla CMD INSTALL ${PKG}
 	export RCMDCHECK=FALSE;\
 	export RUNITFILEPATTERN="$(file)";\
 	cd ${TOP}/tests;\
