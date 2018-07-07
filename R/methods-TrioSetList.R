@@ -336,7 +336,6 @@ setMethod("dims", signature(x="TrioSetList"), function(x){
 
 
 
-
 setMethod("sampleNames", signature(object="TrioSetList"),
 	  function(object) offspringNames(object))
 ##setReplaceMethod("sampleNames", signature(object="TrioSetList", value="character"),

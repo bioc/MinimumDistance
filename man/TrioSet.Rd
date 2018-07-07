@@ -38,14 +38,3 @@ trios in the \code{pedigreeData} argument.}
 The \code{TrioSet} class has been deprecated and may be removed in
 a future release.
 }
-\examples{
-	path <- system.file("extdata", package="MinimumDistance")
-	load(file.path(path, "logRratio.rda"))
-	load(file.path(path, "baf.rda"))
-	load(file.path(path, "pedigreeInfo.rda"))
-	trioSet <- TrioSet(lrr=logRratio,
-			   baf=baf,
-			   pedigree=Pedigree(pedigreeInfo),
-			   cdfname="human610quadv1bCrlmm",
-			   genome="hg18")
-}
