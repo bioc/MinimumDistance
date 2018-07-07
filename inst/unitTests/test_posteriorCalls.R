@@ -8,8 +8,9 @@ test_MAP2 <- function(){
   library(foreach)
   library(BSgenome.Hsapiens.UCSC.hg19)
   library(VanillaICE)
+  library(MinimumDistance)
   foreach::registerDoSEQ()
-  data(trioSetListExample)
+  data(trioSetListExample, package="MinimumDistance")
   me <- as(trioSetList[,1], "MinDistExperiment")
   seqinfo(me) <- seqinfo(BSgenome.Hsapiens.UCSC.hg19)[seqlevels(me), ]
   if(FALSE) {
@@ -17,7 +18,6 @@ test_MAP2 <- function(){
     save(md_exp, file="~/Software/bridge/MinimumDistance/data/md_exp.rda")
   }
   checkTrue(validObject(me))
-  ##me <- subsetAndSort(me, seqlevels(me))
   e_param <- EmissionParam(temper=1, p_outlier=1/100)
   penn_param <- PennParam(prNonMendelian=1.5e-6)
   param <- MinDistParam(thin=1L, emission=e_param, penncnv=penn_param)
@@ -28,9 +28,6 @@ test_MAP2 <- function(){
   }
   md_g <- MAP2(me, mdgr, param)
   checkTrue(length(denovoHemizygous(md_g))==1)
-
-##  findOverlaps(GRanges("chr22", IRanges(20.8e6, 21.4e6)), segs(md_g))
-  ##checkIdentical(sum(md_g$call=="221", na.rm=TRUE),2L)
 }
 
 test_posteriorCalls <- function(){
