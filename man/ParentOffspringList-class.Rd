@@ -45,8 +45,6 @@ ParentOffspringList(pedigrees = list(), id)
 \description{
 Each element of the list is an element of class
 \code{\linkS4class{ParentOffspring}}.
-
-Constructor for ParentOffspringList class
 }
 \section{Slots}{
 

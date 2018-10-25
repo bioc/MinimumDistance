@@ -32,8 +32,8 @@
 \S4method{[}{TrioSet,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 
 \S4method{MAP}{TrioSet,GRanges}(object, ranges,
-  transition_param = TransitionParam(), emission_param = EmissionParam(),
-  mdThr = 0.9, ...)
+  transition_param = TransitionParam(),
+  emission_param = EmissionParam(), mdThr = 0.9, ...)
 
 \S4method{[}{ff_array,ANY,ANY,ANY}(x, i, j, ..., drop = FALSE)
 }

@@ -23,7 +23,8 @@ mother(object)
 father(object)
 
 ParentOffspring(id = character(), father = character(),
-  mother = character(), offspring = character(), parsedPath = character())
+  mother = character(), offspring = character(),
+  parsedPath = character())
 
 \S4method{pedigreeName}{ParentOffspring}(object)
 
@@ -59,8 +60,6 @@ pedigree.  For representing multiple pedigrees, see
 
 Accessor for the sample identifiers for the members in a
 pedigree
-
-Constructor for ParentOffspring class
 }
 \section{Slots}{
 

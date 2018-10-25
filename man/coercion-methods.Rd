@@ -5,20 +5,14 @@
 \alias{coerce}
 \alias{as}
 \alias{coerce,Pedigree,ParentOffspring-method}
-\alias{coerce}
 \alias{coerce,TrioSetList,MinDistExperiment-method}
-\alias{coerce}
 \alias{coerce,TrioSet,MinDistExperiment-method}
-\alias{coerce}
 \alias{coerce,TrioSet,TrioSetList-method}
-\alias{coerce}
 \alias{coerce,TrioSet,data.frame-method}
 \alias{stack,TrioSetList-method}
 \alias{stack,TrioSetLiset-method}
 \title{Coercion methods in MinimumDistance package}
 \usage{
-as(from, to)
-
 \S4method{stack}{TrioSetList}(x, ...)
 }
 \arguments{

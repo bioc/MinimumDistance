@@ -4,8 +4,8 @@
 \alias{Pedigree}
 \title{Deprecated function for constructing an instance of class Pedigree}
 \usage{
-Pedigree(pedigreeInfo, fatherIds = character(), motherIds = character(),
-  offspringIds = character())
+Pedigree(pedigreeInfo, fatherIds = character(),
+  motherIds = character(), offspringIds = character())
 }
 \arguments{
 \item{pedigreeInfo}{a \code{data.frame} with column names 'F' (father), 'M' (mother), and 'O' (offspring). Elements of the \code{data.frame} are the sample names.}

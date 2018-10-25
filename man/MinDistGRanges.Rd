@@ -5,7 +5,8 @@
 \title{Constructor for \code{MinDistGRanges} class}
 \usage{
 MinDistGRanges(mindist = GRangesList(), offspring = GRangesList(),
-  father = GRanges(), mother = GRanges(), pedigree = ParentOffspring())
+  father = GRanges(), mother = GRanges(),
+  pedigree = ParentOffspring())
 }
 \arguments{
 \item{mindist}{a \code{GRangesList} object}

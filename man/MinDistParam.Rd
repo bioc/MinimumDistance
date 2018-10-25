@@ -4,8 +4,8 @@
 \alias{MinDistParam}
 \title{Constructor for \code{MinDistParam} class}
 \usage{
-MinDistParam(nMAD = 0.75, dnacopy = DNAcopyParam(), penncnv = PennParam(),
-  emission = EmissionParam(), thin = 10L)
+MinDistParam(nMAD = 0.75, dnacopy = DNAcopyParam(),
+  penncnv = PennParam(), emission = EmissionParam(), thin = 10L)
 }
 \arguments{
 \item{nMAD}{a length-one numeric vector indicating the minimal

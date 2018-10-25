@@ -10,13 +10,14 @@
 \usage{
 filterExperiment(object, granges, param)
 
-\S4method{filterExperiment}{MinDistExperiment,GRanges}(object, granges, param)
+\S4method{filterExperiment}{MinDistExperiment,GRanges}(object, granges,
+  param)
 
 \S4method{filterExperiment}{MinDistExperiment,GRangesList}(object, granges,
   param)
 
-\S4method{filterExperiment}{MinDistExperiment,MinDistGRanges}(object, granges,
-  param)
+\S4method{filterExperiment}{MinDistExperiment,MinDistGRanges}(object,
+  granges, param)
 }
 \arguments{
 \item{object}{A \code{MinDistExperiment}}

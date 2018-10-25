@@ -6,7 +6,8 @@
 \alias{MinDistExperiment,ArrayViews,ParentOffspring-method}
 \title{Constructor for \code{MinDistExperiment} class}
 \usage{
-MinDistExperiment(object = ArrayViews(), pedigree = ParentOffspring(), ...)
+MinDistExperiment(object = ArrayViews(), pedigree = ParentOffspring(),
+  ...)
 
 
   \S4method{MinDistExperiment}{ArrayViews,ParentOffspring}(object = ArrayViews(),

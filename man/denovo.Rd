@@ -29,8 +29,8 @@ denovoDuplication(object, filters = FilterParamMD(state = "224"))
 \S4method{denovoDuplication}{MinDistPosterior}(object,
   filters = FilterParamMD(state = "224"))
 
-\S4method{denovo}{MinDistPosterior}(object, filters = FilterParamMD(state =
-  c("220", "221", "224")))
+\S4method{denovo}{MinDistPosterior}(object, filters = FilterParamMD(state
+  = c("220", "221", "224")))
 }
 \arguments{
 \item{object}{see \code{showMethods(denovo)} for a list of defined methods}

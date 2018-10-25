@@ -4,8 +4,9 @@
 \alias{TrioSetList}
 \title{Constructor for \code{TrioSetList} class}
 \usage{
-TrioSetList(chromosome = integer(), pedigreeData = Pedigree(), sample.sheet,
-  row.names = NULL, lrr, baf, featureData, cdfname, ffname = "", genome)
+TrioSetList(chromosome = integer(), pedigreeData = Pedigree(),
+  sample.sheet, row.names = NULL, lrr, baf, featureData, cdfname,
+  ffname = "", genome)
 }
 \arguments{
 \item{chromosome}{integer vector of chromosome names}

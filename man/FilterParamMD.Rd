@@ -4,7 +4,8 @@
 \alias{FilterParamMD}
 \title{Parameters for filtering results from the segmentation and copy number inference}
 \usage{
-FilterParamMD(state = trioStateNames(), seqnames = paste0("chr", 1:22), ...)
+FilterParamMD(state = trioStateNames(), seqnames = paste0("chr", 1:22),
+  ...)
 }
 \arguments{
 \item{state}{trio copy number states to select}

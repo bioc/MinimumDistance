@@ -42,8 +42,8 @@
   tauMAX = 1 - 5e-08, cnStates = c(-2, -0.4, 0, 0, 0.4, 1),
   pr.nonmendelian = 1.5e-06, mdThr = 0.9, ...)
 
-\S4method{segment2}{TrioSetList}(object, md = NULL, segmentParents = TRUE,
-  verbose = TRUE, ...)
+\S4method{segment2}{TrioSetList}(object, md = NULL,
+  segmentParents = TRUE, verbose = TRUE, ...)
 
 \S4method{segment2}{list}(object, pos, chrom, id = NULL, featureNames,
   segmentParents = TRUE, verbose = TRUE, genome, ...)
