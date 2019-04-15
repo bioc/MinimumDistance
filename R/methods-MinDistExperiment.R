@@ -238,8 +238,8 @@ computeEmissionProbs <- function(object, param=MinDistParam()){
 }
 
 setMethod("colMads", signature(x="MinDistExperiment"),
-          function(x, center=colMedians(x, ...), constant=1.4826, ...){
-            colMads(mindist(x), na.rm=TRUE)
+          function(x, ...){
+          colMads(mindist(x), na.rm=TRUE)
           })
 
 segMeanAboveThr <- function(mean, mad, nmad) abs(mean)/max(mad, 0.1) > nmad

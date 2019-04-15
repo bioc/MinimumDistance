@@ -1,9 +1,10 @@
 #' Coercion methods in MinimumDistance package
 #'
+#' @usage as(from, to)
 #' @param from see \code{showMethods("coerce")}
 #' @param to see \code{showMethods("coerce")}
 #' @rdname coercion-methods
-#' @aliases as coerce,Pedigree,ParentOffspring-method
+#' @aliases coerce,Pedigree,ParentOffspring-method
 #' @name coerce
 setAs("Pedigree", "ParentOffspring", function(from,to){
   ParentOffspring(id=paste0("trio", nrow(from)),

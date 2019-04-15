@@ -325,10 +325,10 @@ setMethod("annotation", signature(object="TrioSetList"), function(object){
 	annotation(object[[1]])
 })
 
-setMethod("dims", signature(x="TrioSetList"), function(x){
-	nr <- nrow(x)
-	nchr <- length(chromosome(x))
-	ntrios <- ncol(baf(x)[[1]])
+setMethod("dims", signature(object="TrioSetList"), function(load){
+	nr <- nrow(object)
+	nchr <- length(chromosome(object))
+	ntrios <- ncol(baf(object)[[1]])
 	dm <- c(nchr, ntrios, nr)
 	names(dm) <- c("chromosomes", "trios", "features")
 	return(dm)

@@ -13,6 +13,8 @@
 \alias{stack,TrioSetLiset-method}
 \title{Coercion methods in MinimumDistance package}
 \usage{
+as(from, to)
+
 \S4method{stack}{TrioSetList}(x, ...)
 }
 \arguments{
