@@ -1,6 +1,5 @@
 #' Coercion methods in MinimumDistance package
 #'
-#' @usage as(from, to)
 #' @param from see \code{showMethods("coerce")}
 #' @param to see \code{showMethods("coerce")}
 #' @rdname coercion-methods

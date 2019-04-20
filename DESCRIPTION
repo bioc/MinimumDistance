@@ -1,6 +1,6 @@
 Package: MinimumDistance
 Title: A Package for De Novo CNV Detection in Case-Parent Trios
-Version: 1.27.0
+Version: 1.27.1
 Date: 2017-04-29
 Author: Robert B Scharpf and Ingo Ruczinski
 Maintainer: Robert B Scharpf <rscharpf@jhu.edu>
