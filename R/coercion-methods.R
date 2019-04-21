@@ -4,8 +4,7 @@
 #' @param to see \code{showMethods("coerce")}
 #' @rdname coercion-methods
 #' @aliases coerce,Pedigree,ParentOffspring-method
-#' @name coerce
-setAs("Pedigree", "ParentOffspring", function(from,to){
+setAs("Pedigree", "ParentOffspring", function(from, to){
   ParentOffspring(id=paste0("trio", nrow(from)),
                   father=fatherNames(from),
                   mother=motherNames(from),
@@ -14,7 +13,6 @@ setAs("Pedigree", "ParentOffspring", function(from,to){
 
 #' @aliases coerce,TrioSetList,MinDistExperiment-method
 #' @rdname coercion-methods
-#' @name coerce
 setAs("TrioSetList", "MinDistExperiment", function(from, to){
   trioSet <- stack(from)
   as(trioSet, "MinDistExperiment")
@@ -22,7 +20,6 @@ setAs("TrioSetList", "MinDistExperiment", function(from, to){
 
 #' @aliases coerce,TrioSet,MinDistExperiment-method
 #' @rdname coercion-methods
-#' @name coerce
 setAs("TrioSet", "MinDistExperiment", function(from, to){
   if(ncol(from) > 1) message("only coercing first trio in TrioSet to MinDistExperiment")
   from <- from[, 1]

@@ -12,7 +12,7 @@ FilterParamMD(state = trioStateNames(), seqnames = paste0("chr", 1:22),
 
 \item{seqnames}{chromosome names to select}
 
-\item{...}{additional arguments passed to \code{\link[VanillaICE]{FilterParam}}}
+\item{...}{additional arguments passed to \code{\link[VanillaICE]{FilterParam-class}}}
 }
 \description{
 A container for criteria used to filter the segmentation results

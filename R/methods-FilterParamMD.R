@@ -8,7 +8,7 @@
 #' used filters.
 #' @param state trio copy number states to select
 #' @param seqnames chromosome names to select
-#' @param ... additional arguments passed to \code{\link[VanillaICE]{FilterParam}}
+#' @param ... additional arguments passed to \code{\link[VanillaICE]{FilterParam-class}}
 #' @examples
 #' library(VanillaICE)
 #' data(md_gr)

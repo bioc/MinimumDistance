@@ -3,34 +3,22 @@
 \docType{methods}
 \name{coerce}
 \alias{coerce}
-\alias{as}
-\alias{coerce,Pedigree,ParentOffspring-method}
-\alias{coerce,TrioSetList,MinDistExperiment-method}
-\alias{coerce,TrioSet,MinDistExperiment-method}
 \alias{coerce,TrioSet,TrioSetList-method}
 \alias{coerce,TrioSet,data.frame-method}
 \alias{stack,TrioSetList-method}
 \alias{stack,TrioSetLiset-method}
-\title{Coercion methods in MinimumDistance package}
+\title{Coerces a TrioSetList to a TrioSet}
 \usage{
-as(from, to)
-
 \S4method{stack}{TrioSetList}(x, ...)
 }
 \arguments{
 \item{x}{a \code{TrioSetList}}
 
 \item{...}{ignored}
-
-\item{from}{see \code{showMethods("coerce")}}
-
-\item{to}{see \code{showMethods("coerce")}}
 }
 \value{
 a \code{TrioSet}
 }
 \description{
-Coercion methods in MinimumDistance package
-
 Coerces a TrioSetList to a TrioSet
 }
