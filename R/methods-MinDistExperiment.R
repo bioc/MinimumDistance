@@ -9,7 +9,7 @@ offspringIndex <- function(x) grep("offspring", x)
 
 .mindist <- function(object){
   ## assumes FMO ordering
-  cn <- object$data[["cn"]]
+  cn <- getListElement(object, "cn")
   F <- cn[, 1]
   M <- cn[, 2]
   ##O <- cn[, offspringIndex(colnames(cn)), drop=FALSE]
@@ -25,9 +25,9 @@ offspringIndex <- function(x) grep("offspring", x)
 ##.mindistnames <- function(x) paste0("mindist_", x[offspringIndex(x)])
 
 
-setMethod("colnames", "ShallowSimpleListAssays",
+setMethod("colnames", "Assays",
           function (x, do.NULL = TRUE, prefix = "col") {
-            colnames(x$data[["cn"]])
+            colnames(getListElement(x, "cn"))
           })
 
 ## do nothing
@@ -40,7 +40,7 @@ setMethod(SnpGRanges, "SnpGRanges", function(object, isSnp) return(object))
   md <- .setColnames(.mindist(assays), .set_md_names(offspring(pedigree)))
   new("MinDistExperiment",
       SummarizedExperiment(
-          assays=assays$data,
+          assays=assays,
           rowRanges=SnpGRanges(rowRanges),
           colData=colData),
       mindist=md,
