@@ -67,7 +67,7 @@ setClass("TrioSetList", contains="gSetList",
 			fatherPhenoData="AnnotatedDataFrame",
 			motherPhenoData="AnnotatedDataFrame"))
 
-setClass("Pedigree2", contains="DataFrame")
+setClass("Pedigree2", contains="DFrame")
 
 ## HmmTrioParam
 setClass("PennParam", representation(transitionProb="matrix",
