@@ -166,7 +166,7 @@ pedigreeGrid <- function(g, vps, figs){
                             genome=genome(g)[[1]],
                             seqlengths=sl,
                             box=list(xlim=xlim, color="blue"))
-  idiogram <- VanillaICE::plot(iparams)
+  idiogram <- VanillaICE:::plotIdiogram(iparams)
   grid.newpage()
   vp <- vps[["datavp"]]
   pushViewport(vp)

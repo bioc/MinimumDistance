@@ -4,9 +4,19 @@
 \alias{TrioSetListLD}
 \title{Deprecated TrioSetList constructor for large data}
 \usage{
-TrioSetListLD(path, fnames, ext = "", samplesheet, row.names,
-  pedigreeData, featureData, annotationPkg, outdir = ldPath(),
-  ffprefix = "", genome = c("hg19", "hg18"))
+TrioSetListLD(
+  path,
+  fnames,
+  ext = "",
+  samplesheet,
+  row.names,
+  pedigreeData,
+  featureData,
+  annotationPkg,
+  outdir = ldPath(),
+  ffprefix = "",
+  genome = c("hg19", "hg18")
+)
 }
 \arguments{
 \item{path}{Path to plain-text files containing log R ratios and B

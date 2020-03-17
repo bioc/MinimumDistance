@@ -38,15 +38,31 @@
 
 \S4method{$}{TrioSetList}(x, name)
 
-\S4method{MAP}{TrioSetList,GRanges}(object, ranges, id, TAUP = 1e+10,
-  tauMAX = 1 - 5e-08, cnStates = c(-2, -0.4, 0, 0, 0.4, 1),
-  pr.nonmendelian = 1.5e-06, mdThr = 0.9, ...)
+\S4method{MAP}{TrioSetList,GRanges}(
+  object,
+  ranges,
+  id,
+  TAUP = 1e+10,
+  tauMAX = 1 - 5e-08,
+  cnStates = c(-2, -0.4, 0, 0, 0.4, 1),
+  pr.nonmendelian = 1.5e-06,
+  mdThr = 0.9,
+  ...
+)
 
-\S4method{segment2}{TrioSetList}(object, md = NULL,
-  segmentParents = TRUE, verbose = TRUE, ...)
+\S4method{segment2}{TrioSetList}(object, md = NULL, segmentParents = TRUE, verbose = TRUE, ...)
 
-\S4method{segment2}{list}(object, pos, chrom, id = NULL, featureNames,
-  segmentParents = TRUE, verbose = TRUE, genome, ...)
+\S4method{segment2}{list}(
+  object,
+  pos,
+  chrom,
+  id = NULL,
+  featureNames,
+  segmentParents = TRUE,
+  verbose = TRUE,
+  genome,
+  ...
+)
 }
 \arguments{
 \item{from}{a \code{TrioSetList}}

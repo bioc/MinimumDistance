@@ -3,7 +3,9 @@
 \name{md_exp}
 \alias{md_exp}
 \title{An example \code{MinDistExperiment}}
-\format{a \code{MinDistExperiment}}
+\format{
+a \code{MinDistExperiment}
+}
 \description{
 This dataset contains log R ratios and B allele frequencies from a
 parent-offspring trio (three individuals). Only markers from

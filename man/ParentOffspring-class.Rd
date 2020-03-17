@@ -22,9 +22,13 @@ mother(object)
 
 father(object)
 
-ParentOffspring(id = character(), father = character(),
-  mother = character(), offspring = character(),
-  parsedPath = character())
+ParentOffspring(
+  id = character(),
+  father = character(),
+  mother = character(),
+  offspring = character(),
+  parsedPath = character()
+)
 
 \S4method{pedigreeName}{ParentOffspring}(object)
 

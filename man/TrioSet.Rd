@@ -4,9 +4,18 @@
 \alias{TrioSet}
 \title{Deprecated constructor for \code{TrioSet} class}
 \usage{
-TrioSet(pedigreeData = Pedigree(), sample.sheet, row.names = NULL, lrr,
-  baf, featureData, cdfname, drop = TRUE, mindist = NULL,
-  genome = c("hg19", "hg18"))
+TrioSet(
+  pedigreeData = Pedigree(),
+  sample.sheet,
+  row.names = NULL,
+  lrr,
+  baf,
+  featureData,
+  cdfname,
+  drop = TRUE,
+  mindist = NULL,
+  genome = c("hg19", "hg18")
+)
 }
 \arguments{
 \item{pedigreeData}{an object of class \code{Pedigree}}

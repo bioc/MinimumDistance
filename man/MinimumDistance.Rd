@@ -3,8 +3,4 @@
 \docType{package}
 \name{MinimumDistance}
 \alias{MinimumDistance}
-\alias{MinimumDistance-package}
 \title{De novo copy number alterations in parent-offspring trios}
-\description{
-De novo copy number alterations in parent-offspring trios
-}

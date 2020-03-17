@@ -4,8 +4,15 @@
 \alias{acf2}
 \title{Function for computing autocorrelations}
 \usage{
-acf2(x, lag.max = 10, type = c("correlation", "covariance", "partial"),
-  plot = FALSE, na.action = na.omit, demean = TRUE, ...)
+acf2(
+  x,
+  lag.max = 10,
+  type = c("correlation", "covariance", "partial"),
+  plot = FALSE,
+  na.action = na.omit,
+  demean = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{a numeric vector}

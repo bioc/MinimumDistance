@@ -5,9 +5,17 @@
 \title{Computes the maximum a posteriori trio copy number state for the
 segmented minimum distance}
 \usage{
-MAP(object, ranges, id, TAUP = 1e+10, tauMAX = 1 - 5e-08,
-  cnStates = c(-2, -0.4, 0, 0, 0.4, 1), pr.nonmendelian = 1.5e-06,
-  mdThr = 0.9, ...)
+MAP(
+  object,
+  ranges,
+  id,
+  TAUP = 1e+10,
+  tauMAX = 1 - 5e-08,
+  cnStates = c(-2, -0.4, 0, 0, 0.4, 1),
+  pr.nonmendelian = 1.5e-06,
+  mdThr = 0.9,
+  ...
+)
 }
 \arguments{
 \item{object}{see \code{showMethods(MAP)}}

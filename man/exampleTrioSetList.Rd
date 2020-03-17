@@ -4,7 +4,9 @@
 \alias{exampleTrioSetList}
 \alias{trioSetList}
 \title{An example \code{TrioSetList} object}
-\format{a \code{TrioSetList}}
+\format{
+a \code{TrioSetList}
+}
 \description{
 A dataset containing log R ratios and B allele frequencies for two
 chromosomes, organized as a \code{TrioSetList}.  Each element in

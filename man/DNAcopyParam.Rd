@@ -4,8 +4,12 @@
 \alias{DNAcopyParam}
 \title{Constructor for DNAcopyParam class}
 \usage{
-DNAcopyParam(alpha = 0.01, min.width = 2L, undo.splits = c("none",
-  "prune", "sdundo"), undo.SD = 3)
+DNAcopyParam(
+  alpha = 0.01,
+  min.width = 2L,
+  undo.splits = c("none", "prune", "sdundo"),
+  undo.SD = 3
+)
 }
 \arguments{
 \item{alpha}{see \code{\link[DNAcopy]{segment}}}

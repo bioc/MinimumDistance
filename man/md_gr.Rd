@@ -3,7 +3,9 @@
 \name{md_gr}
 \alias{md_gr}
 \title{An example \code{MinDistGRanges} object}
-\format{a \code{MinDistGRanges} object}
+\format{
+a \code{MinDistGRanges} object
+}
 \description{
 Prior to inferring de novo trio copy number states, the log R
 ratios are segmented independently for each individual in a
