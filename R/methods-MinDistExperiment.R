@@ -291,7 +291,7 @@ setMethod(MAP2, c("MinDistExperiment", "GRanges"), function(object, mdgr, param=
 
 
 filterIndexForGRanges <- function(object, granges, param){
-  mads <- setNames(colMads(object), .get_md_names(object))
+  mads <- setNames(colMads(copyNumber(object)), .get_md_names(object))
   m <- mads[granges$sample[1]]
   above_thr <- segMeanAboveThr(mean=granges$seg.mean, mad=m, nmad=nMAD(param))
   which(above_thr)

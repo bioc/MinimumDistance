@@ -127,6 +127,7 @@ publicly available oral cleft trio, each assayed on the Illumina
 <<registerBackend>>=
 library(oligoClasses)
 library(VanillaICE)
+library(SummarizedExperiment)
 library(MinimumDistance)
 foreach::registerDoSEQ()
 @
