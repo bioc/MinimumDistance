@@ -11,7 +11,7 @@
 #' @import DNAcopy
 #' @import foreach
 #' @importFrom matrixStats colMads colMedians
-#' @import GenomeInfoDb
+#' @import Seqinfo
 #' @import GenomicRanges
 #' @import SummarizedExperiment
 #' @import BiocGenerics
